@@ -126,8 +126,8 @@ export default function DatingPage() {
               </p>
             </div>
 
-            <div className="space-y-4 p-6 rounded-2xl bg-[#181c28] border border-amber-500/20">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300">
+            <div className="space-y-4 p-6 rounded-2xl bg-[#181c28] border border-white/10">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-zinc-800 text-zinc-300">
                 5060 GOLDEN TRACK
               </span>
               <h4 className="text-xl font-bold text-white">50~60대 골든 솔로</h4>

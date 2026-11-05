@@ -36,14 +36,6 @@ export default function GlobalFooter() {
             >
               취소 및 환불규정
             </button>
-            <span className="text-zinc-600">|</span>
-            <a
-              href="tel:051-208-8746"
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-xs transition-all"
-            >
-              <PhoneCall className="w-3.5 h-3.5 text-zinc-400" />
-              <span>고객센터 051-208-8746</span>
-            </a>
           </div>
 
           {/* 중간 2열: 정식 법정 사업자 정보 (단정한 모노크롬 톤) */}
@@ -97,7 +89,7 @@ export default function GlobalFooter() {
 
           {/* 하단 3열: 저작권 표시 */}
           <div className="text-center text-xs text-zinc-500 border-t border-white/5 pt-5">
-            © 2026 nadosolo.com • 템바보드 주식회사. All rights reserved.
+            © 2026 nadosolo.com. All rights reserved.
           </div>
         </div>
       </footer>

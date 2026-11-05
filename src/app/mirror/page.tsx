@@ -274,7 +274,7 @@ export default function PersonalMirrorReportPage() {
         </div>
 
         <div className="bg-[#12151e] rounded-3xl p-7 border border-white/10 shadow-sm space-y-4">
-          <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold">
+          <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-300 text-xs font-bold border border-rose-500/25">
             COACHING PRESCRIPTION
           </span>
           <h3 className="text-xl font-bold text-white">
@@ -287,13 +287,13 @@ export default function PersonalMirrorReportPage() {
               return (
                 <div
                   key={el.subElementId}
-                  className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200"
+                  className="p-4 rounded-2xl bg-white/5 border border-white/10"
                 >
-                  <div className="flex items-center justify-between font-bold text-sm text-amber-950">
+                  <div className="flex items-center justify-between font-bold text-sm text-white">
                     <span>
                       [{dom?.label} &gt; {el.label}]
                     </span>
-                    <span>{el.score20} / 20점 (집중 코칭)</span>
+                    <span className="text-rose-400">{el.score20} / 20점 (집중 코칭)</span>
                   </div>
                   <p className="text-xs text-zinc-300 mt-1.5 leading-relaxed">
                     {subDef?.coachingHintLow}

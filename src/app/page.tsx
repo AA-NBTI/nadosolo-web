@@ -61,21 +61,17 @@ export default function NadoSoloHomePage() {
               </p>
             </div>
 
-            <div className="space-y-3 pt-2">
+            <div className="pt-2">
               <button
                 type="button"
                 onClick={() => handleApply(selectedMode)}
-                className="w-full sm:w-auto px-8 sm:px-10 py-4.5 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-base sm:text-lg font-medium shadow-xl shadow-[#881337]/30 transition-all cursor-pointer flex items-center justify-center gap-3 mx-auto lg:mx-0"
+                className="w-full sm:w-auto px-8 sm:px-10 py-4.5 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-base sm:text-lg font-medium transition-colors cursor-pointer flex items-center justify-center gap-3 mx-auto lg:mx-0"
               >
                 <span>이번 주 전포 다이닝 참가 신청</span>
                 <span className="text-xs bg-black/30 px-2.5 py-1 rounded-md text-rose-200">
                   ₩25,000 (얼리버드 ₩19,900)
                 </span>
               </button>
-              <div className="flex items-center justify-center lg:justify-start gap-2 text-xs sm:text-sm text-zinc-400">
-                <span className="text-emerald-400">✓</span>
-                <span>디너 식대 및 주류 비용은 식당 현장에서 동행자들과 자유롭게 1/N 정산됩니다.</span>
-              </div>
             </div>
           </div>
 
@@ -219,7 +215,7 @@ export default function NadoSoloHomePage() {
               <p className="text-sm text-zinc-300 leading-relaxed">
                 3045 프라임 직장인·사업가 교류회 및 5060 골든 솔로를 위한 인생 2막 프라이빗 살롱 파티.
               </p>
-              <div className="pt-2 text-xs text-amber-300 font-medium flex items-center gap-1">
+              <div className="pt-2 text-xs text-rose-300 font-medium flex items-center gap-1">
                 <span>일정 확인</span>
                 <span>→</span>
               </div>
@@ -320,11 +316,11 @@ export default function NadoSoloHomePage() {
             <div
               onClick={() => setSelectedMode('THEME')}
               className={`bg-[#12151e] rounded-3xl overflow-hidden border transition-all cursor-pointer p-7 sm:p-8 space-y-5 ${
-                selectedMode === 'THEME' ? 'border-amber-500/50 ring-1 ring-amber-500/30' : 'border-white/10 hover:border-white/20'
+                selectedMode === 'THEME' ? 'border-rose-500/50 ring-1 ring-rose-500/30' : 'border-white/10 hover:border-white/20'
               }`}
             >
               <div className="space-y-2.5">
-                <div className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-semibold border border-amber-500/20">
+                <div className="inline-block px-3 py-1 rounded-full bg-rose-500/10 text-rose-300 text-xs font-semibold border border-rose-500/20">
                   5060 GOLDEN TRACK
                 </div>
                 <h3 className="font-serif-editorial text-2xl sm:text-3xl font-normal text-white">
@@ -336,7 +332,7 @@ export default function NadoSoloHomePage() {
               </div>
               <div className="pt-2 flex items-center justify-between text-sm">
                 <span className="text-zinc-400">서면·전포 • 매주 토요일 17:30</span>
-                <span className="text-amber-300 font-medium">선택하기 →</span>
+                <span className="text-rose-300 font-medium">선택하기 →</span>
               </div>
             </div>
           </div>

@@ -26,7 +26,7 @@ export default function EventsPage() {
     {
       id: 'EVT_GOLDEN_SALON_02',
       generation: '5060 GOLDEN',
-      badgeColor: 'border-amber-500/30 bg-amber-500/10 text-amber-300',
+      badgeColor: 'border-rose-500/30 bg-rose-500/10 text-rose-300',
       title: '5060 골든 솔로 품격 라이프스타일 살롱',
       date: '매월 셋째 주 토요일 17:30',
       location: '해운대 마린시티 오션뷰 비스트로',
@@ -59,7 +59,7 @@ export default function EventsPage() {
 
           <div className="space-y-4 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
               <span>STEP 04 • 한 달 2~4회 한정 프리미엄 특별 행사</span>
             </div>
 
@@ -81,7 +81,7 @@ export default function EventsPage() {
       <section className="max-w-[1240px] mx-auto px-6 py-14 space-y-10 w-full">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-white/10 pb-4">
           <div>
-            <span className="text-xs uppercase tracking-widest text-amber-400 font-semibold">
+            <span className="text-xs uppercase tracking-widest text-rose-400 font-semibold">
               EXCLUSIVE EVENTS
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-white mt-1">

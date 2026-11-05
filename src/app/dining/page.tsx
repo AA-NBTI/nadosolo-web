@@ -109,7 +109,7 @@ export default function DiningPage() {
                       </span>
                     )}
                     {ev.targetAgeGroup === '5060_GOLDEN' && (
-                      <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 text-xs font-semibold border border-amber-500/25">
+                      <span className="px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-semibold border border-zinc-700">
                         5060 골든 트랙
                       </span>
                     )}
