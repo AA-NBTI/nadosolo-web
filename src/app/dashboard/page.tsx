@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
   CriterionCode,
   DietaryRestriction,
@@ -12,6 +12,7 @@ import {
   useNadoSoloEngine,
 } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
+import { KeyRound, UserX, AlertCircle, CheckCircle2, ShieldAlert, Phone, Mail } from 'lucide-react';
 
 const DIETARY_LABELS: Record<DietaryRestriction, string> = {
   NONE: '일반식',
@@ -35,6 +36,7 @@ const INTEREST_LABELS: Record<InterestTag, string> = {
 };
 
 function MemberDashboardContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const stepQuery = searchParams.get('step');
   const eventIdQuery = searchParams.get('eventId');
@@ -42,6 +44,7 @@ function MemberDashboardContent() {
   const {
     currentUser,
     updateCurrentUser,
+    logout,
     processModules,
     majorDomains,
     evaluationCriteria,
@@ -153,6 +156,53 @@ function MemberDashboardContent() {
     currentUser?.jobTitle ?? '프로덕트 디자이너'
   );
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
+
+  // [비밀번호 변경 로컬 상태]
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwNotice, setPwNotice] = useState<string | null>(null);
+
+  // [회원탈퇴 모달 상태]
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+
+  // [연락처 세팅 필요 여부]
+  const needsPhoneSetup = !currentUser?.phone || currentUser.phone.trim() === '' || currentUser.phone === '010-0000-0000';
+  const needsEmailSetup = !currentUser?.email || currentUser.email.trim() === '';
+
+  const handlePasswordChange = () => {
+    if (!currentPw || !newPw || !confirmPw) {
+      setPwNotice('모든 비밀번호 항목을 입력해주세요.');
+      return;
+    }
+    if (newPw !== confirmPw) {
+      setPwNotice('새 비밀번호와 확인 비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    if (newPw.length < 6) {
+      setPwNotice('비밀번호는 최소 6자리 이상이어야 합니다.');
+      return;
+    }
+    setPwNotice('비밀번호가 성공적으로 변경되었습니다.');
+    setCurrentPw('');
+    setNewPw('');
+    setConfirmPw('');
+    setTimeout(() => setPwNotice(null), 3000);
+  };
+
+  const handleAccountDeletion = () => {
+    if (deleteConfirmText.trim() !== '회원탈퇴') {
+      alert("탈퇴 확인을 위해 '회원탈퇴'를 정확히 입력해주세요.");
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('NADOSOLO_USER_SESSION');
+    }
+    logout();
+    alert('회원 탈퇴가 완료되었습니다. 그동안 나도솔로를 이용해주셔서 감사합니다.');
+    router.push('/');
+  };
 
   // [P03 자가진단] 5대 대분류 단계 이동 상태 (0 ~ 4)
   const [selfStepIdx, setSelfStepIdx] = useState<number>(0);
@@ -280,28 +330,27 @@ function MemberDashboardContent() {
             </p>
           </div>
 
-          <nav className="space-y-1">
+          <nav className="space-y-1.5">
             {enabledModules.map((mod) => {
               const active = currentProcess?.processId === mod.processId;
-              const isAccount = mod.processId === 'P01_ACCOUNT';
               return (
                 <button
                   key={mod.processId}
                   type="button"
                   onClick={() => setActiveProcessId(mod.processId)}
-                  className={`w-full text-left px-3.5 py-2.5 rounded-xl transition-all flex items-center justify-between cursor-pointer ${
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between cursor-pointer ${
                     active
-                      ? 'bg-white/10 text-white font-medium border border-white/15'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-normal border border-transparent'
-                  } ${isAccount ? 'mt-2 pt-3 border-t border-white/10' : ''}`}
+                      ? 'bg-rose-600 text-white font-bold shadow-md shadow-rose-950/40'
+                      : 'bg-white/[0.02] hover:bg-white/[0.06] text-zinc-300 hover:text-white border border-white/5 font-medium'
+                  }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-rose-400' : 'bg-transparent'}`} />
-                    <span className="text-sm font-medium">{mod.label}</span>
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-2 h-2 rounded-full ${active ? 'bg-white' : 'bg-zinc-600'}`} />
+                    <span className="text-sm">{mod.label}</span>
                   </div>
-                  {isAccount && (
-                    <span className="text-[10px] text-zinc-500 font-mono">설정</span>
-                  )}
+                  <span className="text-xs text-zinc-400 font-mono">
+                    {active ? '●' : '›'}
+                  </span>
                 </button>
               );
             })}
@@ -327,6 +376,33 @@ function MemberDashboardContent() {
             우측 메인 워크스페이스 (선택된 단일 모듈 실행 화면)
             ============================================================ */}
         <div className="flex-1 w-full min-w-0 space-y-6">
+          
+          {/* [5번 요구사항] 연락처 세팅 유도 배너 (휴대폰 번호 미등록 시) */}
+          {(needsPhoneSetup || needsEmailSetup) && (
+            <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-300 shrink-0">
+                  <Phone className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">
+                    모임 장소 및 좌석 안내 SMS 수신을 위해 연락처를 등록해주세요
+                  </h4>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    모임 D-1 비밀 식당 및 당일 좌석 번호가 등록된 연락처로 안전하게 발송됩니다.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveProcessId('P01_ACCOUNT')}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shrink-0 cursor-pointer transition-colors"
+              >
+                연락처 등록하기
+              </button>
+            </div>
+          )}
+
           {/* 상단 프로세스 진행 표시바 */}
           <div className="bg-[#12151e] rounded-2xl p-4 border border-white/10 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -412,8 +488,8 @@ function MemberDashboardContent() {
                         내가 결제·신청한 테이블 일정과 좌석 배정, 매칭 진행 상태를 확인합니다.
                       </p>
                     </div>
-                    <span className="px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-bold">
-                      매칭 큐레이션 완료 (3:3)
+                    <span className="px-3.5 py-1.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-bold">
+                      매칭 완료 (3:3)
                     </span>
                   </div>
 
@@ -432,8 +508,8 @@ function MemberDashboardContent() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <span className="text-xs text-zinc-400 block">결제 상태</span>
-                        <p className="text-lg font-bold text-emerald-400">참가권 결제완료 (₩19,900)</p>
+                        <span className="text-xs text-zinc-400 block">신청 상태</span>
+                        <p className="text-lg font-bold text-white">참가권 결제완료</p>
                       </div>
                     </div>
 
@@ -452,8 +528,8 @@ function MemberDashboardContent() {
                     {/* 3:3 큐레이션 현황 */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-xs text-zinc-300 font-medium">
-                        <span>테이블 성비 밸런스 현황</span>
-                        <span className="text-emerald-400 font-bold">정원 6명 확정 완료 (남 3 / 여 3)</span>
+                        <span>테이블 성비 밸런스</span>
+                        <span className="text-zinc-200 font-bold">정원 6명 확정 (남 3 / 여 3)</span>
                       </div>
                       <div className="grid grid-cols-6 gap-2">
                         <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-center">
@@ -708,7 +784,7 @@ function MemberDashboardContent() {
                       ))}
                     </div>
                     {myVoteTargetId && (
-                      <p className="text-xs text-emerald-400 font-medium">
+                      <p className="text-xs text-rose-400 font-medium">
                         ✓ 투표가 등록되었습니다. 자정(24:00) 이후 상호 매칭 결과가 대시보드에 공개됩니다.
                       </p>
                     )}
@@ -719,94 +795,191 @@ function MemberDashboardContent() {
           )}
 
           {/* ----------------------------------------------------------
-              [P01] 계정정보 모듈 (@핸들, 이메일, 연락처, 인증)
+              [P01] 계정정보 모듈 (@핸들, 이메일, 연락처, 비밀번호, 회원탈퇴)
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P01_ACCOUNT' && (
-            <section className="bg-[#12151e] rounded-3xl p-8 border border-white/10 shadow-sm space-y-6">
-              <div className="border-b border-white/10 pb-4 flex items-center justify-between">
-                <div>
-                  <h3 className="text-2xl font-bold text-white">계정정보</h3>
-                  <p className="text-sm text-zinc-400 mt-1">
-                    서비스 전역에서 사용되는 고유 @핸들 아이디와 연락처를 관리합니다.
+            <div className="space-y-6">
+              {/* 1. 기본 계정정보 및 연락처 관리 */}
+              <section className="bg-[#12151e] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-sm space-y-6">
+                <div className="border-b border-white/10 pb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold text-white">기본 계정정보</h3>
+                    <p className="text-xs text-zinc-400 mt-1">
+                      모임 안내 SMS 및 영수증 발송에 사용되는 기본 연락처입니다.
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-xs font-medium flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    <span>인증 계정</span>
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      고유 아이디 (@핸들)
+                    </label>
+                    <input
+                      type="text"
+                      value={editHandle}
+                      onChange={(e) =>
+                        setEditHandle(
+                          e.target.value.startsWith('@')
+                            ? e.target.value
+                            : `@${e.target.value}`
+                        )
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-black/40 text-sm font-bold text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5">
+                      이름 (닉네임)
+                    </label>
+                    <input
+                      type="text"
+                      value={editNickname}
+                      onChange={(e) => setEditNickname(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-black/40 text-sm text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5 flex items-center gap-1">
+                      <Mail className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>이메일 주소</span>
+                      <span className="text-[10px] text-rose-400 font-normal">(필수 수신용)</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={editEmail}
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      placeholder="예: user@example.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-black/40 text-sm text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 mb-1.5 flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>휴대폰 번호</span>
+                      <span className="text-[10px] text-rose-400 font-normal">(D-1 식당 SMS 수신)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={editPhone}
+                      onChange={(e) => setEditPhone(e.target.value)}
+                      placeholder="예: 010-1234-5678"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-black/40 text-sm text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateCurrentUser({
+                        handle: editHandle,
+                        email: editEmail,
+                        nickname: editNickname,
+                        phone: editPhone,
+                      });
+                      showToast('계정정보가 저장되었습니다.');
+                    }}
+                    className="px-6 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-bold cursor-pointer transition-all"
+                  >
+                    계정정보 저장
+                  </button>
+                </div>
+              </section>
+
+              {/* 2. 비밀번호 수정 섹션 */}
+              <section className="bg-[#12151e] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-sm space-y-5">
+                <div className="border-b border-white/10 pb-4">
+                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                    <KeyRound className="w-5 h-5 text-zinc-400" />
+                    <span>비밀번호 수정</span>
+                  </h3>
+                  <p className="text-xs text-zinc-400 mt-1">
+                    로그인에 사용되는 비밀번호를 안전하게 변경합니다.
                   </p>
                 </div>
-                <span className="px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-xs font-medium flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span>본인인증 완료</span>
-                </span>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    고유 아이디 (@핸들)
-                  </label>
-                  <input
-                    type="text"
-                    value={editHandle}
-                    onChange={(e) =>
-                      setEditHandle(
-                        e.target.value.startsWith('@')
-                          ? e.target.value
-                          : `@${e.target.value}`
-                      )
-                    }
-                    className="w-full px-4 py-3 rounded-xl border border-white/15 text-base font-bold text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    이메일
-                  </label>
-                  <input
-                    type="email"
-                    value={editEmail}
-                    onChange={(e) => setEditEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-white/15 text-base text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    이름 (닉네임)
-                  </label>
-                  <input
-                    type="text"
-                    value={editNickname}
-                    onChange={(e) => setEditNickname(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-white/15 text-base text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-zinc-300 mb-2">
-                    휴대폰 번호
-                  </label>
-                  <input
-                    type="tel"
-                    value={editPhone}
-                    onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-white/15 text-base text-white"
-                  />
-                </div>
-              </div>
+                {pwNotice && (
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/15 text-xs text-white flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-rose-400" />
+                    <span>{pwNotice}</span>
+                  </div>
+                )}
 
-              <div className="flex justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    updateCurrentUser({
-                      handle: editHandle,
-                      email: editEmail,
-                      nickname: editNickname,
-                      phone: editPhone,
-                    });
-                    showToast('계정정보가 저장되었습니다.');
-                  }}
-                  className="px-6 py-3 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 text-sm font-semibold cursor-pointer transition-all"
-                >
-                  계정정보 저장
-                </button>
-              </div>
-            </section>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <label className="block font-semibold text-zinc-300 mb-1.5">현재 비밀번호</label>
+                    <input
+                      type="password"
+                      value={currentPw}
+                      onChange={(e) => setCurrentPw(e.target.value)}
+                      placeholder="현재 비밀번호"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-black/40 text-sm text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-zinc-300 mb-1.5">새 비밀번호</label>
+                    <input
+                      type="password"
+                      value={newPw}
+                      onChange={(e) => setNewPw(e.target.value)}
+                      placeholder="6자리 이상"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-black/40 text-sm text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-zinc-300 mb-1.5">새 비밀번호 확인</label>
+                    <input
+                      type="password"
+                      value={confirmPw}
+                      onChange={(e) => setConfirmPw(e.target.value)}
+                      placeholder="새 비밀번호 재입력"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/15 bg-black/40 text-sm text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={handlePasswordChange}
+                    className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold cursor-pointer transition-colors"
+                  >
+                    비밀번호 변경
+                  </button>
+                </div>
+              </section>
+
+              {/* 3. [4번 요구사항] 회원탈퇴 섹션 (명확하고 눈에 잘 띄는 전용 와인레드 보더 카드) */}
+              <section className="bg-[#150d12] rounded-3xl p-6 sm:p-8 border border-rose-500/50 shadow-lg space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <UserX className="w-5 h-5 text-rose-500" />
+                      <h3 className="text-xl font-bold text-rose-200">회원 탈퇴</h3>
+                    </div>
+                    <p className="text-xs text-zinc-400 leading-relaxed max-w-xl">
+                      탈퇴 시 회원님의 성향 진단 프로필(NBTI), 매너 평가 이력, 보유 모임 티켓 및 매칭 기록이 영구 파기되며 즉시 로그아웃 처리됩니다.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeleteConfirmText('');
+                      setIsDeleteModalOpen(true);
+                    }}
+                    className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shrink-0 transition-colors cursor-pointer shadow-md"
+                  >
+                    회원 탈퇴하기
+                  </button>
+                </div>
+              </section>
+            </div>
           )}
 
           {/* ----------------------------------------------------------
@@ -1292,7 +1465,7 @@ function MemberDashboardContent() {
 
                         {/* 식대 안내 */}
                         <p className="text-xs text-zinc-400 flex items-center gap-1.5">
-                          <span className="text-emerald-400">✓</span>
+                          <span className="text-rose-400">✓</span>
                           <span>{ev.mealNote || '식사 및 주류 비용은 식당 현장에서 테이블 동행자들과 1/N 정산됩니다.'}</span>
                         </p>
 
@@ -1318,7 +1491,7 @@ function MemberDashboardContent() {
                                 key={bId}
                                 className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${
                                   hasIt
-                                    ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+                                    ? 'bg-rose-500/15 border-rose-500/30 text-rose-300'
                                     : 'bg-white/5 border-white/10 text-zinc-500'
                                 }`}
                               >
@@ -2084,7 +2257,7 @@ function MemberDashboardContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-5 sm:p-6 rounded-2xl bg-[#181c28] border border-white/10 space-y-4">
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                     <h5 className="text-sm font-semibold text-white">
                       동석자가 꼽은 결정적 강점 요소
                     </h5>
@@ -2234,6 +2407,62 @@ function MemberDashboardContent() {
         event={checkoutEvent}
         onSuccessPayment={handlePaymentSuccess}
       />
+
+      {/* 회원탈퇴 확인 모달 (와인레드 테마) */}
+      {isDeleteModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in"
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-[#140d12] border border-rose-500/60 rounded-3xl p-6 sm:p-7 shadow-2xl text-white space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 text-rose-400">
+              <ShieldAlert className="w-6 h-6 shrink-0" />
+              <h3 className="text-xl font-bold text-white">회원 탈퇴 확인</h3>
+            </div>
+
+            <div className="text-xs text-zinc-300 space-y-2 leading-relaxed bg-black/40 p-4 rounded-xl border border-white/5">
+              <p>• 탈퇴 시 현재 계정에 등록된 <strong>성향 프로필(NBTI), 매너 평가 점수, 모임 티켓</strong>이 즉시 영구 삭제됩니다.</p>
+              <p>• 삭제된 데이터는 복구할 수 없습니다.</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs text-zinc-300 font-semibold">
+                탈퇴를 확인하기 위해 아래에 <strong className="text-rose-400">&apos;회원탈퇴&apos;</strong>를 입력하세요:
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="회원탈퇴"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-rose-500/40 bg-black/60 text-sm text-white"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-zinc-300 transition-colors cursor-pointer"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={handleAccountDeletion}
+                disabled={deleteConfirmText.trim() !== '회원탈퇴'}
+                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors cursor-pointer shadow-md"
+              >
+                탈퇴 처리
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

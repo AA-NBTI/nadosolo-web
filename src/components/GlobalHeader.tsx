@@ -1,22 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import { useSiteConfig } from '@/engine/siteConfigEngine';
-import { User, LogOut, ShieldCheck, MapPin, Sparkles, Megaphone, ArrowRight } from 'lucide-react';
-import CitySwitcherModal from '@/components/CitySwitcherModal';
+import { User, LogOut, ShieldCheck, MapPin, ArrowRight, Check } from 'lucide-react';
 
 export default function GlobalHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, logout } = useNadoSoloEngine();
+  const { currentUser, logout, regionDistricts } = useNadoSoloEngine();
   const { config } = useSiteConfig();
   const [lang, setLang] = useState<'KO' | 'EN'>('KO');
-  const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+  const cityDropdownRef = useRef<HTMLDivElement>(null);
 
-  // 전역 설정에서 네비게이션 메뉴 가져오기 (순서 정렬 및 visible 필터)
+  // 전역 설정에서 네비게이션 메뉴 가져오기
   const navItems = [...(config?.header?.navItems || [])]
     .filter((item) => item.visible)
     .sort((a, b) => a.order - b.order);
@@ -33,12 +33,28 @@ export default function GlobalHeader() {
     currentUser?.handle === '@admin' ||
     currentUser?.userId === 'ADMIN_01';
 
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(e.target as Node)) {
+        setIsCityDropdownOpen(false);
+      }
+    };
+    if (isCityDropdownOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isCityDropdownOpen]);
+
+  // 라이브 개설된 활성 권역 목록
+  const activeDistricts = regionDistricts.filter((d) => d.active);
+
   return (
     <header className="sticky top-0 z-50 bg-[#090a0f]/95 backdrop-blur-md border-b border-white/10">
       
-      {/* ==============================================================
-          관리자 제어 상단 공지 띠배너 (Announcement Bar)
-          ============================================================== */}
+      {/* 상단 공지 띠배너 */}
       {announcement?.visible && (
         <div className="w-full bg-[#11131c] border-b border-white/10 px-4 py-2 text-center text-xs font-medium text-zinc-300 flex items-center justify-center gap-2">
           {announcement.tag && (
@@ -61,9 +77,7 @@ export default function GlobalHeader() {
 
       <div className="w-full max-w-[1320px] mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-3 sm:gap-6">
         
-        {/* ==============================================================
-            [좌측] 나도솔로 정통 텍스트 로고
-            ============================================================== */}
+        {/* [좌측] 나도솔로 정통 텍스트 로고 */}
         <Link
           href="/"
           className="font-serif-editorial text-2xl sm:text-3xl font-semibold text-white tracking-tight lowercase shrink-0 hover:opacity-85 transition-opacity"
@@ -71,9 +85,7 @@ export default function GlobalHeader() {
           nadosolo
         </Link>
 
-        {/* ==============================================================
-            관리자 설정 주도형 4대 핵심 카테고리 네비게이션
-            ============================================================== */}
+        {/* 4대 핵심 카테고리 네비게이션 */}
         <nav className="hidden md:flex items-center gap-7">
           {navItems.map((item) => {
             const isActive =
@@ -104,25 +116,74 @@ export default function GlobalHeader() {
           })}
         </nav>
 
-        {/* ==============================================================
-            [우측] 거점 뱃지, 언어 스위처, 로그인/로그아웃/관리자
-            ============================================================== */}
+        {/* [우측] 거점 드롭다운, 언어 스위처, 로그인/로그아웃/관리자 */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* 도시 뱃지 (클릭 시 도시 허브 선택 모달 오픈) */}
-          <button
-            type="button"
-            onClick={() => setIsCityModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 hover:text-white hover:border-white/20 transition-all cursor-pointer"
-            title="모임 지역 및 도시 선택"
-          >
-            <MapPin className="w-3.5 h-3.5 text-rose-400" />
-            <span className="font-medium tracking-wider">
-              {config?.header?.activeCityLabel || '부산 (전포·서면)'}
-            </span>
-            <span className="text-[10px] text-zinc-500">▼</span>
-          </button>
+          
+          {/* ==============================================================
+              [1번 개선] 라이브 개설 모임 위치 드롭다운 리스트 (별도 창 대신 그 자리에서 심플하게 노출)
+              ============================================================== */}
+          <div className="relative" ref={cityDropdownRef}>
+            <button
+              type="button"
+              onClick={() => setIsCityDropdownOpen((prev) => !prev)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+              title="진행 중인 모임 지역 리스트"
+            >
+              <MapPin className="w-3.5 h-3.5 text-rose-500" />
+              <span className="font-medium tracking-wider">
+                {config?.header?.activeCityLabel || '부산 (전포·서면)'}
+              </span>
+              <span className={`text-[9px] text-zinc-400 transition-transform ${isCityDropdownOpen ? 'rotate-180' : ''}`}>
+                ▼
+              </span>
+            </button>
 
-          {/* 언어 전환 버튼 (KO / EN) */}
+            {/* 드롭다운 리스트 팝오버 */}
+            {isCityDropdownOpen && (
+              <div className="absolute right-0 sm:left-0 sm:right-auto top-full mt-2 w-64 bg-[#0f1118] border border-white/10 rounded-2xl shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-2 py-1.5 border-b border-white/5 mb-1.5 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-zinc-400">
+                    진행 중인 모임 권역
+                  </span>
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-600/30 text-rose-300">
+                    LIVE
+                  </span>
+                </div>
+
+                <div className="space-y-1">
+                  {activeDistricts.map((d) => (
+                    <button
+                      key={d.districtId}
+                      type="button"
+                      onClick={() => {
+                        setIsCityDropdownOpen(false);
+                        router.push('/dining');
+                      }}
+                      className="w-full text-left p-2 rounded-xl hover:bg-white/5 text-xs transition-colors flex items-center justify-between group cursor-pointer"
+                    >
+                      <div>
+                        <p className="font-semibold text-white group-hover:text-rose-400 transition-colors">
+                          {d.districtName}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 mt-0.5">
+                          {d.defaultGatherTime || '매주 금/토 19:30'}
+                        </p>
+                      </div>
+                      <span className="text-[10px] text-zinc-500 group-hover:text-zinc-300">
+                        신청 →
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="pt-2 mt-1.5 border-t border-white/5 px-2 text-[10px] text-zinc-500 text-center">
+                  타 지역은 개설 시 순차 오픈됩니다.
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 언어 전환 버튼 */}
           <button
             type="button"
             onClick={() => setLang(lang === 'KO' ? 'EN' : 'KO')}
@@ -140,7 +201,7 @@ export default function GlobalHeader() {
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-semibold text-zinc-200 hover:text-white transition-all shadow-sm"
                 title="마이페이지 / 대시보드 이동"
               >
-                <User className="w-3.5 h-3.5 text-rose-400" />
+                <User className="w-3.5 h-3.5 text-rose-500" />
                 <span className="truncate max-w-[80px] sm:max-w-[120px]">
                   {currentUser.nickname || currentUser.handle}
                 </span>
@@ -201,12 +262,6 @@ export default function GlobalHeader() {
           );
         })}
       </div>
-
-      {/* 도시 선택 & 사전 오픈 알림 모달 */}
-      <CitySwitcherModal
-        isOpen={isCityModalOpen}
-        onClose={() => setIsCityModalOpen(false)}
-      />
     </header>
   );
 }

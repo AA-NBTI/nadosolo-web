@@ -190,7 +190,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <button
             type="button"
             onClick={handleSaveAll}
-            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-950/40 transition-all cursor-pointer flex items-center gap-2"
+            className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             <span>설정 저장하기</span>
@@ -268,7 +268,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     onClick={() => handleToggleSectorVisibility(sector.id)}
                     className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                       sector.visible
-                        ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
+                        ? 'bg-rose-600/20 text-rose-300 border-rose-500/40 hover:bg-rose-600/30'
                         : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:bg-zinc-700'
                     }`}
                   >
@@ -449,7 +449,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     onClick={() => handleToggleNavVisibility(item.id)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold border cursor-pointer ${
                       item.visible
-                        ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                        ? 'bg-rose-600/20 text-rose-300 border-rose-500/40'
                         : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                     }`}
                   >
@@ -639,7 +639,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   }}
                   className={`px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer ${
                     social.visible
-                      ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                      ? 'bg-rose-600/20 text-rose-300 border-rose-500/40'
                       : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                   }`}
                 >
