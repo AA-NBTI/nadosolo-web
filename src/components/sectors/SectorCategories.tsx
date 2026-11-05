@@ -12,7 +12,7 @@ const CATEGORIES = [
     badge: '대표 프로그램',
     desc: '엄선된 셰프의 코스 요리와 와인을 곁들여 4~6인이 깊이 있게 교류하는 메인 미식 모임입니다.',
     target: '3045 전문직 직장인 & 5060 골든 솔로',
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=800&q=80',
     href: '/dining',
   },
   {
@@ -22,7 +22,7 @@ const CATEGORIES = [
     badge: '문화·대화',
     desc: '예술, 인문학, 와인 페어링을 주제로 조용한 라운지에서 생각을 나누는 지적 소통 공간입니다.',
     target: '취향과 가치관을 중시하는 커뮤니티',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80',
     href: '/salon',
   },
   {
@@ -32,7 +32,7 @@ const CATEGORIES = [
     badge: '멤버십',
     desc: '단발성 모임을 넘어 지속적인 유대감과 취미 네트워킹을 함께 나누는 신뢰 기반 멤버십 클럽입니다.',
     target: '지속적인 소셜 네트워크를 원하는 멤버',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=800&q=80',
     href: '/club',
   },
   {
@@ -42,7 +42,7 @@ const CATEGORIES = [
     badge: '스페셜',
     desc: '와인 나이트, 주말 브런치 등 특정 라이프스타일 테마에 맞춰 자유롭게 신청하는 캐주얼 모임입니다.',
     target: '관심사 중심의 주말 소셜 액티비티',
-    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80',
     href: '/meetup',
   },
 ];

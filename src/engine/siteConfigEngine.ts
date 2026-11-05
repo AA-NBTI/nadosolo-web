@@ -22,7 +22,7 @@ export interface AnnouncementBarConfig {
   tag?: string;
 }
 
-export type SectorType = 'hero' | 'categories' | 'districts' | 'journey' | 'venues';
+export type SectorType = 'rolling-hero' | 'hero' | 'categories' | 'districts' | 'journey' | 'venues';
 
 export interface SectorConfig {
   id: string;
@@ -89,11 +89,12 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     activeCityLabel: '부산 (전포·서면)',
   },
   mainSectors: [
-    { id: 'sector-hero', type: 'hero', title: '거점 히어로 배너', subtitle: '선택된 도시 집중 조명 및 2차 오픈예정 알림', visible: true, order: 1 },
-    { id: 'sector-categories', type: 'categories', title: '4대 메인 카테고리', subtitle: '소셜 다이닝, 살롱, 클럽, 밋업 쇼케이스', visible: true, order: 2 },
-    { id: 'sector-districts', type: 'districts', title: '권역별 탐색', subtitle: '전포·서면, 해운대·광안리, 남포·영도 등', visible: true, order: 3 },
-    { id: 'sector-journey', type: 'journey', title: '모임 여정 4단계', subtitle: '착석 ➡️ 대화 ➡️ 식사 ➡️ 매너평가', visible: true, order: 4 },
-    { id: 'sector-venues', type: 'venues', title: '엄선 제휴 공간 갤러리', subtitle: '신뢰할 수 있는 프라이빗 와인바 & 다이닝 공간', visible: true, order: 5 },
+    { id: 'sector-rolling-hero', type: 'rolling-hero', title: '메인 롤링 쇼케이스', subtitle: '4대 핵심 프로그램 자동 롤링 캐러셀', visible: true, order: 1 },
+    { id: 'sector-hero', type: 'hero', title: '소셜 다이닝 헤드라인', subtitle: '선택된 도시 집중 조명 및 핵심 가치 소개', visible: true, order: 2 },
+    { id: 'sector-categories', type: 'categories', title: '4대 메인 카테고리', subtitle: '소셜 다이닝, 살롱, 클럽, 밋업 쇼케이스', visible: true, order: 3 },
+    { id: 'sector-districts', type: 'districts', title: '권역별 탐색', subtitle: '전포·서면, 해운대·광안리, 남포·영도 등', visible: true, order: 4 },
+    { id: 'sector-journey', type: 'journey', title: '모임 여정 4단계', subtitle: '착석 ➡️ 대화 ➡️ 식사 ➡️ 매너평가', visible: true, order: 5 },
+    { id: 'sector-venues', type: 'venues', title: '엄선 제휴 공간 갤러리', subtitle: '신뢰할 수 있는 프라이빗 와인바 & 다이닝 공간', visible: true, order: 6 },
   ],
   footer: {
     companyName: '템바보드 주식회사',

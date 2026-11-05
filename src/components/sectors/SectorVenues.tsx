@@ -19,7 +19,7 @@ const VENUES: VenueItem[] = [
     district: '부산 전포동',
     type: '내추럴 와인 비스트로',
     features: ['단독 룸 대관', '테이블 간격 2.5m', '조도 조절 앰비언스'],
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=700&q=80',
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=700&q=80',
   },
   {
     id: 'v2',
@@ -27,7 +27,7 @@ const VENUES: VenueItem[] = [
     district: '부산 해운대 마린시티',
     type: '다이닝 & 와인 페어링',
     features: ['오션뷰 프라이빗 테이블', '소믈리에 큐레이션', '발렛 파킹'],
-    image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=700&q=80',
+    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=700&q=80',
   },
   {
     id: 'v3',
@@ -35,7 +35,7 @@ const VENUES: VenueItem[] = [
     district: '부산 서면',
     type: '컨템포러리 다이닝',
     features: ['셰프 스페셜 코스', '소음도 50dB 이하', '웰컴 스파클링'],
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=700&q=80',
+    image: 'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=700&q=80',
   },
   {
     id: 'v4',
@@ -43,7 +43,7 @@ const VENUES: VenueItem[] = [
     district: '부산 영도구',
     type: '아카이브 라운지',
     features: ['항구 야경 파노라마', '어쿠스틱 재즈 BGM', '시크릿 라운지'],
-    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=700&q=80',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=700&q=80',
   },
 ];
 

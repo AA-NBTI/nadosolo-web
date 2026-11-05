@@ -12,7 +12,7 @@ const MEETUP_STEPS = [
     step: '01',
     title: '테마 밋업 선택',
     desc: '3045 프라임 또는 5060 골든 등 본인의 연령대와 관심사에 맞춘 테마 모임을 선택하고 신청합니다.',
-    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
     icon: Ticket,
   },
   {
@@ -26,14 +26,14 @@ const MEETUP_STEPS = [
     step: '03',
     title: '프라이빗 라운지 모임',
     desc: '웰컴 드링크와 감각적인 핑거푸드를 즐기며 편안한 음악 속에서 새로운 사람들과 자연스럽게 인사를 나눕니다.',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
     icon: GlassWater,
   },
   {
     step: '04',
     title: '익일 시크릿 호감 투표',
     desc: '모임 다음 날 오전 9시, 대시보드에서 호감 투표를 진행하며 상호 매칭 시 1:1 연락처가 오픈됩니다.',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
     icon: HeartHandshake,
   },
 ];
@@ -65,7 +65,7 @@ const SPECIAL_EVENTS = [
     priceKrw: 45000,
     districtName: '부산 · 해운대 마린시티',
     mealNote: '웰컴 와인 페어링 포함, 디너 코스 식대는 현장 1/N 정산',
-    image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=800&q=80',
   },
 ];
 
@@ -144,7 +144,7 @@ export default function MeetupPage() {
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
               <img
-                src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80"
+                src="https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80"
                 alt="테마 밋업 무드"
                 className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
               />

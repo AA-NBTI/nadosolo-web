@@ -26,14 +26,14 @@ const SALON_STEPS = [
     step: '03',
     title: '핑거푸드 & 와인 페어링',
     desc: '소믈리에가 선정한 와인과 감각적인 핑거푸드를 곁들이며 테이블의 온도를 자연스럽게 높여갑니다.',
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
     icon: Wine,
   },
   {
     step: '04',
     title: '익일 상호 호감 투표',
     desc: '다음 날 오전 9시, 대화의 결이 가장 잘 맞았던 상대방에게 비공개로 호감을 표하고 1:1 연락처를 교환합니다.',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
     icon: HeartHandshake,
   },
 ];
@@ -43,19 +43,19 @@ const SALON_VENUES = [
     name: '전포 북 & 와인 살롱 아틀리에',
     location: '부산 전포 카페거리',
     atmosphere: '서재 감성 프라이빗 라운지',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=600&q=80',
   },
   {
     name: '해운대 마린뷰 살롱 드 테',
     location: '부산 해운대 마린시티',
     atmosphere: '오션 파노라마 야경 & 캔들',
-    image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80',
   },
   {
     name: '남포 헤리티지 소셜 클럽',
     location: '부산 중구 남포동',
     atmosphere: '클래식 빈티지 우드 인테리어',
-    image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=600&q=80',
   },
 ];
 
@@ -124,8 +124,8 @@ export default function SocialSalonPage() {
             {/* 핵심 정책 요약 바 */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
               <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
-                <span className="text-[11px] text-zinc-500">참가비</span>
-                <p className="text-sm font-bold text-white">₩25,000</p>
+                <span className="text-[11px] text-zinc-500">운영 방식</span>
+                <p className="text-sm font-bold text-white">소수정예 살롱</p>
                 <p className="text-[10px] text-zinc-500">웰컴 드링크 & 페어링 푸드</p>
               </div>
               <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
@@ -144,7 +144,7 @@ export default function SocialSalonPage() {
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
               <img
-                src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80"
+                src="https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80"
                 alt="소셜 살롱 무드"
                 className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
               />

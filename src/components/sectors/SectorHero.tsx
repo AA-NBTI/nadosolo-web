@@ -6,26 +6,12 @@ import { ArrowRight } from 'lucide-react';
 
 interface SectorHeroProps {
   onOpenCheckout?: () => void;
-  onOpenCityModal?: () => void;
 }
 
-export default function SectorHero({ onOpenCheckout, onOpenCityModal }: SectorHeroProps) {
+export default function SectorHero({ onOpenCheckout }: SectorHeroProps) {
   return (
-    <section className="relative w-full bg-[#090a0f] py-16 sm:py-24 border-b border-white/10">
+    <section className="relative w-full bg-[#090a0f] py-16 sm:py-20 border-b border-white/10">
       <div className="relative w-full max-w-[1240px] mx-auto px-4 sm:px-6">
-        
-        {/* 상단 1열: 거점 안내 칩 (단정한 모노크롬 & 와인레드 포인트) */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 mb-8">
-          <button
-            type="button"
-            onClick={onOpenCityModal}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-zinc-300 hover:text-white hover:border-white/20 transition-all cursor-pointer"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            <span>부산 (전포·서면·해운대) 진행중</span>
-            <span className="text-[10px] text-zinc-500">▼</span>
-          </button>
-        </div>
 
         {/* 메인 헤드라인 & 슬로건 */}
         <div className="text-center max-w-3xl mx-auto space-y-5">

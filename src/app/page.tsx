@@ -8,6 +8,7 @@ import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import CitySwitcherModal from '@/components/CitySwitcherModal';
 
 // 모듈러 섹터 컴포넌트 임포트
+import SectorRollingHero from '@/components/sectors/SectorRollingHero';
 import SectorHero from '@/components/sectors/SectorHero';
 import SectorCategories from '@/components/sectors/SectorCategories';
 import SectorDistricts from '@/components/sectors/SectorDistricts';
@@ -53,12 +54,13 @@ export default function NadoSoloHomePage() {
   // 섹터 타입별 렌더러
   const renderSector = (sector: SectorConfig) => {
     switch (sector.type) {
+      case 'rolling-hero':
+        return <SectorRollingHero key={sector.id} onOpenCheckout={handleOpenCheckout} />;
       case 'hero':
         return (
           <SectorHero
             key={sector.id}
             onOpenCheckout={handleOpenCheckout}
-            onOpenCityModal={() => setIsCityModalOpen(true)}
           />
         );
       case 'categories':

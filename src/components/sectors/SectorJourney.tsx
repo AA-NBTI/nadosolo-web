@@ -9,7 +9,7 @@ const STEPS = [
     title: '입장 & 좌석 안내',
     subtitle: 'Seat Assignment',
     desc: '모임 당일, 사전 매칭 알고리즘이 배정한 최적의 자리에 어색함 없이 편안하게 착석합니다.',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
     icon: Ticket,
   },
   {
@@ -17,7 +17,7 @@ const STEPS = [
     title: '대화 카드 플레이북',
     subtitle: 'Icebreaker Playbook',
     desc: '라이프스타일과 취향을 자연스럽게 열어주는 전용 질문 카드로 어색한 침묵을 깹니다.',
-    image: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
     icon: MessageSquare,
   },
   {
@@ -25,7 +25,7 @@ const STEPS = [
     title: '코스 요리 & 와인',
     subtitle: 'Dining & Wine',
     desc: '엄선된 공간의 코스 요리와 와인을 즐기며 2시간 동안 서로의 결을 느끼는 대화가 이어집니다.',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
     icon: Utensils,
   },
   {
@@ -33,7 +33,7 @@ const STEPS = [
     title: '익일 시크릿 매너 평가',
     subtitle: 'Secret Feedback',
     desc: '모임 다음 날 오전, 비공개로 매너 평가와 호감 투표를 진행하며 상호 호감 시 연락처가 교환됩니다.',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
     icon: HeartHandshake,
   },
 ];

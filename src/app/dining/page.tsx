@@ -12,14 +12,14 @@ const DINING_EXPERIENCE_STEPS = [
     step: '01',
     title: '비밀 좌석 배정',
     desc: '성향과 관심사를 고려해 최적의 대화 흐름이 이루어지도록 남녀 3:3 지그재그 좌석이 사전 배정됩니다.',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
     icon: Ticket,
   },
   {
     step: '02',
     title: '아이스브레이킹 대화 카드',
     desc: '어색한 침묵 없이 자연스럽게 서로의 취향과 라이프스타일을 나눌 수 있는 전용 질문 카드가 제공됩니다.',
-    image: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
     icon: MessageSquare,
   },
   {
@@ -33,7 +33,7 @@ const DINING_EXPERIENCE_STEPS = [
     step: '04',
     title: '익일 시크릿 매너 투표',
     desc: '모임 다음 날 오전 9시, 대시보드에서 매너 평가와 호감 투표가 진행되며 상호 호감 시 1:1 연락처가 교환됩니다.',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
     icon: HeartHandshake,
   },
 ];
@@ -43,19 +43,19 @@ const DINING_VENUES = [
     name: '전포 아틀리에 비스트로',
     location: '부산 부산진구 전포동',
     mood: '은은한 조도 & 내추럴 와인',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
   },
   {
     name: '해운대 오션 앤 와인 라운지',
     location: '부산 해운대구 마린시티',
     mood: '오션뷰 프라이빗 룸 & 코스',
-    image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80',
   },
   {
     name: '서면 까사 디 루체',
     location: '부산 부산진구 서면',
     mood: '컨템포러리 다이닝 & 소음 통제',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=600&q=80',
   },
 ];
 
@@ -131,9 +131,9 @@ export default function DiningPage() {
             {/* 핵심 요약 바 */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
               <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
-                <span className="text-[11px] text-zinc-500">참가비 정책</span>
-                <p className="text-sm font-bold text-white">₩19,900</p>
-                <p className="text-[10px] text-zinc-500">디너 식대 현장 1/N 정산</p>
+                <span className="text-[11px] text-zinc-500">운영 형태</span>
+                <p className="text-sm font-bold text-white">프라이빗 큐레이션</p>
+                <p className="text-[10px] text-zinc-500">신원·에티켓 서약 완료 회원</p>
               </div>
               <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
                 <span className="text-[11px] text-zinc-500">모임 일정 및 인원</span>
@@ -152,7 +152,7 @@ export default function DiningPage() {
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
               <img
-                src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80"
+                src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=800&q=80"
                 alt="소셜 다이닝 무드"
                 className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
               />

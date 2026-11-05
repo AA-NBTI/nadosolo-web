@@ -9,28 +9,28 @@ const CLUB_EXPERIENCE_STEPS = [
     step: '01',
     title: '성향 프로필 신청',
     desc: '관심 있는 취향 클럽을 선택하고 나도솔로 성향 프로필을 기반으로 멤버십 신청서를 제출합니다.',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
     icon: UserCheck,
   },
   {
     step: '02',
     title: '멤버 밸런스 큐레이션',
     desc: '단순 선착순이 아닌, 직업군·연령대·소통 매너가 조화를 이루는 소수 정예 그룹으로 편성됩니다.',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
     icon: Users2,
   },
   {
     step: '03',
     title: '정기 오프라인 세션',
     desc: '제휴된 감성 공간에서 호스트와 함께 격주로 정기 모임을 진행하며 깊이 있는 취향을 함께 경험합니다.',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
     icon: Sparkles,
   },
   {
     step: '04',
     title: '프라이빗 네트워크',
     desc: '세션 종료 후에도 검증된 멤버들과 함께 안전하고 신뢰할 수 있는 소셜 인맥을 유지합니다.',
-    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
     icon: HeartHandshake,
   },
 ];
@@ -54,7 +54,7 @@ const CLUBS = [
     desc: '혼자 가기 아쉬웠던 주말 전시를 감각 있는 사람들과 도슨트 해설을 들으며 관람하고 인근 카페에서 영감을 나눕니다.',
     tags: ['#전시투어', '#현대미술', '#도슨트'],
     frequency: '매월 토요일 오후',
-    image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 'CLUB_RUN',
@@ -64,7 +64,7 @@ const CLUBS = [
     desc: '부담 없는 페이스로 아침 바닷바람을 맞으며 가볍게 달리고, 러닝 후 브런치와 스페셜티 커피로 주말을 상쾌하게 시작합니다.',
     tags: ['#러닝클럽', '#웰니스', '#광안리'],
     frequency: '매주 일요일 오전',
-    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 'CLUB_BOOK',
@@ -74,7 +74,7 @@ const CLUBS = [
     desc: '한 달에 한 권, 삶의 태도와 비즈니스 인사이트를 다룬 책을 읽고 각자의 경험과 고민을 깊이 있게 교류합니다.',
     tags: ['#인사이트독서', '#커리어', '#스타트업'],
     frequency: '월 1회 평일 저녁',
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=600&q=80',
   },
 ];
 
@@ -137,7 +137,7 @@ export default function ClubPage() {
           <div className="lg:col-span-5 relative">
             <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
               <img
-                src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=80"
+                src="https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=800&q=80"
                 alt="소셜 클럽 무드"
                 className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
               />

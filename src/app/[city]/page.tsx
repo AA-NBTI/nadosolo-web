@@ -28,7 +28,7 @@ const CITIES_DATA: Record<string, CityMeta> = {
       {
         name: '전포 · 서면',
         desc: '감각적인 내추럴 와인바와 셰프 비스트로',
-        image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=800&q=80',
+        image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
       },
       {
         name: '해운대 마린시티',
@@ -38,7 +38,7 @@ const CITIES_DATA: Record<string, CityMeta> = {
       {
         name: '광안리',
         desc: '광안대교 야경과 편안한 캐주얼 펍 & 다이닝',
-        image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+        image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
       },
     ],
   },
@@ -48,22 +48,21 @@ const CITIES_DATA: Record<string, CityMeta> = {
     nameEn: 'SEOUL',
     status: 'WAITLIST',
     tagline: '성수동 감성 와인바와 강남·한남동 프라이빗 다이닝 사전 오픈 준비중',
-    waitlistCount: 428,
     districts: [
       {
         name: '성수 · 서울숲',
         desc: '크리에이티브 & IT 직군을 위한 감각적인 와인바',
-        image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80',
+        image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=800&q=80',
       },
       {
         name: '강남 · 신사',
         desc: '스타트업·전문직을 위한 세련된 프라이빗 라운지',
-        image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+        image: 'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=800&q=80',
       },
       {
         name: '한남 · 이태원',
         desc: '글로벌 감성과 조용한 대화가 어우러진 비스트로',
-        image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80',
+        image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
       },
     ],
   },
@@ -119,9 +118,9 @@ export default function CityLandingPage() {
       <section className="relative overflow-hidden border-b border-white/10 bg-gradient-to-b from-[#12151e] via-[#0e1017] to-[#090a0f] pt-14 pb-20 px-6">
         <div className="max-w-[1240px] mx-auto space-y-7">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300">
-            <span className={`w-2 h-2 rounded-full ${city.status === 'ACTIVE' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+            <span className={`w-2 h-2 rounded-full ${city.status === 'ACTIVE' ? 'bg-rose-500' : 'bg-zinc-500'}`} />
             <span className="font-semibold">
-              {city.nameKr} ({city.nameEn}) • {city.status === 'ACTIVE' ? '현재 매주 금요일 접수중' : '사전 예약 알림 접수중'}
+              {city.nameKr} ({city.nameEn}) • {city.status === 'ACTIVE' ? '현재 매주 금/토 접수중' : '사전 오픈 준비중'}
             </span>
           </div>
 
@@ -140,21 +139,20 @@ export default function CityLandingPage() {
               <button
                 type="button"
                 onClick={() => handleApplyClick('EVT_JEONPO_FRI')}
-                className="px-8 py-4 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-base font-bold shadow-xl shadow-[#881337]/30 transition-all cursor-pointer flex items-center gap-2"
+                className="px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-base font-semibold shadow-xl transition-all cursor-pointer"
               >
-                <span>이번 주 {city.nameKr} 다이닝 신청</span>
-                <span className="text-xs bg-black/30 px-2 py-0.5 rounded text-rose-200">₩19,900</span>
+                신청하기
               </button>
               <span className="text-xs text-zinc-400">
-                🔒 장소는 D-1 목요일 19:00에 비공개 초대장으로 전달됩니다.
+                🔒 장소는 D-1 목요일 19:00에 비공개 초대장으로 안내됩니다.
               </span>
             </div>
           ) : (
             <div className="pt-2 max-w-md">
               {waitlistDone ? (
-                <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-sm font-semibold flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  <span>{city.nameKr} 오픈 사전 알림 신청이 완료되었습니다! (알림톡 발송 예정)</span>
+                <div className="p-4 rounded-2xl bg-white/5 border border-rose-500/40 text-rose-200 text-sm font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-rose-400" />
+                  <span>{city.nameKr} 오픈 알림 등록이 완료되었습니다.</span>
                 </div>
               ) : (
                 <form onSubmit={handleWaitlistSubmit} className="space-y-3">
@@ -165,17 +163,17 @@ export default function CityLandingPage() {
                       onChange={(e) => setWaitlistPhone(e.target.value)}
                       placeholder="휴대폰 번호 입력 (예: 010-1234-5678)"
                       required
-                      className="flex-1 px-4 py-3.5 rounded-xl bg-[#12151e] border border-white/15 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
                     />
                     <button
                       type="submit"
-                      className="px-5 py-3.5 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-xs font-bold transition-all shrink-0 cursor-pointer shadow-md"
+                      className="px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-all shrink-0 cursor-pointer shadow-md"
                     >
                       오픈 알림받기
                     </button>
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    현재 <strong>{city.waitlistCount}명</strong>의 {city.nameKr} 솔로 회원들이 오픈을 기다리고 있습니다.
+                    {city.nameKr} 오픈 시 초대 알림이 전달됩니다.
                   </p>
                 </form>
               )}
