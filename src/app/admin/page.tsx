@@ -200,7 +200,7 @@ export default function AdminOperationsDashboardPage() {
           <div className="flex flex-col gap-2.5 pt-2">
             <Link
               href="/auth"
-              className="w-full py-3.5 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-sm font-bold transition-colors"
+              className="w-full py-3.5 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-sm font-bold transition-all duration-200 text-center shadow-lg hover:shadow-rose-950/50"
             >
               관리자 로그인 화면으로 이동
             </Link>

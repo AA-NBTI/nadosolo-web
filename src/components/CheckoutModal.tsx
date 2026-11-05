@@ -218,9 +218,9 @@ export default function CheckoutModal({
               <button
                 type="submit"
                 disabled={!isFormValid || isProcessing}
-                className={`w-full py-4 rounded-xl text-base font-bold shadow-lg transition-all flex items-center justify-center gap-2 ${
+                className={`w-full py-4 rounded-xl text-base font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 ${
                   isFormValid && !isProcessing
-                    ? 'bg-[#881337] hover:bg-[#6f102d] text-white shadow-[#881337]/30 cursor-pointer'
+                    ? 'border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 shadow-rose-950/40 cursor-pointer'
                     : 'bg-white/10 text-zinc-500 cursor-not-allowed border border-white/5'
                 }`}
               >

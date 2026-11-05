@@ -75,9 +75,9 @@ export default function SectorJourney() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#090a0f] via-transparent to-black/40" />
                   
-                  {/* 스텝 번호 뱃지 */}
+                  {/* 스텝 번호 뱃지 (다크 그레이 배경) */}
                   <div className="absolute top-3 left-3">
-                    <span className="px-2.5 py-0.5 rounded-full bg-rose-600 text-white font-serif-editorial font-bold text-xs tracking-wider">
+                    <span className="px-2.5 py-0.5 rounded-full bg-zinc-800/95 text-zinc-200 border border-zinc-700/60 font-serif-editorial font-bold text-xs tracking-wider backdrop-blur-md">
                       STEP {s.step}
                     </span>
                   </div>

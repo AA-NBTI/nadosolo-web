@@ -183,7 +183,7 @@ export default function DiningPage() {
                     <button
                       type="button"
                       onClick={() => handleApplyClick(ev.eventId)}
-                      className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold transition-colors cursor-pointer"
+                      className="w-full py-3 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-sm font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-rose-950/50"
                     >
                       신청하기
                     </button>

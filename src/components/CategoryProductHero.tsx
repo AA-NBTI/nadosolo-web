@@ -70,9 +70,9 @@ export default function CategoryProductHero({
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
 
-            {/* 좌상단: 현재 단계 칩 */}
+            {/* 좌상단: 현재 단계 칩 (다크 그레이 배경) */}
             <div className="absolute top-4 left-4 flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-rose-600/95 text-white font-serif-editorial font-bold text-xs shadow-lg backdrop-blur-md">
+              <span className="px-3 py-1 rounded-full bg-zinc-800/95 text-zinc-200 border border-zinc-700/60 font-serif-editorial font-bold text-xs shadow-lg backdrop-blur-md">
                 {currentSlide.stage}
               </span>
               <span className="px-2.5 py-1 rounded-full bg-black/60 text-zinc-300 text-[11px] border border-white/10 backdrop-blur-md">
@@ -193,12 +193,12 @@ export default function CategoryProductHero({
             ))}
           </div>
 
-          {/* 액션 버튼 영역 (4대 카테고리 전체 "신청하기" 규격 통일) */}
+          {/* 액션 버튼 영역 (기본: 다크 바탕에 레드 텍스트 / 롤오버·클릭 시 솔리드 레드 전환) */}
           <div className="pt-2 space-y-3.5">
             <button
               type="button"
               onClick={onApply}
-              className="w-full px-8 py-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-base transition-colors cursor-pointer shadow-xl shadow-rose-950/40 flex items-center justify-center gap-2"
+              className="w-full px-8 py-4 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 font-semibold text-base transition-all duration-200 cursor-pointer shadow-lg hover:shadow-rose-950/50 flex items-center justify-center gap-2"
             >
               <span>신청하기</span>
               <ArrowRight className="w-4 h-4" />

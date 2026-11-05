@@ -114,11 +114,11 @@ export default function SectorDistricts({ onOpenCheckout }: SectorDistrictsProps
                   </div>
                 </div>
 
-                {/* 신청 버튼: 간결하게 '신청하기'만 유지 */}
+                {/* 신청 버튼: 기본 다크 바탕 레드 글씨 -> 호버/클릭 시 솔리드 레드 */}
                 <button
                   type="button"
                   onClick={onOpenCheckout}
-                  className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors cursor-pointer"
+                  className="w-full py-3 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-xs font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-rose-950/50"
                 >
                   신청하기
                 </button>

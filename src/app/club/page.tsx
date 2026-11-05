@@ -196,7 +196,7 @@ export default function ClubPage() {
                   <button
                     type="button"
                     onClick={() => handleApplyAlert(club.id)}
-                    className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors cursor-pointer"
+                    className="px-5 py-2.5 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-xs font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-rose-950/50"
                   >
                     신청하기
                   </button>
