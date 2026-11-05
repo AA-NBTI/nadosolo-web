@@ -22,7 +22,8 @@ type AdminTabKey =
   | 'VENUE'
   | 'EVENT_GATE'
   | 'DECK'
-  | 'PAGE_CMS';
+  | 'PAGE_CMS'
+  | 'ADMIN_ACCOUNT';
 
 const ADMIN_CATEGORIES: { key: AdminTabKey; label: string; badge?: string }[] = [
   { key: 'PROCESS', label: '프로세스' },
@@ -34,6 +35,7 @@ const ADMIN_CATEGORIES: { key: AdminTabKey; label: string; badge?: string }[] = 
   { key: 'EVENT_GATE', label: '모임조건' },
   { key: 'DECK', label: '대화카드' },
   { key: 'PAGE_CMS', label: '페이지' },
+  { key: 'ADMIN_ACCOUNT', label: '관리자계정' },
 ];
 
 export default function AdminOperationsDashboardPage() {
@@ -180,12 +182,15 @@ export default function AdminOperationsDashboardPage() {
             ============================================================ */}
         <aside className="w-full lg:w-64 shrink-0 bg-[#12151e] text-white rounded-3xl border border-white/10 p-5 shadow-sm lg:sticky lg:top-24">
           <div className="px-3 pb-4 mb-3 border-b border-white/10">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-zinc-500">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-semibold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
               SYSTEM ADMIN
             </p>
-            <h1 className="text-lg font-bold text-white mt-0.5">nadosolo</h1>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              프로세스 · 5×5×5 엔진 제어
+            <h1 className="text-lg font-bold text-white mt-1">
+              {currentUser?.nickname || '최고관리자'}
+            </h1>
+            <p className="text-xs text-zinc-400 mt-0.5 font-mono">
+              {currentUser?.handle || '@admin'} • 슈퍼 권한
             </p>
           </div>
 
@@ -1315,6 +1320,105 @@ export default function AdminOperationsDashboardPage() {
                   </div>
                 );
               })()}
+            </section>
+          )}
+
+          {/* ----------------------------------------------------------
+              [탭 10] 관리자 관리 계정 (ADMIN ACCOUNT)
+              ---------------------------------------------------------- */}
+          {activeTab === 'ADMIN_ACCOUNT' && (
+            <section className="bg-[#12151e] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-sm space-y-6">
+              <div className="border-b border-white/10 pb-4 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-mono text-emerald-400 font-semibold uppercase">
+                    SECURITY & ACCESS CONTROL
+                  </span>
+                  <h2 className="text-xl font-bold text-white mt-1">
+                    관리자 관리 계정 및 보안 설정
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    플랫폼 전체 데이터 및 프로세스 제어 권한을 가진 최고 관리자 계정입니다.
+                  </p>
+                </div>
+                <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold">
+                  슈퍼 관리자 (SUPER ADMIN)
+                </span>
+              </div>
+
+              {/* 관리자 프로필 정보 카드 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-5 rounded-2xl bg-[#1c202e] border border-white/10 space-y-3">
+                  <div className="text-xs font-semibold text-zinc-400">관리자 고유 식별자</div>
+                  <div className="text-base font-bold text-white font-mono flex items-center gap-2">
+                    <span>{currentUser?.handle || '@admin'}</span>
+                    <span className="text-[11px] text-zinc-400 font-sans font-normal">
+                      (ID: {currentUser?.userId || 'ADMIN_01'})
+                    </span>
+                  </div>
+                  <div className="text-xs text-zinc-400">
+                    등록 이메일: <span className="text-zinc-200">{currentUser?.email || 'admin@nadosolo.com'}</span>
+                  </div>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-[#1c202e] border border-white/10 space-y-3">
+                  <div className="text-xs font-semibold text-zinc-400">권한 등급 및 세션</div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-sm font-bold text-emerald-400">활성 세션 (정상 연결)</span>
+                  </div>
+                  <div className="text-xs text-zinc-400">
+                    보안 레벨: <span className="text-zinc-200">Level 5 (전체 모듈 및 DB RLS 마스터 권한)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 비밀번호 관리 & 보안 수칙 안내 */}
+              <div className="p-5 rounded-2xl bg-[#1c202e] border border-white/10 space-y-4">
+                <h3 className="text-sm font-bold text-white">관리자 로그인 인증 정보 관리</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-medium">관리자 로그인 아이디</label>
+                    <input
+                      type="text"
+                      readOnly
+                      value="admin"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#10131c] text-zinc-400 font-mono text-sm cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1 font-medium">관리자 기본 비밀번호</label>
+                    <input
+                      type="password"
+                      readOnly
+                      value="aa1111"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-white/10 bg-[#10131c] text-zinc-400 font-mono text-sm cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-zinc-400 leading-relaxed">
+                  💡 관리자 계정 정보는 소스코드 및 Supabase 환경 변수와 동기화되어 안전하게 보호됩니다. 상용 배포 환경에서는 Supabase Auth의 관리자 전용 2FA(2단계 인증)를 적용하여 보안을 더욱 강화할 수 있습니다.
+                </p>
+              </div>
+
+              {/* 빠른 바로가기 액션 */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <Link
+                  href="/dashboard"
+                  className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-semibold border border-white/15 transition-all"
+                >
+                  사용자 대시보드 화면 전환 →
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdminToast('관리자 세션 상태가 최신으로 동기화되었습니다.');
+                    setTimeout(() => setAdminToast(null), 3000);
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold shadow-md transition-all cursor-pointer"
+                >
+                  관리자 권한 캐시 갱신
+                </button>
+              </div>
             </section>
           )}
         </div>

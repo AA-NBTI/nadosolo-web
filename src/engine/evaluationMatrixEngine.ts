@@ -792,16 +792,8 @@ export const INITIAL_CONDITIONAL_EVENTS: ConditionalEventItem[] = [
 // ============================================================================
 export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   {
-    processId: 'P01_ACCOUNT',
-    stepOrder: 1,
-    label: '계정정보',
-    enabled: true,
-    coreRequired: true,
-    description: '@핸들 아이디, 이메일, 연락처, 본인인증 관리',
-  },
-  {
     processId: 'P02_PROFILE',
-    stepOrder: 2,
+    stepOrder: 1,
     label: '기본프로필',
     enabled: true,
     coreRequired: true,
@@ -809,7 +801,7 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   },
   {
     processId: 'P03_SELF_DIAG',
-    stepOrder: 3,
+    stepOrder: 2,
     label: '자가진단',
     enabled: true,
     coreRequired: false,
@@ -817,7 +809,7 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   },
   {
     processId: 'P04_REGION',
-    stepOrder: 4,
+    stepOrder: 3,
     label: '지역선택',
     enabled: true,
     coreRequired: true,
@@ -825,7 +817,7 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   },
   {
     processId: 'P05_EVENT_APPLY',
-    stepOrder: 5,
+    stepOrder: 4,
     label: '모임신청',
     enabled: true,
     coreRequired: true,
@@ -833,7 +825,7 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   },
   {
     processId: 'P06_SEAT',
-    stepOrder: 6,
+    stepOrder: 5,
     label: '좌석배정',
     enabled: true,
     coreRequired: false,
@@ -841,7 +833,7 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   },
   {
     processId: 'P07_DECK',
-    stepOrder: 7,
+    stepOrder: 6,
     label: '대화카드',
     enabled: true,
     coreRequired: false,
@@ -849,7 +841,7 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   },
   {
     processId: 'P08_EVALUATION',
-    stepOrder: 8,
+    stepOrder: 7,
     label: '개인평가',
     enabled: true,
     coreRequired: false,
@@ -857,7 +849,7 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   },
   {
     processId: 'P09_VOTE',
-    stepOrder: 9,
+    stepOrder: 8,
     label: '매칭투표',
     enabled: true,
     coreRequired: false,
@@ -865,11 +857,19 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
   },
   {
     processId: 'P10_REPORT',
-    stepOrder: 10,
+    stepOrder: 9,
     label: '코칭리포트',
     enabled: true,
     coreRequired: false,
     description: '개인 마스터 프로파일(100점 성적표·오각형 지표·뱃지·1:1 코칭)',
+  },
+  {
+    processId: 'P01_ACCOUNT',
+    stepOrder: 10,
+    label: '계정정보',
+    enabled: true,
+    coreRequired: true,
+    description: '@핸들 아이디, 이메일, 연락처, 본인인증 관리',
   },
 ];
 

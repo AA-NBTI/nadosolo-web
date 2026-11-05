@@ -83,7 +83,7 @@ function MemberDashboardContent() {
   );
 
   const [activeProcessId, setActiveProcessId] = useState<string>(
-    stepQuery || 'P01_ACCOUNT'
+    stepQuery || 'P02_PROFILE'
   );
 
   useEffect(() => {
@@ -242,8 +242,9 @@ function MemberDashboardContent() {
           </div>
 
           <nav className="space-y-1">
-            {enabledModules.map((mod, idx) => {
+            {enabledModules.map((mod) => {
               const active = currentProcess?.processId === mod.processId;
+              const isAccount = mod.processId === 'P01_ACCOUNT';
               return (
                 <button
                   key={mod.processId}
@@ -253,20 +254,15 @@ function MemberDashboardContent() {
                     active
                       ? 'bg-white/10 text-white font-medium border border-white/15'
                       : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5 font-normal border border-transparent'
-                  }`}
+                  } ${isAccount ? 'mt-2 pt-3 border-t border-white/10' : ''}`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className={`w-5 h-5 rounded-md text-xs font-mono flex items-center justify-center ${
-                        active
-                          ? 'bg-white text-zinc-950 font-semibold'
-                          : 'bg-white/5 text-zinc-500 border border-white/10'
-                      }`}
-                    >
-                      {idx + 1}
-                    </span>
-                    <span className="text-sm">{mod.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-rose-400' : 'bg-transparent'}`} />
+                    <span className="text-sm font-medium">{mod.label}</span>
                   </div>
+                  {isAccount && (
+                    <span className="text-[10px] text-zinc-500 font-mono">설정</span>
+                  )}
                 </button>
               );
             })}
