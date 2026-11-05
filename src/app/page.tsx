@@ -383,15 +383,6 @@ export default function NadoSoloHomePage() {
         </section>
 
       </main>
-
-      <footer className="w-full bg-[#090a0f] border-t border-white/10 py-10">
-        <div className="w-full max-w-[1320px] mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-zinc-400">
-          <span className="font-serif-editorial text-2xl font-medium text-white lowercase">
-            nadosolo
-          </span>
-          <p>© 2026 NadoSolo Society. Trust-Based Solo Lifestyle Platform.</p>
-        </div>
-      </footer>
     </div>
   );
 }
