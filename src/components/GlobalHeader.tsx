@@ -40,9 +40,9 @@ export default function GlobalHeader() {
           관리자 제어 상단 공지 띠배너 (Announcement Bar)
           ============================================================== */}
       {announcement?.visible && (
-        <div className="w-full bg-gradient-to-r from-rose-950 via-rose-900 to-rose-950 border-b border-rose-500/30 px-4 py-2 text-center text-xs font-medium text-rose-100 flex items-center justify-center gap-2">
+        <div className="w-full bg-[#11131c] border-b border-white/10 px-4 py-2 text-center text-xs font-medium text-zinc-300 flex items-center justify-center gap-2">
           {announcement.tag && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white uppercase tracking-wider">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-600 text-white uppercase tracking-wider">
               {announcement.tag}
             </span>
           )}
@@ -50,7 +50,7 @@ export default function GlobalHeader() {
           {announcement.link && (
             <Link
               href={announcement.link}
-              className="underline text-rose-300 hover:text-white font-semibold inline-flex items-center gap-0.5 ml-1"
+              className="text-zinc-200 hover:text-white underline font-medium inline-flex items-center gap-0.5 ml-1"
             >
               <span>자세히 보기</span>
               <ArrowRight className="w-3 h-3" />
