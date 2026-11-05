@@ -192,15 +192,6 @@ export default function GlobalFooter() {
               </div>
             )}
 
-            <div className="mt-6 pt-4 border-t border-white/10 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-medium transition-colors cursor-pointer"
-              >
-                확인 및 닫기
-              </button>
-            </div>
           </div>
         </div>
       )}

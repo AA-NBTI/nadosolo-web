@@ -99,19 +99,14 @@ export default function ButtonStyleModal({
       <div className="relative w-full max-w-lg bg-[#0f1118] border border-white/20 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-6 text-white max-h-[90vh] overflow-y-auto">
         
         {/* 상단 헤더 */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
               <Paintbrush className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-white tracking-tight">
-                버튼 디자인 &amp; 색상 커스터마이저
-              </h3>
-              <p className="text-[11px] text-zinc-400">
-                신청하기 등 사이트 전체 액션 버튼의 색상과 모양을 실시간 변경합니다.
-              </p>
-            </div>
+            <h3 className="text-base font-bold text-white tracking-tight">
+              버튼 스타일
+            </h3>
           </div>
           <button
             type="button"
@@ -123,18 +118,12 @@ export default function ButtonStyleModal({
         </div>
 
         {/* 1. 실시간 미리보기 박스 */}
-        <div className="p-6 rounded-2xl bg-black/60 border border-white/10 text-center space-y-3">
-          <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-            LIVE BUTTON PREVIEW (실시간 미리보기)
-          </span>
-          <div className="flex items-center justify-center pt-1 pb-1">
+        <div className="p-5 rounded-2xl bg-black/60 border border-white/10 text-center space-y-2">
+          <div className="flex items-center justify-center py-1">
             <button type="button" className={previewClasses}>
               <span>신청하기</span>
             </button>
           </div>
-          <p className="text-[11px] text-zinc-500">
-            * 마우스를 올리거나 클릭했을 때의 전환 효과를 직접 테스트해보세요.
-          </p>
         </div>
 
         {/* 2. 컬러 테마 프리셋 선택 */}
@@ -221,21 +210,14 @@ export default function ButtonStyleModal({
         </div>
 
         {/* 하단 저장 버튼 */}
-        <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-2.5">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold cursor-pointer transition-colors"
-          >
-            취소
-          </button>
+        <div className="pt-3 border-t border-white/10 flex items-center justify-end">
           <button
             type="button"
             onClick={handleSave}
-            className="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-rose-950/50"
+            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-rose-950/50"
           >
             <Check className="w-4 h-4" />
-            <span>버튼 스타일 전체 적용</span>
+            <span>스타일 적용</span>
           </button>
         </div>
 

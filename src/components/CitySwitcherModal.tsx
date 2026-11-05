@@ -35,22 +35,16 @@ export default function CitySwitcherModal({ isOpen, onClose }: CitySwitcherModal
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-md bg-[#0f1118] border border-white/10 rounded-2xl p-6 sm:p-7 shadow-2xl text-white space-y-5"
       >
-        {/* 상단 헤더 & 닫기 버튼 */}
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <div>
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-rose-500" />
-              <span>진행 중인 모임 지역</span>
-            </h2>
-            <p className="text-xs text-zinc-400 mt-0.5">
-              현재 실제 개설되어 참여 가능한 라이브 거점입니다.
-            </p>
-          </div>
+        {/* 상단 헤더 & 닫기(X) */}
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <h2 className="text-base font-bold text-white flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-rose-500" />
+            <span>모임 지역 선택</span>
+          </h2>
           <button
             type="button"
             onClick={onClose}
             className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-            aria-label="닫기"
           >
             <X className="w-5 h-5" />
           </button>

@@ -150,23 +150,20 @@ export default function MediaUploadModal({
               onChange={(e) => handleUrlChange(e.target.value)}
               placeholder={
                 selectedType === 'youtube'
-                  ? '예: https://www.youtube.com/watch?v=...'
+                  ? 'https://www.youtube.com/watch?v=...'
                   : selectedType === 'video'
-                  ? '예: https://example.com/video.mp4'
-                  : '예: https://images.unsplash.com/...'
+                  ? 'https://.../video.mp4'
+                  : 'https://.../image.jpg'
               }
               className="w-full px-4 py-3 rounded-xl bg-black/50 border border-white/15 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-rose-500 transition-colors"
             />
-            <p className="text-[11px] text-zinc-400">
-              * 웹상에 업로드된 이미지, MP4 비디오, 또는 유튜브 링크를 붙여넣으시면 즉시 반영됩니다.
-            </p>
           </div>
 
           {/* 원클릭 추천 럭셔리 프리셋 */}
           <div className="space-y-2 pt-1">
             <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1">
               <Sparkles className="w-3.5 h-3.5 text-rose-400" />
-              <span>추천 감성 프리셋 (클릭 시 자동 입력)</span>
+              <span>추천 프리셋</span>
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {LUXURY_PRESETS.map((p, idx) => (
@@ -191,21 +188,14 @@ export default function MediaUploadModal({
           </div>
 
           {/* 하단 저장 버튼 */}
-          <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2.5">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold cursor-pointer transition-colors"
-            >
-              취소
-            </button>
+          <div className="pt-3 border-t border-white/10 flex items-center justify-end">
             <button
               type="submit"
               disabled={!url.trim()}
-              className="px-6 py-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-lg disabled:opacity-40"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg disabled:opacity-40"
             >
               <Check className="w-4 h-4" />
-              <span>미디어 적용하기</span>
+              <span>적용</span>
             </button>
           </div>
         </form>

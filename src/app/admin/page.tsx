@@ -14,7 +14,6 @@ import {
 } from '@/engine';
 
 import AdminLayoutManager from '@/components/admin/AdminLayoutManager';
-import { setStoredEditMode } from '@/engine/siteConfigEngine';
 
 type AdminTabKey =
   | 'PROCESS'
@@ -268,27 +267,17 @@ export default function AdminOperationsDashboardPage() {
           </nav>
 
           <div className="mt-6 pt-4 border-t border-white/10 space-y-2">
-            <button
-              type="button"
-              onClick={() => {
-                setStoredEditMode(true);
-                window.location.href = '/';
-              }}
-              className="w-full py-2.5 px-3 rounded-xl border border-rose-500/50 bg-rose-950/40 hover:bg-rose-900/60 text-center text-xs font-bold text-rose-300 transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-lg"
-            >
-              <span>✏️ 실시간 화면 편집 모드 열기</span>
-            </button>
             <Link
               href="/dashboard"
-              className="block w-full py-2.5 px-3 rounded-xl bg-[#10131c] hover:bg-stone-800 text-center text-xs font-bold text-white"
+              className="block w-full py-2.5 px-3 rounded-xl bg-[#10131c] hover:bg-stone-800 text-center text-xs font-bold text-white transition-colors"
             >
-              마이페이지 보기 →
+              마이페이지 →
             </Link>
             <Link
               href="/"
-              className="block w-full py-2.5 px-3 rounded-xl bg-[#1c202e] hover:bg-[#252b3d] text-center text-xs font-bold text-zinc-300"
+              className="block w-full py-2.5 px-3 rounded-xl bg-[#1c202e] hover:bg-[#252b3d] text-center text-xs font-bold text-zinc-300 transition-colors"
             >
-              ← 메인 화면으로 이동
+              ← 메인 화면
             </Link>
           </div>
         </aside>
