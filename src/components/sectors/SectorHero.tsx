@@ -3,12 +3,25 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import EditableText from '../editor/EditableText';
+import { useVisualEditor, SectorConfig } from '@/engine/siteConfigEngine';
 
 interface SectorHeroProps {
+  config?: SectorConfig;
+  onUpdate?: (updates: Partial<SectorConfig>) => void;
   onOpenCheckout?: () => void;
 }
 
-export default function SectorHero({ onOpenCheckout }: SectorHeroProps) {
+export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorHeroProps) {
+  const { isEditMode } = useVisualEditor();
+
+  const headlineTitle = config?.headlineTitle || '결이 맞는 사람들과의';
+  const headlineHighlight = config?.headlineHighlight || '품격 있는 주말 다이닝';
+  const description =
+    config?.description ||
+    '끝없는 스와이프와 어색한 침묵 대신, 에티켓과 결이 검증된 솔로들이 모여 미식과 와인, 그리고 진솔한 대화를 나누는 프라이빗 소셜 살롱입니다.';
+  const ctaText = config?.ctaText || '신청하기';
+
   return (
     <section className="relative w-full bg-[#090a0f] py-16 sm:py-20 border-b border-white/10">
       <div className="relative w-full max-w-[1240px] mx-auto px-4 sm:px-6">
@@ -19,12 +32,31 @@ export default function SectorHero({ onOpenCheckout }: SectorHeroProps) {
             Private Social Dining &amp; Salon
           </p>
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif-editorial font-bold text-white tracking-tight leading-[1.2]">
-            결이 맞는 사람들과의<br />
-            품격 있는 주말 다이닝
+            <EditableText
+              as="span"
+              value={headlineTitle}
+              editable={isEditMode}
+              onChange={(val) => onUpdate && onUpdate({ headlineTitle: val })}
+              placeholder="헤드라인 첫 번째 줄"
+            />
+            <br />
+            <EditableText
+              as="span"
+              value={headlineHighlight}
+              editable={isEditMode}
+              onChange={(val) => onUpdate && onUpdate({ headlineHighlight: val })}
+              placeholder="헤드라인 두 번째 줄"
+            />
           </h1>
           <p className="text-sm sm:text-base text-zinc-400 leading-relaxed max-w-2xl mx-auto">
-            끝없는 스와이프와 어색한 침묵 대신, 에티켓과 결이 검증된 솔로들이 모여
-            미식과 와인, 그리고 진솔한 대화를 나누는 프라이빗 소셜 살롱입니다.
+            <EditableText
+              as="span"
+              value={description}
+              multiline
+              editable={isEditMode}
+              onChange={(val) => onUpdate && onUpdate({ description: val })}
+              placeholder="설명 문구를 입력하세요"
+            />
           </p>
         </div>
 
@@ -35,7 +67,13 @@ export default function SectorHero({ onOpenCheckout }: SectorHeroProps) {
             onClick={onOpenCheckout}
             className="px-9 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white font-bold text-base sm:text-lg transition-all duration-200 cursor-pointer shadow-lg"
           >
-            신청하기
+            <EditableText
+              as="span"
+              value={ctaText}
+              editable={isEditMode}
+              onChange={(val) => onUpdate && onUpdate({ ctaText: val })}
+              placeholder="버튼 문구"
+            />
           </button>
 
           <Link

@@ -2,12 +2,17 @@
 
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
+import SmartMedia, { MediaType } from './media/SmartMedia';
+import EditableText from './editor/EditableText';
+import MediaUploadModal from './editor/MediaUploadModal';
+import { useVisualEditor } from '@/engine/siteConfigEngine';
 
 export interface GallerySlideItem {
   stage: string; // 예: "01. 장소", "02. 음식", "03. 만남", "04. 여운"
   title: string;
   desc: string;
   image: string;
+  mediaType?: MediaType;
 }
 
 export interface SpecBadgeItem {
@@ -26,6 +31,15 @@ export interface CategoryProductHeroProps {
   onApply: () => void;
   trustNote?: string;
   activeLocationLabel?: string;
+  onUpdateProps?: (updates: {
+    badge?: string;
+    headlineTitle?: string;
+    headlineHighlight?: string;
+    description?: string;
+    activeLocationLabel?: string;
+    trustNote?: string;
+    slides?: GallerySlideItem[];
+  }) => void;
 }
 
 export default function CategoryProductHero({
@@ -38,34 +52,52 @@ export default function CategoryProductHero({
   onApply,
   trustNote = '에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다.',
   activeLocationLabel = '부산 (전포·서면·해운대)',
+  onUpdateProps,
 }: CategoryProductHeroProps) {
+  const { isEditMode } = useVisualEditor();
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+
+  // 로컬 슬라이드 상태 (편집 모드 시 실시간 반영)
+  const [localSlides, setLocalSlides] = useState<GallerySlideItem[]>(slides);
 
   const prevSlide = () => {
-    setCurrentIdx((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
+    setCurrentIdx((prev) => (prev === 0 ? localSlides.length - 1 : prev - 1));
   };
 
   const nextSlide = () => {
-    setCurrentIdx((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+    setCurrentIdx((prev) => (prev === localSlides.length - 1 ? 0 : prev + 1));
   };
 
-  const currentSlide = slides[currentIdx];
+  const currentSlide = localSlides[currentIdx] || localSlides[0];
+
+  const handleUpdateCurrentSlide = (updates: Partial<GallerySlideItem>) => {
+    const updated = localSlides.map((s, idx) =>
+      idx === currentIdx ? { ...s, ...updates } : s
+    );
+    setLocalSlides(updated);
+    if (onUpdateProps) {
+      onUpdateProps({ slides: updated });
+    }
+  };
 
   return (
     <section className="relative w-full bg-[#090a0f] pt-2 sm:pt-4 pb-12 sm:pb-16 px-4 sm:px-6 border-b border-white/10">
       <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
         
         {/* ==============================================================
-            [모바일 1순위 / 데스크톱 좌측]: 큰 사진 슬라이더 (쇼핑몰 대형 이미지 뷰어)
-            - 만나는 모습, 음식 모습, 장소 모습, 여운의 흐름을 큰 사진과 화면 넘김 버튼으로 확인
+            [모바일 1순위 / 데스크톱 좌측]: 대형 미디어 슬라이더 (사진/동영상 뷰어)
             ============================================================== */}
         <div className="lg:col-span-7 order-1 lg:order-1 space-y-3.5">
           
-          {/* 대형 메인 사진 프레임 */}
+          {/* 대형 메인 사진/동영상 프레임 */}
           <div className="relative aspect-[16/11] sm:aspect-[4/3] w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 bg-zinc-950 shadow-2xl group">
-            <img
+            <SmartMedia
               src={currentSlide.image}
+              mediaType={currentSlide.mediaType}
               alt={currentSlide.title}
+              editable={isEditMode}
+              onEditClick={() => setIsMediaModalOpen(true)}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/30 pointer-events-none" />
@@ -73,10 +105,16 @@ export default function CategoryProductHero({
             {/* 좌상단: 현재 단계 칩 (다크 그레이 배경) */}
             <div className="absolute top-4 left-4 flex items-center gap-2">
               <span className="px-3 py-1 rounded-full bg-zinc-800/95 text-zinc-200 border border-zinc-700/60 font-serif-editorial font-bold text-xs shadow-lg backdrop-blur-md">
-                {currentSlide.stage}
+                <EditableText
+                  as="span"
+                  value={currentSlide.stage}
+                  editable={isEditMode}
+                  onChange={(val) => handleUpdateCurrentSlide({ stage: val })}
+                  placeholder="단계 라벨"
+                />
               </span>
               <span className="px-2.5 py-1 rounded-full bg-black/60 text-zinc-300 text-[11px] border border-white/10 backdrop-blur-md">
-                {currentIdx + 1} / {slides.length}
+                {currentIdx + 1} / {localSlides.length}
               </span>
             </div>
 
@@ -99,19 +137,31 @@ export default function CategoryProductHero({
             </button>
 
             {/* 하단 설명 오버레이 */}
-            <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 space-y-1 pointer-events-none">
+            <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5 space-y-1 z-10">
               <h3 className="text-base sm:text-xl font-bold text-white tracking-tight drop-shadow-md">
-                {currentSlide.title}
+                <EditableText
+                  as="span"
+                  value={currentSlide.title}
+                  editable={isEditMode}
+                  onChange={(val) => handleUpdateCurrentSlide({ title: val })}
+                  placeholder="슬라이드 제목"
+                />
               </h3>
               <p className="text-xs sm:text-sm text-zinc-200 leading-snug drop-shadow-md line-clamp-2">
-                {currentSlide.desc}
+                <EditableText
+                  as="span"
+                  value={currentSlide.desc}
+                  editable={isEditMode}
+                  onChange={(val) => handleUpdateCurrentSlide({ desc: val })}
+                  placeholder="슬라이드 설명"
+                />
               </p>
             </div>
           </div>
 
-          {/* 하단 4개 썸네일 네비게이션 탭 (클릭 시 해당 큰 사진으로 전환) */}
+          {/* 하단 4개 썸네일 네비게이션 탭 */}
           <div className="grid grid-cols-4 gap-2 sm:gap-3">
-            {slides.map((s, idx) => {
+            {localSlides.map((s, idx) => {
               const isActive = idx === currentIdx;
               return (
                 <button
@@ -154,22 +204,55 @@ export default function CategoryProductHero({
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              <span>{badge}</span>
+              <EditableText
+                as="span"
+                value={badge}
+                editable={isEditMode}
+                onChange={(val) => onUpdateProps && onUpdateProps({ badge: val })}
+                placeholder="카테고리 뱃지"
+              />
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.02] border border-white/5 text-[11px] text-zinc-400">
               <MapPin className="w-3 h-3 text-rose-500" />
-              <span>{activeLocationLabel}</span>
+              <EditableText
+                as="span"
+                value={activeLocationLabel}
+                editable={isEditMode}
+                onChange={(val) => onUpdateProps && onUpdateProps({ activeLocationLabel: val })}
+                placeholder="거점 라벨"
+              />
             </span>
           </div>
 
           {/* 메인 헤드라인 */}
           <div className="space-y-2.5">
             <h1 className="font-serif-editorial text-3xl sm:text-4xl lg:text-[40px] font-bold text-white tracking-tight leading-[1.2]">
-              {headlineTitle}<br />
-              <span className="text-white">{headlineHighlight}</span>
+              <EditableText
+                as="span"
+                value={headlineTitle}
+                editable={isEditMode}
+                onChange={(val) => onUpdateProps && onUpdateProps({ headlineTitle: val })}
+                placeholder="헤드라인 첫 번째 줄"
+              />
+              <br />
+              <EditableText
+                as="span"
+                value={headlineHighlight}
+                editable={isEditMode}
+                onChange={(val) => onUpdateProps && onUpdateProps({ headlineHighlight: val })}
+                placeholder="헤드라인 강조 문구"
+                className="text-white"
+              />
             </h1>
             <p className="text-sm sm:text-base text-zinc-400 leading-relaxed font-normal pt-1">
-              {description}
+              <EditableText
+                as="span"
+                value={description}
+                multiline
+                editable={isEditMode}
+                onChange={(val) => onUpdateProps && onUpdateProps({ description: val })}
+                placeholder="카테고리 상세 설명"
+              />
             </p>
           </div>
 
@@ -193,7 +276,7 @@ export default function CategoryProductHero({
             ))}
           </div>
 
-          {/* 액션 버튼 영역 (일반 버튼 테두리 통일, 폰트 확대 및 밝은 로즈 톤) */}
+          {/* 액션 버튼 영역 */}
           <div className="pt-2 space-y-3.5">
             <button
               type="button"
@@ -207,13 +290,29 @@ export default function CategoryProductHero({
             {/* 안심 보증 문구 */}
             <p className="text-xs text-zinc-400 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-rose-500 shrink-0" />
-              <span>{trustNote}</span>
+              <EditableText
+                as="span"
+                value={trustNote}
+                editable={isEditMode}
+                onChange={(val) => onUpdateProps && onUpdateProps({ trustNote: val })}
+                placeholder="신뢰 보증 문구"
+              />
             </p>
           </div>
 
         </div>
 
       </div>
+
+      {/* 미디어 교체 모달 */}
+      <MediaUploadModal
+        isOpen={isMediaModalOpen}
+        onClose={() => setIsMediaModalOpen(false)}
+        currentUrl={currentSlide.image}
+        currentType={currentSlide.mediaType}
+        onApply={(url, type) => handleUpdateCurrentSlide({ image: url, mediaType: type })}
+        title={`[${currentSlide.stage}] 미디어(사진 / 동영상 / 유튜브) 교체`}
+      />
     </section>
   );
 }

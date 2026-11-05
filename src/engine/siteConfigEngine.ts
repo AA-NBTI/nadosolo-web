@@ -22,7 +22,26 @@ export interface AnnouncementBarConfig {
   tag?: string;
 }
 
-export type SectorType = 'rolling-hero' | 'hero' | 'categories' | 'districts' | 'journey' | 'venues';
+export type SectorType =
+  | 'rolling-hero'
+  | 'hero'
+  | 'video-banner'
+  | 'categories'
+  | 'districts'
+  | 'journey'
+  | 'venues';
+
+export interface SectorSlideData {
+  id: string;
+  tag: string;
+  title: string;
+  highlight: string;
+  desc: string;
+  image: string;
+  mediaType?: 'image' | 'video' | 'youtube';
+  link: string;
+  ctaText: string;
+}
 
 export interface SectorConfig {
   id: string;
@@ -31,6 +50,16 @@ export interface SectorConfig {
   subtitle?: string;
   visible: boolean;
   order: number;
+
+  // [신규] 온페이지 직접 편집 지원 커스텀 속성
+  headlineTitle?: string;
+  headlineHighlight?: string;
+  description?: string;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video' | 'youtube';
+  ctaText?: string;
+  ctaLink?: string;
+  slides?: SectorSlideData[];
 }
 
 export interface SocialLinkConfig {
@@ -56,6 +85,24 @@ export interface FooterConfig {
   socialLinks: SocialLinkConfig[];
 }
 
+export interface CategorySlideData {
+  stage: string;
+  title: string;
+  desc: string;
+  image: string;
+  mediaType?: 'image' | 'video' | 'youtube';
+}
+
+export interface CategoryPageData {
+  badge: string;
+  headlineTitle: string;
+  headlineHighlight: string;
+  description: string;
+  activeLocationLabel?: string;
+  trustNote?: string;
+  slides: [CategorySlideData, CategorySlideData, CategorySlideData, CategorySlideData];
+}
+
 export interface SiteConfig {
   version: number;
   header: {
@@ -65,6 +112,7 @@ export interface SiteConfig {
   };
   mainSectors: SectorConfig[];
   footer: FooterConfig;
+  categoryPages?: Record<string, CategoryPageData>;
 }
 
 // ============================================================================
@@ -72,7 +120,7 @@ export interface SiteConfig {
 // ============================================================================
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 2,
+  version: 3,
   header: {
     announcement: {
       text: '🍷 이번 주 금요일 전포/서면 3040 & 5060 소셜 다이닝 좌석 마감 임박!',
@@ -89,12 +137,73 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     activeCityLabel: '부산 (전포·서면)',
   },
   mainSectors: [
-    { id: 'sector-rolling-hero', type: 'rolling-hero', title: '메인 롤링 쇼케이스', subtitle: '4대 핵심 프로그램 자동 롤링 캐러셀', visible: true, order: 1 },
-    { id: 'sector-hero', type: 'hero', title: '소셜 다이닝 헤드라인', subtitle: '선택된 도시 집중 조명 및 핵심 가치 소개', visible: true, order: 2 },
-    { id: 'sector-categories', type: 'categories', title: '4대 메인 카테고리', subtitle: '소셜 다이닝, 살롱, 클럽, 밋업 쇼케이스', visible: true, order: 3 },
-    { id: 'sector-districts', type: 'districts', title: '권역별 탐색', subtitle: '전포·서면, 해운대·광안리, 남포·영도 등', visible: true, order: 4 },
-    { id: 'sector-journey', type: 'journey', title: '모임 여정 4단계', subtitle: '착석 ➡️ 대화 ➡️ 식사 ➡️ 매너평가', visible: true, order: 5 },
-    { id: 'sector-venues', type: 'venues', title: '엄선 제휴 공간 갤러리', subtitle: '신뢰할 수 있는 프라이빗 와인바 & 다이닝 공간', visible: true, order: 6 },
+    {
+      id: 'sector-rolling-hero',
+      type: 'rolling-hero',
+      title: '메인 롤링 쇼케이스',
+      subtitle: '4대 핵심 프로그램 자동 롤링 캐러셀',
+      visible: true,
+      order: 1,
+    },
+    {
+      id: 'sector-hero',
+      type: 'hero',
+      title: '소셜 다이닝 헤드라인',
+      subtitle: '선택된 도시 집중 조명 및 핵심 가치 소개',
+      headlineTitle: '결이 맞는 사람들과의',
+      headlineHighlight: '품격 있는 주말 다이닝',
+      description: '끝없는 스와이프와 어색한 침묵 대신, 에티켓과 결이 검증된 솔로들이 모여 미식과 와인, 그리고 진솔한 대화를 나누는 프라이빗 소셜 살롱입니다.',
+      ctaText: '신청하기',
+      visible: true,
+      order: 2,
+    },
+    {
+      id: 'sector-video-banner',
+      type: 'video-banner',
+      title: '프라이빗 앰비언트 비디오 배너',
+      subtitle: '와인 & 다이닝 분위기 무한루프 동영상 배너',
+      headlineTitle: '오직 신뢰할 수 있는 사람들과의',
+      headlineHighlight: '가장 특별한 밤의 사교',
+      description: '엄선된 와인과 셰프의 디너, 편안한 대화가 흐르는 나도솔로 프라이빗 다이닝 클럽입니다.',
+      mediaUrl: 'https://assets.mixkit.co/videos/preview/mixkit-pouring-red-wine-in-a-glass-at-a-dinner-table-42646-large.mp4',
+      mediaType: 'video',
+      ctaText: '신청하기',
+      ctaLink: '/dining',
+      visible: false, // 기본은 비활성, 관리자가 원할 때 켜거나 메인에 삽입 가능
+      order: 3,
+    },
+    {
+      id: 'sector-categories',
+      type: 'categories',
+      title: '4대 메인 카테고리',
+      subtitle: '소셜 다이닝, 살롱, 클럽, 밋업 쇼케이스',
+      visible: true,
+      order: 4,
+    },
+    {
+      id: 'sector-districts',
+      type: 'districts',
+      title: '권역별 탐색',
+      subtitle: '전포·서면, 해운대·광안리, 남포·영도 등',
+      visible: true,
+      order: 5,
+    },
+    {
+      id: 'sector-journey',
+      type: 'journey',
+      title: '모임 여정 4단계',
+      subtitle: '착석 ➡️ 대화 ➡️ 식사 ➡️ 매너평가',
+      visible: true,
+      order: 6,
+    },
+    {
+      id: 'sector-venues',
+      type: 'venues',
+      title: '엄선 제휴 공간 갤러리',
+      subtitle: '신뢰할 수 있는 프라이빗 와인바 & 다이닝 공간',
+      visible: true,
+      order: 7,
+    },
   ],
   footer: {
     companyName: '템바보드 주식회사',
@@ -116,6 +225,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
 };
 
 const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V110';
+const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================
 // 3. Storage Helpers & Custom Event
@@ -127,8 +237,8 @@ export function getStoredSiteConfig(): SiteConfig {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SITE_CONFIG;
     const parsed = JSON.parse(raw);
-    
-    // 안전한 Deep Merge 및 Fallback 처리 (누락된 섹터나 속성 자동 보정)
+
+    // 안전한 Deep Merge 및 Fallback 처리
     const mergedHeader = {
       ...DEFAULT_SITE_CONFIG.header,
       ...(parsed.header || {}),
@@ -136,28 +246,41 @@ export function getStoredSiteConfig(): SiteConfig {
         ...DEFAULT_SITE_CONFIG.header.announcement,
         ...(parsed.header?.announcement || {}),
       },
-      navItems: Array.isArray(parsed.header?.navItems) && parsed.header.navItems.length > 0
-        ? parsed.header.navItems
-        : DEFAULT_SITE_CONFIG.header.navItems,
+      navItems:
+        Array.isArray(parsed.header?.navItems) && parsed.header.navItems.length > 0
+          ? parsed.header.navItems
+          : DEFAULT_SITE_CONFIG.header.navItems,
     };
 
     const mergedFooter = {
       ...DEFAULT_SITE_CONFIG.footer,
       ...(parsed.footer || {}),
-      socialLinks: Array.isArray(parsed.footer?.socialLinks) && parsed.footer.socialLinks.length > 0
-        ? parsed.footer.socialLinks
-        : DEFAULT_SITE_CONFIG.footer.socialLinks,
+      socialLinks:
+        Array.isArray(parsed.footer?.socialLinks) && parsed.footer.socialLinks.length > 0
+          ? parsed.footer.socialLinks
+          : DEFAULT_SITE_CONFIG.footer.socialLinks,
     };
 
-    const mergedSectors = Array.isArray(parsed.mainSectors) && parsed.mainSectors.length > 0
-      ? parsed.mainSectors
-      : DEFAULT_SITE_CONFIG.mainSectors;
+    // 기존 섹터 목록과 기본 섹터 목록의 병합 (새로운 섹터 타입 자동 병합)
+    const storedSectors: SectorConfig[] = Array.isArray(parsed.mainSectors) ? parsed.mainSectors : [];
+    const mergedSectors: SectorConfig[] = DEFAULT_SITE_CONFIG.mainSectors.map((defSector) => {
+      const match = storedSectors.find((s) => s.id === defSector.id);
+      return match ? { ...defSector, ...match } : defSector;
+    });
+
+    // 사용자가 직접 추가한 커스텀 섹터도 유지
+    storedSectors.forEach((s) => {
+      if (!mergedSectors.some((m) => m.id === s.id)) {
+        mergedSectors.push(s);
+      }
+    });
 
     return {
-      version: 2,
+      version: 3,
       header: mergedHeader,
-      mainSectors: mergedSectors,
+      mainSectors: mergedSectors.sort((a, b) => a.order - b.order),
       footer: mergedFooter,
+      categoryPages: parsed.categoryPages || {},
     };
   } catch (err) {
     console.error('Failed to parse site config from storage:', err);
@@ -179,7 +302,9 @@ export function resetStoredSiteConfig(): SiteConfig {
   if (typeof window === 'undefined') return DEFAULT_SITE_CONFIG;
   try {
     localStorage.removeItem(STORAGE_KEY);
-    window.dispatchEvent(new CustomEvent('nadosolo_site_config_updated', { detail: DEFAULT_SITE_CONFIG }));
+    window.dispatchEvent(
+      new CustomEvent('nadosolo_site_config_updated', { detail: DEFAULT_SITE_CONFIG })
+    );
   } catch (err) {
     console.error('Failed to reset site config:', err);
   }
@@ -187,7 +312,30 @@ export function resetStoredSiteConfig(): SiteConfig {
 }
 
 // ============================================================================
-// 4. React Hook: useSiteConfig
+// 4. 온페이지 비주얼 에디터 모드 상태 제어
+// ============================================================================
+
+export function getStoredEditMode(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    return localStorage.getItem(EDIT_MODE_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function setStoredEditMode(enabled: boolean): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(EDIT_MODE_STORAGE_KEY, enabled ? 'true' : 'false');
+    window.dispatchEvent(new CustomEvent('nadosolo_edit_mode_changed', { detail: enabled }));
+  } catch (err) {
+    console.error('Failed to save edit mode to storage:', err);
+  }
+}
+
+// ============================================================================
+// 5. React Hooks: useSiteConfig & useVisualEditor
 // ============================================================================
 
 export function useSiteConfig() {
@@ -221,6 +369,14 @@ export function useSiteConfig() {
     setConfig(newConfig);
   };
 
+  const updateSectorConfig = (sectorId: string, updates: Partial<SectorConfig>) => {
+    const updatedSectors = (config.mainSectors || []).map((sec) =>
+      sec.id === sectorId ? { ...sec, ...updates } : sec
+    );
+    const newConfig = { ...config, mainSectors: updatedSectors };
+    updateConfig(newConfig);
+  };
+
   const resetConfig = () => {
     const res = resetStoredSiteConfig();
     setConfig(res);
@@ -230,7 +386,40 @@ export function useSiteConfig() {
     config,
     isLoaded,
     updateConfig,
+    updateSectorConfig,
     resetConfig,
   };
 }
 
+export function useVisualEditor() {
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsEditMode(getStoredEditMode());
+
+    const handleModeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<boolean>;
+      setIsEditMode(customEvent.detail);
+    };
+
+    window.addEventListener('nadosolo_edit_mode_changed', handleModeChange);
+    return () => {
+      window.removeEventListener('nadosolo_edit_mode_changed', handleModeChange);
+    };
+  }, []);
+
+  const toggleEditMode = () => {
+    const next = !isEditMode;
+    setStoredEditMode(next);
+    setIsEditMode(next);
+  };
+
+  return {
+    isEditMode,
+    toggleEditMode,
+    setEditMode: (val: boolean) => {
+      setStoredEditMode(val);
+      setIsEditMode(val);
+    },
+  };
+}

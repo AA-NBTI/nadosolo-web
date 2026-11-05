@@ -3,6 +3,7 @@ import './globals.css';
 import { NadoSoloProvider } from '@/engine';
 import GlobalHeader from '@/components/GlobalHeader';
 import GlobalFooter from '@/components/GlobalFooter';
+import VisualEditorToolbar from '@/components/editor/VisualEditorToolbar';
 
 export const metadata: Metadata = {
   title: 'nadosolo | 좋은 사람들과, 좋은 시간을. 신뢰 기반 프리미엄 솔로 라이프스타일 플랫폼',
@@ -41,6 +42,7 @@ export default function RootLayout({
           <GlobalHeader />
           <div className="flex-1 flex flex-col">{children}</div>
           <GlobalFooter />
+          <VisualEditorToolbar />
         </NadoSoloProvider>
       </body>
     </html>

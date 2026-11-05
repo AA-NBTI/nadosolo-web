@@ -10,6 +10,7 @@ import CitySwitcherModal from '@/components/CitySwitcherModal';
 // 모듈러 섹터 컴포넌트 임포트
 import SectorRollingHero from '@/components/sectors/SectorRollingHero';
 import SectorHero from '@/components/sectors/SectorHero';
+import SectorVideoBanner from '@/components/sectors/SectorVideoBanner';
 import SectorCategories from '@/components/sectors/SectorCategories';
 import SectorDistricts from '@/components/sectors/SectorDistricts';
 import SectorJourney from '@/components/sectors/SectorJourney';
@@ -18,7 +19,7 @@ import SectorVenues from '@/components/sectors/SectorVenues';
 export default function NadoSoloHomePage() {
   const router = useRouter();
   const { currentUser, applyForConditionalEvent } = useNadoSoloEngine();
-  const { config } = useSiteConfig();
+  const { config, updateSectorConfig } = useSiteConfig();
 
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -55,11 +56,29 @@ export default function NadoSoloHomePage() {
   const renderSector = (sector: SectorConfig) => {
     switch (sector.type) {
       case 'rolling-hero':
-        return <SectorRollingHero key={sector.id} onOpenCheckout={handleOpenCheckout} />;
+        return (
+          <SectorRollingHero
+            key={sector.id}
+            config={sector}
+            onUpdate={(updates) => updateSectorConfig(sector.id, updates)}
+            onOpenCheckout={handleOpenCheckout}
+          />
+        );
       case 'hero':
         return (
           <SectorHero
             key={sector.id}
+            config={sector}
+            onUpdate={(updates) => updateSectorConfig(sector.id, updates)}
+            onOpenCheckout={handleOpenCheckout}
+          />
+        );
+      case 'video-banner':
+        return (
+          <SectorVideoBanner
+            key={sector.id}
+            config={sector}
+            onUpdate={(updates) => updateSectorConfig(sector.id, updates)}
             onOpenCheckout={handleOpenCheckout}
           />
         );

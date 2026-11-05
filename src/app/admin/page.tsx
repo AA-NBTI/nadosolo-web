@@ -14,6 +14,7 @@ import {
 } from '@/engine';
 
 import AdminLayoutManager from '@/components/admin/AdminLayoutManager';
+import { setStoredEditMode } from '@/engine/siteConfigEngine';
 
 type AdminTabKey =
   | 'PROCESS'
@@ -267,6 +268,16 @@ export default function AdminOperationsDashboardPage() {
           </nav>
 
           <div className="mt-6 pt-4 border-t border-white/10 space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                setStoredEditMode(true);
+                window.location.href = '/';
+              }}
+              className="w-full py-2.5 px-3 rounded-xl border border-rose-500/50 bg-rose-950/40 hover:bg-rose-900/60 text-center text-xs font-bold text-rose-300 transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-lg"
+            >
+              <span>✏️ 실시간 화면 편집 모드 열기</span>
+            </button>
             <Link
               href="/dashboard"
               className="block w-full py-2.5 px-3 rounded-xl bg-[#10131c] hover:bg-stone-800 text-center text-xs font-bold text-white"
