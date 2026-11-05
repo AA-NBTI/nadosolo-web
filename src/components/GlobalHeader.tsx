@@ -13,10 +13,10 @@ export default function GlobalHeader() {
   const [lang, setLang] = useState<'KO' | 'EN'>('KO');
 
   const navLinks = [
-    { href: '/dining', label: lang === 'KO' ? '소셜 다이닝' : 'Social Dining', badge: 'OPEN' },
+    { href: '/dining', label: lang === 'KO' ? '소셜 다이닝' : 'Social Dining' },
     { href: '/salon', label: lang === 'KO' ? '소셜 살롱' : 'Social Salon' },
     { href: '/club', label: lang === 'KO' ? '소셜 클럽' : 'Social Club' },
-    { href: '/events', label: lang === 'KO' ? '스페셜 밋업' : 'Special Meetup' },
+    { href: '/events', label: lang === 'KO' ? '테마 밋업' : 'Theme Meetup' },
   ];
 
   const handleLogout = () => {
@@ -61,9 +61,6 @@ export default function GlobalHeader() {
                 }`}
               >
                 <span>{item.label}</span>
-                {item.badge && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" title="현재 접수중" />
-                )}
                 {isActive && (
                   <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-rose-500 rounded-full" />
                 )}

@@ -51,12 +51,6 @@ export default function ClubPage() {
       {/* 1. HERO SECTION */}
       <section className="relative overflow-hidden border-b border-white/10 bg-[#12151e] pt-14 pb-18 px-6">
         <div className="max-w-[1240px] mx-auto space-y-6">
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
-            <Link href="/" className="hover:text-white transition-colors">홈</Link>
-            <span>/</span>
-            <span className="text-white font-medium">소셜 클럽</span>
-          </div>
-
           <div className="space-y-4 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />

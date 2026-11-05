@@ -199,7 +199,7 @@ export default function NadoSoloHomePage() {
               </div>
             </Link>
 
-            {/* 4. Special Meetup */}
+            {/* 4. Theme Meetup */}
             <Link
               href="/events"
               className="bg-[#12151e] p-6 rounded-2xl border border-white/10 space-y-4 hover:border-white/30 transition-all block group"
@@ -210,10 +210,10 @@ export default function NadoSoloHomePage() {
                 </span>
                 <span className="text-xs text-zinc-400 font-mono">STEP 04</span>
               </div>
-              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Special Meetup</h3>
-              <p className="text-xs text-zinc-400 font-medium">테마형 스페셜 밋업</p>
+              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Theme Meetup</h3>
+              <p className="text-xs text-zinc-400 font-medium">테마 밋업</p>
               <p className="text-sm text-zinc-300 leading-relaxed">
-                3045 프라임 직장인·전문직 교류회 및 5060 골든 솔로를 위한 인생 2막 스페셜 밋업 파티.
+                3045 프라임 직장인·전문직 교류회 및 5060 골든 솔로를 위한 인생 2막 테마 밋업 파티.
               </p>
               <div className="pt-2 text-xs text-rose-300 font-medium flex items-center gap-1">
                 <span>밋업 일정 확인</span>

@@ -57,14 +57,6 @@ export default function CityHubPage() {
       {/* 1. HERO SECTION */}
       <section className="relative overflow-hidden border-b border-white/10 bg-gradient-to-b from-[#12151e] to-[#090a0f] pt-14 pb-20 px-6">
         <div className="max-w-[1240px] mx-auto space-y-8">
-          <div className="flex items-center gap-2 text-xs text-zinc-500">
-            <Link href="/" className="hover:text-white transition-colors">홈</Link>
-            <span>/</span>
-            <span className="uppercase text-zinc-400">{countryParam}</span>
-            <span>/</span>
-            <span className="text-white font-medium">{cityNameEn}</span>
-          </div>
-
           <div className="space-y-4 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
