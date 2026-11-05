@@ -51,7 +51,7 @@ export interface SectorConfig {
   visible: boolean;
   order: number;
 
-  // [신규] 온페이지 직접 편집 지원 커스텀 속성
+  // 온페이지 직접 편집 지원 커스텀 속성
   headlineTitle?: string;
   headlineHighlight?: string;
   description?: string;
@@ -103,6 +103,79 @@ export interface CategoryPageData {
   slides: [CategorySlideData, CategorySlideData, CategorySlideData, CategorySlideData];
 }
 
+// [신규] 버튼 스타일 테마 및 디자인 환경 제어 타입
+export type ButtonThemePreset =
+  | 'glass-rose' // 은은한 글래스 + 로즈 텍스트 (현재 적용)
+  | 'solid-wine' // 솔리드 루비 레드와인
+  | 'pure-white' // 퓨어 화이트 & 블랙 텍스트
+  | 'dark-outline' // 차콜 다크 아웃라인 & 화이트
+  | 'gold-amber'; // 럭셔리 앰버 골드
+
+export type ButtonRoundness = 'md' | 'xl' | 'full';
+export type ButtonSize = 'sm' | 'base' | 'lg' | 'xl';
+
+export interface ButtonStyleConfig {
+  theme: ButtonThemePreset;
+  roundness: ButtonRoundness;
+  fontSize: ButtonSize;
+}
+
+export const DEFAULT_BUTTON_STYLE: ButtonStyleConfig = {
+  theme: 'glass-rose',
+  roundness: 'xl',
+  fontSize: 'lg',
+};
+
+// 헬퍼: ButtonStyleConfig를 실제 Tailwind 클래스로 변환
+export function resolveButtonClasses(
+  style?: Partial<ButtonStyleConfig>,
+  extraClasses = ''
+): string {
+  const merged: ButtonStyleConfig = {
+    ...DEFAULT_BUTTON_STYLE,
+    ...(style || {}),
+  };
+
+  // 1. 테마별 배경/텍스트/테두리 클래스
+  let themeCls = '';
+  switch (merged.theme) {
+    case 'solid-wine':
+      themeCls =
+        'bg-rose-600 hover:bg-rose-700 text-white border border-rose-500 shadow-rose-950/50';
+      break;
+    case 'pure-white':
+      themeCls =
+        'bg-white hover:bg-zinc-200 text-zinc-950 font-bold border border-white shadow-zinc-900/50';
+      break;
+    case 'dark-outline':
+      themeCls =
+        'bg-zinc-900/80 hover:bg-white/10 text-white border border-white/20 hover:border-white/40 shadow-black/60';
+      break;
+    case 'gold-amber':
+      themeCls =
+        'bg-amber-950/40 hover:bg-amber-600 border border-amber-500/40 hover:border-amber-500 text-amber-300 hover:text-white shadow-amber-950/40';
+      break;
+    case 'glass-rose':
+    default:
+      themeCls =
+        'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white shadow-black/40';
+      break;
+  }
+
+  // 2. 모서리 곡률
+  let roundCls = 'rounded-xl';
+  if (merged.roundness === 'md') roundCls = 'rounded-lg';
+  if (merged.roundness === 'full') roundCls = 'rounded-full';
+
+  // 3. 폰트 크기
+  let fontCls = 'text-base sm:text-lg';
+  if (merged.fontSize === 'sm') fontCls = 'text-xs sm:text-sm';
+  if (merged.fontSize === 'base') fontCls = 'text-sm sm:text-base';
+  if (merged.fontSize === 'xl') fontCls = 'text-lg sm:text-xl';
+
+  return `${themeCls} ${roundCls} ${fontCls} font-bold transition-all duration-200 shadow-lg ${extraClasses}`.trim();
+}
+
 export interface SiteConfig {
   version: number;
   header: {
@@ -113,6 +186,7 @@ export interface SiteConfig {
   mainSectors: SectorConfig[];
   footer: FooterConfig;
   categoryPages?: Record<string, CategoryPageData>;
+  buttonStyle?: ButtonStyleConfig;
 }
 
 // ============================================================================
@@ -120,7 +194,7 @@ export interface SiteConfig {
 // ============================================================================
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 3,
+  version: 4,
   header: {
     announcement: {
       text: '🍷 이번 주 금요일 전포/서면 3040 & 5060 소셜 다이닝 좌석 마감 임박!',
@@ -136,6 +210,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     ],
     activeCityLabel: '부산 (전포·서면)',
   },
+  buttonStyle: DEFAULT_BUTTON_STYLE,
   mainSectors: [
     {
       id: 'sector-rolling-hero',
@@ -169,7 +244,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       mediaType: 'video',
       ctaText: '신청하기',
       ctaLink: '/dining',
-      visible: false, // 기본은 비활성, 관리자가 원할 때 켜거나 메인에 삽입 가능
+      visible: false,
       order: 3,
     },
     {
@@ -261,14 +336,13 @@ export function getStoredSiteConfig(): SiteConfig {
           : DEFAULT_SITE_CONFIG.footer.socialLinks,
     };
 
-    // 기존 섹터 목록과 기본 섹터 목록의 병합 (새로운 섹터 타입 자동 병합)
+    // 기존 섹터 목록과 기본 섹터 목록의 병합
     const storedSectors: SectorConfig[] = Array.isArray(parsed.mainSectors) ? parsed.mainSectors : [];
     const mergedSectors: SectorConfig[] = DEFAULT_SITE_CONFIG.mainSectors.map((defSector) => {
       const match = storedSectors.find((s) => s.id === defSector.id);
       return match ? { ...defSector, ...match } : defSector;
     });
 
-    // 사용자가 직접 추가한 커스텀 섹터도 유지
     storedSectors.forEach((s) => {
       if (!mergedSectors.some((m) => m.id === s.id)) {
         mergedSectors.push(s);
@@ -276,8 +350,9 @@ export function getStoredSiteConfig(): SiteConfig {
     });
 
     return {
-      version: 3,
+      version: 4,
       header: mergedHeader,
+      buttonStyle: parsed.buttonStyle || DEFAULT_SITE_CONFIG.buttonStyle,
       mainSectors: mergedSectors.sort((a, b) => a.order - b.order),
       footer: mergedFooter,
       categoryPages: parsed.categoryPages || {},
@@ -377,6 +452,15 @@ export function useSiteConfig() {
     updateConfig(newConfig);
   };
 
+  const updateButtonStyle = (newStyle: Partial<ButtonStyleConfig>) => {
+    const updated = {
+      ...DEFAULT_BUTTON_STYLE,
+      ...(config.buttonStyle || {}),
+      ...newStyle,
+    };
+    updateConfig({ ...config, buttonStyle: updated });
+  };
+
   const resetConfig = () => {
     const res = resetStoredSiteConfig();
     setConfig(res);
@@ -387,6 +471,7 @@ export function useSiteConfig() {
     isLoaded,
     updateConfig,
     updateSectorConfig,
+    updateButtonStyle,
     resetConfig,
   };
 }

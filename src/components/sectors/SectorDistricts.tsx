@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { MapPin, Clock, ArrowRight } from 'lucide-react';
+import AdaptiveButton from '../ui/AdaptiveButton';
 
 interface DistrictCard {
   id: string;
@@ -114,14 +115,13 @@ export default function SectorDistricts({ onOpenCheckout }: SectorDistrictsProps
                   </div>
                 </div>
 
-                {/* 신청 버튼: 일반 버튼 테두리 통일, 폰트 확대 및 밝은 로즈 톤 */}
-                <button
-                  type="button"
+                {/* 신청 버튼: AdaptiveButton 적용 (편집 모드 시 결제 차단 및 버튼 스타일 커스터마이저 오픈) */}
+                <AdaptiveButton
                   onClick={onOpenCheckout}
-                  className="w-full py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-sm sm:text-base font-bold transition-all duration-200 cursor-pointer shadow-lg"
+                  className="w-full py-3.5"
                 >
                   신청하기
-                </button>
+                </AdaptiveButton>
               </div>
             </div>
           ))}

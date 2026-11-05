@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
+import AdaptiveButton from '@/components/ui/AdaptiveButton';
+import { useVisualEditor } from '@/engine/siteConfigEngine';
 import { Users2, CheckCircle2, UserCheck, Sparkles, HeartHandshake } from 'lucide-react';
 
 const CLUB_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
@@ -80,6 +82,7 @@ const CLUBS = [
 
 export default function ClubPage() {
   const router = useRouter();
+  const { isEditMode } = useVisualEditor();
   const { currentUser, applyForConditionalEvent } = useNadoSoloEngine();
   const [selectedClub, setSelectedClub] = useState<string | null>(null);
   const [alertSubmitted, setAlertSubmitted] = useState<boolean>(false);
@@ -87,6 +90,7 @@ export default function ClubPage() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const handleApplyClub = (clubId = 'CLUB_WINE') => {
+    if (isEditMode) return;
     if (!currentUser) {
       router.push(`/auth?next=/club`);
       return;
@@ -193,13 +197,12 @@ export default function ClubPage() {
 
                 <div className="pt-3 border-t border-white/5 flex items-center justify-between">
                   <span className="text-xs text-zinc-400">일정: <strong className="text-white">{club.frequency}</strong></span>
-                  <button
-                    type="button"
+                  <AdaptiveButton
                     onClick={() => handleApplyAlert(club.id)}
-                    className="px-6 py-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-sm sm:text-base font-bold transition-all duration-200 cursor-pointer shadow-lg"
+                    className="px-6 py-2.5"
                   >
                     신청하기
-                  </button>
+                  </AdaptiveButton>
                 </div>
               </div>
             </div>

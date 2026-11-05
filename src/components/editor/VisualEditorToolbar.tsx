@@ -15,7 +15,9 @@ import {
   ChevronUp,
   X,
   Plus,
+  Paintbrush,
 } from 'lucide-react';
+import ButtonStyleModal from './ButtonStyleModal';
 
 export default function VisualEditorToolbar() {
   const { currentUser } = useNadoSoloEngine();
@@ -24,6 +26,7 @@ export default function VisualEditorToolbar() {
 
   const [isMinimized, setIsMinimized] = useState(false);
   const [isSectorDrawerOpen, setIsSectorDrawerOpen] = useState(false);
+  const [isStyleModalOpen, setIsStyleModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const isAdmin =
@@ -106,6 +109,17 @@ export default function VisualEditorToolbar() {
             {/* 우측 액션 버튼 모음 */}
             <div className="flex items-center gap-2">
               
+              {/* 버튼 스타일 설정 모달 토글 */}
+              <button
+                type="button"
+                onClick={() => setIsStyleModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-zinc-300 hover:text-white transition-all cursor-pointer"
+                title="신청하기 등 액션 버튼 색상 및 스타일 변경"
+              >
+                <Paintbrush className="w-3.5 h-3.5 text-rose-400" />
+                <span className="hidden sm:inline">버튼 스타일</span>
+              </button>
+
               {/* 섹터 블록 관리 서랍 토글 */}
               <button
                 type="button"
@@ -239,6 +253,12 @@ export default function VisualEditorToolbar() {
 
         </div>
       </div>
+
+      {/* 버튼 스타일 커스터마이저 모달 */}
+      <ButtonStyleModal
+        isOpen={isStyleModalOpen}
+        onClose={() => setIsStyleModalOpen(false)}
+      />
     </>
   );
 }

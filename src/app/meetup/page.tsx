@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
+import AdaptiveButton from '@/components/ui/AdaptiveButton';
+import { useVisualEditor } from '@/engine/siteConfigEngine';
 import { MapPin, HeartHandshake, ShieldCheck, CheckCircle2, Ticket, GlassWater } from 'lucide-react';
 
 const MEETUP_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
@@ -68,12 +70,14 @@ const SPECIAL_EVENTS = [
 
 export default function MeetupPage() {
   const router = useRouter();
+  const { isEditMode } = useVisualEditor();
   const { currentUser, applyForConditionalEvent } = useNadoSoloEngine();
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [bookedFeedback, setBookedFeedback] = useState<string | null>(null);
 
   const handleApplyClick = (ev: typeof SPECIAL_EVENTS[0]) => {
+    if (isEditMode) return;
     if (!currentUser) {
       router.push(`/auth?next=/meetup`);
       return;
@@ -188,13 +192,12 @@ export default function MeetupPage() {
                 </div>
 
                 <div>
-                  <button
-                    type="button"
+                  <AdaptiveButton
                     onClick={() => handleApplyClick(ev)}
-                    className="w-full py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold transition-all duration-200 cursor-pointer shadow-lg"
+                    className="w-full py-3.5"
                   >
                     신청하기
-                  </button>
+                  </AdaptiveButton>
                   <p className="text-[11px] text-zinc-500 text-center mt-2">
                     {ev.mealNote}
                   </p>

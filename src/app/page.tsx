@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
-import { useSiteConfig, SectorConfig } from '@/engine/siteConfigEngine';
+import { useSiteConfig, useVisualEditor, SectorConfig } from '@/engine/siteConfigEngine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import CitySwitcherModal from '@/components/CitySwitcherModal';
 
@@ -20,13 +20,15 @@ export default function NadoSoloHomePage() {
   const router = useRouter();
   const { currentUser, applyForConditionalEvent } = useNadoSoloEngine();
   const { config, updateSectorConfig } = useSiteConfig();
+  const { isEditMode } = useVisualEditor();
 
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
 
-  // 모임 신청 클릭 시 결제창 오픈
+  // 모임 신청 클릭 시 결제창 오픈 (편집 모드 시 원천 차단)
   const handleOpenCheckout = () => {
+    if (isEditMode) return;
     if (!currentUser) {
       router.push('/auth?next=/');
       return;

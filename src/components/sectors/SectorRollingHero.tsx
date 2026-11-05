@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import SmartMedia, { MediaType } from '../media/SmartMedia';
 import EditableText from '../editor/EditableText';
 import MediaUploadModal from '../editor/MediaUploadModal';
+import AdaptiveButton from '../ui/AdaptiveButton';
 import { useVisualEditor, SectorConfig } from '@/engine/siteConfigEngine';
 
 export interface SlideItem {
@@ -200,10 +201,9 @@ export default function SectorRollingHero({
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
+            <AdaptiveButton
               onClick={onOpenCheckout}
-              className="px-8 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white font-bold text-base sm:text-lg transition-all duration-200 cursor-pointer backdrop-blur-md shadow-lg"
+              className="px-8 py-3.5 backdrop-blur-md"
             >
               <EditableText
                 as="span"
@@ -212,7 +212,7 @@ export default function SectorRollingHero({
                 onChange={(val) => handleUpdateCurrentSlide({ ctaText: val })}
                 placeholder="버튼 문구"
               />
-            </button>
+            </AdaptiveButton>
 
             <Link
               href={currentSlide.link}

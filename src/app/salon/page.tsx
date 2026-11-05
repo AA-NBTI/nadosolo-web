@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
+import AdaptiveButton from '@/components/ui/AdaptiveButton';
+import { useVisualEditor } from '@/engine/siteConfigEngine';
 import { Wine, MapPin, HeartHandshake, MessageCircle, GlassWater } from 'lucide-react';
 
 const SALON_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
@@ -58,11 +60,13 @@ const SALON_VENUES = [
 
 export default function SocialSalonPage() {
   const router = useRouter();
+  const { isEditMode } = useVisualEditor();
   const { currentUser, applyForConditionalEvent } = useNadoSoloEngine();
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const handleApplyClick = (trackName = '3045 프라임 살롱') => {
+    if (isEditMode) return;
     if (!currentUser) {
       router.push(`/auth?next=/salon`);
       return;
@@ -128,13 +132,12 @@ export default function SocialSalonPage() {
                 커리어와 일상의 밸런스, 취미와 인문학을 넘나드는 세련된 사교의 장입니다.
               </p>
             </div>
-            <button
-              type="button"
+            <AdaptiveButton
               onClick={() => handleApplyClick('3045 프라임 살롱')}
-              className="w-full py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold transition-all duration-200 cursor-pointer shadow-lg"
+              className="w-full py-3.5"
             >
               신청하기
-            </button>
+            </AdaptiveButton>
           </div>
 
           {/* 트랙 2 */}
@@ -148,13 +151,12 @@ export default function SocialSalonPage() {
                 삶의 연륜과 취향이 깊어진 싱글들을 위한 우아한 문화·예술 살롱입니다.
               </p>
             </div>
-            <button
-              type="button"
+            <AdaptiveButton
               onClick={() => handleApplyClick('5060 골든 살롱')}
-              className="w-full py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold transition-all duration-200 cursor-pointer shadow-lg"
+              className="w-full py-3.5"
             >
               신청하기
-            </button>
+            </AdaptiveButton>
           </div>
         </div>
       </section>

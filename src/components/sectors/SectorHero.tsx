@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import EditableText from '../editor/EditableText';
+import AdaptiveButton from '../ui/AdaptiveButton';
 import { useVisualEditor, SectorConfig } from '@/engine/siteConfigEngine';
 
 interface SectorHeroProps {
@@ -60,12 +61,11 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
           </p>
         </div>
 
-        {/* 액션 버튼 영역 (신청하기 & 자세히 보기 버튼 색상 통일 및 폰트 확대) */}
+        {/* 액션 버튼 영역 (AdaptiveButton 적용: 편집 모드 시 결제 차단 및 스타일 팔레트 오픈) */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-          <button
-            type="button"
+          <AdaptiveButton
             onClick={onOpenCheckout}
-            className="px-9 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white font-bold text-base sm:text-lg transition-all duration-200 cursor-pointer shadow-lg"
+            className="px-9 py-3.5"
           >
             <EditableText
               as="span"
@@ -74,7 +74,7 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
               onChange={(val) => onUpdate && onUpdate({ ctaText: val })}
               placeholder="버튼 문구"
             />
-          </button>
+          </AdaptiveButton>
 
           <Link
             href="/dining"

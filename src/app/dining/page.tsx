@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
+import AdaptiveButton from '@/components/ui/AdaptiveButton';
+import { useVisualEditor } from '@/engine/siteConfigEngine';
 import { Utensils, Wine, MapPin, HeartHandshake, Ticket, MessageSquare } from 'lucide-react';
 
 const DINING_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
@@ -58,11 +60,13 @@ const DINING_VENUES = [
 
 export default function DiningPage() {
   const router = useRouter();
+  const { isEditMode } = useVisualEditor();
   const { currentUser, conditionalEvents, applyForConditionalEvent, appliedEventIds, regionDistricts } = useNadoSoloEngine();
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const handleApplyClick = (eventId?: string) => {
+    if (isEditMode) return;
     if (!currentUser) {
       router.push(`/auth?next=/dining`);
       return;
@@ -180,13 +184,12 @@ export default function DiningPage() {
                       모임현황 확인
                     </Link>
                   ) : (
-                    <button
-                      type="button"
+                    <AdaptiveButton
                       onClick={() => handleApplyClick(ev.eventId)}
-                      className="w-full py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold transition-all duration-200 cursor-pointer shadow-lg"
+                      className="w-full py-3.5"
                     >
                       신청하기
-                    </button>
+                    </AdaptiveButton>
                   )}
                   <p className="text-[11px] text-zinc-500 text-center mt-2">
                     {ev.mealNote}

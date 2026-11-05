@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, ArrowRight, ShieldCheck, MapPin } from 'luci
 import SmartMedia, { MediaType } from './media/SmartMedia';
 import EditableText from './editor/EditableText';
 import MediaUploadModal from './editor/MediaUploadModal';
+import AdaptiveButton from './ui/AdaptiveButton';
 import { useVisualEditor } from '@/engine/siteConfigEngine';
 
 export interface GallerySlideItem {
@@ -276,16 +277,15 @@ export default function CategoryProductHero({
             ))}
           </div>
 
-          {/* 액션 버튼 영역 */}
+          {/* 액션 버튼 영역 (AdaptiveButton 적용: 편집 모드 시 결제 차단 및 버튼 스타일 커스터마이저 오픈) */}
           <div className="pt-2 space-y-3.5">
-            <button
-              type="button"
+            <AdaptiveButton
               onClick={onApply}
-              className="w-full px-8 py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white font-bold text-lg sm:text-xl transition-all duration-200 cursor-pointer shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-4 flex items-center justify-center gap-2"
             >
               <span>신청하기</span>
               <ArrowRight className="w-5 h-5" />
-            </button>
+            </AdaptiveButton>
 
             {/* 안심 보증 문구 */}
             <p className="text-xs text-zinc-400 flex items-center gap-1.5">
