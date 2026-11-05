@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { nadoSoloSupabaseService } from '@/lib/supabase/service';
 import {
   ADAPTIVE_DINING_PLAYBOOK,
   CityLocaleConfig,
@@ -499,28 +500,112 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const [customCards, setCustomCards] = useState<PlaybookCard[]>(initialCards);
 
+  // [Supabase 실시간 서버 데이터 동기화]
+  useEffect(() => {
+    let isMounted = true;
+    async function initSupabaseData() {
+      try {
+        const targetUserId = currentUser?.userId ?? 'user_jisoo';
+        const [dbProfile, dbEventIds, dbMatrix] = await Promise.all([
+          nadoSoloSupabaseService.getProfile(targetUserId),
+          nadoSoloSupabaseService.getAppliedEventIds(targetUserId),
+          nadoSoloSupabaseService.getMatrixEvaluations('SES_SEONGSU_38'),
+        ]);
+
+        if (!isMounted) return;
+
+        if (dbProfile) {
+          setCurrentUser((prev) => ({
+            userId: dbProfile.id,
+            handle: dbProfile.handle,
+            email: dbProfile.email ?? prev?.email ?? 'jisoo@nadosolo.com',
+            nickname: dbProfile.nickname,
+            phone: dbProfile.phone ?? prev?.phone ?? '010-2948-1029',
+            jobTitle: dbProfile.job_title ?? prev?.jobTitle ?? 'UX 디자이너',
+            gender: dbProfile.gender,
+            birthYear: dbProfile.birth_year,
+            authProvider: 'EMAIL',
+            verifiedBadge: dbProfile.verified_badge ?? '본인인증 완료',
+            sessionCount: dbProfile.session_count ?? 1,
+          }));
+
+          if (dbProfile.dietary) {
+            setDietary(dbProfile.dietary as DietaryRestriction);
+          }
+          if (dbProfile.interests && dbProfile.interests.length > 0) {
+            setInterests(dbProfile.interests as InterestTag[]);
+          }
+          if (dbProfile.self_domain_scores) {
+            setSelfDomainScores100((prev) => ({
+              ...prev,
+              ...(dbProfile.self_domain_scores as Record<MajorDomainCode, number>),
+            }));
+          }
+        }
+
+        if (dbEventIds && dbEventIds.length > 0) {
+          setAppliedEventIds((prev) => Array.from(new Set([...prev, ...dbEventIds])));
+        }
+
+        if (dbMatrix && dbMatrix.length > 0) {
+          setMatrixEvaluations((prev) => {
+            const map = new Map<string, MatrixEvaluationRecord>();
+            prev.forEach((r) => map.set(`${r.fromUserId}_${r.toUserId}_${r.subElementId}`, r));
+            dbMatrix.forEach((r) => map.set(`${r.fromUserId}_${r.toUserId}_${r.subElementId}`, r));
+            return Array.from(map.values());
+          });
+        }
+      } catch (err) {
+        console.warn('[Supabase Sync Init] error:', err);
+      }
+    }
+
+    initSupabaseData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const loginAsUser = (user: LoggedInUser) => {
     setCurrentUser(user);
   };
 
   const updateCurrentUser = (patch: Partial<LoggedInUser>) => {
     setCurrentUser((prev) => {
-      if (!prev) {
-        return {
-          userId: 'U01',
-          handle: patch.handle ?? '@jisoo_kim',
-          email: patch.email ?? 'jisoo@nadosolo.com',
-          nickname: patch.nickname ?? '지수',
-          phone: patch.phone ?? '010-2948-1029',
-          jobTitle: patch.jobTitle ?? '프로덕트 디자이너',
-          gender: patch.gender ?? 'F',
-          birthYear: patch.birthYear ?? 1995,
-          authProvider: 'EMAIL',
-          verifiedBadge: '본인인증 완료',
-          sessionCount: 1,
-        };
-      }
-      return { ...prev, ...patch };
+      const nextUser: LoggedInUser = prev
+        ? { ...prev, ...patch }
+        : {
+            userId: 'user_jisoo',
+            handle: patch.handle ?? '@jisoo_kim',
+            email: patch.email ?? 'jisoo@nadosolo.com',
+            nickname: patch.nickname ?? '지수',
+            phone: patch.phone ?? '010-2948-1029',
+            jobTitle: patch.jobTitle ?? 'UX 디자이너',
+            gender: patch.gender ?? 'F',
+            birthYear: patch.birthYear ?? 1995,
+            authProvider: 'EMAIL',
+            verifiedBadge: '본인인증 완료',
+            sessionCount: 1,
+          };
+
+      // Supabase 비동기 동기화 (Background Sync)
+      nadoSoloSupabaseService.upsertProfile({
+        id: nextUser.userId,
+        handle: nextUser.handle,
+        email: nextUser.email,
+        phone: nextUser.phone,
+        nickname: nextUser.nickname,
+        gender: nextUser.gender,
+        birth_year: nextUser.birthYear,
+        job_title: nextUser.jobTitle,
+        dietary,
+        interests,
+        self_domain_scores: selfDomainScores100,
+        verified_badge: nextUser.verifiedBadge,
+        session_count: nextUser.sessionCount,
+      });
+
+      return nextUser;
     });
   };
 
@@ -598,6 +683,17 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         scores,
         createdAt: new Date().toISOString(),
       };
+      // Supabase 비동기 저장
+      nadoSoloSupabaseService.saveMatrixEvaluation({
+        sessionId: 'SES_SEONGSU_38',
+        fromUserId: fromId,
+        fromNickname: fromNick,
+        fromGender: fromGen,
+        toUserId,
+        subElementId,
+        scores,
+      });
+
       if (existingIdx >= 0) {
         const copy = [...prev];
         copy[existingIdx] = nextRec;
@@ -704,6 +800,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
     if (!appliedEventIds.includes(eventId)) {
       setAppliedEventIds((prev) => [...prev, eventId]);
+      const currentUserId = currentUser?.userId ?? 'user_jisoo';
+      nadoSoloSupabaseService.applyForEvent(currentUserId, eventId);
     }
     setIsSeatReserved(true);
     return {
