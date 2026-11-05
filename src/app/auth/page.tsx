@@ -37,6 +37,33 @@ function AuthPageContent() {
     ? handleInput.toLowerCase()
     : `@${(handleInput || 'new_member').toLowerCase()}`;
 
+  const REAL_MEMBERS = [
+    { id: 'user_junho', handle: '@junho_choi', name: '최준호', gender: 'M' as const, job: 'IT 스타트업 대표', birth: 1991 },
+    { id: 'user_minseok', handle: '@minseok_kang', name: '강민석', gender: 'M' as const, job: '정형외과 전문의', birth: 1989 },
+    { id: 'user_donghyun', handle: '@donghyun_yoon', name: '윤동현', gender: 'M' as const, job: '금융 자산운용역', birth: 1993 },
+    { id: 'user_soyeon', handle: '@soyeon_park', name: '박소연', gender: 'F' as const, job: '브랜드 디렉터', birth: 1994 },
+    { id: 'user_yujin', handle: '@yujin_han', name: '한유진', gender: 'F' as const, job: '공간 인테리어 디자이너', birth: 1992 },
+    { id: 'user_chaewon', handle: '@chaewon_lim', name: '임채원', gender: 'F' as const, job: '글로벌 테크 세일즈', birth: 1995 },
+  ];
+
+  const handleLoginAsRealMember = (member: typeof REAL_MEMBERS[0]) => {
+    loginAsUser({
+      userId: member.id,
+      handle: member.handle,
+      role: 'MEMBER',
+      email: `${member.id}@nadosolo.com`,
+      nickname: member.name,
+      phone: '010-0000-0000',
+      jobTitle: member.job,
+      gender: member.gender,
+      birthYear: member.birth,
+      authProvider: 'EMAIL',
+      verifiedBadge: '인증 완료',
+      sessionCount: 2,
+    });
+    router.push(nextUrl);
+  };
+
   const handlePresetFillAndLogin = (preset: 'USER1' | 'USER2') => {
     setErrorMsg(null);
     if (preset === 'USER1') {
@@ -277,26 +304,31 @@ function AuthPageContent() {
               />
             </div>
 
-            {/* 빠른 테스트 계정 박스 (와인색 남발 제거 -> 단정한 모노크롬 칩) */}
-            <div className="p-4 rounded-2xl bg-[#1c202e] border border-white/10 space-y-2.5">
-              <p className="text-xs font-medium text-zinc-400">
-                빠른 테스트 계정 자동 입력:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => handlePresetFillAndLogin('USER1')}
-                  className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/15 border border-white/15 text-zinc-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  일반회원 (user1)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handlePresetFillAndLogin('USER2')}
-                  className="px-3.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/15 border border-white/15 text-zinc-300 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
-                >
-                  파트너 (partner1)
-                </button>
+            {/* 빠른 테스트 계정 박스: 6인 실계정 원클릭 전환 */}
+            <div className="p-4 rounded-2xl bg-[#1c202e] border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-zinc-300">
+                  실제 6인 모임 계정 원클릭 로그인:
+                </p>
+                <span className="text-[10px] text-emerald-400 font-mono">DB 연동 완료</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {REAL_MEMBERS.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => handleLoginAsRealMember(m)}
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-white group-hover:text-rose-300">
+                        {m.gender === 'M' ? '👔' : '👗'} {m.name}
+                      </span>
+                      <span className="text-[10px] text-zinc-500 font-mono">{m.gender}</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-400 truncate mt-0.5">{m.job}</div>
+                  </button>
+                ))}
               </div>
             </div>
 

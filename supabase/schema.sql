@@ -113,3 +113,4 @@ VALUES
   ('user_taeo', '@taeo_park', 'taeo@nadosolo.com', '010-3321-9988', '태오', 'M', 1990, '건축가', 'NO_PORK', '["BOOK_ART", "COOKING", "WINE"]'::jsonb),
   ('user_seoa', '@seoa_lee', 'seoa@nadosolo.com', '010-7788-2233', '서아', 'F', 1996, '변호사', 'NONE', '["TRAVEL", "FINANCE", "MOVIE_MUSIC"]'::jsonb)
 ON CONFLICT (id) DO NOTHING;
+
