@@ -2,12 +2,17 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useNadoSoloEngine } from '@/engine';
+import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
+import CategoryProductHero from '@/components/CategoryProductHero';
 import { Users2, CheckCircle2, UserCheck, Sparkles, HeartHandshake } from 'lucide-react';
 
 const CLUB_EXPERIENCE_STEPS = [
   {
     step: '01',
     title: '성향 프로필 신청',
+    subtitle: 'Profile Application',
     desc: '관심 있는 취향 클럽을 선택하고 나도솔로 성향 프로필을 기반으로 멤버십 신청서를 제출합니다.',
     image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
     icon: UserCheck,
@@ -15,6 +20,7 @@ const CLUB_EXPERIENCE_STEPS = [
   {
     step: '02',
     title: '멤버 밸런스 큐레이션',
+    subtitle: 'Member Curation',
     desc: '단순 선착순이 아닌, 직업군·연령대·소통 매너가 조화를 이루는 소수 정예 그룹으로 편성됩니다.',
     image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
     icon: Users2,
@@ -22,6 +28,7 @@ const CLUB_EXPERIENCE_STEPS = [
   {
     step: '03',
     title: '정기 오프라인 세션',
+    subtitle: 'Biweekly Session',
     desc: '제휴된 감성 공간에서 호스트와 함께 격주로 정기 모임을 진행하며 깊이 있는 취향을 함께 경험합니다.',
     image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
     icon: Sparkles,
@@ -29,6 +36,7 @@ const CLUB_EXPERIENCE_STEPS = [
   {
     step: '04',
     title: '프라이빗 네트워크',
+    subtitle: 'Verified Network',
     desc: '세션 종료 후에도 검증된 멤버들과 함께 안전하고 신뢰할 수 있는 소셜 인맥을 유지합니다.',
     image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
     icon: HeartHandshake,
@@ -79,132 +87,68 @@ const CLUBS = [
 ];
 
 export default function ClubPage() {
+  const router = useRouter();
+  const { currentUser, applyForConditionalEvent } = useNadoSoloEngine();
   const [selectedClub, setSelectedClub] = useState<string | null>(null);
   const [alertSubmitted, setAlertSubmitted] = useState<boolean>(false);
+  const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  const handleApplyClub = (clubId = 'CLUB_WINE') => {
+    if (!currentUser) {
+      router.push(`/auth?next=/club`);
+      return;
+    }
+    const target = CLUBS.find((c) => c.id === clubId) || CLUBS[0];
+    setCheckoutEvent({
+      eventId: target.id,
+      title: `부산 소셜 클럽 (${target.title})`,
+      dateText: target.frequency,
+      priceKrw: 30000,
+      districtName: '부산 · 전포/서면 클럽 라운지',
+      mealNote: '정기 세션 호스팅 및 보틀 테이스팅 페어링 포함',
+    });
+    setIsCheckoutOpen(true);
+  };
+
+  const handlePaymentSuccess = (eventId: string) => {
+    applyForConditionalEvent(eventId);
+    router.push('/dashboard');
+  };
 
   const handleApplyAlert = (clubId: string) => {
-    setSelectedClub(clubId);
-    setAlertSubmitted(true);
-    setTimeout(() => {
-      setAlertSubmitted(false);
-      setSelectedClub(null);
-    }, 3500);
+    handleApplyClub(clubId);
   };
 
   return (
     <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-20">
       
       {/* ==============================================================
-          1. HERO SECTION (모노크롬 & 와인레드)
+          1. 소셜 클럽 상품 히어로 (좌측: 4단계 프로세스 사진 그리드 / 우측: 헤더라인 & 신청)
           ============================================================== */}
-      <section className="relative overflow-hidden bg-[#090a0f] pt-16 pb-20 px-4 sm:px-6 border-b border-white/10">
-        <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              <span>소셜 클럽 • 취향 &amp; 라이프스타일 멤버십</span>
-            </div>
-
-            <h1 className="font-serif-editorial text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
-              혼자여도 충분하고,<br />
-              함께여서 더 특별한 소셜 클럽
-            </h1>
-
-            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed font-normal max-w-xl">
-              연애나 결혼이 목적이 아니어도 좋습니다. 일상을 풍요롭게 채워줄 취향 중심의 소모임.
-              나도솔로의 신뢰 인증을 거친 멤버들과 함께 안전하고 품격 있는 여가를 즐겨보세요.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
-                <span className="text-[11px] text-zinc-500">멤버십 형태</span>
-                <p className="text-sm font-bold text-white">소수정예 6~8인</p>
-                <p className="text-[10px] text-zinc-500">격주/월 1회 정기 세션</p>
-              </div>
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
-                <span className="text-[11px] text-zinc-500">참여 혜택</span>
-                <p className="text-sm font-bold text-white">우선 예약권</p>
-                <p className="text-[10px] text-zinc-500">제휴 베뉴 혜택</p>
-              </div>
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
-                <span className="text-[11px] text-zinc-500">신뢰 검증</span>
-                <p className="text-sm font-bold text-white">에티켓 룰</p>
-                <p className="text-[10px] text-zinc-500">신원 및 비매너 원아웃제</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-5 relative">
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
-              <img
-                src="https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=800&q=80"
-                alt="소셜 클럽 무드"
-                className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4">
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-600 text-white">
-                  Social Club
-                </span>
-                <p className="text-sm font-bold text-white mt-1">취향이 통하는 지속 가능한 친구</p>
-                <p className="text-xs text-zinc-300">와인, 전시, 러닝, 독서로 채우는 일상의 낭만</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CategoryProductHero
+        badge="소셜 클럽 • LIFESTYLE MEMBERSHIP"
+        headlineTitle="혼자여도 충분하고,"
+        headlineHighlight="함께여서 더 특별한 소셜 클럽"
+        description="연애나 결혼이 목적이 아니어도 좋습니다. 일상을 풍요롭게 채워줄 취향 중심의 소모임. 나도솔로의 신뢰 인증을 거친 멤버들과 함께 안전하고 품격 있는 여가를 즐겨보세요."
+        specs={[
+          { label: '멤버십 형태', value: '소수정예 6~8인', subText: '격주/월 1회 정기 세션' },
+          { label: '참여 혜택', value: '전용 프라이빗 세션', subText: '우선 예약권 & 제휴 혜택' },
+          { label: '신뢰 검증', value: '에티켓 서약제', subText: '신원 검증 및 원아웃제' },
+        ]}
+        steps={[
+          CLUB_EXPERIENCE_STEPS[0],
+          CLUB_EXPERIENCE_STEPS[1],
+          CLUB_EXPERIENCE_STEPS[2],
+          CLUB_EXPERIENCE_STEPS[3],
+        ]}
+        onApply={() => handleApplyClub('CLUB_WINE')}
+        trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
+        activeLocationLabel="부산 (전포·서면·광안리)"
+      />
 
       {/* ==============================================================
-          2. 클럽 프로세스 4단계
-          ============================================================== */}
-      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 w-full border-b border-white/10">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-          <p className="text-xs font-semibold tracking-wider text-zinc-400 uppercase">Membership Flow</p>
-          <h2 className="text-2xl sm:text-3xl font-serif-editorial font-bold text-white">
-            소셜 클럽 멤버십 4단계 여정
-          </h2>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            신뢰할 수 있는 소수정예 멤버들과 함께 지속적인 유대감을 쌓아갑니다.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {CLUB_EXPERIENCE_STEPS.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={s.step}
-                className="flex flex-col rounded-2xl bg-white/[0.02] border border-white/10 overflow-hidden hover:border-white/20 transition-all group"
-              >
-                <div className="relative h-36 w-full overflow-hidden bg-zinc-900">
-                  <img
-                    src={s.image}
-                    alt={s.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#090a0f] via-transparent to-black/30" />
-                  <div className="absolute top-2.5 left-2.5">
-                    <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white font-serif-editorial font-bold text-[11px]">
-                      STEP {s.step}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Icon className="w-4 h-4 text-rose-500" />
-                    <h3 className="text-sm font-bold text-white">{s.title}</h3>
-                  </div>
-                  <p className="text-xs text-zinc-400 leading-relaxed flex-1">{s.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ==============================================================
-          3. 클럽 라인업 카드 그리드
+          2. 클럽 라인업 카드 그리드
           ============================================================== */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 space-y-8 w-full">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -275,6 +219,14 @@ export default function ClubPage() {
           ))}
         </div>
       </section>
+
+      {/* 결제 및 신청 모달 */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        event={checkoutEvent}
+        onSuccessPayment={handlePaymentSuccess}
+      />
 
     </div>
   );

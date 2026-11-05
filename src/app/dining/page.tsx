@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
+import CategoryProductHero from '@/components/CategoryProductHero';
 import { Utensils, Wine, MapPin, HeartHandshake, Ticket, MessageSquare } from 'lucide-react';
 
 const DINING_EXPERIENCE_STEPS = [
   {
     step: '01',
     title: '비밀 좌석 배정',
+    subtitle: 'Seat Assignment',
     desc: '성향과 관심사를 고려해 최적의 대화 흐름이 이루어지도록 남녀 3:3 지그재그 좌석이 사전 배정됩니다.',
     image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
     icon: Ticket,
@@ -18,6 +20,7 @@ const DINING_EXPERIENCE_STEPS = [
   {
     step: '02',
     title: '아이스브레이킹 대화 카드',
+    subtitle: 'Icebreaker Playbook',
     desc: '어색한 침묵 없이 자연스럽게 서로의 취향과 라이프스타일을 나눌 수 있는 전용 질문 카드가 제공됩니다.',
     image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
     icon: MessageSquare,
@@ -25,6 +28,7 @@ const DINING_EXPERIENCE_STEPS = [
   {
     step: '03',
     title: '셰프 코스 요리 & 와인',
+    subtitle: 'Dining & Wine',
     desc: '엄선된 제휴 레스토랑의 코스 요리와 웰컴 와인을 즐기며 2시간 동안 품격 있는 미식 대화가 진행됩니다.',
     image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
     icon: Utensils,
@@ -32,6 +36,7 @@ const DINING_EXPERIENCE_STEPS = [
   {
     step: '04',
     title: '익일 시크릿 매너 투표',
+    subtitle: 'Secret Feedback',
     desc: '모임 다음 날 오전 9시, 대시보드에서 매너 평가와 호감 투표가 진행되며 상호 호감 시 1:1 연락처가 교환됩니다.',
     image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
     icon: HeartHandshake,
@@ -97,129 +102,31 @@ export default function DiningPage() {
     <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-20">
       
       {/* ==============================================================
-          1. HERO SECTION (단정한 모노크롬 & 와인레드)
+          1. 소셜 다이닝 상품 히어로 (좌측: 4단계 프로세스 사진 그리드 / 우측: 헤더라인 & 신청)
           ============================================================== */}
-      <section className="relative overflow-hidden bg-[#090a0f] pt-16 pb-20 px-4 sm:px-6 border-b border-white/10">
-        <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          <div className="lg:col-span-7 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-              <span>소셜 다이닝 • 매주 금/토 진행</span>
-            </div>
-
-            <h1 className="font-serif-editorial text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight">
-              결이 맞는 사람들과의<br />
-              프라이빗 시크릿 디너
-            </h1>
-
-            <p className="text-sm sm:text-base text-zinc-400 leading-relaxed font-normal max-w-xl">
-              어색한 1:1 소개팅이나 가벼운 번개 대신, 에티켓과 성향이 검증된 6인이 마주 앉아 
-              셰프의 요리와 와인을 곁들이며 삶의 결을 나누는 정통 소셜 다이닝입니다.
-            </p>
-
-            {/* 신청 버튼: 간결화 */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => handleApplyClick()}
-                className="px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm sm:text-base transition-colors cursor-pointer"
-              >
-                신청하기
-              </button>
-            </div>
-
-            {/* 핵심 요약 바 */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
-                <span className="text-[11px] text-zinc-500">운영 형태</span>
-                <p className="text-sm font-bold text-white">프라이빗 큐레이션</p>
-                <p className="text-[10px] text-zinc-500">신원·에티켓 서약 완료 회원</p>
-              </div>
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
-                <span className="text-[11px] text-zinc-500">모임 일정 및 인원</span>
-                <p className="text-sm font-bold text-white">매주 금·토 저녁</p>
-                <p className="text-[10px] text-zinc-500">성별 3:3 균형 큐레이션</p>
-              </div>
-              <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/10 space-y-1">
-                <span className="text-[11px] text-zinc-500">품격 보장</span>
-                <p className="text-sm font-bold text-white">매너 평가제</p>
-                <p className="text-[10px] text-zinc-500">익일 비공개 호감 투표</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 우측 대표 이미지 */}
-          <div className="lg:col-span-5 relative">
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group">
-              <img
-                src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=800&q=80"
-                alt="소셜 다이닝 무드"
-                className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4">
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-600 text-white">
-                  Busan Jeonpo
-                </span>
-                <p className="text-sm font-bold text-white mt-1">전포동 감성 와인바 단독 테이블</p>
-                <p className="text-xs text-zinc-300">어쿠스틱 재즈와 은은한 캔들 라이트</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CategoryProductHero
+        badge="소셜 다이닝 • SIGNATURE DINING"
+        headlineTitle="결이 맞는 사람들과의"
+        headlineHighlight="프라이빗 시크릿 디너"
+        description="어색한 소개팅 대신, 에티켓과 성향이 검증된 6인이 마주 앉아 셰프의 요리와 와인을 곁들이며 삶의 결을 나누는 정통 소셜 다이닝입니다."
+        specs={[
+          { label: '운영 형태', value: '프라이빗 큐레이션', subText: '신원·에티켓 서약 회원' },
+          { label: '모임 일정 및 인원', value: '매주 금·토 저녁', subText: '성별 3:3 균형 큐레이션' },
+          { label: '품격 보장', value: '매너 평가제', subText: '익일 비공개 호감 투표' },
+        ]}
+        steps={[
+          DINING_EXPERIENCE_STEPS[0],
+          DINING_EXPERIENCE_STEPS[1],
+          DINING_EXPERIENCE_STEPS[2],
+          DINING_EXPERIENCE_STEPS[3],
+        ]}
+        onApply={() => handleApplyClick()}
+        trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
+        activeLocationLabel="부산 (전포·서면·해운대)"
+      />
 
       {/* ==============================================================
-          2. 모임 여정 4단계 비주얼 카드
-          ============================================================== */}
-      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 w-full border-b border-white/10">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-          <p className="text-xs font-semibold tracking-wider text-zinc-400 uppercase">How It Works</p>
-          <h2 className="text-2xl sm:text-3xl font-serif-editorial font-bold text-white">
-            소셜 다이닝 4단계 모임 프로세스
-          </h2>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            신청부터 다음 날 아침 시크릿 투표까지 자연스럽게 이어지는 안심 동선입니다.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-          {DINING_EXPERIENCE_STEPS.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={s.step}
-                className="flex flex-col rounded-2xl bg-white/[0.02] border border-white/10 overflow-hidden hover:border-white/20 transition-all group"
-              >
-                <div className="relative h-36 w-full overflow-hidden bg-zinc-900">
-                  <img
-                    src={s.image}
-                    alt={s.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#090a0f] via-transparent to-black/30" />
-                  <div className="absolute top-2.5 left-2.5">
-                    <span className="px-2 py-0.5 rounded-full bg-rose-600 text-white font-serif-editorial font-bold text-[11px]">
-                      STEP {s.step}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Icon className="w-4 h-4 text-rose-500" />
-                    <h3 className="text-sm font-bold text-white">{s.title}</h3>
-                  </div>
-                  <p className="text-xs text-zinc-400 leading-relaxed flex-1">{s.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ==============================================================
-          3. 현재 오픈된 테이블 목록 (신청 카드)
+          2. 현재 오픈된 테이블 목록 (신청 카드)
           ============================================================== */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 space-y-8 w-full border-b border-white/10">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
