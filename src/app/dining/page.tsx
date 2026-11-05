@@ -5,41 +5,33 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
-import CategoryProductHero from '@/components/CategoryProductHero';
+import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
 import { Utensils, Wine, MapPin, HeartHandshake, Ticket, MessageSquare } from 'lucide-react';
 
-const DINING_EXPERIENCE_STEPS = [
+const DINING_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
   {
-    step: '01',
-    title: '비밀 좌석 배정',
-    subtitle: 'Seat Assignment',
-    desc: '성향과 관심사를 고려해 최적의 대화 흐름이 이루어지도록 남녀 3:3 지그재그 좌석이 사전 배정됩니다.',
-    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
-    icon: Ticket,
+    stage: '01. 장소 분위기',
+    title: '은은한 조도의 감성 와인 비스트로',
+    desc: '테이블 간격 2.5m 이상 확보된 프라이빗 단독 룸에서 조용하고 편안하게 서로에게 집중합니다.',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '02',
-    title: '아이스브레이킹 대화 카드',
-    subtitle: 'Icebreaker Playbook',
-    desc: '어색한 침묵 없이 자연스럽게 서로의 취향과 라이프스타일을 나눌 수 있는 전용 질문 카드가 제공됩니다.',
-    image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
-    icon: MessageSquare,
+    stage: '02. 코스 미식',
+    title: '셰프 스페셜 코스 요리 & 와인 페어링',
+    desc: '엄선된 제휴 레스토랑의 정갈한 디너 코스와 소믈리에 웰컴 와인으로 대화의 온도를 높입니다.',
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '03',
-    title: '셰프 코스 요리 & 와인',
-    subtitle: 'Dining & Wine',
-    desc: '엄선된 제휴 레스토랑의 코스 요리와 웰컴 와인을 즐기며 2시간 동안 품격 있는 미식 대화가 진행됩니다.',
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
-    icon: Utensils,
+    stage: '03. 만남과 대화',
+    title: '남녀 3:3 자연스러운 대화와 건배',
+    desc: '아이스브레이킹 카드로 어색한 침묵을 깨고, 서로의 가치관과 일상의 이야기를 기분 좋게 나눕니다.',
+    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '04',
-    title: '익일 시크릿 매너 투표',
-    subtitle: 'Secret Feedback',
-    desc: '모임 다음 날 오전 9시, 대시보드에서 매너 평가와 호감 투표가 진행되며 상호 호감 시 1:1 연락처가 교환됩니다.',
-    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
-    icon: HeartHandshake,
+    stage: '04. 호감 & 여운',
+    title: '익일 09시 비공개 시크릿 매칭',
+    desc: '모임 다음 날 아침 대시보드에서 비공개 호감 투표가 진행되며, 상호 호감 시 1:1 연락처가 오픈됩니다.',
+    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=85',
   },
 ];
 
@@ -102,7 +94,7 @@ export default function DiningPage() {
     <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-20">
       
       {/* ==============================================================
-          1. 소셜 다이닝 상품 히어로 (좌측: 4단계 프로세스 사진 그리드 / 우측: 헤더라인 & 신청)
+          1. 소셜 다이닝 상품 히어로 (좌측: 대형 사진 슬라이더 / 우측: 헤더라인 & 신청)
           ============================================================== */}
       <CategoryProductHero
         badge="소셜 다이닝 • SIGNATURE DINING"
@@ -114,12 +106,7 @@ export default function DiningPage() {
           { label: '모임 일정 및 인원', value: '매주 금·토 저녁', subText: '성별 3:3 균형 큐레이션' },
           { label: '품격 보장', value: '매너 평가제', subText: '익일 비공개 호감 투표' },
         ]}
-        steps={[
-          DINING_EXPERIENCE_STEPS[0],
-          DINING_EXPERIENCE_STEPS[1],
-          DINING_EXPERIENCE_STEPS[2],
-          DINING_EXPERIENCE_STEPS[3],
-        ]}
+        slides={DINING_GALLERY_SLIDES}
         onApply={() => handleApplyClick()}
         trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
         activeLocationLabel="부산 (전포·서면·해운대)"

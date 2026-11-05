@@ -5,41 +5,33 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
-import CategoryProductHero from '@/components/CategoryProductHero';
+import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
 import { Users2, CheckCircle2, UserCheck, Sparkles, HeartHandshake } from 'lucide-react';
 
-const CLUB_EXPERIENCE_STEPS = [
+const CLUB_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
   {
-    step: '01',
-    title: '성향 프로필 신청',
-    subtitle: 'Profile Application',
-    desc: '관심 있는 취향 클럽을 선택하고 나도솔로 성향 프로필을 기반으로 멤버십 신청서를 제출합니다.',
-    image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80',
-    icon: UserCheck,
+    stage: '01. 멤버십 아지트',
+    title: '프라이빗 위스키 & 와인 라운지',
+    desc: '엄선된 멤버들만을 위해 마련된 단독 공간에서 특별한 여가를 편안하게 시작합니다.',
+    image: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '02',
-    title: '멤버 밸런스 큐레이션',
-    subtitle: 'Member Curation',
-    desc: '단순 선착순이 아닌, 직업군·연령대·소통 매너가 조화를 이루는 소수 정예 그룹으로 편성됩니다.',
-    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
-    icon: Users2,
+    stage: '02. 보틀 & 테이스팅',
+    title: '싱글몰트 & 와인 보틀 쉐어링',
+    desc: '소믈리에 가이드와 함께 희소성 있는 주류와 페어링 푸드를 음미하며 취향을 깊이 있게 넓혀갑니다.',
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '03',
-    title: '정기 오프라인 세션',
-    subtitle: 'Biweekly Session',
-    desc: '제휴된 감성 공간에서 호스트와 함께 격주로 정기 모임을 진행하며 깊이 있는 취향을 함께 경험합니다.',
-    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=600&q=80',
-    icon: Sparkles,
+    stage: '03. 취향 크루 만남',
+    title: '관심사가 통하는 소수정예 크루',
+    desc: '와인, 러닝, 미술관 도슨트 등 같은 라이프스타일을 사랑하는 사람들과 격주로 모여 교류합니다.',
+    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '04',
-    title: '프라이빗 네트워크',
-    subtitle: 'Verified Network',
-    desc: '세션 종료 후에도 검증된 멤버들과 함께 안전하고 신뢰할 수 있는 소셜 인맥을 유지합니다.',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
-    icon: HeartHandshake,
+    stage: '04. 라이프스타일 인맥',
+    title: '일상으로 이어지는 안전한 친구',
+    desc: '단발성 모임을 넘어, 언제든 취향을 함께 나눌 수 있는 신뢰 기반의 소셜 네트워크를 구축합니다.',
+    image: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=85',
   },
 ];
 
@@ -124,7 +116,7 @@ export default function ClubPage() {
     <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-20">
       
       {/* ==============================================================
-          1. 소셜 클럽 상품 히어로 (좌측: 4단계 프로세스 사진 그리드 / 우측: 헤더라인 & 신청)
+          1. 소셜 클럽 상품 히어로 (좌측: 대형 사진 슬라이더 / 우측: 헤더라인 & 신청)
           ============================================================== */}
       <CategoryProductHero
         badge="소셜 클럽 • LIFESTYLE MEMBERSHIP"
@@ -136,12 +128,7 @@ export default function ClubPage() {
           { label: '참여 혜택', value: '전용 프라이빗 세션', subText: '우선 예약권 & 제휴 혜택' },
           { label: '신뢰 검증', value: '에티켓 서약제', subText: '신원 검증 및 원아웃제' },
         ]}
-        steps={[
-          CLUB_EXPERIENCE_STEPS[0],
-          CLUB_EXPERIENCE_STEPS[1],
-          CLUB_EXPERIENCE_STEPS[2],
-          CLUB_EXPERIENCE_STEPS[3],
-        ]}
+        slides={CLUB_GALLERY_SLIDES}
         onApply={() => handleApplyClub('CLUB_WINE')}
         trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
         activeLocationLabel="부산 (전포·서면·광안리)"

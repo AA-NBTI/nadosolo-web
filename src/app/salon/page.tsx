@@ -5,41 +5,33 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
-import CategoryProductHero from '@/components/CategoryProductHero';
+import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
 import { Wine, MapPin, HeartHandshake, MessageCircle, GlassWater } from 'lucide-react';
 
-const SALON_STEPS = [
+const SALON_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
   {
-    step: '01',
-    title: '테마 발제 및 웰컴 드링크',
-    subtitle: 'Welcome & Topic',
-    desc: '살롱 시작 전, 와인·인문학 관련 가벼운 생각거리가 제시되며 웰컴 스파클링과 함께 여유롭게 착석합니다.',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
-    icon: GlassWater,
+    stage: '01. 살롱 공간',
+    title: '서재 감성의 프라이빗 사교 라운지',
+    desc: '은은한 조명과 잔잔한 재즈 BGM 속에서 조용하고 품격 있는 지적 소통을 나눕니다.',
+    image: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '02',
-    title: '라운드 테이블 딥 토크',
-    subtitle: 'Deep Conversation',
-    desc: '독점하지 않고 경청하는 에티켓을 바탕으로, 서로의 삶의 가치관과 취향에 대해 깊이 있는 이야기를 나눕니다.',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=600&q=80',
-    icon: MessageCircle,
+    stage: '02. 페어링 푸드',
+    title: '소믈리에 와인 & 감각적인 핑거푸드',
+    desc: '대화의 흐름을 돕는 웰컴 스파클링과 페어링 플레이트로 테이블의 무드를 돋웁니다.',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '03',
-    title: '핑거푸드 & 와인 페어링',
-    subtitle: 'Food & Wine Pairing',
-    desc: '소믈리에가 선정한 와인과 감각적인 핑거푸드를 곁들이며 테이블의 온도를 자연스럽게 높여갑니다.',
-    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-    icon: Wine,
+    stage: '03. 깊은 대화',
+    title: '경청과 배려의 라운드 테이블',
+    desc: '피상적인 잡담 대신, 서로의 인생관과 취향, 철학을 진솔하게 공유하는 사교 시간입니다.',
+    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '04',
-    title: '익일 상호 호감 투표',
-    subtitle: 'Secret Connection',
-    desc: '다음 날 오전 9시, 대화의 결이 가장 잘 맞았던 상대방에게 비공개로 호감을 표하고 1:1 연락처를 교환합니다.',
-    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
-    icon: HeartHandshake,
+    stage: '04. 호감 & 연결',
+    title: '익일 09시 시크릿 호감 투표',
+    desc: '다음 날 오전 9시 대화의 결이 통했던 상대방에게 비공개로 호감을 표하고 1:1 연락처를 교환합니다.',
+    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=1200&q=85',
   },
 ];
 
@@ -95,7 +87,7 @@ export default function SocialSalonPage() {
     <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-20">
       
       {/* ==============================================================
-          1. 소셜 살롱 상품 히어로 (좌측: 4단계 프로세스 사진 그리드 / 우측: 헤더라인 & 신청)
+          1. 소셜 살롱 상품 히어로 (좌측: 대형 사진 슬라이더 / 우측: 헤더라인 & 신청)
           ============================================================== */}
       <CategoryProductHero
         badge="소셜 살롱 • PRIVATE SALON"
@@ -107,12 +99,7 @@ export default function SocialSalonPage() {
           { label: '참여 정원', value: '4~6인 소규모', subText: '성별 밸런스 큐레이션' },
           { label: '대화 분위기', value: '경청 & 에티켓', subText: '대화 독점 금지 룰 준수' },
         ]}
-        steps={[
-          SALON_STEPS[0],
-          SALON_STEPS[1],
-          SALON_STEPS[2],
-          SALON_STEPS[3],
-        ]}
+        slides={SALON_GALLERY_SLIDES}
         onApply={() => handleApplyClick('3045 프라임 살롱')}
         trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
         activeLocationLabel="부산 (전포 사교 살롱)"

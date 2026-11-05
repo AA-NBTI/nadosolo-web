@@ -5,41 +5,33 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
-import CategoryProductHero from '@/components/CategoryProductHero';
+import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
 import { MapPin, HeartHandshake, ShieldCheck, CheckCircle2, Ticket, GlassWater } from 'lucide-react';
 
-const MEETUP_STEPS = [
+const MEETUP_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
   {
-    step: '01',
-    title: '테마 밋업 선택',
-    subtitle: 'Theme Selection',
-    desc: '3045 프라임 또는 5060 골든 등 본인의 연령대와 관심사에 맞춘 테마 모임을 선택하고 신청합니다.',
-    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80',
-    icon: Ticket,
+    stage: '01. 파티 라운지',
+    title: '도심 야경의 프라이빗 루프탑 라운지',
+    desc: '엄선된 공간 전체를 대관하여 프라이빗하고 감각적인 분위기 속에서 모임을 엽니다.',
+    image: 'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '02',
-    title: '성비 밸런스 배정',
-    subtitle: 'Gender Balance',
-    desc: '신원 확인과 에티켓 서약을 거친 멤버들로 남녀 1:1 정확한 성비를 맞춰 소수정예로 확정됩니다.',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
-    icon: ShieldCheck,
+    stage: '02. 샴페인 & 푸드',
+    title: '웰컴 스파클링 & 파티 핑거푸드',
+    desc: '가볍게 즐길 수 있는 웰컴 드링크와 셰프의 케이터링으로 파티의 즐거움을 더합니다.',
+    image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '03',
-    title: '프라이빗 라운지 모임',
-    subtitle: 'Lounge Party',
-    desc: '웰컴 드링크와 감각적인 핑거푸드를 즐기며 편안한 음악 속에서 새로운 사람들과 자연스럽게 인사를 나눕니다.',
-    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
-    icon: GlassWater,
+    stage: '03. 세대별 만남',
+    title: '3045 & 5060 안심 소셜 네트워킹',
+    desc: '정확한 1:1 성비 균형과 에티켓 검증을 거친 싱글들이 모여 편안하게 인사를 나눕니다.',
+    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    step: '04',
-    title: '익일 시크릿 호감 투표',
-    subtitle: 'Secret Match',
-    desc: '모임 다음 날 오전 9시, 대시보드에서 호감 투표를 진행하며 상호 매칭 시 1:1 연락처가 오픈됩니다.',
-    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80',
-    icon: HeartHandshake,
+    stage: '04. 매칭 & 여운',
+    title: '익일 09시 비공개 호감 투표',
+    desc: '서로에게 호감을 표한 남녀에게만 비공개로 연락처가 전달되어 부담 없이 인연을 이어갑니다.',
+    image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=85',
   },
 ];
 
@@ -107,7 +99,7 @@ export default function MeetupPage() {
     <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-20">
       
       {/* ==============================================================
-          1. 테마 밋업 상품 히어로 (좌측: 4단계 프로세스 사진 그리드 / 우측: 헤더라인 & 신청)
+          1. 테마 밋업 상품 히어로 (좌측: 대형 사진 슬라이더 / 우측: 헤더라인 & 신청)
           ============================================================== */}
       <CategoryProductHero
         badge="테마 밋업 • SPECIAL MEETUP"
@@ -119,12 +111,7 @@ export default function MeetupPage() {
           { label: '개최 주기', value: '월 2~4회 한정', subText: '사전 신청자 선별 확정' },
           { label: '장소 특권', value: '라운지 & 비스트로', subText: '프라이빗 대관 공간' },
         ]}
-        steps={[
-          MEETUP_STEPS[0],
-          MEETUP_STEPS[1],
-          MEETUP_STEPS[2],
-          MEETUP_STEPS[3],
-        ]}
+        slides={MEETUP_GALLERY_SLIDES}
         onApply={() => handleApplyClick(SPECIAL_EVENTS[0])}
         trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
         activeLocationLabel="부산 (전포·서면·해운대)"
