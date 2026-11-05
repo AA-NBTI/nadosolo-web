@@ -114,11 +114,11 @@ export default function SectorDistricts({ onOpenCheckout }: SectorDistrictsProps
                   </div>
                 </div>
 
-                {/* 신청 버튼: 기본 다크 바탕 레드 글씨 -> 호버/클릭 시 솔리드 레드 */}
+                {/* 신청 버튼: 일반 버튼 테두리 통일, 폰트 확대 및 밝은 로즈 톤 */}
                 <button
                   type="button"
                   onClick={onOpenCheckout}
-                  className="w-full py-3 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-xs font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-rose-950/50"
+                  className="w-full py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-sm sm:text-base font-bold transition-all duration-200 cursor-pointer shadow-lg"
                 >
                   신청하기
                 </button>

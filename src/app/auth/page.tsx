@@ -351,10 +351,10 @@ function AuthPageContent() {
               </div>
             </div>
 
-            {/* 메인 로그인 CTA 버튼: 기본 다크+레드 글자 -> 롤오버/클릭 시 솔리드 레드 */}
+            {/* 메인 로그인 CTA 버튼 */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-base font-bold shadow-lg hover:shadow-rose-950/50 transition-all duration-200 cursor-pointer"
+              className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer"
             >
               로그인
             </button>
@@ -486,10 +486,10 @@ function AuthPageContent() {
               </p>
             )}
 
-            {/* 메인 가입 CTA 버튼: 기본 다크+레드 글자 -> 롤오버/클릭 시 솔리드 레드 */}
+            {/* 메인 가입 CTA 버튼 */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-base font-bold shadow-lg hover:shadow-rose-950/50 transition-all duration-200 cursor-pointer mt-2"
+              className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer mt-2"
             >
               회원가입
             </button>
@@ -593,7 +593,7 @@ function AuthPageContent() {
               <button
                 type="button"
                 onClick={() => handleStep2Complete(false)}
-                className="w-full py-4 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-base font-bold shadow-lg hover:shadow-rose-950/50 transition-all duration-200 cursor-pointer"
+                className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer"
               >
                 저장 완료
               </button>

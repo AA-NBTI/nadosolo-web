@@ -396,7 +396,7 @@ function MemberDashboardContent() {
               <button
                 type="button"
                 onClick={() => setActiveProcessId('P01_ACCOUNT')}
-                className="px-4 py-2 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-xs font-semibold shrink-0 cursor-pointer transition-all duration-200 shadow-md hover:shadow-rose-950/50"
+                className="px-4 py-2 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-xs font-bold shrink-0 cursor-pointer transition-all duration-200 shadow-md"
               >
                 연락처 등록하기
               </button>
@@ -1524,10 +1524,10 @@ function MemberDashboardContent() {
                             });
                             setIsCheckoutOpen(true);
                           }}
-                          className={`px-5 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all duration-200 ${
+                          className={`px-6 py-3 rounded-xl text-base font-bold cursor-pointer transition-all duration-200 ${
                             isApplied
                               ? 'bg-white/10 text-zinc-400 border border-white/10 cursor-not-allowed'
-                              : 'border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 shadow-md hover:shadow-rose-950/50'
+                              : 'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white shadow-lg'
                           }`}
                         >
                           {isApplied ? '신청 완료' : '신청하기'}

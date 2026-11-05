@@ -28,19 +28,19 @@ export default function SectorHero({ onOpenCheckout }: SectorHeroProps) {
           </p>
         </div>
 
-        {/* 액션 버튼 영역 (간결화 & 고급화) */}
+        {/* 액션 버튼 영역 (신청하기 & 자세히 보기 버튼 색상 통일 및 폰트 확대) */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
           <button
             type="button"
             onClick={onOpenCheckout}
-            className="px-8 py-3.5 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 font-semibold text-sm sm:text-base transition-all duration-200 cursor-pointer shadow-lg hover:shadow-rose-950/50"
+            className="px-9 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white font-bold text-base sm:text-lg transition-all duration-200 cursor-pointer shadow-lg"
           >
             신청하기
           </button>
 
           <Link
             href="/dining"
-            className="px-8 py-3.5 rounded-xl bg-white/5 border border-white/10 text-zinc-200 hover:text-white hover:bg-white/10 font-medium text-sm sm:text-base transition-all flex items-center gap-2"
+            className="px-8 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-zinc-200 hover:text-white font-medium text-base sm:text-lg transition-all duration-200 flex items-center gap-2 shadow-lg"
           >
             <span>자세히 보기</span>
             <ArrowRight className="w-4 h-4 text-zinc-400" />

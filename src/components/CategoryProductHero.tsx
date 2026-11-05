@@ -193,15 +193,15 @@ export default function CategoryProductHero({
             ))}
           </div>
 
-          {/* 액션 버튼 영역 (기본: 다크 바탕에 레드 텍스트 / 롤오버·클릭 시 솔리드 레드 전환) */}
+          {/* 액션 버튼 영역 (일반 버튼 테두리 통일, 폰트 확대 및 밝은 로즈 톤) */}
           <div className="pt-2 space-y-3.5">
             <button
               type="button"
               onClick={onApply}
-              className="w-full px-8 py-4 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 font-semibold text-base transition-all duration-200 cursor-pointer shadow-lg hover:shadow-rose-950/50 flex items-center justify-center gap-2"
+              className="w-full px-8 py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white font-bold text-lg sm:text-xl transition-all duration-200 cursor-pointer shadow-lg flex items-center justify-center gap-2"
             >
               <span>신청하기</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-5 h-5" />
             </button>
 
             {/* 안심 보증 문구 */}

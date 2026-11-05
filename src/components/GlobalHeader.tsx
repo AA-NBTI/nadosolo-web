@@ -85,7 +85,7 @@ export default function GlobalHeader() {
           nadosolo
         </Link>
 
-        {/* 4대 핵심 카테고리 네비게이션 */}
+        {/* 4대 핵심 카테고리 네비게이션 (빨간 라인 효과 제거, 볼드 & 텍스트 컬러로만 심플하게 활성화 표시) */}
         <nav className="hidden md:flex items-center gap-7">
           {navItems.map((item) => {
             const isActive =
@@ -107,9 +107,6 @@ export default function GlobalHeader() {
                   <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
                     {item.badge}
                   </span>
-                )}
-                {isActive && (
-                  <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-rose-500 rounded-full" />
                 )}
               </Link>
             );
