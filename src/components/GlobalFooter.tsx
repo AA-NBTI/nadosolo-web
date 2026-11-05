@@ -76,7 +76,7 @@ export default function GlobalFooter() {
               <span>
                 사업자등록번호: <strong className="text-zinc-300">{f?.bizNum || '107-88-44796'}</strong>
                 <a
-                  href={`https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${(f?.bizNum || '107-88-44796').replace(/-/g, '')}`}
+                  href={`https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${String(f?.bizNum || '107-88-44796').replace(/-/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-zinc-300 underline font-medium ml-1 hover:text-white"

@@ -72,7 +72,7 @@ export interface SiteConfig {
 // ============================================================================
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 1,
+  version: 2,
   header: {
     announcement: {
       text: '🍷 이번 주 금요일 전포/서면 3040 & 5060 소셜 다이닝 좌석 마감 임박!',
@@ -115,7 +115,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V1';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V110';
 
 // ============================================================================
 // 3. Storage Helpers & Custom Event
@@ -127,11 +127,37 @@ export function getStoredSiteConfig(): SiteConfig {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SITE_CONFIG;
     const parsed = JSON.parse(raw);
+    
+    // 안전한 Deep Merge 및 Fallback 처리 (누락된 섹터나 속성 자동 보정)
+    const mergedHeader = {
+      ...DEFAULT_SITE_CONFIG.header,
+      ...(parsed.header || {}),
+      announcement: {
+        ...DEFAULT_SITE_CONFIG.header.announcement,
+        ...(parsed.header?.announcement || {}),
+      },
+      navItems: Array.isArray(parsed.header?.navItems) && parsed.header.navItems.length > 0
+        ? parsed.header.navItems
+        : DEFAULT_SITE_CONFIG.header.navItems,
+    };
+
+    const mergedFooter = {
+      ...DEFAULT_SITE_CONFIG.footer,
+      ...(parsed.footer || {}),
+      socialLinks: Array.isArray(parsed.footer?.socialLinks) && parsed.footer.socialLinks.length > 0
+        ? parsed.footer.socialLinks
+        : DEFAULT_SITE_CONFIG.footer.socialLinks,
+    };
+
+    const mergedSectors = Array.isArray(parsed.mainSectors) && parsed.mainSectors.length > 0
+      ? parsed.mainSectors
+      : DEFAULT_SITE_CONFIG.mainSectors;
+
     return {
-      ...DEFAULT_SITE_CONFIG,
-      ...parsed,
-      header: { ...DEFAULT_SITE_CONFIG.header, ...(parsed.header || {}) },
-      footer: { ...DEFAULT_SITE_CONFIG.footer, ...(parsed.footer || {}) },
+      version: 2,
+      header: mergedHeader,
+      mainSectors: mergedSectors,
+      footer: mergedFooter,
     };
   } catch (err) {
     console.error('Failed to parse site config from storage:', err);

@@ -23,7 +23,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
   // 본문 섹터 위치 이동 & 노출 토글 핸들러
   // ==========================================================================
   const handleMoveSector = (index: number, direction: 'UP' | 'DOWN') => {
-    const list = [...draftConfig.mainSectors];
+    const list = [...(draftConfig?.mainSectors || [])];
     const targetIdx = direction === 'UP' ? index - 1 : index + 1;
     if (targetIdx < 0 || targetIdx >= list.length) return;
 
@@ -47,7 +47,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
   const handleToggleSectorVisibility = (id: string) => {
     setDraftConfig({
       ...draftConfig,
-      mainSectors: draftConfig.mainSectors.map((s) =>
+      mainSectors: (draftConfig?.mainSectors || []).map((s) =>
         s.id === id ? { ...s, visible: !s.visible } : s
       ),
     });
@@ -57,7 +57,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
   // 헤더 네비게이션 메뉴 위치 이동 & 노출 토글 핸들러
   // ==========================================================================
   const handleMoveNavItem = (index: number, direction: 'UP' | 'DOWN') => {
-    const list = [...draftConfig.header.navItems];
+    const list = [...(draftConfig?.header?.navItems || [])];
     const targetIdx = direction === 'UP' ? index - 1 : index + 1;
     if (targetIdx < 0 || targetIdx >= list.length) return;
 
@@ -73,7 +73,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
     setDraftConfig({
       ...draftConfig,
       header: {
-        ...draftConfig.header,
+        ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
         navItems: reordered,
       },
     });
@@ -83,8 +83,8 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
     setDraftConfig({
       ...draftConfig,
       header: {
-        ...draftConfig.header,
-        navItems: draftConfig.header.navItems.map((n) =>
+        ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
+        navItems: (draftConfig?.header?.navItems || []).map((n) =>
           n.id === id ? { ...n, visible: !n.visible } : n
         ),
       },
@@ -95,8 +95,8 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
     setDraftConfig({
       ...draftConfig,
       header: {
-        ...draftConfig.header,
-        navItems: draftConfig.header.navItems.map((n) =>
+        ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
+        navItems: (draftConfig?.header?.navItems || []).map((n) =>
           n.id === id ? { ...n, label } : n
         ),
       },
@@ -107,8 +107,8 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
     setDraftConfig({
       ...draftConfig,
       header: {
-        ...draftConfig.header,
-        navItems: draftConfig.header.navItems.map((n) =>
+        ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
+        navItems: (draftConfig?.header?.navItems || []).map((n) =>
           n.id === id ? { ...n, badge } : n
         ),
       },
@@ -207,11 +207,11 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             <div>
               <strong className="text-white">메인 화면 섹터 블록 재배치:</strong> 각 모듈의 순서를 [▲ 위로] [▼ 아래로] 버튼으로 자유롭게 변경할 수 있으며, 눈 아이콘으로 숨기거나 노출할 수 있습니다.
             </div>
-            <span className="text-rose-400 font-semibold">{draftConfig.mainSectors.length}개 섹터 등록됨</span>
+            <span className="text-rose-400 font-semibold">{(draftConfig?.mainSectors || []).length}개 섹터 등록됨</span>
           </div>
 
           <div className="space-y-3">
-            {draftConfig.mainSectors.map((sector, index) => (
+            {(draftConfig?.mainSectors || []).map((sector, index) => (
               <div
                 key={sector.id}
                 className={`p-4 sm:p-5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
@@ -254,7 +254,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   {/* 아래로 이동 */}
                   <button
                     type="button"
-                    disabled={index === draftConfig.mainSectors.length - 1}
+                    disabled={index === (draftConfig?.mainSectors || []).length - 1}
                     onClick={() => handleMoveSector(index, 'DOWN')}
                     className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all cursor-pointer"
                     title="아래로 한 칸 이동"
@@ -309,21 +309,21 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   setDraftConfig({
                     ...draftConfig,
                     header: {
-                      ...draftConfig.header,
+                      ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
                       announcement: {
-                        ...draftConfig.header.announcement,
-                        visible: !draftConfig.header.announcement.visible,
+                        ...(draftConfig?.header?.announcement || DEFAULT_SITE_CONFIG.header.announcement),
+                        visible: !draftConfig?.header?.announcement?.visible,
                       },
                     },
                   })
                 }
                 className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
-                  draftConfig.header.announcement.visible
+                  draftConfig?.header?.announcement?.visible
                     ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                     : 'bg-white/5 text-zinc-400 border-white/10'
                 }`}
               >
-                {draftConfig.header.announcement.visible ? '띠배너 켜짐' : '띠배너 꺼짐'}
+                {draftConfig?.header?.announcement?.visible ? '띠배너 켜짐' : '띠배너 꺼짐'}
               </button>
             </div>
 
@@ -332,13 +332,16 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">태그 (예: HOT)</label>
                 <input
                   type="text"
-                  value={draftConfig.header.announcement.tag || ''}
+                  value={draftConfig?.header?.announcement?.tag || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
                       header: {
-                        ...draftConfig.header,
-                        announcement: { ...draftConfig.header.announcement, tag: e.target.value },
+                        ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
+                        announcement: {
+                          ...(draftConfig?.header?.announcement || DEFAULT_SITE_CONFIG.header.announcement),
+                          tag: e.target.value,
+                        },
                       },
                     })
                   }
@@ -349,13 +352,16 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">공지 문구</label>
                 <input
                   type="text"
-                  value={draftConfig.header.announcement.text}
+                  value={draftConfig?.header?.announcement?.text || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
                       header: {
-                        ...draftConfig.header,
-                        announcement: { ...draftConfig.header.announcement, text: e.target.value },
+                        ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
+                        announcement: {
+                          ...(draftConfig?.header?.announcement || DEFAULT_SITE_CONFIG.header.announcement),
+                          text: e.target.value,
+                        },
                       },
                     })
                   }
@@ -366,13 +372,16 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">이동 링크</label>
                 <input
                   type="text"
-                  value={draftConfig.header.announcement.link || ''}
+                  value={draftConfig?.header?.announcement?.link || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
                       header: {
-                        ...draftConfig.header,
-                        announcement: { ...draftConfig.header.announcement, link: e.target.value },
+                        ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
+                        announcement: {
+                          ...(draftConfig?.header?.announcement || DEFAULT_SITE_CONFIG.header.announcement),
+                          link: e.target.value,
+                        },
                       },
                     })
                   }
@@ -387,11 +396,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             <h4 className="text-sm font-bold text-white">헤더 우측 기본 거점(도시) 뱃지 텍스트</h4>
             <input
               type="text"
-              value={draftConfig.header.activeCityLabel || ''}
+              value={draftConfig?.header?.activeCityLabel || ''}
               onChange={(e) =>
                 setDraftConfig({
                   ...draftConfig,
-                  header: { ...draftConfig.header, activeCityLabel: e.target.value },
+                  header: {
+                    ...(draftConfig?.header || DEFAULT_SITE_CONFIG.header),
+                    activeCityLabel: e.target.value,
+                  },
                 })
               }
               className="w-full sm:w-80 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs font-medium"
@@ -402,7 +414,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           {/* 네비게이션 메뉴 목록 순서 및 라벨 편집 */}
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-white">상단 네비게이션 메뉴 항목 (순서 및 라벨)</h4>
-            {draftConfig.header.navItems.map((item, index) => (
+            {(draftConfig?.header?.navItems || []).map((item, index) => (
               <div
                 key={item.id}
                 className="p-4 rounded-xl bg-[#151926] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
@@ -411,7 +423,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   <span className="font-mono text-xs text-rose-300 font-bold w-6">#{index + 1}</span>
                   <input
                     type="text"
-                    value={item.label}
+                    value={item.label || ''}
                     onChange={(e) => handleUpdateNavLabel(item.id, e.target.value)}
                     className="px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white text-xs font-semibold w-36"
                   />
@@ -438,7 +450,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   </button>
                   <button
                     type="button"
-                    disabled={index === draftConfig.header.navItems.length - 1}
+                    disabled={index === (draftConfig?.header?.navItems || []).length - 1}
                     onClick={() => handleMoveNavItem(index, 'DOWN')}
                     className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
                   >
@@ -475,11 +487,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">상호명</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.companyName}
+                  value={draftConfig?.footer?.companyName || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, companyName: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        companyName: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -490,11 +505,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">대표자명</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.ceo}
+                  value={draftConfig?.footer?.ceo || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, ceo: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        ceo: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -505,11 +523,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">사업자등록번호</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.bizNum}
+                  value={draftConfig?.footer?.bizNum || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, bizNum: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        bizNum: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -520,11 +541,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">통신판매업신고번호</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.mailOrderNum}
+                  value={draftConfig?.footer?.mailOrderNum || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, mailOrderNum: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        mailOrderNum: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -535,11 +559,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">사업장 소재지 주소</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.address}
+                  value={draftConfig?.footer?.address || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, address: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        address: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -550,11 +577,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">대표전화</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.tel}
+                  value={draftConfig?.footer?.tel || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, tel: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        tel: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -565,11 +595,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">전자우편 (이메일)</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.email}
+                  value={draftConfig?.footer?.email || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, email: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        email: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -580,11 +613,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">고객센터 운영시간</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.csHours}
+                  value={draftConfig?.footer?.csHours || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, csHours: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        csHours: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -595,11 +631,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <label className="block text-zinc-400 mb-1 font-medium">저작권 카피라이트</label>
                 <input
                   type="text"
-                  value={draftConfig.footer.copyright}
+                  value={draftConfig?.footer?.copyright || ''}
                   onChange={(e) =>
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, copyright: e.target.value },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        copyright: e.target.value,
+                      },
                     })
                   }
                   className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
@@ -611,18 +650,21 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           {/* SNS 채널 링크 관리 */}
           <div className="p-5 rounded-2xl bg-[#151926] border border-white/10 space-y-3">
             <h4 className="text-sm font-bold text-white">SNS 및 공식 채널 링크</h4>
-            {draftConfig.footer.socialLinks.map((social, idx) => (
+            {(draftConfig?.footer?.socialLinks || []).map((social, idx) => (
               <div key={social.id} className="flex items-center gap-3 text-xs">
                 <span className="w-24 text-zinc-300 font-semibold">{social.label}</span>
                 <input
                   type="text"
-                  value={social.url}
+                  value={social.url || ''}
                   onChange={(e) => {
-                    const newSocials = [...draftConfig.footer.socialLinks];
+                    const newSocials = [...(draftConfig?.footer?.socialLinks || [])];
                     newSocials[idx] = { ...social, url: e.target.value };
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, socialLinks: newSocials },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        socialLinks: newSocials,
+                      },
                     });
                   }}
                   className="flex-1 px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white"
@@ -630,11 +672,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 <button
                   type="button"
                   onClick={() => {
-                    const newSocials = [...draftConfig.footer.socialLinks];
+                    const newSocials = [...(draftConfig?.footer?.socialLinks || [])];
                     newSocials[idx] = { ...social, visible: !social.visible };
                     setDraftConfig({
                       ...draftConfig,
-                      footer: { ...draftConfig.footer, socialLinks: newSocials },
+                      footer: {
+                        ...(draftConfig?.footer || DEFAULT_SITE_CONFIG.footer),
+                        socialLinks: newSocials,
+                      },
                     });
                   }}
                   className={`px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer ${
