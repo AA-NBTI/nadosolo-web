@@ -155,24 +155,24 @@ export default function NadoSoloHomePage() {
               </div>
             </Link>
 
-            {/* 2. Social Dating */}
+            {/* 2. Social Salon */}
             <Link
-              href="/dating"
+              href="/salon"
               className="bg-[#12151e] p-6 rounded-2xl border border-white/10 space-y-4 hover:border-white/30 transition-all block group"
             >
               <div className="flex items-center justify-between">
                 <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/10 text-zinc-300 border border-white/10">
-                  신뢰 매칭
+                  신뢰 살롱
                 </span>
                 <span className="text-xs text-zinc-400 font-mono">STEP 02</span>
               </div>
-              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Social Dating</h3>
-              <p className="text-xs text-zinc-400 font-medium">자연스러운 인연</p>
+              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Social Salon</h3>
+              <p className="text-xs text-zinc-400 font-medium">취향과 가치관 교류</p>
               <p className="text-sm text-zinc-300 leading-relaxed">
-                5대 매너 평가 매트릭스로 검증된 이성과의 만남. 가벼운 앱과 부담스러운 결정사 사이의 안전한 대안.
+                5대 매너 평가 매트릭스로 검증된 회원들과의 품격 있는 사교 살롱. 가벼운 모임과 부담스러운 만남 사이의 신뢰할 수 있는 대안.
               </p>
               <div className="pt-2 text-xs text-zinc-400 font-medium flex items-center gap-1 group-hover:text-white transition-colors">
-                <span>프로파일 보기</span>
+                <span>살롱 보기</span>
                 <span>→</span>
               </div>
             </Link>
@@ -199,7 +199,7 @@ export default function NadoSoloHomePage() {
               </div>
             </Link>
 
-            {/* 4. Private Event */}
+            {/* 4. Special Meetup */}
             <Link
               href="/events"
               className="bg-[#12151e] p-6 rounded-2xl border border-white/10 space-y-4 hover:border-white/30 transition-all block group"
@@ -210,13 +210,13 @@ export default function NadoSoloHomePage() {
                 </span>
                 <span className="text-xs text-zinc-400 font-mono">STEP 04</span>
               </div>
-              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Private Event</h3>
-              <p className="text-xs text-zinc-400 font-medium">세대별 특별 행사</p>
+              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Special Meetup</h3>
+              <p className="text-xs text-zinc-400 font-medium">테마형 스페셜 밋업</p>
               <p className="text-sm text-zinc-300 leading-relaxed">
-                3045 프라임 직장인·사업가 교류회 및 5060 골든 솔로를 위한 인생 2막 프라이빗 살롱 파티.
+                3045 프라임 직장인·전문직 교류회 및 5060 골든 솔로를 위한 인생 2막 스페셜 밋업 파티.
               </p>
               <div className="pt-2 text-xs text-rose-300 font-medium flex items-center gap-1">
-                <span>일정 확인</span>
+                <span>밋업 일정 확인</span>
                 <span>→</span>
               </div>
             </Link>

@@ -54,18 +54,18 @@ export default function EventsPage() {
           <div className="flex items-center gap-2 text-xs text-zinc-500">
             <Link href="/" className="hover:text-white transition-colors">홈</Link>
             <span>/</span>
-            <span className="text-white font-medium">프라이빗 이벤트</span>
+            <span className="text-white font-medium">스페셜 밋업</span>
           </div>
 
           <div className="space-y-4 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-              <span>STEP 04 • 한 달 2~4회 한정 프리미엄 특별 행사</span>
+              <span>STEP 04 • 한 달 2~4회 한정 테마형 스페셜 밋업</span>
             </div>
 
             <h1 className="font-serif-editorial text-3xl sm:text-5xl font-normal text-white tracking-tight leading-tight">
               엄선된 소수를 위한<br />
-              세대별 시크릿 살롱 파티
+              세대별 테마 밋업
             </h1>
 
             <p className="text-base text-zinc-300 leading-relaxed font-normal">

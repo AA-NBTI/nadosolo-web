@@ -176,24 +176,43 @@ function AuthPageContent() {
       return;
     }
 
-    setSignupStep(2);
-  };
-
-  const handleStep2Complete = (skipExtra = false) => {
+    // 회원가입 완료 즉시 첫 로그인 처리 (계정 생성)
     loginAsUser({
       userId: `U_${Date.now().toString().slice(-4)}`,
       handle: normalizedHandle,
       role: 'MEMBER',
       email: emailInput || `${handleInput}@nadosolo.com`,
       nickname: nickname || handleInput,
-      phone: skipExtra ? '미등록' : extraPhone || '010-0000-0000',
-      jobTitle: skipExtra ? '미입력' : extraJob || '미입력',
-      gender: extraGender,
-      birthYear: extraBirthYear,
+      phone: '미등록',
+      jobTitle: '미입력',
+      gender: 'F',
+      birthYear: 1995,
       authProvider: 'EMAIL',
-      verifiedBadge: skipExtra ? '이메일 가입' : '기본정보 등록',
+      verifiedBadge: '회원가입 완료',
       sessionCount: 1,
     });
+
+    // 첫 로그인 후 프로필 추가 입력 온보딩 단계로 진입
+    setSignupStep(2);
+  };
+
+  const handleStep2Complete = (skipExtra = false) => {
+    if (!skipExtra) {
+      loginAsUser({
+        userId: `U_${Date.now().toString().slice(-4)}`,
+        handle: normalizedHandle,
+        role: 'MEMBER',
+        email: emailInput || `${handleInput}@nadosolo.com`,
+        nickname: nickname || handleInput,
+        phone: extraPhone || '010-0000-0000',
+        jobTitle: extraJob || '미입력',
+        gender: extraGender,
+        birthYear: extraBirthYear,
+        authProvider: 'EMAIL',
+        verifiedBadge: '프로필 등록 완료',
+        sessionCount: 1,
+      });
+    }
     router.push('/dashboard');
   };
 
@@ -233,7 +252,7 @@ function AuthPageContent() {
           </p>
         </div>
 
-        {/* 로그인 / 회원가입 탭 스위치 (모던 화이트/다크 탭) */}
+        {/* 로그인 / 회원가입 탭 스위치 (포인트 와인 컬러) */}
         {signupStep === 1 && (
           <div className="grid grid-cols-2 bg-[#0a0c12] p-1.5 rounded-2xl border border-white/10 mb-7">
             <button
@@ -244,7 +263,7 @@ function AuthPageContent() {
               }}
               className={`py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                 tab === 'LOGIN'
-                  ? 'bg-white text-zinc-950 shadow-sm'
+                  ? 'bg-[#881337] text-white shadow-md shadow-[#881337]/30'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -258,7 +277,7 @@ function AuthPageContent() {
               }}
               className={`py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                 tab === 'SIGNUP'
-                  ? 'bg-white text-zinc-950 shadow-sm'
+                  ? 'bg-[#881337] text-white shadow-md shadow-[#881337]/30'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -472,7 +491,7 @@ function AuthPageContent() {
               type="submit"
               className="w-full py-4 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-base font-bold shadow-lg shadow-[#881337]/30 transition-all cursor-pointer mt-2"
             >
-              다음: 내 추가 정보 입력 →
+              회원가입
             </button>
 
             <div className="text-center pt-2">
@@ -576,14 +595,14 @@ function AuthPageContent() {
                 onClick={() => handleStep2Complete(false)}
                 className="w-full py-4 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-base font-bold shadow-lg shadow-[#881337]/30 transition-all cursor-pointer"
               >
-                추가 정보 저장하고 대시보드 시작 →
+                저장 완료
               </button>
               <button
                 type="button"
                 onClick={() => handleStep2Complete(true)}
                 className="w-full py-2.5 rounded-xl bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
               >
-                나중에 입력하고 건너뛰기
+                건너뛰기
               </button>
             </div>
           </div>
