@@ -187,12 +187,19 @@ export default function MediaUploadModal({
             </div>
           </div>
 
-          {/* 하단 저장 버튼 */}
-          <div className="pt-3 border-t border-white/10 flex items-center justify-end">
+          {/* 하단 액션 버튼 */}
+          <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold cursor-pointer transition-colors"
+            >
+              취소
+            </button>
             <button
               type="submit"
               disabled={!url.trim()}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg disabled:opacity-40"
+              className="px-5 py-2.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg disabled:opacity-40"
             >
               <Check className="w-4 h-4" />
               <span>적용</span>

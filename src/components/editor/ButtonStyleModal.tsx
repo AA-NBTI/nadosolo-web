@@ -209,15 +209,22 @@ export default function ButtonStyleModal({
           </div>
         </div>
 
-        {/* 하단 저장 버튼 */}
-        <div className="pt-3 border-t border-white/10 flex items-center justify-end">
+        {/* 하단 액션 버튼 */}
+        <div className="pt-3 border-t border-white/10 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-semibold cursor-pointer transition-colors"
+          >
+            취소
+          </button>
           <button
             type="button"
             onClick={handleSave}
-            className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-rose-950/50"
+            className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-rose-950/50"
           >
             <Check className="w-4 h-4" />
-            <span>스타일 적용</span>
+            <span>적용</span>
           </button>
         </div>
 

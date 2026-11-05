@@ -236,7 +236,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             }`}
           >
             <Layout className="w-4 h-4" />
-            <span>섹터 순서 &amp; 노출</span>
+            <span>섹터 배치</span>
           </button>
 
           <button
@@ -249,7 +249,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             }`}
           >
             <Paintbrush className="w-4 h-4" />
-            <span>버튼 디자인 스타일</span>
+            <span>버튼 스타일</span>
           </button>
 
           <button
@@ -262,7 +262,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             }`}
           >
             <Compass className="w-4 h-4" />
-            <span>헤더 &amp; 띠배너</span>
+            <span>헤더 메뉴</span>
           </button>
 
           <button
@@ -284,10 +284,10 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             type="button"
             onClick={handleResetToDefault}
             className="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
-            title="기본값 복원"
+            title="초기화"
           >
             <RotateCcw className="w-4 h-4" />
-            <span className="hidden sm:inline">기본값 복원</span>
+            <span className="hidden sm:inline">초기화</span>
           </button>
 
           <button
