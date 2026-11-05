@@ -89,6 +89,44 @@ export default function AdminOperationsDashboardPage() {
   const [activeTab, setActiveTab] = useState<AdminTabKey>('PROCESS');
   const [adminToast, setAdminToast] = useState<string | null>(null);
 
+  // [보안 가드] 최고 관리자 인증 검증
+  const isAdmin =
+    currentUser?.role === 'ADMIN' ||
+    currentUser?.handle === '@admin' ||
+    currentUser?.userId === 'ADMIN_01';
+
+  if (!isAdmin) {
+    return (
+      <main className="min-h-screen bg-[#090a0f] flex items-center justify-center px-6">
+        <div className="max-w-md w-full bg-[#12151e] border border-white/10 rounded-3xl p-8 sm:p-10 text-center space-y-5 shadow-2xl">
+          <div className="w-14 h-14 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-2xl font-bold">
+            !
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold text-white tracking-tight">최고 관리자 전용 구역</h1>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              본 페이지는 나도솔로 시스템 총괄 관리자만 접근할 수 있습니다. 관리자 계정(@admin)으로 인증 후 이용해 주십시오.
+            </p>
+          </div>
+          <div className="pt-2 flex flex-col gap-2.5">
+            <Link
+              href="/auth"
+              className="w-full py-3.5 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-xs font-bold transition-all shadow-md shadow-[#881337]/30"
+            >
+              관리자 계정으로 로그인
+            </Link>
+            <Link
+              href="/"
+              className="w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 text-xs font-semibold transition-all"
+            >
+              홈으로 돌아가기
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   // [회원프로파일] 상세 조회할 회원 ID 및 신규 등록 폼
   const [selectedUserId, setSelectedUserId] = useState<string>('U01');
   const [newNick, setNewNick] = useState('');

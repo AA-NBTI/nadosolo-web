@@ -500,12 +500,28 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const [customCards, setCustomCards] = useState<PlaybookCard[]>(initialCards);
 
-  // [Supabase 실시간 서버 데이터 동기화]
+  // [Supabase 실시간 서버 데이터 및 세션 복원]
   useEffect(() => {
     let isMounted = true;
     async function initSupabaseData() {
       try {
-        const targetUserId = currentUser?.userId ?? 'user_jisoo';
+        // 1. LocalStorage에서 저장된 로그인 유저 복원
+        let localUser: LoggedInUser | null = null;
+        if (typeof window !== 'undefined') {
+          const saved = localStorage.getItem('nadosolo_current_user');
+          if (saved) {
+            try {
+              localUser = JSON.parse(saved);
+              if (localUser && isMounted) {
+                setCurrentUser(localUser);
+              }
+            } catch (e) {
+              console.warn('[LocalStorage] parse error:', e);
+            }
+          }
+        }
+
+        const targetUserId = localUser?.userId ?? currentUser?.userId ?? 'user_jisoo';
         const [dbProfile, dbEventIds, dbMatrix] = await Promise.all([
           nadoSoloSupabaseService.getProfile(targetUserId),
           nadoSoloSupabaseService.getAppliedEventIds(targetUserId),
@@ -515,19 +531,24 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         if (!isMounted) return;
 
         if (dbProfile) {
-          setCurrentUser((prev) => ({
+          const restoredUser: LoggedInUser = {
             userId: dbProfile.id,
             handle: dbProfile.handle,
-            email: dbProfile.email ?? prev?.email ?? 'jisoo@nadosolo.com',
+            role: dbProfile.handle === '@admin' || dbProfile.id === 'ADMIN_01' ? 'ADMIN' : 'MEMBER',
+            email: dbProfile.email ?? localUser?.email ?? 'jisoo@nadosolo.com',
             nickname: dbProfile.nickname,
-            phone: dbProfile.phone ?? prev?.phone ?? '010-2948-1029',
-            jobTitle: dbProfile.job_title ?? prev?.jobTitle ?? 'UX 디자이너',
+            phone: dbProfile.phone ?? localUser?.phone ?? '010-2948-1029',
+            jobTitle: dbProfile.job_title ?? localUser?.jobTitle ?? 'UX 디자이너',
             gender: dbProfile.gender,
             birthYear: dbProfile.birth_year,
             authProvider: 'EMAIL',
             verifiedBadge: dbProfile.verified_badge ?? '본인인증 완료',
             sessionCount: dbProfile.session_count ?? 1,
-          }));
+          };
+          setCurrentUser(restoredUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('nadosolo_current_user', JSON.stringify(restoredUser));
+          }
 
           if (dbProfile.dietary) {
             setDietary(dbProfile.dietary as DietaryRestriction);
@@ -568,6 +589,25 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const loginAsUser = (user: LoggedInUser) => {
     setCurrentUser(user);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_current_user', JSON.stringify(user));
+    }
+    // Supabase DB 자동 upsert (새 가입자 및 로그인 계정 영구 보존)
+    nadoSoloSupabaseService.upsertProfile({
+      id: user.userId,
+      handle: user.handle,
+      email: user.email,
+      phone: user.phone,
+      nickname: user.nickname,
+      gender: user.gender,
+      birth_year: user.birthYear,
+      job_title: user.jobTitle,
+      dietary,
+      interests,
+      self_domain_scores: selfDomainScores100,
+      verified_badge: user.verifiedBadge,
+      session_count: user.sessionCount,
+    });
   };
 
   const updateCurrentUser = (patch: Partial<LoggedInUser>) => {
@@ -577,6 +617,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         : {
             userId: 'user_jisoo',
             handle: patch.handle ?? '@jisoo_kim',
+            role: 'MEMBER',
             email: patch.email ?? 'jisoo@nadosolo.com',
             nickname: patch.nickname ?? '지수',
             phone: patch.phone ?? '010-2948-1029',
@@ -587,6 +628,10 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
             verifiedBadge: '본인인증 완료',
             sessionCount: 1,
           };
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('nadosolo_current_user', JSON.stringify(nextUser));
+      }
 
       // Supabase 비동기 동기화 (Background Sync)
       nadoSoloSupabaseService.upsertProfile({
@@ -612,6 +657,9 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setCurrentUser(null);
     setIsSeatReserved(false);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('nadosolo_current_user');
+    }
   };
 
   const setSurveyAnswer = (questionId: string, optionId: string) => {

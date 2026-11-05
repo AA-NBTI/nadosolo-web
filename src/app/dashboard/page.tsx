@@ -11,6 +11,7 @@ import {
   MajorDomainCode,
   useNadoSoloEngine,
 } from '@/engine';
+import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 
 const DIETARY_LABELS: Record<DietaryRestriction, string> = {
   NONE: '일반식',
@@ -36,6 +37,7 @@ const INTEREST_LABELS: Record<InterestTag, string> = {
 function MemberDashboardContent() {
   const searchParams = useSearchParams();
   const stepQuery = searchParams.get('step');
+  const eventIdQuery = searchParams.get('eventId');
 
   const {
     currentUser,
@@ -90,7 +92,22 @@ function MemberDashboardContent() {
     if (stepQuery) {
       setActiveProcessId(stepQuery);
     }
-  }, [stepQuery]);
+    if (eventIdQuery) {
+      const targetEv = conditionalEvents.find((e) => e.eventId === eventIdQuery);
+      if (targetEv && !appliedEventIds.includes(targetEv.eventId)) {
+        const dist = regionDistricts.find((d) => d.districtId === targetEv.districtId);
+        setCheckoutEvent({
+          eventId: targetEv.eventId,
+          title: targetEv.title,
+          dateText: targetEv.dateText,
+          priceKrw: targetEv.priceKrw,
+          districtName: dist ? `${dist.regionName} · ${dist.districtName}` : '부산 · 전포',
+          mealNote: targetEv.mealNote,
+        });
+        setIsCheckoutOpen(true);
+      }
+    }
+  }, [stepQuery, eventIdQuery, conditionalEvents, appliedEventIds, regionDistricts]);
 
   // 현재 선택된 모듈이 비활성화되었을 경우 첫 번째 모듈로 폴백
   const currentProcess =
@@ -132,11 +149,21 @@ function MemberDashboardContent() {
   const [selectedRegionFilter, setSelectedRegionFilter] =
     useState<string>('전체');
 
-  // [P05 모임신청] 알림 메시지
+  // [P05 모임신청 & 토스페이먼츠 결제 모달 상태]
   const [applyFeedback, setApplyFeedback] = useState<{
     ok: boolean;
     message: string;
   } | null>(null);
+  const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  const handlePaymentSuccess = (eventId: string) => {
+    applyForConditionalEvent(eventId);
+    setApplyFeedback({
+      ok: true,
+      message: '토스페이먼츠 참가권 결제 및 테이블 신청이 완료되었습니다! D-1에 상세 장소가 개별 안내됩니다.',
+    });
+  };
 
   // [P07 대화카드] 양방향 네비게이션 및 보기 모드 상태
   const [deckModeFilter, setDeckModeFilter] = useState<'ALL' | 'ROMANCE' | 'THEME'>('ALL');
@@ -905,13 +932,21 @@ function MemberDashboardContent() {
                         <button
                           type="button"
                           onClick={() => {
-                            const res = applyForConditionalEvent(ev.eventId);
-                            setApplyFeedback(res);
+                            if (isApplied) return;
+                            setCheckoutEvent({
+                              eventId: ev.eventId,
+                              title: ev.title,
+                              dateText: ev.dateText,
+                              priceKrw: ev.priceKrw,
+                              districtName: dist ? `${dist.regionName} · ${dist.districtName}` : '부산 · 전포',
+                              mealNote: ev.mealNote,
+                            });
+                            setIsCheckoutOpen(true);
                           }}
                           className={`px-5 py-3 rounded-xl text-sm font-semibold cursor-pointer transition-all ${
                             isApplied
                               ? 'bg-white/10 text-zinc-400 border border-white/10 cursor-not-allowed'
-                              : 'bg-white hover:bg-zinc-200 text-zinc-950 shadow-md'
+                              : 'bg-[#881337] hover:bg-[#6f102d] text-white shadow-md shadow-[#881337]/30'
                           }`}
                         >
                           {isApplied ? '신청 완료' : '신청하기'}
@@ -1783,6 +1818,14 @@ function MemberDashboardContent() {
           </div>
         </div>
       </div>
+
+      {/* 토스페이먼츠 참가권 결제 & 주문 확인 모달 */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        event={checkoutEvent}
+        onSuccessPayment={handlePaymentSuccess}
+      />
     </main>
   );
 }
