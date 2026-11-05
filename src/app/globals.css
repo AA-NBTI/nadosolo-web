@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  /* ==========================================================================
+     절제된 프리미엄 다크 & 핀포인트 루비 레드와인 시스템
+     ========================================================================== */
+  /* 1. 최외곽 캔버스: 딥 블랙 (#090A0F) */
+  --color-background: #090a0f;
+  --color-on-background: #ffffff;
+
+  /* 2. 메인 카드 컨테이너: 다크 슬레이트 (#12151E) */
+  --color-surface: #12151e;
+  --color-surface-dim: #10131c;
+  --color-surface-bright: #1c202e;
+  --color-surface-container-lowest: #12151e;
+  --color-surface-container-low: #12151e;
+  --color-surface-container: #1c202e;
+  --color-surface-container-high: #252b3d;
+  --color-surface-container-highest: #2e354a;
+
+  /* 3. 타이포그래피 계층 (가독성 높은 순백색 & 슬레이트 그레이) */
+  --color-on-surface: #ffffff;
+  --color-on-surface-variant: #94a3b8;
+  --color-inverse-surface: #ffffff;
+  --color-inverse-on-surface: #12151e;
+  --color-outline: rgba(255, 255, 255, 0.12);
+  --color-outline-variant: rgba(255, 255, 255, 0.08);
+
+  /* 4. 절제된 핀포인트 컬러: 핵심 액션 전용 루비 레드와인 (#881337) */
+  --color-surface-tint: #881337;
+  --color-primary: #881337;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #881337;
+  --color-on-primary-container: #ffffff;
+  --color-inverse-primary: #f43f5e;
+  --color-secondary: #881337;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #881337;
+  --color-on-secondary-container: #ffffff;
+  --color-tertiary: #1c202e;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #1c202e;
+  --color-on-tertiary-container: #ffffff;
+  --color-primary-fixed: #1c202e;
+  --color-primary-fixed-dim: #881337;
+  --color-secondary-fixed: #1c202e;
+  --color-tertiary-fixed: #1c202e;
+
+  --spacing-gutter: 1.5rem;
+  --spacing-gutter-mobile: 1rem;
+  --spacing-margin: 3rem;
+  --spacing-margin-mobile: 1.25rem;
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2.5rem;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+/* 굴림·굴림체 원천 차단: Pretendard 및 맑은 고딕 최우선 지정 */
+body {
+  background-color: #090a0f;
+  color: #ffffff;
+  font-family: "Pretendard", "Malgun Gothic", "맑은 고딕", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  overscroll-behavior: none;
+  letter-spacing: -0.015em;
+}
+
+/* 폼 입력 필드 기본 다크 인셋 */
+input:not([type="range"]),
+select,
+textarea {
+  background-color: #10131c;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-family: inherit;
+}
+
+input:not([type="range"])::placeholder,
+textarea::placeholder {
+  color: #64748b;
+}
+
+input:not([type="range"]):focus,
+select:focus,
+textarea:focus {
+  background-color: #151926;
+  border-color: rgba(255, 255, 255, 0.35);
+  outline: none;
+}
+
+.font-serif-editorial {
+  font-family: "Pretendard", "Malgun Gothic", "맑은 고딕", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  vertical-align: middle;
+}
