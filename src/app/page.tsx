@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { SocialMode, useNadoSoloEngine } from '@/engine';
+import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 
 const DOMAIN_CORE: { key: string; label: string; enLabel: string; desc: string }[] = [
   { key: 'APPEARANCE', label: '첫인상', enLabel: '첫인상 분석', desc: '밝은 표정과 자연스러운 시선 처리' },
@@ -20,16 +21,32 @@ export default function NadoSoloHomePage() {
     selectedMode,
     setSelectedMode,
     cmsMirrorQuotes,
+    applyForConditionalEvent,
   } = useNadoSoloEngine();
+
+  const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const handleApply = (mode?: SocialMode) => {
     if (mode) setSelectedMode(mode);
-    const target = '/dashboard?step=P05_EVENT_APPLY';
     if (!currentUser) {
-      router.push(`/auth?next=${encodeURIComponent(target)}`);
-    } else {
-      router.push(target);
+      router.push(`/auth?next=/`);
+      return;
     }
+    setCheckoutEvent({
+      eventId: 'EVT_JEONPO_FRI',
+      title: '부산 전포 6인 프라이빗 소셜 다이닝 (3045 & 5060)',
+      dateText: '이번 주 금요일 19:30',
+      priceKrw: 19900,
+      districtName: '부산 · 전포/서면',
+      mealNote: '디너 식대 및 주류 비용은 식당 현장에서 테이블 1/N 정산',
+    });
+    setIsCheckoutOpen(true);
+  };
+
+  const handlePaymentSuccess = (eventId: string) => {
+    applyForConditionalEvent(eventId);
+    router.push('/dashboard');
   };
 
   return (
@@ -201,7 +218,7 @@ export default function NadoSoloHomePage() {
 
             {/* 4. Theme Meetup */}
             <Link
-              href="/events"
+              href="/meetup"
               className="bg-[#12151e] p-6 rounded-2xl border border-white/10 space-y-4 hover:border-white/30 transition-all block group"
             >
               <div className="flex items-center justify-between">
@@ -379,6 +396,14 @@ export default function NadoSoloHomePage() {
         </section>
 
       </main>
+
+      {/* 토스페이먼츠 참가 신청 & 결제 모달 */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        event={checkoutEvent}
+        onSuccessPayment={handlePaymentSuccess}
+      />
     </div>
   );
 }

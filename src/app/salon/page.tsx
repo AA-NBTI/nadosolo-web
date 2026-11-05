@@ -1,21 +1,36 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
+import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 
 export default function SocialSalonPage() {
   const router = useRouter();
-  const { currentUser } = useNadoSoloEngine();
+  const { currentUser, applyForConditionalEvent } = useNadoSoloEngine();
+  const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
-  const handleApplyClick = () => {
-    const target = '/dashboard?step=P05_EVENT_APPLY';
+  const handleApplyClick = (trackName = '3045 프라임 살롱') => {
     if (!currentUser) {
-      router.push(`/auth?next=${encodeURIComponent(target)}`);
-    } else {
-      router.push(target);
+      router.push(`/auth?next=/salon`);
+      return;
     }
+    setCheckoutEvent({
+      eventId: 'EVT_SALON_FRI',
+      title: `부산 전포 소셜 살롱 (${trackName})`,
+      dateText: '매주 금요일 19:30',
+      priceKrw: 25000,
+      districtName: '부산 · 전포 사교 살롱',
+      mealNote: '웰컴 음료 포함, 추가 다이닝 식대는 현장 1/N 개별 정산',
+    });
+    setIsCheckoutOpen(true);
+  };
+
+  const handlePaymentSuccess = (eventId: string) => {
+    applyForConditionalEvent(eventId);
+    router.push('/dashboard');
   };
 
   return (
@@ -43,7 +58,7 @@ export default function SocialSalonPage() {
             <div className="pt-2">
               <button
                 type="button"
-                onClick={handleApplyClick}
+                onClick={() => handleApplyClick()}
                 className="px-8 py-4 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-base font-semibold transition-colors cursor-pointer"
               >
                 소셜 살롱 일정 확인 및 신청 →
@@ -118,6 +133,13 @@ export default function SocialSalonPage() {
               <p className="text-sm text-zinc-300 leading-relaxed">
                 사회생활과 커리어가 안정된 직장인·전문직·사업가를 위한 사교 살롱. 미식, 와인, 여행, 재테크 등 폭넓은 취향을 나누며 단단한 인연을 만듭니다.
               </p>
+              <button
+                type="button"
+                onClick={() => handleApplyClick('3045 프라임 트랙')}
+                className="w-full py-3 rounded-xl bg-[#881337] hover:bg-[#6f102d] text-white text-xs font-bold transition-all shadow-md cursor-pointer"
+              >
+                3045 프라임 살롱 참가 신청
+              </button>
             </div>
 
             <div className="space-y-4 p-6 rounded-2xl bg-[#181c28] border border-white/10">
@@ -128,10 +150,25 @@ export default function SocialSalonPage() {
               <p className="text-sm text-zinc-300 leading-relaxed">
                 인생 후반전, 삶의 깊이와 여유를 공유할 진솔한 벗과 동반자를 만나는 안심 프라이빗 모임. 클래식한 음악과 품격 있는 분위기 속에서 교류합니다.
               </p>
+              <button
+                type="button"
+                onClick={() => handleApplyClick('5060 골든 트랙')}
+                className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-all border border-white/10 cursor-pointer"
+              >
+                5060 골든 살롱 참가 신청
+              </button>
             </div>
           </div>
         </div>
       </section>
+
+      {/* 토스페이먼츠 참가 신청 & 결제 모달 */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        event={checkoutEvent}
+        onSuccessPayment={handlePaymentSuccess}
+      />
     </div>
   );
 }

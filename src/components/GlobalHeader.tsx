@@ -16,7 +16,7 @@ export default function GlobalHeader() {
     { href: '/dining', label: lang === 'KO' ? '소셜 다이닝' : 'Social Dining' },
     { href: '/salon', label: lang === 'KO' ? '소셜 살롱' : 'Social Salon' },
     { href: '/club', label: lang === 'KO' ? '소셜 클럽' : 'Social Club' },
-    { href: '/events', label: lang === 'KO' ? '테마 밋업' : 'Theme Meetup' },
+    { href: '/meetup', label: lang === 'KO' ? '테마 밋업' : 'Theme Meetup' },
   ];
 
   const handleLogout = () => {

@@ -1,21 +1,39 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
+import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 
 export default function DiningPage() {
   const router = useRouter();
   const { currentUser, conditionalEvents, applyForConditionalEvent, appliedEventIds } = useNadoSoloEngine();
+  const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const handleApplyClick = (eventId?: string) => {
-    const target = eventId ? `/dashboard?step=P05_EVENT_APPLY&eventId=${eventId}` : '/dashboard?step=P05_EVENT_APPLY';
     if (!currentUser) {
-      router.push(`/auth?next=${encodeURIComponent(target)}`);
-    } else {
-      router.push(target);
+      router.push(`/auth?next=/dining`);
+      return;
     }
+    const targetEv = conditionalEvents.find((e) => e.eventId === eventId) || conditionalEvents[0];
+    if (targetEv) {
+      setCheckoutEvent({
+        eventId: targetEv.eventId,
+        title: targetEv.title,
+        dateText: targetEv.dateText,
+        priceKrw: targetEv.priceKrw,
+        districtName: '부산 · 전포/서면',
+        mealNote: targetEv.mealNote,
+      });
+      setIsCheckoutOpen(true);
+    }
+  };
+
+  const handlePaymentSuccess = (eventId: string) => {
+    applyForConditionalEvent(eventId);
+    router.push('/dashboard');
   };
 
   const diningEvents = conditionalEvents.filter(
@@ -193,6 +211,14 @@ export default function DiningPage() {
           </div>
         </div>
       </section>
+
+      {/* 토스페이먼츠 참가 신청 & 결제 모달 */}
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        event={checkoutEvent}
+        onSuccessPayment={handlePaymentSuccess}
+      />
     </div>
   );
 }
