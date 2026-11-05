@@ -4,22 +4,24 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
-import { User, LogOut, ShieldCheck, MapPin } from 'lucide-react';
+import { useSiteConfig } from '@/engine/siteConfigEngine';
+import { User, LogOut, ShieldCheck, MapPin, Sparkles, Megaphone, ArrowRight } from 'lucide-react';
 import CitySwitcherModal from '@/components/CitySwitcherModal';
 
 export default function GlobalHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, logout } = useNadoSoloEngine();
+  const { config } = useSiteConfig();
   const [lang, setLang] = useState<'KO' | 'EN'>('KO');
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
 
-  const navLinks = [
-    { href: '/dining', label: lang === 'KO' ? '소셜 다이닝' : 'Social Dining' },
-    { href: '/salon', label: lang === 'KO' ? '소셜 살롱' : 'Social Salon' },
-    { href: '/club', label: lang === 'KO' ? '소셜 클럽' : 'Social Club' },
-    { href: '/meetup', label: lang === 'KO' ? '테마 밋업' : 'Theme Meetup' },
-  ];
+  // 전역 설정에서 네비게이션 메뉴 가져오기 (순서 정렬 및 visible 필터)
+  const navItems = [...(config?.header?.navItems || [])]
+    .filter((item) => item.visible)
+    .sort((a, b) => a.order - b.order);
+
+  const announcement = config?.header?.announcement;
 
   const handleLogout = () => {
     logout();
@@ -33,10 +35,34 @@ export default function GlobalHeader() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#090a0f]/95 backdrop-blur-md border-b border-white/10">
+      
+      {/* ==============================================================
+          관리자 제어 상단 공지 띠배너 (Announcement Bar)
+          ============================================================== */}
+      {announcement?.visible && (
+        <div className="w-full bg-gradient-to-r from-rose-950 via-rose-900 to-rose-950 border-b border-rose-500/30 px-4 py-2 text-center text-xs font-medium text-rose-100 flex items-center justify-center gap-2">
+          {announcement.tag && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white uppercase tracking-wider">
+              {announcement.tag}
+            </span>
+          )}
+          <span>{announcement.text}</span>
+          {announcement.link && (
+            <Link
+              href={announcement.link}
+              className="underline text-rose-300 hover:text-white font-semibold inline-flex items-center gap-0.5 ml-1"
+            >
+              <span>자세히 보기</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          )}
+        </div>
+      )}
+
       <div className="w-full max-w-[1320px] mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-3 sm:gap-6">
         
         {/* ==============================================================
-            [좌측] 기존 나도솔로 정통 텍스트 로고
+            [좌측] 나도솔로 정통 텍스트 로고
             ============================================================== */}
         <Link
           href="/"
@@ -45,16 +71,18 @@ export default function GlobalHeader() {
           nadosolo
         </Link>
 
-        {/* 4대 핵심 카테고리 네비게이션 (글자 폰트 크기 확대: text-[16px] sm:text-[17px]) */}
-        <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((item) => {
+        {/* ==============================================================
+            관리자 설정 주도형 4대 핵심 카테고리 네비게이션
+            ============================================================== */}
+        <nav className="hidden md:flex items-center gap-7">
+          {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
               (item.href === '/dining' && pathname.startsWith('/kr/')) ||
               (item.href === '/salon' && pathname === '/dating');
             return (
               <Link
-                key={item.href}
+                key={item.id || item.href}
                 href={item.href}
                 className={`relative text-[16px] sm:text-[17px] tracking-normal transition-colors py-1 flex items-center gap-1.5 ${
                   isActive
@@ -63,6 +91,11 @@ export default function GlobalHeader() {
                 }`}
               >
                 <span>{item.label}</span>
+                {item.badge && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    {item.badge}
+                  </span>
+                )}
                 {isActive && (
                   <span className="absolute -bottom-2.5 left-0 right-0 h-0.5 bg-rose-500 rounded-full" />
                 )}
@@ -72,7 +105,7 @@ export default function GlobalHeader() {
         </nav>
 
         {/* ==============================================================
-            [우측] 레드와인 포인트 컬러 적용: 거점 뱃지, 언어 스위처, 로그인/로그아웃/관리자
+            [우측] 거점 뱃지, 언어 스위처, 로그인/로그아웃/관리자
             ============================================================== */}
         <div className="flex items-center gap-2 sm:gap-2.5">
           {/* 도시 뱃지 (클릭 시 도시 허브 선택 모달 오픈) */}
@@ -83,7 +116,9 @@ export default function GlobalHeader() {
             title="모임 지역 및 도시 선택"
           >
             <MapPin className="w-3.5 h-3.5 text-rose-400" />
-            <span className="font-medium tracking-wider">부산 (전포·서면)</span>
+            <span className="font-medium tracking-wider">
+              {config?.header?.activeCityLabel || '부산 (전포·서면)'}
+            </span>
             <span className="text-[10px] text-zinc-500">▼</span>
           </button>
 
@@ -100,7 +135,6 @@ export default function GlobalHeader() {
           {/* 로그인 / 프로필 / 관리자 버튼 */}
           {currentUser ? (
             <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* 마이페이지/대시보드 이동 프로필 칩 */}
               <Link
                 href="/dashboard"
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs font-semibold text-zinc-200 hover:text-white transition-all shadow-sm"
@@ -112,7 +146,6 @@ export default function GlobalHeader() {
                 </span>
               </Link>
 
-              {/* 로그아웃 아이콘 버튼 */}
               <button
                 type="button"
                 onClick={handleLogout}
@@ -122,7 +155,6 @@ export default function GlobalHeader() {
                 <LogOut className="w-4 h-4" />
               </button>
 
-              {/* [요청 3] 최고관리자 로그인 후 오른쪽 상단 방패모양은 로그아웃 버튼 오른쪽 맨 끝으로 배치 */}
               {isAdmin && (
                 <Link
                   href="/admin"
@@ -134,7 +166,6 @@ export default function GlobalHeader() {
               )}
             </div>
           ) : (
-            /* 비로그인 게스트: 나도솔로 시그니처 레드와인 테두리 로그인 버튼 */
             <Link
               href="/auth"
               className="px-4 py-1.5 rounded-xl text-xs font-semibold text-rose-200 bg-[#881337]/30 hover:bg-[#881337]/50 border border-rose-500/50 transition-all shadow-sm flex items-center gap-1.5"
@@ -146,21 +177,26 @@ export default function GlobalHeader() {
         </div>
       </div>
 
-      {/* 모바일 하단 서브탭 (글자 크기 확대: text-sm) */}
+      {/* 모바일 하단 서브 네비게이션 */}
       <div className="md:hidden flex items-center justify-around border-t border-white/5 bg-[#090a0f] px-2 py-2.5 text-sm">
-        {navLinks.map((item) => {
+        {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href === '/salon' && pathname === '/dating');
           return (
             <Link
-              key={item.href}
+              key={item.id || item.href}
               href={item.href}
-              className={`px-2.5 py-1 rounded-lg transition-colors text-[14px] ${
+              className={`px-2.5 py-1 rounded-lg transition-colors text-[14px] flex items-center gap-1 ${
                 isActive ? 'text-white font-bold bg-white/10' : 'text-zinc-400'
               }`}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {item.badge && (
+                <span className="text-[9px] px-1 py-0.2 rounded bg-rose-500/30 text-rose-300">
+                  {item.badge}
+                </span>
+              )}
             </Link>
           );
         })}

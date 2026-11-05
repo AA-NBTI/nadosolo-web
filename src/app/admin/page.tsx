@@ -13,8 +13,11 @@ import {
   useNadoSoloEngine,
 } from '@/engine';
 
+import AdminLayoutManager from '@/components/admin/AdminLayoutManager';
+
 type AdminTabKey =
   | 'PROCESS'
+  | 'LAYOUT_CMS'
   | 'MEMBER_DOSSIER'
   | 'EVAL_ENGINE'
   | 'BADGE'
@@ -27,6 +30,7 @@ type AdminTabKey =
 
 const ADMIN_CATEGORIES: { key: AdminTabKey; label: string; badge?: string }[] = [
   { key: 'PROCESS', label: '프로세스' },
+  { key: 'LAYOUT_CMS', label: '화면/모듈배치', badge: 'NEW' },
   { key: 'MEMBER_DOSSIER', label: '회원프로파일' },
   { key: 'EVAL_ENGINE', label: '평가엔진', badge: '5×5×5' },
   { key: 'BADGE', label: '뱃지' },
@@ -365,6 +369,29 @@ export default function AdminOperationsDashboardPage() {
                   </div>
                 ))}
               </div>
+            </section>
+          )}
+
+          {/* ----------------------------------------------------------
+              2. [화면/모듈배치] 메인 화면 섹터 순서 이동 & 헤더/푸터 관리
+              ---------------------------------------------------------- */}
+          {activeTab === 'LAYOUT_CMS' && (
+            <section className="bg-[#12151e] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-sm space-y-6">
+              <div className="border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                    MODULAR BUILDER
+                  </span>
+                  <h3 className="text-xl font-bold text-white">
+                    사이트 레이아웃 &amp; 네비게이션 관리
+                  </h3>
+                </div>
+                <p className="text-sm text-zinc-400 mt-1">
+                  메인 화면의 모듈별 블록 순서(위치이동 ▲/▼) 및 노출 여부, 헤더 메뉴와 상단 공지 띠배너, 푸터 법정 정보를 코드 수정 없이 실시간으로 제어합니다.
+                </p>
+              </div>
+
+              <AdminLayoutManager onNotify={notify} />
             </section>
           )}
 
