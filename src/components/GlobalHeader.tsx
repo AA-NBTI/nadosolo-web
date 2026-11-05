@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import { User, LogOut, ShieldCheck, MapPin } from 'lucide-react';
+import CitySwitcherModal from '@/components/CitySwitcherModal';
 
 export default function GlobalHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { currentUser, logout } = useNadoSoloEngine();
   const [lang, setLang] = useState<'KO' | 'EN'>('KO');
+  const [isCityModalOpen, setIsCityModalOpen] = useState(false);
 
   const navLinks = [
     { href: '/dining', label: lang === 'KO' ? '소셜 다이닝' : 'Social Dining' },
@@ -73,15 +75,17 @@ export default function GlobalHeader() {
             [우측] 레드와인 포인트 컬러 적용: 거점 뱃지, 언어 스위처, 로그인/로그아웃/관리자
             ============================================================== */}
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* 도시 뱃지 */}
-          <Link
-            href="/dining"
-            className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 hover:text-white hover:border-white/20 transition-all"
-            title="현재 거점: 부산 전포/서면"
+          {/* 도시 뱃지 (클릭 시 도시 허브 선택 모달 오픈) */}
+          <button
+            type="button"
+            onClick={() => setIsCityModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+            title="모임 지역 및 도시 선택"
           >
             <MapPin className="w-3.5 h-3.5 text-rose-400" />
             <span className="font-medium tracking-wider">부산 (전포·서면)</span>
-          </Link>
+            <span className="text-[10px] text-zinc-500">▼</span>
+          </button>
 
           {/* 언어 전환 버튼 (KO / EN) */}
           <button
@@ -161,6 +165,12 @@ export default function GlobalHeader() {
           );
         })}
       </div>
+
+      {/* 도시 선택 & 사전 오픈 알림 모달 */}
+      <CitySwitcherModal
+        isOpen={isCityModalOpen}
+        onClose={() => setIsCityModalOpen(false)}
+      />
     </header>
   );
 }

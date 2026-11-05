@@ -149,92 +149,176 @@ export default function NadoSoloHomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* 1. Social Dining */}
             <Link
               href="/dining"
-              className="bg-[#12151e] p-6 rounded-2xl border border-rose-500/30 bg-gradient-to-b from-[#12151e] to-[#1a1520] space-y-4 relative hover:border-rose-500/60 transition-all block group"
+              className="bg-[#12151e] rounded-3xl border border-rose-500/30 overflow-hidden hover:border-rose-500/60 transition-all block group shadow-xl flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                  현재 오픈
-                </span>
-                <span className="text-xs text-zinc-400 font-mono">STEP 01</span>
+              <div>
+                {/* 상단 구조화 비주얼 썸네일 */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-black/40">
+                  <img
+                    src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=800&q=80"
+                    alt="Social Dining"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#12151e] via-black/20 to-transparent" />
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#881337] text-white shadow-md">
+                      현재 오픈
+                    </span>
+                    <span className="text-xs text-white/80 font-mono bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
+                      STEP 01
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-white group-hover:text-rose-300 transition-colors">
+                      Social Dining
+                    </h3>
+                    <p className="text-xs text-zinc-400 font-medium mt-0.5">금요일 밤 프라이빗 디너</p>
+                  </div>
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                    매주 금요일 밤, 결이 맞는 6인이 마주 앉아 와인과 음식을 곁들이며 나누는 깊이 있는 디너.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white group-hover:text-rose-200 transition-colors">Social Dining</h3>
-              <p className="text-xs text-zinc-400 font-medium">취향 기반 식사 모임</p>
-              <p className="text-sm text-zinc-300 leading-relaxed">
-                매주 금요일 밤, 결이 맞는 6인이 마주 앉아 와인과 음식을 곁들이며 나누는 깊이 있는 디너.
-              </p>
-              <div className="pt-2 text-xs text-rose-300 font-medium flex items-center gap-1">
-                <span>테이블 보기</span>
-                <span>→</span>
+
+              <div className="px-6 pb-6 pt-1 flex items-center justify-between text-xs text-rose-300 font-semibold border-t border-white/5">
+                <span>테이블 일정 보기</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
               </div>
             </Link>
 
             {/* 2. Social Salon */}
             <Link
               href="/salon"
-              className="bg-[#12151e] p-6 rounded-2xl border border-white/10 space-y-4 hover:border-white/30 transition-all block group"
+              className="bg-[#12151e] rounded-3xl border border-white/10 overflow-hidden hover:border-white/30 transition-all block group shadow-xl flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/10 text-zinc-300 border border-white/10">
-                  신뢰 살롱
-                </span>
-                <span className="text-xs text-zinc-400 font-mono">STEP 02</span>
+              <div>
+                {/* 상단 구조화 비주얼 썸네일 */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-black/40">
+                  <img
+                    src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
+                    alt="Social Salon"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#12151e] via-black/20 to-transparent" />
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/10 text-zinc-300 border border-white/10 backdrop-blur-sm">
+                      신뢰 살롱
+                    </span>
+                    <span className="text-xs text-white/80 font-mono bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
+                      STEP 02
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">
+                      Social Salon
+                    </h3>
+                    <p className="text-xs text-zinc-400 font-medium mt-0.5">취향과 가치관 교류</p>
+                  </div>
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                    5대 매너 평가 매트릭스로 검증된 회원들과의 품격 있는 사교 살롱. 가벼운 모임과 부담스러운 만남 사이의 신뢰할 수 있는 대안.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Social Salon</h3>
-              <p className="text-xs text-zinc-400 font-medium">취향과 가치관 교류</p>
-              <p className="text-sm text-zinc-300 leading-relaxed">
-                5대 매너 평가 매트릭스로 검증된 회원들과의 품격 있는 사교 살롱. 가벼운 모임과 부담스러운 만남 사이의 신뢰할 수 있는 대안.
-              </p>
-              <div className="pt-2 text-xs text-zinc-400 font-medium flex items-center gap-1 group-hover:text-white transition-colors">
-                <span>살롱 보기</span>
-                <span>→</span>
+
+              <div className="px-6 pb-6 pt-1 flex items-center justify-between text-xs text-zinc-400 group-hover:text-white font-semibold border-t border-white/5 transition-colors">
+                <span>살롱 라인업 보기</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
               </div>
             </Link>
 
             {/* 3. Social Club */}
             <Link
               href="/club"
-              className="bg-[#12151e] p-6 rounded-2xl border border-white/10 space-y-4 hover:border-white/30 transition-all block group"
+              className="bg-[#12151e] rounded-3xl border border-white/10 overflow-hidden hover:border-white/30 transition-all block group shadow-xl flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/5 text-zinc-400 border border-white/10">
-                  확장 오픈
-                </span>
-                <span className="text-xs text-zinc-400 font-mono">STEP 03</span>
+              <div>
+                {/* 상단 구조화 비주얼 썸네일 */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-black/40">
+                  <img
+                    src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80"
+                    alt="Social Club"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#12151e] via-black/20 to-transparent" />
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/10 text-zinc-300 border border-white/10 backdrop-blur-sm">
+                      취향 확장
+                    </span>
+                    <span className="text-xs text-white/80 font-mono bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
+                      STEP 03
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">
+                      Social Club
+                    </h3>
+                    <p className="text-xs text-zinc-400 font-medium mt-0.5">취미와 관심사 소모임</p>
+                  </div>
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                    와인 테이스팅, 미술 전시 도슨트 투어, 주말 러닝 등 싱글들의 취향을 공유하는 커뮤니티.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Social Club</h3>
-              <p className="text-xs text-zinc-400 font-medium">취미와 관심사 교류</p>
-              <p className="text-sm text-zinc-300 leading-relaxed">
-                와인 테이스팅, 미술 전시 도슨트 투어, 주말 러닝 등 싱글들의 취향을 공유하는 커뮤니티.
-              </p>
-              <div className="pt-2 text-xs text-zinc-400 font-medium flex items-center gap-1 group-hover:text-white transition-colors">
-                <span>클럽 라인업</span>
-                <span>→</span>
+
+              <div className="px-6 pb-6 pt-1 flex items-center justify-between text-xs text-zinc-400 group-hover:text-white font-semibold border-t border-white/5 transition-colors">
+                <span>클럽 라인업 보기</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
               </div>
             </Link>
 
             {/* 4. Theme Meetup */}
             <Link
               href="/meetup"
-              className="bg-[#12151e] p-6 rounded-2xl border border-white/10 space-y-4 hover:border-white/30 transition-all block group"
+              className="bg-[#12151e] rounded-3xl border border-white/10 overflow-hidden hover:border-white/30 transition-all block group shadow-xl flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/5 text-zinc-400 border border-white/10">
-                  월 2~4회 한정
-                </span>
-                <span className="text-xs text-zinc-400 font-mono">STEP 04</span>
+              <div>
+                {/* 상단 구조화 비주얼 썸네일 */}
+                <div className="relative aspect-[16/10] overflow-hidden bg-black/40">
+                  <img
+                    src="https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=800&q=80"
+                    alt="Theme Meetup"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#12151e] via-black/20 to-transparent" />
+                  <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+                    <span className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-white/10 text-zinc-300 border border-white/10 backdrop-blur-sm">
+                      월 2~4회 한정
+                    </span>
+                    <span className="text-xs text-white/80 font-mono bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded">
+                      STEP 04
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">
+                      Theme Meetup
+                    </h3>
+                    <p className="text-xs text-zinc-400 font-medium mt-0.5">세대별 특별 밋업</p>
+                  </div>
+                  <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+                    3045 프라임 직장인·전문직 교류회 및 5060 골든 솔로를 위한 인생 2막 테마 밋업 파티.
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white group-hover:text-zinc-200 transition-colors">Theme Meetup</h3>
-              <p className="text-xs text-zinc-400 font-medium">테마 밋업</p>
-              <p className="text-sm text-zinc-300 leading-relaxed">
-                3045 프라임 직장인·전문직 교류회 및 5060 골든 솔로를 위한 인생 2막 테마 밋업 파티.
-              </p>
-              <div className="pt-2 text-xs text-rose-300 font-medium flex items-center gap-1">
+
+              <div className="px-6 pb-6 pt-1 flex items-center justify-between text-xs text-rose-300 font-semibold border-t border-white/5">
                 <span>밋업 일정 확인</span>
-                <span>→</span>
+                <span className="group-hover:translate-x-1 transition-transform">→</span>
               </div>
             </Link>
           </div>
