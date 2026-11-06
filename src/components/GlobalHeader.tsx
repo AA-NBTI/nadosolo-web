@@ -77,12 +77,25 @@ export default function GlobalHeader() {
 
       <div className="w-full max-w-[1320px] mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-3 sm:gap-6">
         
-        {/* [좌측] 나도솔로 정통 텍스트 로고 */}
+        {/* [좌측] 나도솔로 정통 로고 (영어 nadosolo + 한글 '솔로공감 나도솔로' 폭 일치) */}
         <Link
           href="/"
-          className="font-serif-editorial text-2xl sm:text-3xl font-semibold text-white tracking-tight lowercase shrink-0 hover:opacity-85 transition-opacity"
+          className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
         >
-          nadosolo
+          <span className="font-serif-editorial text-2xl sm:text-[27px] font-semibold text-white tracking-tight lowercase leading-none">
+            nadosolo
+          </span>
+          <span className="w-full flex justify-between items-center text-[8.5px] sm:text-[9.5px] font-medium text-rose-300/85 group-hover:text-rose-200 transition-colors tracking-normal mt-1 leading-none">
+            <span>솔</span>
+            <span>로</span>
+            <span>공</span>
+            <span>감</span>
+            <span className="w-1.5" />
+            <span>나</span>
+            <span>도</span>
+            <span>솔</span>
+            <span>로</span>
+          </span>
         </Link>
 
         {/* 4대 핵심 카테고리 네비게이션 (빨간 라인 효과 제거, 볼드 & 텍스트 컬러로만 심플하게 활성화 표시) */}

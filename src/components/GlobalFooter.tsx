@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { PhoneCall, X, Instagram, MessageCircle, Globe } from 'lucide-react';
 import { useSiteConfig } from '@/engine/siteConfigEngine';
 
@@ -12,8 +13,18 @@ export default function GlobalFooter() {
   return (
     <>
       <footer className="w-full bg-[#090a0f] border-t border-white/10 text-zinc-400 py-10 px-4 sm:px-6 mt-auto">
-        <div className="w-full max-w-[1200px] mx-auto space-y-7">
+        <div className="w-full max-w-[1200px] mx-auto space-y-6">
           
+          {/* 푸터 상단 기본 브랜드 로고 */}
+          <div className="flex flex-col items-center justify-center">
+            <Link
+              href="/"
+              className="font-serif-editorial text-2xl sm:text-3xl font-semibold text-white/90 hover:text-white tracking-tight lowercase transition-opacity"
+            >
+              nadosolo
+            </Link>
+          </div>
+
           {/* 상단 1열: 이용약관, 개인정보처리방침, 환불규정, SNS 링크 */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
             <button
