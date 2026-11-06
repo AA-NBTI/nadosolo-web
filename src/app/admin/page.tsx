@@ -230,11 +230,11 @@ export default function AdminOperationsDashboardPage() {
           <div className="px-3 pb-4 mb-3 border-b border-white/10">
             <div className="flex items-center justify-between mb-1">
               <p className="text-[11px] font-mono uppercase tracking-widest text-zinc-400 font-semibold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                 SYSTEM ADMIN
               </p>
-              <span className="px-2 py-0.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-[10px] font-mono font-bold text-rose-300">
-                v1.2.0
+              <span className="px-2 py-0.5 rounded-full bg-[#f04f74]/15 border border-[#f04f74]/40 text-[10px] font-mono font-bold text-[#f04f74]">
+                v1.3.0
               </span>
             </div>
             <h1 className="text-lg font-bold text-white">
@@ -298,7 +298,7 @@ export default function AdminOperationsDashboardPage() {
                   MODULE WORKSPACE
                 </span>
                 <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-zinc-400">
-                  nadosolo core v1.2.0
+                  nadosolo core v1.3.0
                 </span>
               </div>
               <h2 className="text-2xl font-bold text-white mt-1">
