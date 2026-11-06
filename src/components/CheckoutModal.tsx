@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldCheck, Check, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
+import { ShieldCheck, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
+import { loadTossPayments } from '@tosspayments/payment-sdk';
 
 export interface CheckoutEventData {
   eventId: string;
@@ -31,28 +32,83 @@ export default function CheckoutModal({
   const [agreeRefund, setAgreeRefund] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   if (!isOpen || !event) return null;
 
   const isFormValid = agreeRefund && agreePrivacy;
 
-  const handlePaySubmit = (e: React.FormEvent) => {
+  const handlePaySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid || isProcessing) return;
 
     setIsProcessing(true);
+    setErrorMessage(null);
 
-    // 토스페이먼츠 결제 승인 시뮬레이션 (0.8초 후 승인 완료)
-    setTimeout(() => {
+    try {
+      const clientKey =
+        process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJqK4Wj7mM05N3LzN97Eq';
+      const tossPayments = await loadTossPayments(clientKey);
+
+      const orderId = `order_${event.eventId}_${Date.now()}`;
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(event.title)}`;
+      const failUrl = `${origin}/payment/fail`;
+
+      // 선택된 결제수단에 맞춰 토스페이먼츠 결제창 호출
+      if (payMethod === 'CARD') {
+        await tossPayments.requestPayment('카드', {
+          amount: event.priceKrw,
+          orderId,
+          orderName: event.title,
+          customerName: '나도솔로 참가자',
+          successUrl,
+          failUrl,
+        });
+      } else if (payMethod === 'TOSS_PAY') {
+        await tossPayments.requestPayment('카드', {
+          amount: event.priceKrw,
+          orderId,
+          orderName: event.title,
+          customerName: '나도솔로 참가자',
+          flowMode: 'DIRECT',
+          easyPay: '토스페이',
+          successUrl,
+          failUrl,
+        });
+      } else if (payMethod === 'KAKAO_PAY') {
+        await tossPayments.requestPayment('카드', {
+          amount: event.priceKrw,
+          orderId,
+          orderName: event.title,
+          customerName: '나도솔로 참가자',
+          flowMode: 'DIRECT',
+          easyPay: '카카오페이',
+          successUrl,
+          failUrl,
+        });
+      } else if (payMethod === 'NAVER_PAY') {
+        await tossPayments.requestPayment('카드', {
+          amount: event.priceKrw,
+          orderId,
+          orderName: event.title,
+          customerName: '나도솔로 참가자',
+          flowMode: 'DIRECT',
+          easyPay: '네이버페이',
+          successUrl,
+          failUrl,
+        });
+      }
+    } catch (err: unknown) {
+      const errorObj = err as { code?: string; message?: string };
+      // 사용자가 직접 결제창을 닫은 경우 (USER_CANCEL) 등 처리
+      if (errorObj?.code === 'USER_CANCEL') {
+        setErrorMessage('결제가 취소되었습니다.');
+      } else {
+        setErrorMessage(errorObj?.message || '결제 진행 중 오류가 발생했습니다.');
+      }
       setIsProcessing(false);
-      setPaymentSuccess(true);
-      setTimeout(() => {
-        onSuccessPayment(event.eventId);
-        setPaymentSuccess(false);
-        onClose();
-      }, 1200);
-    }, 800);
+    }
   };
 
   return (
@@ -67,21 +123,8 @@ export default function CheckoutModal({
           ✕
         </button>
 
-        {paymentSuccess ? (
-          /* 결제 승인 완료 화면 */
-          <div className="py-12 text-center space-y-4 animate-scaleUp">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto text-3xl">
-              ✓
-            </div>
-            <h3 className="text-2xl font-bold text-white tracking-tight">결제 및 신청 완료!</h3>
-            <p className="text-sm text-zinc-400 max-w-sm mx-auto leading-relaxed">
-              토스페이먼츠 안전 결제가 정상 승인되었습니다.<br />
-              D-1에 배정된 제휴 식당 정보가 비공개 안내됩니다.
-            </p>
-          </div>
-        ) : (
-          /* 주문서 및 결제 폼 */
-          <form onSubmit={handlePaySubmit} className="space-y-6">
+        {/* 주문서 및 결제 폼 */}
+        <form onSubmit={handlePaySubmit} className="space-y-6">
             <div>
               <span className="text-[11px] font-semibold tracking-wider text-rose-400 uppercase">
                 TOSS PAYMENTS CHECKOUT
@@ -213,6 +256,14 @@ export default function CheckoutModal({
               </div>
             </div>
 
+            {/* 에러 메시지 표시 */}
+            {errorMessage && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                <span>{errorMessage}</span>
+              </div>
+            )}
+
             {/* 4. 최종 결제 버튼 */}
             <div className="space-y-2 pt-1">
               <button
@@ -236,9 +287,8 @@ export default function CheckoutModal({
               </p>
             </div>
           </form>
-        )}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 

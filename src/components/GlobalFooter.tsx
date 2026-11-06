@@ -104,13 +104,21 @@ export default function GlobalFooter() {
               <span>고객센터 운영시간: <strong className="text-zinc-300">{f?.csHours || '평일 10:00 ~ 18:00 (주말 및 공휴일 휴무)'}</strong></span>
             </div>
 
-            {/* 결제 심사 필수 배너 (단정하고 차분한 모노크롬 톤) */}
-            <div className="mt-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/10 max-w-3xl mx-auto space-y-1 text-[11px] text-zinc-400">
+            {/* 결제 심사 필수 배너 (토스페이먼츠 PG 심사 공식 규격 준수) */}
+            <div className="mt-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/10 max-w-3xl mx-auto space-y-1.5 text-[11px] text-zinc-400">
               <div>
-                <strong>구매안전서비스(에스크로) 안내:</strong> 고객님의 안전한 거래를 위해 현금 결제 시 구매안전서비스를 이용하실 수 있습니다.
+                <strong>구매안전서비스(에스크로) 안내:</strong> 고객님의 안전한 전자상거래를 위해 <strong>토스페이먼츠(주)</strong>의 구매안전(에스크로) 서비스를 적용하고 있습니다.
+                <a
+                  href="https://pgweb.tosspayments.com/ms/escrow/auth/service"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-zinc-300 underline font-medium ml-1.5 hover:text-white inline-flex items-center gap-0.5"
+                >
+                  [가입사실확인]
+                </a>
               </div>
               <div>
-                <strong>전자결제 연동 수탁 고지:</strong> 전자결제(PG) 연동 업무는 「개인정보 보호법」 제26조에 따라 수탁사인 <strong>(주)코리아포트원</strong>에 위탁 운영됩니다.
+                <strong>전자결제 연동 수탁 고지:</strong> 전자결제(PG) 및 에스크로 대행 업무는 「개인정보 보호법」 제26조에 따라 수탁사인 <strong>토스페이먼츠(주)</strong>에 위탁 운영됩니다.
               </div>
             </div>
           </div>
