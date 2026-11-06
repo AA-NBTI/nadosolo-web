@@ -194,20 +194,20 @@ export interface SiteConfig {
 // ============================================================================
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 7,
+  version: 8,
   header: {
     announcement: {
-      text: '🍷 부산 3040 & 5060 소셜 다이닝 참가 신청 안내',
+      text: '부산 3040 & 5060 소셜 다이닝 참가 신청 안내',
       link: '/dining',
-      visible: true,
+      visible: false,
       tag: 'NOTICE',
     },
     navItems: [
-      { id: 'dining', label: '소셜 다이닝', href: '/dining', badge: '대표', visible: true, order: 1 },
-      { id: 'guide', label: '프로그램 이용안내', href: '/guide', badge: '필독', visible: true, order: 2 },
+      { id: 'dining', label: '소셜 다이닝', href: '/dining', visible: true, order: 1 },
+      { id: 'guide', label: '프로그램 이용안내', href: '/guide', visible: true, order: 2 },
       { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 3 },
       { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 4 },
-      { id: 'meetup', label: '테마 밋업', href: '/meetup', badge: '준비중', visible: false, order: 5 },
+      { id: 'meetup', label: '테마 밋업', href: '/meetup', visible: false, order: 5 },
     ],
     activeCityLabel: '부산',
   },
@@ -261,7 +261,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       type: 'districts',
       title: '권역별 탐색',
       subtitle: '부산 중심 권역 안내',
-      visible: true,
+      visible: false,
       order: 5,
     },
     {
@@ -300,7 +300,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V122';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V123';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================

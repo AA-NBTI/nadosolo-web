@@ -252,7 +252,7 @@ function AuthPageContent() {
           </p>
         </div>
 
-        {/* 로그인 / 회원가입 탭 스위치 (포인트 와인 컬러) */}
+        {/* 로그인 / 회원가입 탭 스위치 (대표 포인트 컬러 #f04f74) */}
         {signupStep === 1 && (
           <div className="grid grid-cols-2 bg-[#0a0c12] p-1.5 rounded-2xl border border-white/10 mb-7">
             <button
@@ -263,7 +263,7 @@ function AuthPageContent() {
               }}
               className={`py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                 tab === 'LOGIN'
-                  ? 'bg-[#881337] text-white shadow-md shadow-[#881337]/30'
+                  ? 'bg-[#f04f74] text-white shadow-md shadow-[#f04f74]/30'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -277,7 +277,7 @@ function AuthPageContent() {
               }}
               className={`py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                 tab === 'SIGNUP'
-                  ? 'bg-[#881337] text-white shadow-md shadow-[#881337]/30'
+                  ? 'bg-[#f04f74] text-white shadow-md shadow-[#f04f74]/30'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
@@ -287,7 +287,7 @@ function AuthPageContent() {
         )}
 
         {errorMsg && (
-          <div className="mb-5 p-3 rounded-xl bg-white/5 border border-white/20 text-rose-300 text-xs font-bold text-center">
+          <div className="mb-5 p-3 rounded-xl bg-white/5 border border-white/20 text-[#f04f74] text-xs font-bold text-center">
             {errorMsg}
           </div>
         )}
@@ -340,7 +340,7 @@ function AuthPageContent() {
                     className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-white group-hover:text-rose-300">
+                      <span className="text-white group-hover:text-[#f04f74]">
                         {m.gender === 'M' ? '👔' : '👗'} {m.name}
                       </span>
                       <span className="text-[10px] text-zinc-500 font-mono">{m.gender}</span>
@@ -354,7 +354,7 @@ function AuthPageContent() {
             {/* 메인 로그인 CTA 버튼 */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer"
+              className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer"
             >
               로그인
             </button>
@@ -477,7 +477,7 @@ function AuthPageContent() {
                 className={`text-[11px] font-medium ${
                   signupPassword === confirmPassword
                     ? 'text-emerald-400'
-                    : 'text-rose-400'
+                    : 'text-[#f04f74]'
                 }`}
               >
                 {signupPassword === confirmPassword
@@ -489,7 +489,7 @@ function AuthPageContent() {
             {/* 메인 가입 CTA 버튼 */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer mt-2"
+              className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer mt-2"
             >
               회원가입
             </button>
@@ -593,7 +593,7 @@ function AuthPageContent() {
               <button
                 type="button"
                 onClick={() => handleStep2Complete(false)}
-                className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer"
+                className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer"
               >
                 저장 완료
               </button>

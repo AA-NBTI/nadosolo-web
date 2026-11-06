@@ -92,7 +92,7 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
             <p className="text-xs text-zinc-400 mt-1">연령·성향별 맞춤 테이블 큐레이션</p>
           </div>
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-            <p className="text-xl sm:text-2xl font-bold text-rose-500 font-serif-editorial">100% 신뢰</p>
+            <p className="text-xl sm:text-2xl font-bold text-[#f04f74] font-serif-editorial">100% 신뢰</p>
             <p className="text-xs text-zinc-400 mt-1">에티켓 서약 및 비매너 원아웃제</p>
           </div>
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">

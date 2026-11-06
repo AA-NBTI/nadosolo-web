@@ -121,7 +121,7 @@ function MemberDashboardContent() {
           title: targetEv.title,
           dateText: targetEv.dateText,
           priceKrw: targetEv.priceKrw,
-          districtName: dist ? `${dist.regionName} · ${dist.districtName}` : '부산 · 전포',
+          districtName: dist ? dist.regionName : '부산',
           mealNote: targetEv.mealNote,
         });
         setIsCheckoutOpen(true);
@@ -457,7 +457,7 @@ function MemberDashboardContent() {
                     onClick={() => setMeetupPhase('TICKET')}
                     className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       meetupPhase === 'TICKET'
-                        ? 'bg-[#881337] text-white shadow-md'
+                        ? 'bg-[#f04f74] text-white shadow-md shadow-[#f04f74]/20'
                         : 'text-zinc-400 hover:text-white bg-white/5'
                     }`}
                   >
@@ -468,7 +468,7 @@ function MemberDashboardContent() {
                     onClick={() => setMeetupPhase('VENUE_SEAT')}
                     className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       meetupPhase === 'VENUE_SEAT'
-                        ? 'bg-[#881337] text-white shadow-md'
+                        ? 'bg-[#f04f74] text-white shadow-md shadow-[#f04f74]/20'
                         : 'text-zinc-400 hover:text-white bg-white/5'
                     }`}
                   >
@@ -479,7 +479,7 @@ function MemberDashboardContent() {
                     onClick={() => setMeetupPhase('LIVE_DECK')}
                     className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       meetupPhase === 'LIVE_DECK'
-                        ? 'bg-[#881337] text-white shadow-md'
+                        ? 'bg-[#f04f74] text-white shadow-md shadow-[#f04f74]/20'
                         : 'text-zinc-400 hover:text-white bg-white/5'
                     }`}
                   >
@@ -490,7 +490,7 @@ function MemberDashboardContent() {
                     onClick={() => setMeetupPhase('POST_FEEDBACK')}
                     className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       meetupPhase === 'POST_FEEDBACK'
-                        ? 'bg-[#881337] text-white shadow-md'
+                        ? 'bg-[#f04f74] text-white shadow-md shadow-[#f04f74]/20'
                         : 'text-zinc-400 hover:text-white bg-white/5'
                     }`}
                   >
@@ -536,7 +536,7 @@ function MemberDashboardContent() {
 
                     {/* D-1 장소 비공개 상태 안내 */}
                     <div className="p-5 rounded-2xl bg-[#10131c] border border-white/10 space-y-3">
-                      <div className="flex items-center gap-2 text-rose-300 font-bold text-sm">
+                      <div className="flex items-center gap-2 text-[#f04f74] font-bold text-sm">
                         <span>🔒</span>
                         <span>D-1 목요일 19:00 비공개 식당 및 좌석이 공개됩니다.</span>
                       </div>
@@ -559,7 +559,7 @@ function MemberDashboardContent() {
                         </div>
                         <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-center">
                           <span className="text-xs block">👗</span>
-                          <span className="text-[11px] text-rose-300 font-bold">나 (디자이너)</span>
+                          <span className="text-[11px] text-[#f04f74] font-bold">나 (디자이너)</span>
                         </div>
                         <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-center">
                           <span className="text-xs block">👔</span>
@@ -623,9 +623,9 @@ function MemberDashboardContent() {
                   {/* 식당 안내 */}
                   <div className="p-6 rounded-2xl bg-[#1c202e] border border-white/10 flex flex-wrap items-center justify-between gap-4">
                     <div className="space-y-1">
-                      <span className="text-xs text-rose-300 font-bold">제휴 식당 확정</span>
-                      <h4 className="text-xl font-bold text-white">전포 라운지 비스트로 (룸 예약)</h4>
-                      <p className="text-xs text-zinc-400">부산 부산진구 전포대로 209번길 17 • 서면역 6번 출구 도보 5분</p>
+                      <span className="text-xs text-[#f04f74] font-bold">제휴 식당 확정</span>
+                      <h4 className="text-xl font-bold text-white">시크릿 비스트로 (룸 예약)</h4>
+                      <p className="text-xs text-zinc-400">부산 시크릿 프라이빗 다이닝</p>
                     </div>
                     <span className="text-xs text-zinc-300 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
                       예약자명: 나도솔로 (금요일 19:30)
@@ -644,7 +644,7 @@ function MemberDashboardContent() {
                             key={seat.seatNumber}
                             className={`p-4 rounded-2xl border text-center space-y-1.5 transition-all ${
                               seat.userId === 'U01'
-                                ? 'bg-[#881337]/30 border-rose-500 shadow-[0_0_15px_rgba(190,18,60,0.4)]'
+                                ? 'bg-[#f04f74]/15 border-[#f04f74] shadow-[0_0_15px_rgba(240,79,116,0.3)]'
                                 : 'bg-[#181c28] border-white/10'
                             }`}
                           >
@@ -668,7 +668,7 @@ function MemberDashboardContent() {
                             key={seat.seatNumber}
                             className={`p-4 rounded-2xl border text-center space-y-1.5 transition-all ${
                               seat.userId === 'U01'
-                                ? 'bg-[#881337]/30 border-rose-500 shadow-[0_0_15px_rgba(190,18,60,0.4)]'
+                                ? 'bg-[#f04f74]/15 border-[#f04f74] shadow-[0_0_15px_rgba(240,79,116,0.3)]'
                                 : 'bg-[#181c28] border-white/10'
                             }`}
                           >
@@ -754,7 +754,7 @@ function MemberDashboardContent() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {filteredDeckCards.map((c, idx) => (
                         <div key={c.cardId} className="p-5 rounded-2xl bg-[#1c202e] border border-white/10 space-y-2">
-                          <span className="text-[10px] text-rose-400 font-mono">QUESTION {idx + 1}</span>
+                          <span className="text-[10px] text-[#f04f74] font-mono">QUESTION {idx + 1}</span>
                           <h5 className="text-base font-bold text-white">{c.title}</h5>
                           <p className="text-sm text-zinc-300">"{c.promptText}"</p>
                         </div>
@@ -774,7 +774,7 @@ function MemberDashboardContent() {
                         오늘 함께한 테이블 동석자 5명에게 익명 매너 피드백을 전달하고, 설레는 호감을 투표합니다.
                       </p>
                     </div>
-                    <span className="text-xs text-rose-300 bg-rose-500/10 px-3 py-1.5 rounded-xl border border-rose-500/20 font-bold">
+                    <span className="text-xs text-[#f04f74] bg-[#f04f74]/10 px-3 py-1.5 rounded-xl border border-[#f04f74]/25 font-bold">
                       익명 100% 보장
                     </span>
                   </div>
@@ -793,7 +793,7 @@ function MemberDashboardContent() {
                           }}
                           className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
                             myVoteTargetId === peer.userId
-                              ? 'bg-[#881337] border-rose-500 text-white shadow-md'
+                              ? 'bg-[#f04f74] border-[#f04f74] text-white shadow-md shadow-[#f04f74]/20'
                               : 'bg-[#10131c] border-white/10 text-zinc-300 hover:text-white'
                           }`}
                         >
@@ -805,7 +805,7 @@ function MemberDashboardContent() {
                       ))}
                     </div>
                     {myVoteTargetId && (
-                      <p className="text-xs text-rose-400 font-medium">
+                      <p className="text-xs text-[#f04f74] font-medium">
                         ✓ 투표가 등록되었습니다. 자정(24:00) 이후 상호 매칭 결과가 대시보드에 공개됩니다.
                       </p>
                     )}
@@ -830,7 +830,7 @@ function MemberDashboardContent() {
                     </p>
                   </div>
                   <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-xs font-medium flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                     <span>인증 계정</span>
                   </span>
                 </div>
@@ -868,7 +868,7 @@ function MemberDashboardContent() {
                     <label className="block text-xs font-bold text-zinc-300 mb-1.5 flex items-center gap-1">
                       <Mail className="w-3.5 h-3.5 text-zinc-400" />
                       <span>이메일 주소</span>
-                      <span className="text-[10px] text-rose-400 font-normal">(필수 수신용)</span>
+                      <span className="text-[10px] text-[#f04f74] font-normal">(필수 수신용)</span>
                     </label>
                     <input
                       type="email"
@@ -882,7 +882,7 @@ function MemberDashboardContent() {
                     <label className="block text-xs font-bold text-zinc-300 mb-1.5 flex items-center gap-1">
                       <Phone className="w-3.5 h-3.5 text-zinc-400" />
                       <span>휴대폰 번호</span>
-                      <span className="text-[10px] text-rose-400 font-normal">(D-1 식당 SMS 수신)</span>
+                      <span className="text-[10px] text-[#f04f74] font-normal">(D-1 식당 SMS 수신)</span>
                     </label>
                     <input
                       type="tel"
@@ -927,7 +927,7 @@ function MemberDashboardContent() {
 
                 {pwNotice && (
                   <div className="p-3 rounded-xl bg-white/5 border border-white/15 text-xs text-white flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-rose-400" />
+                    <CheckCircle2 className="w-4 h-4 text-[#f04f74]" />
                     <span>{pwNotice}</span>
                   </div>
                 )}
@@ -976,13 +976,13 @@ function MemberDashboardContent() {
                 </div>
               </section>
 
-              {/* 3. [4번 요구사항] 회원탈퇴 섹션 (명확하고 눈에 잘 띄는 전용 와인레드 보더 카드) */}
-              <section className="bg-[#150d12] rounded-3xl p-6 sm:p-8 border border-rose-500/50 shadow-lg space-y-4">
+              {/* 3. 회원탈퇴 섹션 */}
+              <section className="bg-[#150d12] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-lg space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <UserX className="w-5 h-5 text-rose-500" />
-                      <h3 className="text-xl font-bold text-rose-200">회원 탈퇴</h3>
+                      <UserX className="w-5 h-5 text-zinc-400" />
+                      <h3 className="text-xl font-bold text-white">회원 탈퇴</h3>
                     </div>
                     <p className="text-xs text-zinc-400 leading-relaxed max-w-xl">
                       탈퇴 시 회원님의 성향 진단 프로필(NBTI), 매너 평가 이력, 보유 모임 티켓 및 매칭 기록이 영구 파기되며 즉시 로그아웃 처리됩니다.
@@ -994,9 +994,9 @@ function MemberDashboardContent() {
                       setDeleteConfirmText('');
                       setIsDeleteModalOpen(true);
                     }}
-                    className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shrink-0 transition-colors cursor-pointer shadow-md"
+                    className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white text-xs font-bold shrink-0 transition-colors cursor-pointer border border-white/15"
                   >
-                    회원 탈퇴하기
+                    회원 탈퇴
                   </button>
                 </div>
               </section>
@@ -1434,7 +1434,7 @@ function MemberDashboardContent() {
                   className={`p-4 rounded-2xl text-sm font-medium border ${
                     applyFeedback.ok
                       ? 'bg-[#181c28] text-white border-white/20'
-                      : 'bg-rose-950/40 text-rose-200 border-rose-500/30'
+                      : 'bg-[#f04f74]/10 text-white border-[#f04f74]/30'
                   }`}
                 >
                   {applyFeedback.message}
@@ -1459,7 +1459,7 @@ function MemberDashboardContent() {
                             {dist ? dist.regionName : '부산'}
                           </span>
                           {ev.targetAgeGroup === '3045_PRIME' && (
-                            <span className="px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300 text-xs font-semibold border border-rose-500/25">
+                            <span className="px-2.5 py-1 rounded-full bg-[#f04f74]/15 text-[#f04f74] text-xs font-semibold border border-[#f04f74]/25">
                               3040 트랙
                             </span>
                           )}
@@ -1486,7 +1486,7 @@ function MemberDashboardContent() {
 
                         {/* 식대 안내 */}
                         <p className="text-xs text-zinc-400 flex items-center gap-1.5">
-                          <span className="text-rose-400">✓</span>
+                          <span className="text-[#f04f74]">✓</span>
                           <span>{ev.mealNote || '식사 및 주류 비용은 식당 현장에서 테이블 동행자들과 1/N 정산됩니다.'}</span>
                         </p>
 
@@ -1512,7 +1512,7 @@ function MemberDashboardContent() {
                                 key={bId}
                                 className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${
                                   hasIt
-                                    ? 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+                                    ? 'bg-[#f04f74]/15 border-[#f04f74]/30 text-[#f04f74]'
                                     : 'bg-white/5 border-white/10 text-zinc-500'
                                 }`}
                               >
@@ -1540,7 +1540,7 @@ function MemberDashboardContent() {
                               title: ev.title,
                               dateText: ev.dateText,
                               priceKrw: ev.priceKrw,
-                              districtName: dist ? `${dist.regionName} · ${dist.districtName}` : '부산 · 전포',
+                              districtName: dist ? dist.regionName : '부산',
                               mealNote: ev.mealNote,
                             });
                             setIsCheckoutOpen(true);
@@ -1548,7 +1548,7 @@ function MemberDashboardContent() {
                           className={`px-6 py-3 rounded-xl text-base font-bold cursor-pointer transition-all duration-200 ${
                             isApplied
                               ? 'bg-white/10 text-zinc-400 border border-white/10 cursor-not-allowed'
-                              : 'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white shadow-lg'
+                              : 'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white shadow-lg'
                           }`}
                         >
                           {isApplied ? '신청 완료' : '신청하기'}
@@ -1862,7 +1862,7 @@ function MemberDashboardContent() {
                       리포트 열람 가능 ➔
                     </button>
                   ) : (
-                    <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-semibold">
+                    <span className="px-3 py-1 rounded-full bg-[#f04f74]/15 text-[#f04f74] border border-[#f04f74]/30 text-xs font-semibold">
                       잠금 상태
                     </span>
                   )}
@@ -2268,7 +2268,7 @@ function MemberDashboardContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-5 sm:p-6 rounded-2xl bg-[#181c28] border border-white/10 space-y-4">
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                     <h5 className="text-sm font-semibold text-white">
                       동석자가 꼽은 결정적 강점 요소
                     </h5>
@@ -2528,10 +2528,10 @@ function MemberDashboardContent() {
           onClick={() => setIsDeleteModalOpen(false)}
         >
           <div
-            className="w-full max-w-md bg-[#140d12] border border-rose-500/60 rounded-3xl p-6 sm:p-7 shadow-2xl text-white space-y-5"
+            className="w-full max-w-md bg-[#140d12] border border-white/20 rounded-3xl p-6 sm:p-7 shadow-2xl text-white space-y-5"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center gap-3 text-rose-400">
+            <div className="flex items-center gap-3 text-[#f04f74]">
               <ShieldAlert className="w-6 h-6 shrink-0" />
               <h3 className="text-xl font-bold text-white">회원 탈퇴 확인</h3>
             </div>
@@ -2543,14 +2543,14 @@ function MemberDashboardContent() {
 
             <div className="space-y-2">
               <label className="block text-xs text-zinc-300 font-semibold">
-                탈퇴를 확인하기 위해 아래에 <strong className="text-rose-400">&apos;회원탈퇴&apos;</strong>를 입력하세요:
+                탈퇴를 확인하기 위해 아래에 <strong className="text-[#f04f74]">&apos;회원탈퇴&apos;</strong>를 입력하세요:
               </label>
               <input
                 type="text"
                 value={deleteConfirmText}
                 onChange={(e) => setDeleteConfirmText(e.target.value)}
                 placeholder="회원탈퇴"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-rose-500/40 bg-black/60 text-sm text-white"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-white/20 bg-black/60 text-sm text-white"
               />
             </div>
 
@@ -2566,9 +2566,9 @@ function MemberDashboardContent() {
                 type="button"
                 onClick={handleAccountDeletion}
                 disabled={deleteConfirmText.trim() !== '회원탈퇴'}
-                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors cursor-pointer shadow-md"
+                className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors cursor-pointer border border-white/15"
               >
-                탈퇴 처리
+                탈퇴 완료
               </button>
             </div>
           </div>

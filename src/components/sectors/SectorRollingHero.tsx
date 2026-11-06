@@ -152,7 +152,7 @@ export default function SectorRollingHero({
         {/* 상단: 슬라이드 뱃지 */}
         <div className="flex items-center justify-between">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md text-[11px] font-mono tracking-widest text-zinc-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74] animate-pulse" />
             <EditableText
               as="span"
               value={currentSlide.tag}
@@ -238,7 +238,7 @@ export default function SectorRollingHero({
                 }}
                 className={`h-1.5 rounded-full transition-all cursor-pointer ${
                   idx === currentIdx
-                    ? 'w-8 bg-rose-500'
+                    ? 'w-8 bg-[#f04f74]'
                     : 'w-2 bg-white/20 hover:bg-white/40'
                 }`}
                 aria-label={`슬라이드 ${idx + 1}번으로 이동`}

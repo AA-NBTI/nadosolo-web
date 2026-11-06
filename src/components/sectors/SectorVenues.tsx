@@ -87,7 +87,7 @@ export default function SectorVenues() {
                 
                 <div className="absolute top-3 left-3">
                   <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-black/60 text-zinc-200 border border-white/10 backdrop-blur-md flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-rose-500" />
+                    <MapPin className="w-3 h-3 text-[#f04f74]" />
                     {v.district}
                   </span>
                 </div>
@@ -96,7 +96,7 @@ export default function SectorVenues() {
               {/* 정보 */}
               <div className="p-4 flex flex-col flex-1 justify-between space-y-3">
                 <div>
-                  <h3 className="text-sm font-bold text-white group-hover:text-rose-400 transition-colors">
+                  <h3 className="text-sm font-bold text-white group-hover:text-[#f04f74] transition-colors">
                     {v.name}
                   </h3>
                   <p className="text-[11px] text-zinc-400 mt-0.5 flex items-center gap-1">

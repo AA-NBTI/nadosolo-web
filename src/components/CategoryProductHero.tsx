@@ -52,7 +52,7 @@ export default function CategoryProductHero({
   slides,
   onApply,
   trustNote = '에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다.',
-  activeLocationLabel = '부산 (전포·서면·해운대)',
+  activeLocationLabel = '부산',
   onUpdateProps,
 }: CategoryProductHeroProps) {
   const { isEditMode } = useVisualEditor();
@@ -171,7 +171,7 @@ export default function CategoryProductHero({
                   onClick={() => setCurrentIdx(idx)}
                   className={`group relative rounded-xl overflow-hidden border text-left transition-all p-1.5 cursor-pointer ${
                     isActive
-                      ? 'border-rose-500 bg-rose-950/30 ring-2 ring-rose-500/50'
+                      ? 'border-[#f04f74] bg-[#f04f74]/15 ring-2 ring-[#f04f74]/50'
                       : 'border-white/10 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.05]'
                   }`}
                 >
@@ -185,7 +185,7 @@ export default function CategoryProductHero({
                     />
                   </div>
                   <div className="px-1">
-                    <p className={`text-[10px] sm:text-xs font-bold truncate ${isActive ? 'text-rose-300' : 'text-zinc-400 group-hover:text-white'}`}>
+                    <p className={`text-[10px] sm:text-xs font-bold truncate ${isActive ? 'text-[#f04f74]' : 'text-zinc-400 group-hover:text-white'}`}>
                       {s.stage}
                     </p>
                   </div>
@@ -204,7 +204,7 @@ export default function CategoryProductHero({
           {/* 상단 카테고리 배지 & 거점 라벨 */}
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
               <EditableText
                 as="span"
                 value={badge}
@@ -214,7 +214,7 @@ export default function CategoryProductHero({
               />
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.02] border border-white/5 text-[11px] text-zinc-400">
-              <MapPin className="w-3 h-3 text-rose-500" />
+              <MapPin className="w-3 h-3 text-[#f04f74]" />
               <EditableText
                 as="span"
                 value={activeLocationLabel}
@@ -289,7 +289,7 @@ export default function CategoryProductHero({
 
             {/* 안심 보증 문구 */}
             <p className="text-xs text-zinc-400 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-rose-500 shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-[#f04f74] shrink-0" />
               <EditableText
                 as="span"
                 value={trustNote}

@@ -168,11 +168,11 @@ export default function CheckoutModal({
                   onClick={() => setPayMethod('CARD')}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                     payMethod === 'CARD'
-                      ? 'bg-[#881337]/25 border-rose-500 text-white'
+                      ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
                       : 'bg-[#10131c] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
-                  <CreditCard className="w-4 h-4 text-rose-400" />
+                  <CreditCard className="w-4 h-4 text-[#f04f74]" />
                   <span className="text-xs font-semibold">신용/체크카드</span>
                 </button>
 
@@ -181,7 +181,7 @@ export default function CheckoutModal({
                   onClick={() => setPayMethod('TOSS_PAY')}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                     payMethod === 'TOSS_PAY'
-                      ? 'bg-[#881337]/25 border-rose-500 text-white'
+                      ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
                       : 'bg-[#10131c] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -194,7 +194,7 @@ export default function CheckoutModal({
                   onClick={() => setPayMethod('KAKAO_PAY')}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                     payMethod === 'KAKAO_PAY'
-                      ? 'bg-[#881337]/25 border-rose-500 text-white'
+                      ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
                       : 'bg-[#10131c] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -209,7 +209,7 @@ export default function CheckoutModal({
                   onClick={() => setPayMethod('NAVER_PAY')}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                     payMethod === 'NAVER_PAY'
-                      ? 'bg-[#881337]/25 border-rose-500 text-white'
+                      ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
                       : 'bg-[#10131c] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -224,7 +224,7 @@ export default function CheckoutModal({
             {/* 3. 취소 및 환불 규정 동의 (토스페이먼츠 심사 핵심 필수 규정) */}
             <div className="p-4 rounded-2xl bg-[#10131c] border border-white/10 space-y-3">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-rose-400" />
+                <ShieldCheck className="w-4 h-4 text-[#f04f74]" />
                 <span className="text-xs font-bold text-white">취소 및 환불 정책 (전자상거래법 준수)</span>
               </div>
               <ul className="text-[11px] text-zinc-400 space-y-1 list-disc pl-4 leading-relaxed">
@@ -240,7 +240,7 @@ export default function CheckoutModal({
                     type="checkbox"
                     checked={agreeRefund}
                     onChange={(e) => setAgreeRefund(e.target.checked)}
-                    className="mt-0.5 rounded border-white/20 bg-black/40 text-rose-600 focus:ring-0"
+                    className="mt-0.5 rounded border-white/20 bg-black/40 text-[#f04f74] focus:ring-0"
                   />
                   <span>[필수] 취소 및 환불 규정을 확인하였으며 이에 동의합니다.</span>
                 </label>
@@ -250,7 +250,7 @@ export default function CheckoutModal({
                     type="checkbox"
                     checked={agreePrivacy}
                     onChange={(e) => setAgreePrivacy(e.target.checked)}
-                    className="mt-0.5 rounded border-white/20 bg-black/40 text-rose-600 focus:ring-0"
+                    className="mt-0.5 rounded border-white/20 bg-black/40 text-[#f04f74] focus:ring-0"
                   />
                   <span>[필수] 테이블 좌석 배정 및 알림톡 안내를 위한 개인정보 제3자 제공에 동의합니다.</span>
                 </label>
@@ -259,8 +259,8 @@ export default function CheckoutModal({
 
             {/* 에러 메시지 표시 */}
             {errorMessage && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+              <div className="p-3 rounded-xl bg-[#f04f74]/10 border border-[#f04f74]/30 text-[#f04f74] text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-[#f04f74]" />
                 <span>{errorMessage}</span>
               </div>
             )}
@@ -272,7 +272,7 @@ export default function CheckoutModal({
                 disabled={!isFormValid || isProcessing}
                 className={`w-full py-4 rounded-xl text-lg font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 ${
                   isFormValid && !isProcessing
-                    ? 'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white cursor-pointer'
+                    ? 'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white cursor-pointer'
                     : 'bg-white/10 text-zinc-500 cursor-not-allowed border border-white/5'
                 }`}
               >
