@@ -35,7 +35,7 @@ export default function NadoSoloHomePage() {
     }
     setCheckoutEvent({
       eventId: 'EVT_BUSAN_DINING',
-      title: '부산 소셜 다이닝 (3040 & 5060)',
+      title: '부산 5060 소셜 다이닝',
       dateText: '매주 금/토 19:30',
       priceKrw: 30000,
       districtName: '부산',

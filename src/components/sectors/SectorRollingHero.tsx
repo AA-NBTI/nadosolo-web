@@ -59,8 +59,8 @@ const DEFAULT_SLIDES: SlideItem[] = [
     id: 'slide-meetup',
     tag: 'SPECIAL THEME MEETUP',
     title: '관심사 기반의 교류,',
-    highlight: '3040 & 5060 테마 밋업',
-    desc: '루프탑과 오션뷰 프라이빗 라운지에서 월 2~4회 한정으로 개최되는 세대별 안심 소셜 와인 파티입니다.',
+    highlight: '5060 골든 테마 밋업',
+    desc: '루프탑과 오션뷰 프라이빗 라운지에서 월 2~4회 한정으로 개최되는 신중년 안심 소셜 와인 파티입니다.',
     image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=85',
     mediaType: 'image',
     link: '/meetup',
@@ -203,7 +203,7 @@ export default function SectorRollingHero({
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <AdaptiveButton
               onClick={onOpenCheckout}
-              className="h-11 px-6 inline-flex items-center justify-center backdrop-blur-md"
+              className="w-36 sm:w-40 h-11 inline-flex items-center justify-center backdrop-blur-md"
             >
               <EditableText
                 as="span"
@@ -216,7 +216,7 @@ export default function SectorRollingHero({
 
             <Link
               href={currentSlide.link}
-              className="h-11 px-6 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-white font-semibold text-sm sm:text-[15px] tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-1.5 backdrop-blur-md shadow-md"
+              className="w-36 sm:w-40 h-11 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-white font-semibold text-sm sm:text-[15px] tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-1.5 backdrop-blur-md shadow-md"
             >
               <span>자세히 보기</span>
               <ArrowRight className="w-4 h-4 text-zinc-300" />

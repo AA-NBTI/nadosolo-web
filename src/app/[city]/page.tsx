@@ -130,7 +130,7 @@ export default function CityLandingPage() {
               프라이빗 소셜 다이닝
             </h1>
             <p className="text-base sm:text-lg text-zinc-300 leading-relaxed font-normal">
-              {city.tagline}. 끝없는 스와이프 대신, 서로를 배려하는 에티켓을 갖춘 3040 직장인 &amp; 5060 솔로들의 품격 있는 만남을 제안합니다.
+              {city.tagline}. 끝없는 스와이프 대신, 서로를 배려하는 에티켓을 갖춘 5060 골든 신중년의 품격 있는 만남을 제안합니다.
             </p>
           </div>
 

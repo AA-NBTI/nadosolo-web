@@ -148,7 +148,7 @@ export default function GuidePage() {
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                이용자는 원하는 일정(금/토)과 트랙(3040 / 5060)을 선택하고, 간단한 라이프스타일 취향, 관심사, 식이성향(못 먹는 음식/와인 취향)을 입력합니다.
+                이용자는 원하는 일정(금/토)을 선택하고, 간단한 라이프스타일 취향, 관심사, 식이성향(못 먹는 음식/와인 취향)을 입력합니다. (5060 골든 신중년 단독 편성)
               </p>
               
               <div className="p-4 rounded-xl bg-[#090a0f] border border-white/5 space-y-2 text-xs text-zinc-400">

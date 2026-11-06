@@ -61,11 +61,11 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
           </p>
         </div>
 
-        {/* 액션 버튼 영역: '신청하기'와 '자세히 보기' 완벽한 동일 크기/높이/패딩 샤프한 구조 */}
+        {/* 액션 버튼 영역: '신청하기'와 '자세히 보기' 동일 너비/높이 샤프한 구조 */}
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-3.5">
           <AdaptiveButton
             onClick={onOpenCheckout}
-            className="h-11 px-6 inline-flex items-center justify-center"
+            className="w-36 sm:w-40 h-11 inline-flex items-center justify-center"
           >
             <EditableText
               as="span"
@@ -78,18 +78,18 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
 
           <Link
             href="/dining"
-            className="h-11 px-6 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-zinc-200 hover:text-white font-semibold text-sm sm:text-[15px] tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-1.5 shadow-md"
+            className="w-36 sm:w-40 h-11 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-zinc-200 hover:text-white font-semibold text-sm sm:text-[15px] tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-1.5 shadow-md"
           >
             <span>자세히 보기</span>
             <ArrowRight className="w-4 h-4 text-zinc-400" />
           </Link>
         </div>
 
-        {/* 하단 신뢰 지표 3열 (블랙/그레이/와인레드 모노크롬 통일) */}
+        {/* 하단 신뢰 지표 3열: 5060 골든 시니어 중심 */}
         <div className="mt-14 pt-10 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-center">
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-            <p className="text-xl sm:text-2xl font-bold text-white font-serif-editorial">3040 &amp; 5060</p>
-            <p className="text-xs text-zinc-400 mt-1">연령·성향별 맞춤 테이블 큐레이션</p>
+            <p className="text-xl sm:text-2xl font-bold text-white font-serif-editorial">5060 골든</p>
+            <p className="text-xs text-zinc-400 mt-1">품격과 삶의 결이 맞는 신중년 맞춤 큐레이션</p>
           </div>
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
             <p className="text-xl sm:text-2xl font-bold text-[#f04f74] font-serif-editorial">100% 신뢰</p>

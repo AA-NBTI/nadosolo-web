@@ -213,8 +213,8 @@ export const DEFAULT_CATEGORY_ITEMS: SectorCategoryItem[] = [
     title: '소셜 다이닝',
     subtitle: 'Social Dining',
     badge: '모집 진행중',
-    desc: '엄선된 셰프의 디너와 와인을 곁들여 깊이 있게 교류하는 메인 미식 모임입니다.',
-    target: '3040 직장인 & 5060 골든',
+    desc: '엄선된 셰프의 디너와 와인을 곁들여 깊이 있게 교류하는 신중년 메인 미식 모임입니다.',
+    target: '5060 골든 신중년',
     image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=800&q=80',
     href: '/dining',
     visible: true,
@@ -258,7 +258,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   version: 8,
   header: {
     announcement: {
-      text: '부산 3040 & 5060 소셜 다이닝 참가 신청 안내',
+      text: '부산 5060 골든 소셜 다이닝 참가 신청 안내',
       link: '/dining',
       visible: false,
       tag: 'NOTICE',
@@ -362,7 +362,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V124';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V125';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================

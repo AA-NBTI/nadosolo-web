@@ -170,10 +170,10 @@ export default function DiningPage() {
 
                   <div>
                     <h3 className="text-xl font-bold text-white tracking-tight mb-1">
-                      {ev.title.replace(/3045/g, '3040').replace(/6인/g, '').trim()}
+                      {ev.title.replace(/3045|3040/g, '5060').replace(/6인/g, '').trim()}
                     </h3>
                     <p className="text-xs text-zinc-400 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                      <MapPin className="w-3.5 h-3.5 text-[#f04f74]" />
                       <span>부산</span>
                       <span className="text-zinc-600">•</span>
                       <span>{ev.dateText}</span>
@@ -184,7 +184,7 @@ export default function DiningPage() {
                     <div className="flex justify-between text-zinc-400">
                       <span>참가 대상</span>
                       <span className="text-zinc-200 font-medium">
-                        {ev.targetAgeGroup?.includes('5060') ? '5060 골든' : '3040 직장인'}
+                        5060 골든 신중년
                       </span>
                     </div>
                     <div className="flex justify-between text-zinc-400">

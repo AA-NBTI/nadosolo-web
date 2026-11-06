@@ -22,7 +22,7 @@ const DISTRICT_LIST: DistrictCard[] = [
     atmosphere: '따뜻한 조명과 감각적인 플레이트, 자연스러운 대화의 자리',
     image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
     schedule: '매주 금/토 저녁',
-    target: '3040 직장인',
+    target: '5060 골든',
   },
   {
     id: 'busan-haeundae',
@@ -31,7 +31,7 @@ const DISTRICT_LIST: DistrictCard[] = [
     atmosphere: '바다 야경과 함께하는 디너 및 와인 페어링',
     image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
     schedule: '매주 토 저녁',
-    target: '3040 & 5060',
+    target: '5060 골든',
   },
   {
     id: 'busan-nampo',
@@ -40,7 +40,7 @@ const DISTRICT_LIST: DistrictCard[] = [
     atmosphere: '클래식한 무드가 어우러진 깊이 있는 대화의 밤',
     image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=800&q=80',
     schedule: '격주 토 저녁',
-    target: '3040 & 5060',
+    target: '5060 골든',
   },
 ];
 

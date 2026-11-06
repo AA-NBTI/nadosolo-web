@@ -273,19 +273,19 @@ function MemberDashboardContent() {
     C5_APPEAL: 4,
   });
   const [draftSingleNounScores, setDraftSingleNounScores] = useState<Record<string, 1 | 2 | 3 | 4 | 5>>({
-    EL_3040_QUESTION: 4,
-    EL_3040_LISTEN: 4,
-    EL_3040_EXPRESSION: 4,
-    EL_3040_SENSE: 4,
-    EL_3040_CONSIDERATION: 4,
+    EL_5060_DIGNITY: 5,
+    EL_5060_WARMTH: 5,
+    EL_5060_EMPATHY: 4,
+    EL_5060_CHARACTER: 5,
+    EL_5060_ETIQUETTE: 5,
   });
 
-  const track3040Elements = [
-    { id: 'EL_3040_QUESTION', anchorNoun: '질문', question: '상대방의 관심사를 이끌어내는 질문을 하는가?' },
-    { id: 'EL_3040_LISTEN', anchorNoun: '경청', question: '상대방의 말을 끊지 않고 끝까지 경청하는가?' },
-    { id: 'EL_3040_EXPRESSION', anchorNoun: '표현', question: '자신의 생각과 취향을 명확하고 솔직하게 표현하는가?' },
-    { id: 'EL_3040_SENSE', anchorNoun: '센스', question: '상황과 대화 흐름에 맞게 유연한 태도를 보이는가?' },
-    { id: 'EL_3040_CONSIDERATION', anchorNoun: '배려', question: '테이블 전체가 소외되지 않도록 고루 배려하는가?' },
+  const track5060Elements = [
+    { id: 'EL_5060_DIGNITY', anchorNoun: '품격', question: '식사 자리에서의 몸가짐과 사용하는 어휘에서 교양과 단정함이 느껴지는가?' },
+    { id: 'EL_5060_WARMTH', anchorNoun: '온화', question: '상대방을 편안하게 맞이하는 부드러운 인상과 미소를 유지하는가?' },
+    { id: 'EL_5060_EMPATHY', anchorNoun: '공감', question: '상대방의 인생 이야기나 의견에 훈계 없이 진심으로 고개를 끄덕여주는가?' },
+    { id: 'EL_5060_CHARACTER', anchorNoun: '인품', question: '과거 경력이나 조건을 과시하지 않고 겸손하고 진솔하게 대화하는가?' },
+    { id: 'EL_5060_ETIQUETTE', anchorNoun: '예절', question: '식당 직원 및 동석자들을 존중하며 배려하는 매너를 지키는가?' },
   ];
 
   const [evalSavedMsg, setEvalSavedMsg] = useState<string | null>(null);
@@ -522,7 +522,7 @@ function MemberDashboardContent() {
                           부산
                         </span>
                         <h4 className="text-2xl font-bold text-white mt-2">
-                          부산 소셜 다이닝 (3040 &amp; 5060)
+                          부산 5060 골든 소셜 다이닝
                         </h4>
                         <p className="text-sm text-zinc-400">
                           매주 금요일 19:30 • 소셜 다이닝 테이블
@@ -1416,7 +1416,7 @@ function MemberDashboardContent() {
                 <div>
                   <h3 className="text-2xl font-bold text-white">소셜 다이닝 모임 신청</h3>
                   <p className="text-sm text-zinc-400 mt-1">
-                    3040 &amp; 5060을 위한 검증된 테이블에 참가 신청합니다. (참가권 ₩30,000 / 식대는 현장 1/N)
+                    5060 골든 신중년을 위한 품격 있는 프라이빗 테이블에 참가 신청합니다. (참가권 ₩30,000 / 식대는 현장 1/N)
                   </p>
                 </div>
                 <div className="text-right">
@@ -1458,16 +1458,9 @@ function MemberDashboardContent() {
                           <span className="px-3 py-1 rounded-full bg-[#10131c] text-white text-xs font-semibold border border-white/10">
                             {dist ? dist.regionName : '부산'}
                           </span>
-                          {ev.targetAgeGroup === '3045_PRIME' && (
-                            <span className="px-2.5 py-1 rounded-full bg-[#f04f74]/15 text-[#f04f74] text-xs font-semibold border border-[#f04f74]/25">
-                              3040 트랙
-                            </span>
-                          )}
-                          {ev.targetAgeGroup === '5060_GOLDEN' && (
-                            <span className="px-2.5 py-1 rounded-full bg-zinc-800 text-zinc-300 text-xs font-semibold border border-zinc-700">
-                              5060 골든 트랙
-                            </span>
-                          )}
+                          <span className="px-2.5 py-1 rounded-full bg-[#f04f74]/15 text-[#f04f74] text-xs font-semibold border border-[#f04f74]/25">
+                            5060 골든 트랙
+                          </span>
                           <span className="px-3 py-1 rounded-full bg-white/10 text-zinc-300 text-xs font-semibold border border-white/10">
                             {ev.mode === 'ROMANCE'
                               ? '3:3 로맨스'
@@ -1899,10 +1892,10 @@ function MemberDashboardContent() {
                 </div>
               </div>
 
-              {/* 2. 단일 명사 5대 항목 평가 폼 */}
+              {/* 2. 5060 골든 단일 명사 5대 항목 평가 폼 (품격, 온화, 공감, 인품, 예절) */}
               <div className="space-y-3">
-                {track3040Elements.map((el) => {
-                  const currentScore = draftSingleNounScores[el.id] ?? 4;
+                {track5060Elements.map((el) => {
+                  const currentScore = draftSingleNounScores[el.id] ?? 5;
                   return (
                     <div
                       key={el.id}
@@ -1957,12 +1950,12 @@ function MemberDashboardContent() {
                 <button
                   type="button"
                   onClick={() => {
-                    track3040Elements.forEach((el) => {
+                    track5060Elements.forEach((el) => {
                       submitParticipantObservation(
                         evalTargetUserId,
-                        'MOD_TRACK_3040',
+                        'MOD_TRACK_5060',
                         el.id,
-                        draftSingleNounScores[el.id] ?? 4
+                        draftSingleNounScores[el.id] ?? 5
                       );
                     });
                     const targetPeer = tablePeers.find((p) => p.userId === evalTargetUserId);
