@@ -2224,30 +2224,43 @@ function MemberDashboardContent() {
                 </div>
               </div>
 
-              {/* 3. 5대 평가 기준(정돈·조화·센스·안정·호감) 오각형 밸런스 지표 (각 20점 × 5 = 100점) */}
+              {/* 2. 모듈별 단일 명사 관찰 지표 (100점 정규화) */}
               <div>
                 <h4 className="text-lg font-bold text-white mb-3">
-                  2. 5대 평가 기준 밸런스 지표 (각 20점 × 5기준 = 100점)
+                  2. 세대 및 환경 관찰 지표 (100점 정규화)
                 </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                  {evaluationCriteria.map((crit) => {
-                    const score20 =
-                      myPersonalDossier.criteriaRadar20[crit.code] ?? 15;
-                    return (
-                      <div
-                        key={crit.code}
-                        className="p-4 rounded-2xl bg-[#1c202e] border border-white/10 text-center"
-                      >
-                        <p className="text-xs font-medium text-zinc-400">
-                          {crit.label}
-                        </p>
-                        <p className="text-2xl font-bold text-white mt-1">
-                          {score20}
-                          <span className="text-xs text-zinc-500"> / 20</span>
-                        </p>
+                <div className="space-y-4">
+                  {personalSocialDossier.moduleReports.map((mod) => (
+                    <div
+                      key={mod.moduleId}
+                      className="p-5 rounded-2xl bg-[#1c202e] border border-white/10 space-y-3"
+                    >
+                      <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                        <span className="text-sm font-bold text-white">{mod.moduleName}</span>
+                        <span className="text-sm font-bold text-[#f04f74] font-mono">
+                          종합 {mod.totalScore100}점
+                        </span>
                       </div>
-                    );
-                  })}
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+                        {mod.elementScores.map((el) => (
+                          <div
+                            key={el.elementId}
+                            className="p-3 rounded-xl bg-[#12151e] border border-white/5 text-center"
+                          >
+                            <p className="text-xs font-mono font-bold text-zinc-300">
+                              #{el.anchorNoun}
+                            </p>
+                            <p className="text-xl font-bold text-white mt-0.5 font-mono">
+                              {el.score100}점
+                            </p>
+                            <p className="text-[10px] text-zinc-500 mt-0.5">
+                              평균 {el.rawAverageStep}단계
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 

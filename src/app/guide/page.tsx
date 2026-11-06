@@ -55,33 +55,33 @@ export default function GuidePage() {
     <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-24">
       
       {/* ==============================================================
-          1. 헤더 히어로: 프로그램의 본질 선언
+          1. 헤더 히어로: 시스템 파이프라인 선언
           ============================================================== */}
       <section className="relative pt-24 pb-16 px-4 sm:px-6 max-w-[1240px] mx-auto w-full text-center space-y-6">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300">
           <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
-          <span className="font-semibold tracking-wide">SYSTEM &amp; PROGRAM GUIDE</span>
+          <span className="font-semibold tracking-wide">SYSTEM ARCHITECTURE &amp; PROCESS</span>
         </div>
 
         <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight font-serif-editorial">
-          나도솔로는 사적 주선이 아닙니다.<br />
-          <span className="text-[#f04f74]">유연한 가변 타임라인 소셜 다이닝 &amp; 다면 점검 플랫폼</span>입니다.
+          오프라인 소셜 다이닝 기반<br />
+          <span className="text-[#f04f74]">다면 소셜 관찰 및 메타인지 피드백 시스템</span>
         </h1>
 
         <p className="max-w-2xl mx-auto text-sm sm:text-base text-zinc-300 leading-relaxed font-normal">
-          어색함과 부담감이 따르는 1:1 사적 만남 대신, 검증된 에티켓 시스템과 
-          가변 타임라인 플레이북, 단계별 대화 키트를 통해 자연스럽게 교류하고 소통 역량을 발견하는 문화 프로그램입니다.
+          데이터 기반 큐레이션 테이블에서 식사와 대화를 나누고, 
+          동석자 상호 관찰을 통해 나의 소통 역량과 매너를 정규화 리포트로 발견하는 4단계 프로세스입니다.
         </p>
 
-        {/* 3대 핵심 차별화 지표 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto pt-6 text-left">
+        {/* 시스템 4대 프로세스 파이프라인 */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-4xl mx-auto pt-6 text-left">
           <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
             <div className="w-8 h-8 rounded-lg bg-[#f04f74]/15 text-[#f04f74] flex items-center justify-center font-bold text-sm">
               01
             </div>
-            <h4 className="text-base font-bold text-white">알고리즘 큐레이션</h4>
+            <h4 className="text-base font-bold text-white">테이블 큐레이션</h4>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              성향, 연령대, 음식 취향 데이터를 분석하여 대화의 결이 맞는 최적의 테이블을 자동 편성합니다.
+              연령대, 성향, 관심사 데이터를 분석하여 최적의 대화 밸런스 테이블을 편성합니다.
             </p>
           </div>
 
@@ -89,9 +89,9 @@ export default function GuidePage() {
             <div className="w-8 h-8 rounded-lg bg-[#f04f74]/15 text-[#f04f74] flex items-center justify-center font-bold text-sm">
               02
             </div>
-            <h4 className="text-base font-bold text-white">단계별 대화 키트</h4>
+            <h4 className="text-base font-bold text-white">플레이북 다이닝</h4>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              침묵이나 대화 독점 없이 누구나 편안하게 이야기할 수 있는 아이스브레이킹 전용 룰을 제공합니다.
+              대화카드 키트와 유연한 진행 플레이북을 통해 대화 독점 없는 오프라인 교류를 진행합니다.
             </p>
           </div>
 
@@ -99,9 +99,19 @@ export default function GuidePage() {
             <div className="w-8 h-8 rounded-lg bg-[#f04f74]/15 text-[#f04f74] flex items-center justify-center font-bold text-sm">
               03
             </div>
-            <h4 className="text-base font-bold text-white">전주기 다면 품질 점검</h4>
+            <h4 className="text-base font-bold text-white">단일 명사 다면 관찰</h4>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              참여자 다면 관찰뿐만 아니라 식당 공간, 음식 미식, 진행 프로세스 전주기를 엄격히 점검·감리합니다.
+              익일 09시 동석자 상호 간 5대 순수 단일 명사 1:1 관찰 평가를 진행합니다.
+            </p>
+          </div>
+
+          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-[#f04f74]/15 text-[#f04f74] flex items-center justify-center font-bold text-sm">
+              04
+            </div>
+            <h4 className="text-base font-bold text-white">상호주의 리포트</h4>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              전원 평가 완료 시 100점 정규화 리포트 및 전주기 품질 감사 점수가 즉시 잠금 해제됩니다.
             </p>
           </div>
         </div>
@@ -344,9 +354,9 @@ export default function GuidePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <h4 className="text-sm font-bold text-white">Q. 소개팅이나 데이팅 앱과 무엇이 다른가요?</h4>
+            <h4 className="text-sm font-bold text-white">Q. 일반 데이팅 서비스와 시스템 구조가 어떻게 다른가요?</h4>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              나도솔로는 사진 스와이프나 일대일 사적 주선이 아닙니다. 엄선된 식당 공간에서 식사와 음료를 곁들이며 대화 프로그램 룰에 따라 교류하고, 상호 관찰을 통해 나의 소통 역량을 발견하는 소셜 메타인지 피드백 플랫폼입니다.
+              단순 프로필 사진 열람이나 일회성 매칭이 아닌, 엄선된 식당 환경에서의 실제 테이블 대화 관찰 데이터를 기반으로 나의 소통 역량과 강점을 리포트로 산출하는 메타인지 피드백 시스템입니다.
             </p>
           </div>
 
