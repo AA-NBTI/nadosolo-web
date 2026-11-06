@@ -361,12 +361,12 @@ function MemberDashboardContent() {
                   onClick={() => setActiveProcessId(mod.processId)}
                   className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center justify-between cursor-pointer ${
                     active
-                      ? 'bg-rose-600 text-white font-bold shadow-md shadow-rose-950/40'
-                      : 'bg-white/[0.02] hover:bg-white/[0.06] text-zinc-300 hover:text-white border border-white/5 font-medium'
+                      ? 'bg-white/10 text-white font-bold border border-white/20 shadow-sm'
+                      : 'bg-white/[0.02] hover:bg-white/[0.06] text-zinc-400 hover:text-white border border-white/5 font-medium'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className={`w-2 h-2 rounded-full ${active ? 'bg-white' : 'bg-zinc-600'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-white' : 'bg-zinc-600'}`} />
                     <span className="text-sm">{mod.label}</span>
                   </div>
                   <span className="text-xs text-zinc-400 font-mono">
@@ -400,9 +400,9 @@ function MemberDashboardContent() {
           
           {/* [5번 요구사항] 연락처 세팅 유도 배너 (휴대폰 번호 미등록 시) */}
           {(needsPhoneSetup || needsEmailSetup) && (
-            <div className="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="p-4 rounded-2xl bg-[#181c28] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center text-rose-300 shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-zinc-300 shrink-0">
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
@@ -417,7 +417,7 @@ function MemberDashboardContent() {
               <button
                 type="button"
                 onClick={() => setActiveProcessId('P01_ACCOUNT')}
-                className="px-4 py-2 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white text-xs font-bold shrink-0 cursor-pointer transition-all duration-200 shadow-md"
+                className="px-4 py-2 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 text-white text-xs font-bold shrink-0 cursor-pointer transition-all duration-200 shadow-md"
               >
                 연락처 등록하기
               </button>
@@ -509,7 +509,7 @@ function MemberDashboardContent() {
                         내가 결제·신청한 테이블 일정과 좌석 배정, 매칭 진행 상태를 확인합니다.
                       </p>
                     </div>
-                    <span className="px-3.5 py-1.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-bold">
+                    <span className="px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-zinc-200 text-xs font-bold">
                       매칭 완료 (3:3)
                     </span>
                   </div>
@@ -518,7 +518,7 @@ function MemberDashboardContent() {
                   <div className="p-7 rounded-3xl bg-[#1c202e] border border-white/15 space-y-6">
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
                       <div className="space-y-1">
-                        <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/30">
+                        <span className="px-3 py-1 rounded-full bg-white/10 text-zinc-300 text-xs font-bold border border-white/15">
                           부산
                         </span>
                         <h4 className="text-2xl font-bold text-white mt-2">
@@ -592,7 +592,7 @@ function MemberDashboardContent() {
                       <button
                         type="button"
                         onClick={() => setMeetupPhase('LIVE_DECK')}
-                        className="py-3 px-5 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-xs font-bold transition-all duration-200 shadow-md hover:shadow-rose-950/50 cursor-pointer"
+                        className="py-3 px-5 rounded-xl border border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10 hover:text-white text-xs font-bold transition-all duration-200 shadow-sm cursor-pointer"
                       >
                         현장 대화카드 모드 열기 →
                       </button>
@@ -614,7 +614,7 @@ function MemberDashboardContent() {
                     <button
                       type="button"
                       onClick={() => setIsSecondHalfRotated(!isSecondHalfRotated)}
-                      className="px-4 py-2 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 text-xs font-bold transition-all duration-200 cursor-pointer shadow-md hover:shadow-rose-950/50"
+                      className="px-4 py-2 rounded-xl border border-white/15 bg-white/10 text-zinc-200 hover:bg-white/20 hover:text-white text-xs font-bold transition-all duration-200 cursor-pointer shadow-sm"
                     >
                       {isSecondHalfRotated ? '2부 좌석 로테이션 중 (되돌리기)' : '2부 자리이동 시뮬레이션 (3자리 회전)'}
                     </button>
@@ -721,7 +721,7 @@ function MemberDashboardContent() {
                   {deckViewType === 'SLIDE' ? (
                     filteredDeckCards[safeCardIdx] && (
                       <div className="p-10 rounded-3xl bg-[#1c202e] border border-white/15 text-center space-y-6 max-w-xl mx-auto shadow-2xl">
-                        <span className="px-3.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold">
+                        <span className="px-3.5 py-1 rounded-full bg-white/10 text-zinc-300 text-xs font-bold border border-white/10">
                           라운드 {safeCardIdx + 1} / {filteredDeckCards.length}
                         </span>
                         <h4 className="text-2xl sm:text-3xl font-bold text-white leading-relaxed">
@@ -743,7 +743,7 @@ function MemberDashboardContent() {
                             type="button"
                             disabled={safeCardIdx >= filteredDeckCards.length - 1}
                             onClick={() => setCurrentCardIdx((prev) => Math.min(filteredDeckCards.length - 1, prev + 1))}
-                            className="px-6 py-2.5 rounded-xl border border-rose-600/60 bg-zinc-900/80 text-rose-500 hover:bg-rose-600 hover:text-white hover:border-rose-600 active:bg-rose-700 disabled:opacity-30 text-xs font-bold transition-all duration-200 cursor-pointer shadow-md hover:shadow-rose-950/50"
+                            className="px-6 py-2.5 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 disabled:opacity-30 text-xs font-bold transition-all duration-200 cursor-pointer shadow-md"
                           >
                             다음 질문 →
                           </button>
@@ -1885,7 +1885,7 @@ function MemberDashboardContent() {
                         onClick={() => setEvalTargetUserId(peer.userId)}
                         className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-2 ${
                           isSelected
-                            ? 'bg-[#f04f74] text-white border-[#f04f74] shadow-md'
+                            ? 'bg-white text-zinc-950 border-white shadow-md'
                             : isDone
                             ? 'bg-white/5 text-zinc-300 border-white/10 hover:border-white/20'
                             : 'bg-[#181c28] text-zinc-400 border-white/5 hover:text-white'
@@ -1909,7 +1909,7 @@ function MemberDashboardContent() {
                       className="p-4 rounded-2xl bg-[#181c28] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div className="space-y-0.5">
-                        <span className="text-sm font-bold text-[#f04f74] font-mono">
+                        <span className="text-sm font-bold text-zinc-200 font-mono">
                           #{el.anchorNoun}
                         </span>
                         <p className="text-xs text-zinc-300">
@@ -1977,7 +1977,7 @@ function MemberDashboardContent() {
                       setEvalTargetUserId(remainingPeers[0].userId);
                     }
                   }}
-                  className="px-8 py-3 rounded-xl bg-[#f04f74] hover:bg-[#d93f63] text-white text-sm font-bold shadow-lg transition-all cursor-pointer"
+                  className="px-8 py-3 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 text-sm font-bold shadow-md transition-all cursor-pointer"
                 >
                   저장
                 </button>
@@ -2125,13 +2125,13 @@ function MemberDashboardContent() {
               {/* 상호주의 해금 원칙 배너 (헌법 규칙 1 적용) */}
               <div className={`p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                 personalSocialDossier.unlocked
-                  ? 'bg-gradient-to-r from-emerald-950/30 via-emerald-900/10 to-transparent border-emerald-500/30'
-                  : 'bg-rose-950/30 border-rose-500/30'
+                  ? 'bg-emerald-950/20 border-emerald-500/30'
+                  : 'bg-white/5 border-white/10'
               }`}>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm">{personalSocialDossier.unlocked ? '🔓' : '🔒'}</span>
-                    <span className={`text-xs font-bold uppercase tracking-wider ${personalSocialDossier.unlocked ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <span className={`text-xs font-bold uppercase tracking-wider ${personalSocialDossier.unlocked ? 'text-emerald-400' : 'text-zinc-300'}`}>
                       {personalSocialDossier.unlocked ? '상호주의 해금 완료 (내 소셜 리포트 열람 가능)' : '상호주의 잠금 상태 (무임승차 방지)'}
                     </span>
                   </div>
@@ -2237,7 +2237,7 @@ function MemberDashboardContent() {
                     >
                       <div className="flex items-center justify-between border-b border-white/10 pb-2">
                         <span className="text-sm font-bold text-white">{mod.moduleName}</span>
-                        <span className="text-sm font-bold text-[#f04f74] font-mono">
+                        <span className="text-sm font-bold text-white font-mono">
                           종합 {mod.totalScore100}점
                         </span>
                       </div>
@@ -2406,10 +2406,10 @@ function MemberDashboardContent() {
                   <div className="p-5 rounded-2xl bg-[#181c28] border border-white/10 space-y-3">
                     <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
+                        <span className="w-2 h-2 rounded-full bg-white/70" />
                         <span className="text-sm font-bold text-white">공간</span>
                       </div>
-                      <span className="text-base font-bold text-[#f04f74] font-mono">
+                      <span className="text-base font-bold text-white font-mono">
                         {fullJourneyAudit.placeReport.totalScore100}점
                       </span>
                     </div>
