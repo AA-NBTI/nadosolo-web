@@ -134,7 +134,7 @@ export default function GuidePage() {
         <div className="space-y-8">
           
           {/* STEP 1 */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col md:flex-row gap-6 items-start">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col lg:flex-row gap-6 items-start">
             <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] font-extrabold text-xl">
               1
             </div>
@@ -157,10 +157,19 @@ export default function GuidePage() {
                 <p>• 엄선된 파트너 식당(프라이빗 룸 또는 단독 라운지)의 좌석 예약을 시스템이 자동으로 완료합니다.</p>
               </div>
             </div>
+            <div className="w-full lg:w-48 h-36 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-zinc-900">
+              <img
+                src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80"
+                alt="테이블 큐레이션"
+                className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            </div>
           </div>
 
           {/* STEP 2 */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col md:flex-row gap-6 items-start">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col lg:flex-row gap-6 items-start">
             <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] font-extrabold text-xl">
               2
             </div>
@@ -183,10 +192,19 @@ export default function GuidePage() {
                 <p>• 당일 결원(노쇼) 발생 시 대기자를 즉시 매칭하는 노쇼 백업 알고리즘이 가동됩니다.</p>
               </div>
             </div>
+            <div className="w-full lg:w-48 h-36 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-zinc-900">
+              <img
+                src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80"
+                alt="프라이빗 룸 안내"
+                className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            </div>
           </div>
 
           {/* STEP 3 */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col md:flex-row gap-6 items-start">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col lg:flex-row gap-6 items-start">
             <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] font-extrabold text-xl">
               3
             </div>
@@ -238,10 +256,19 @@ export default function GuidePage() {
                 </div>
               </div>
             </div>
+            <div className="w-full lg:w-48 h-36 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-zinc-900">
+              <img
+                src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80"
+                alt="셰프 디너 & 와인"
+                className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            </div>
           </div>
 
           {/* STEP 4 */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col md:flex-row gap-6 items-start">
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col lg:flex-row gap-6 items-start">
             <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] font-extrabold text-xl">
               4
             </div>
@@ -264,6 +291,15 @@ export default function GuidePage() {
                 <p>• 사람 평가뿐만 아니라 식당 공간, 식사 미식, 진행 프로세스 전주기 점검 감사 리포트가 함께 집계됩니다.</p>
                 <p>• 무단 노쇼, 비매너 행위자는 시스템에서 영구 제명(원아웃제) 처리되어 다음 모임 참여가 제한됩니다.</p>
               </div>
+            </div>
+            <div className="w-full lg:w-48 h-36 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-zinc-900">
+              <img
+                src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=600&q=80"
+                alt="소셜 리포트 & 호감 연결"
+                className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
             </div>
           </div>
 

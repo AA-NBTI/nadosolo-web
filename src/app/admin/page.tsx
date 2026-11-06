@@ -234,7 +234,7 @@ export default function AdminOperationsDashboardPage() {
                 SYSTEM ADMIN
               </p>
               <span className="px-2 py-0.5 rounded-full bg-[#f04f74]/15 border border-[#f04f74]/40 text-[10px] font-mono font-bold text-[#f04f74]">
-                v1.3.0
+                v1.3.2
               </span>
             </div>
             <h1 className="text-lg font-bold text-white">
@@ -298,7 +298,7 @@ export default function AdminOperationsDashboardPage() {
                   MODULE WORKSPACE
                 </span>
                 <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] font-mono text-zinc-400">
-                  nadosolo core v1.3.0
+                  nadosolo core v1.3.2
                 </span>
               </div>
               <h2 className="text-2xl font-bold text-white mt-1">

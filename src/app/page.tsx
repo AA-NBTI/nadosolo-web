@@ -15,6 +15,8 @@ import SectorCategories from '@/components/sectors/SectorCategories';
 import SectorDistricts from '@/components/sectors/SectorDistricts';
 import SectorJourney from '@/components/sectors/SectorJourney';
 import SectorVenues from '@/components/sectors/SectorVenues';
+import SectorSocialMirror from '@/components/sectors/SectorSocialMirror';
+import SectorOpenTables from '@/components/sectors/SectorOpenTables';
 
 export default function NadoSoloHomePage() {
   const router = useRouter();
@@ -94,10 +96,14 @@ export default function NadoSoloHomePage() {
         );
       case 'districts':
         return <SectorDistricts key={sector.id} onOpenCheckout={handleOpenCheckout} />;
+      case 'open-tables':
+        return <SectorOpenTables key={sector.id} onOpenCheckout={handleOpenCheckout} />;
       case 'journey':
         return <SectorJourney key={sector.id} />;
       case 'venues':
         return <SectorVenues key={sector.id} />;
+      case 'social-mirror':
+        return <SectorSocialMirror key={sector.id} />;
       default:
         return null;
     }

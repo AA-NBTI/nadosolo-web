@@ -12,28 +12,28 @@ import { Utensils, Wine, MapPin, HeartHandshake, Ticket, MessageSquare } from 'l
 
 const DINING_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
   {
-    stage: '01. 장소 분위기',
-    title: '은은한 조도의 감성 와인 비스트로',
-    desc: '테이블 간격 2.5m 이상 확보된 프라이빗 단독 룸에서 조용하고 편안하게 서로에게 집중합니다.',
+    stage: '01. 은은한 앰비언스',
+    title: '조도와 음향까지 배려한 프라이빗 룸',
+    desc: '테이블 간격 2.5m 이상 확보된 프라이빗 룸에서 오직 마주 앉은 사람의 눈빛과 목소리에 집중합니다.',
     image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    stage: '02. 코스 미식',
-    title: '셰프 스페셜 코스 요리 & 와인 페어링',
-    desc: '엄선된 제휴 레스토랑의 정갈한 디너 코스와 소믈리에 웰컴 와인으로 대화의 온도를 높입니다.',
+    stage: '02. 셰프 디너 & 페어링',
+    title: '정갈한 계절 코스 요리 & 와인 페어링',
+    desc: '엄선된 제휴 레스토랑의 디너 코스와 소믈리에 와인으로, 식사의 모든 순간이 대접받는 품격으로 채워집니다.',
     image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    stage: '03. 만남과 대화',
-    title: '남녀 3:3 자연스러운 대화와 건배',
-    desc: '아이스브레이킹 카드로 어색한 침묵을 깨고, 서로의 가치관과 일상의 이야기를 기분 좋게 나눕니다.',
+    stage: '03. 설렘과 대화',
+    title: '삶의 결이 닿는 자연스러운 소통',
+    desc: '세련된 대화 카드로 어색한 침묵을 기분 좋게 열고, 서로의 가치관과 일상의 온도를 깊이 있게 나눕니다.',
     image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    stage: '04. 매너 & 연결',
-    title: '익일 비공개 매너 피드백',
-    desc: '모임 종료 후 참가자 상호 동의 시에 한해 대시보드를 통해 안전하게 연락처가 교환됩니다.',
-    image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=85',
+    stage: '04. 품격 리포트 & 연결',
+    title: '다면 소셜 리포트와 안전한 연락망',
+    desc: '동석자들의 다정한 다면 관찰로 나의 소셜 매너를 리포트로 확인하고, 상호 호감 시 안전하게 매칭됩니다.',
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=85',
   },
 ];
 
@@ -101,14 +101,14 @@ export default function DiningPage() {
           1. 소셜 다이닝 상품 히어로 (좌측: 대형 사진 슬라이더 / 우측: 헤더라인 & 신청)
           ============================================================== */}
       <CategoryProductHero
-        badge="소셜 다이닝 • DINING"
-        headlineTitle="좋은 사람들과 나누는"
-        headlineHighlight="부산 소셜 다이닝"
-        description="에티켓 서약 기반의 프라이빗 다이닝 테이블. 와인과 디너, 진솔한 대화가 있는 시간."
+        badge="프라이빗 소셜 다이닝 • DINING"
+        headlineTitle="나를 다시 발견하는 시간,"
+        headlineHighlight="품격 있는 소셜 다이닝"
+        description="은은한 조도와 정갈한 셰프 디너, 와인 페어링. 서로의 눈빛과 매너를 다정하게 발견하는 5060 안심 사교 다이닝입니다."
         specs={[
-          { label: '운영 형태', value: '프라이빗 큐레이션', subText: '에티켓 서약 회원' },
-          { label: '모임 일정', value: '매주 금·토 저녁', subText: '부산 엄선 비스트로' },
-          { label: '참가 기준', value: '₩30,000', subText: '예약대행·대화카드 포함' },
+          { label: '운영 형태', value: '프라이빗 큐레이션', subText: '5060 안심 에티켓 서약' },
+          { label: '모임 일정', value: '매주 금·토 저녁', subText: '엄선된 프라이빗 비스트로' },
+          { label: '참가 기준', value: '₩30,000', subText: '소셜 다면 리포트 발행 포함' },
         ]}
         slides={DINING_GALLERY_SLIDES}
         onApply={() => handleApplyClick()}

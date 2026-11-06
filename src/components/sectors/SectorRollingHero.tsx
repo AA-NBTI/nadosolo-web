@@ -24,44 +24,44 @@ export interface SlideItem {
 const DEFAULT_SLIDES: SlideItem[] = [
   {
     id: 'slide-dining',
-    tag: 'BUSAN SOCIAL DINING',
-    title: '좋은 사람들과 나누는',
-    highlight: '부산 소셜 다이닝',
-    desc: '매주 금·토 저녁, 엄선된 셰프의 요리와 와인을 곁들여 에티켓이 검증된 분들이 마주 앉는 프라이빗 다이닝입니다.',
-    image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1600&q=85',
+    tag: 'ELEGANT SOCIAL DINING',
+    title: '나를 다시 발견하는 시간,',
+    highlight: '품격 있는 프라이빗 다이닝',
+    desc: '은은한 조도와 정갈한 디너 코스, 와인 한 잔을 사이에 두고 피어나는 기분 좋은 설렘과 다정한 교류.',
+    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1920&q=85',
     mediaType: 'image',
     link: '/dining',
     ctaText: '신청하기',
   },
   {
     id: 'slide-salon',
-    tag: 'PRIVATE SOCIAL SALON',
-    title: '피상적인 잡담 대신,',
-    highlight: '삶의 결이 맞는 깊은 대화',
-    desc: '예술, 인문학, 와인 테이스팅을 주제로 감각적인 라운지에서 서로의 생각을 경청하고 취향을 나누는 지적 사교 공간입니다.',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1600&q=85',
+    tag: 'SECRET WINE SALON',
+    title: '가벼운 만남 대신,',
+    highlight: '삶의 결이 닿는 깊은 대화',
+    desc: '예술과 와인, 그리고 일상의 온도를 나누는 시간. 서로의 시선과 경청 속에서 피어나는 따뜻한 신뢰.',
+    image: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=1920&q=85',
     mediaType: 'image',
     link: '/salon',
     ctaText: '신청하기',
   },
   {
     id: 'slide-club',
-    tag: 'LIFESTYLE MEMBERSHIP CLUB',
-    title: '혼자여도 충분하고,',
-    highlight: '함께여서 더 특별한 소셜 클럽',
-    desc: '와인, 미술관 전시 도슨트, 모닝 러닝 등 같은 관심사를 가진 소수정예 멤버들과 지속적인 유대감을 쌓아가는 멤버십입니다.',
-    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=1600&q=85',
+    tag: 'METABOLIC SOCIAL FEEDBACK',
+    title: '누구의 엄마도 아닌,',
+    highlight: '오늘 가장 매력적인 한 사람으로',
+    desc: '동석자들의 다정한 시선과 다면 관찰을 통해 나의 품격과 미소를 객관적인 소셜 리포트로 선물받는 시간.',
+    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1920&q=85',
     mediaType: 'image',
     link: '/club',
     ctaText: '신청하기',
   },
   {
     id: 'slide-meetup',
-    tag: 'SPECIAL THEME MEETUP',
-    title: '관심사 기반의 교류,',
-    highlight: '5060 골든 테마 밋업',
-    desc: '루프탑과 오션뷰 프라이빗 라운지에서 월 2~4회 한정으로 개최되는 신중년 안심 소셜 와인 파티입니다.',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=85',
+    tag: 'VERIFIED GOLDEN TRACK',
+    title: '에티켓이 검증된 동석자,',
+    highlight: '신뢰할 수 있는 소셜 테이블',
+    desc: '철저한 신원 확인과 상호주의 매너 서약으로 무례함이 원천 차단된 5060 안심 프라이빗 라운지.',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1920&q=85',
     mediaType: 'image',
     link: '/meetup',
     ctaText: '신청하기',
@@ -140,9 +140,10 @@ export default function SectorRollingHero({
             onEditClick={() => setIsMediaModalOpen(true)}
             className="w-full h-full object-cover object-center scale-105"
           />
-          {/* 다크 럭셔리 오버레이 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#090a0f] via-[#090a0f]/75 to-[#090a0f]/40 pointer-events-none" />
-          <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+          {/* 다크 럭셔리 오버레이 & 앰비언트 글로우 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#090a0f] via-[#090a0f]/80 to-[#090a0f]/40 pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(240,79,116,0.15),transparent_65%)] pointer-events-none" />
+          <div className="absolute inset-0 bg-black/35 pointer-events-none" />
         </div>
       ))}
 

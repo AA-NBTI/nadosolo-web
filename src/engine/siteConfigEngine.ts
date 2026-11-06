@@ -25,11 +25,13 @@ export interface AnnouncementBarConfig {
 export type SectorType =
   | 'rolling-hero'
   | 'hero'
+  | 'open-tables'
   | 'video-banner'
   | 'categories'
   | 'districts'
   | 'journey'
-  | 'venues';
+  | 'venues'
+  | 'social-mirror';
 
 export interface SectorSlideData {
   id: string;
@@ -255,7 +257,7 @@ export const DEFAULT_CATEGORY_ITEMS: SectorCategoryItem[] = [
 ];
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 8,
+  version: 9,
   header: {
     announcement: {
       text: '부산 5060 골든 소셜 다이닝 참가 신청 안내',
@@ -275,64 +277,40 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   buttonStyle: DEFAULT_BUTTON_STYLE,
   mainSectors: [
     {
-      id: 'sector-rolling-hero',
-      type: 'rolling-hero',
-      title: '메인 롤링 쇼케이스',
-      subtitle: '부산 소셜 다이닝 쇼케이스',
+      id: 'sector-hero',
+      type: 'hero',
+      title: '에디토리얼 소셜 다이닝 히어로',
+      subtitle: '5060 프라이빗 소셜 다이닝',
+      headlineTitle: '좋은 대화가 머무는 저녁,',
+      headlineHighlight: '삶의 결이 통하는 사람들과 마주합니다',
+      description: '엄선된 프라이빗 룸과 셰프의 코스 요리, 그리고 와인 한 잔. 신원과 에티켓이 검증된 분들이 마주 앉아 서로의 품격과 온도를 나누는 5060 소셜 다이닝입니다.',
+      ctaText: '테이블 신청하기',
       visible: true,
       order: 1,
     },
     {
-      id: 'sector-hero',
-      type: 'hero',
-      title: '소셜 다이닝 헤드라인',
-      subtitle: '부산 소셜 다이닝 집중 조명',
-      headlineTitle: '좋은 사람들과 나누는',
-      headlineHighlight: '부산 소셜 다이닝',
-      description: '에티켓 서약 기반의 프라이빗 다이닝 테이블. 와인과 디너, 진솔한 대화가 있는 시간.',
-      ctaText: '신청하기',
+      id: 'sector-open-tables',
+      type: 'open-tables',
+      title: '참가 신청 가능한 프라이빗 테이블',
+      subtitle: '이번 주 오픈 테이블',
       visible: true,
       order: 2,
-    },
-    {
-      id: 'sector-video-banner',
-      type: 'video-banner',
-      title: '프라이빗 앰비언트 비디오 배너',
-      subtitle: '와인 & 다이닝 분위기 무한루프 동영상 배너',
-      headlineTitle: '오직 신뢰할 수 있는 사람들과의',
-      headlineHighlight: '가장 특별한 밤의 사교',
-      description: '엄선된 와인과 셰프의 디너, 편안한 대화가 흐르는 나도솔로 프라이빗 다이닝 클럽입니다.',
-      mediaUrl: 'https://assets.mixkit.co/videos/preview/mixkit-pouring-red-wine-in-a-glass-at-a-dinner-table-42646-large.mp4',
-      mediaType: 'video',
-      ctaText: '신청하기',
-      ctaLink: '/dining',
-      visible: false,
-      order: 3,
-    },
-    {
-      id: 'sector-categories',
-      type: 'categories',
-      title: '소셜 프로그램 라인업',
-      subtitle: '소셜 다이닝 프로그램 안내',
-      categoryItems: DEFAULT_CATEGORY_ITEMS,
-      visible: true,
-      order: 4,
-    },
-    {
-      id: 'sector-districts',
-      type: 'districts',
-      title: '권역별 탐색',
-      subtitle: '부산 중심 권역 안내',
-      visible: false,
-      order: 5,
     },
     {
       id: 'sector-journey',
       type: 'journey',
       title: '모임 여정 4단계',
-      subtitle: '착석 ➡️ 대화 ➡️ 식사 ➡️ 매너평가',
+      subtitle: '오늘 밤 당신이 마주할 4가지 우아한 순간',
       visible: true,
-      order: 6,
+      order: 3,
+    },
+    {
+      id: 'sector-social-mirror',
+      type: 'social-mirror',
+      title: '소셜 다면 관찰 리포트 안내',
+      subtitle: '5대 순수 단일 명사 관찰 피드백',
+      visible: true,
+      order: 4,
     },
     {
       id: 'sector-venues',
@@ -340,7 +318,40 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       title: '엄선 제휴 공간 갤러리',
       subtitle: '신뢰할 수 있는 프라이빗 와인바 & 다이닝 공간',
       visible: true,
+      order: 5,
+    },
+    {
+      id: 'sector-rolling-hero',
+      type: 'rolling-hero',
+      title: '메인 롤링 쇼케이스',
+      subtitle: '부산 소셜 다이닝 쇼케이스',
+      visible: false,
+      order: 6,
+    },
+    {
+      id: 'sector-categories',
+      type: 'categories',
+      title: '소셜 프로그램 라인업',
+      subtitle: '소셜 다이닝 프로그램 안내',
+      categoryItems: DEFAULT_CATEGORY_ITEMS,
+      visible: false,
       order: 7,
+    },
+    {
+      id: 'sector-video-banner',
+      type: 'video-banner',
+      title: '프라이빗 앰비언트 비디오 배너',
+      subtitle: '와인 & 다이닝 분위기 무한루프 동영상 배너',
+      visible: false,
+      order: 8,
+    },
+    {
+      id: 'sector-districts',
+      type: 'districts',
+      title: '권역별 탐색',
+      subtitle: '부산 중심 권역 안내',
+      visible: false,
+      order: 9,
     },
   ],
   footer: {
@@ -362,7 +373,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V125';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V142_ROSE_CORE';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================
