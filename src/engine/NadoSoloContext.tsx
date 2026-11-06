@@ -63,6 +63,7 @@ import {
   CoreRunner,
   PersonalSocialDossier,
   ParticipantObservationRecord,
+  FullJourneyAuditReport,
 } from './index';
 
 export type CityKey =
@@ -311,6 +312,7 @@ interface NadoSoloEngineContextValue {
   ) => void;
   completedEvalUserIds: string[];
   personalSocialDossier: PersonalSocialDossier;
+  fullJourneyAudit: FullJourneyAuditReport;
 
   // [신규] 세분화 뱃지 도감 엔진
   granularBadges: GranularBadgeDef[];
@@ -884,6 +886,10 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     );
   }, [currentUser, participantObservations, completedEvalUserIds]);
 
+  const fullJourneyAudit = useMemo(() => {
+    return CoreRunner.generateFullAuditReport('SES_BUSAN_01', participantObservations);
+  }, [participantObservations]);
+
   // 세분화 뱃지 CRUD
   const addGranularBadge = (b: GranularBadgeDef) => {
     setGranularBadges((prev) => [b, ...prev]);
@@ -1389,6 +1395,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         submitParticipantObservation,
         completedEvalUserIds,
         personalSocialDossier,
+        fullJourneyAudit,
         granularBadges,
         addGranularBadge,
         updateGranularBadge,

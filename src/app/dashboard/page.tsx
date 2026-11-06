@@ -58,6 +58,7 @@ function MemberDashboardContent() {
     submitParticipantObservation,
     completedEvalUserIds,
     personalSocialDossier,
+    fullJourneyAudit,
     granularBadges,
     regionDistricts,
     selectedDistrictId,
@@ -2398,6 +2399,106 @@ function MemberDashboardContent() {
                       </div>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* 6. 전주기 품질 감사 리포트 (식당 공간 · 식사 미식 · 가변 진행) */}
+              <div className="pt-6 border-t border-white/10 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-mono text-zinc-500 uppercase">FULL-JOURNEY AUDIT</span>
+                    <h4 className="text-lg font-bold text-white mt-0.5">
+                      4. 소셜 다이닝 전주기 품질 감사 리포트
+                    </h4>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-zinc-300">
+                      종합 감리지수: <strong className="text-white font-bold">{fullJourneyAudit.totalAuditScore100}점</strong>
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                      fullJourneyAudit.verifiedPartnerEligible
+                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                    }`}>
+                      {fullJourneyAudit.verifiedPartnerEligible ? '공식 인증 파트너 규격 통과' : '집중 점검 대상'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                  
+                  {/* 기둥 1: 식당 공간 점검 */}
+                  <div className="p-5 rounded-2xl bg-[#181c28] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
+                        <span className="text-sm font-bold text-white">식당 공간 환경</span>
+                      </div>
+                      <span className="text-base font-bold text-[#f04f74] font-mono">
+                        {fullJourneyAudit.placeReport.totalScore100}점
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {fullJourneyAudit.placeReport.elementScores.map((el) => (
+                        <div key={el.elementId} className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-zinc-500 text-[10px]">{el.rawAverageStep}단계</span>
+                            <span className="font-mono font-bold text-white">{el.score100}점</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 기둥 2: 식사 미식 점검 */}
+                  <div className="p-5 rounded-2xl bg-[#181c28] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-amber-400" />
+                        <span className="text-sm font-bold text-white">식사 미식 품질</span>
+                      </div>
+                      <span className="text-base font-bold text-amber-400 font-mono">
+                        {fullJourneyAudit.mealReport.totalScore100}점
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {fullJourneyAudit.mealReport.elementScores.map((el) => (
+                        <div key={el.elementId} className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-zinc-500 text-[10px]">{el.rawAverageStep}단계</span>
+                            <span className="font-mono font-bold text-white">{el.score100}점</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 기둥 3: 가변 진행 점검 */}
+                  <div className="p-5 rounded-2xl bg-[#181c28] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-sky-400" />
+                        <span className="text-sm font-bold text-white">가변 진행 감리</span>
+                      </div>
+                      <span className="text-base font-bold text-sky-400 font-mono">
+                        {fullJourneyAudit.flowReport.totalScore100}점
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {fullJourneyAudit.flowReport.elementScores.map((el) => (
+                        <div key={el.elementId} className="flex items-center justify-between text-xs">
+                          <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-zinc-500 text-[10px]">{el.rawAverageStep}단계</span>
+                            <span className="font-mono font-bold text-white">{el.score100}점</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </section>

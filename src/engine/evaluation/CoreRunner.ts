@@ -10,7 +10,8 @@ import {
   ParticipantObservationRecord, 
   PersonalSocialDossier, 
   NormalizedModuleScore, 
-  NormalizedElementScore 
+  NormalizedElementScore,
+  FullJourneyAuditReport 
 } from './types';
 
 export class CoreRunner {
@@ -80,6 +81,37 @@ export class CoreRunner {
       topStrengths,
       growthPoints,
       sessionCount,
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * 전주기 모임 점검 감사 리포트 산출 (식당 공간 · 식사 미식 · 가변 진행 프로세스)
+   */
+  static generateFullAuditReport(
+    sessionId: string,
+    allRecords: ParticipantObservationRecord[] = []
+  ): FullJourneyAuditReport {
+    const auditModules = EvaluationRegistry.getAuditModules();
+    const placeMod = auditModules.find((m) => m.id === 'MOD_AUDIT_PLACE')!;
+    const mealMod = auditModules.find((m) => m.id === 'MOD_AUDIT_MEAL')!;
+    const flowMod = auditModules.find((m) => m.id === 'MOD_AUDIT_FLOW')!;
+
+    const placeReport = placeMod.normalizeScore(allRecords, sessionId);
+    const mealReport = mealMod.normalizeScore(allRecords, sessionId);
+    const flowReport = flowMod.normalizeScore(allRecords, sessionId);
+
+    const totalAuditScore100 = Math.round(
+      (placeReport.totalScore100 + mealReport.totalScore100 + flowReport.totalScore100) / 3
+    );
+
+    return {
+      sessionId,
+      totalAuditScore100,
+      placeReport,
+      mealReport,
+      flowReport,
+      verifiedPartnerEligible: totalAuditScore100 >= 80,
       createdAt: new Date().toISOString(),
     };
   }

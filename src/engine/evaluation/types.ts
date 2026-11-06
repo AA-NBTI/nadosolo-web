@@ -14,7 +14,7 @@ export interface ObservationElement {
   id: string; // 예: 'EL_3040_LISTEN'
   anchorNoun: string; // 1단어 단일 명사 (예: '경청')
   criterionQuestion: string; // 1:1 단일 관찰 질문 (예: '상대방의 말을 끊지 않고 끝까지 듣는가?')
-  category: 'COMMUNICATION' | 'ETIQUETTE' | 'ATMOSPHERE' | 'CHARACTER';
+  category: 'COMMUNICATION' | 'ETIQUETTE' | 'ATMOSPHERE' | 'CHARACTER' | 'PLACE' | 'MEAL' | 'FLOW';
   description?: string;
 }
 
@@ -54,7 +54,7 @@ export interface ParticipantObservationRecord {
 export interface EvaluationModule {
   id: string; // 고유 모듈 ID (예: 'MOD_TRACK_3040')
   name: string; // 모듈 명칭 (예: '3040 소셜 커뮤니케이션 모듈')
-  targetContext: 'AGE_3040' | 'AGE_5060' | 'THEME_DINING' | 'THEME_WINE' | 'GLOBAL';
+  targetContext: 'AGE_3040' | 'AGE_5060' | 'THEME_DINING' | 'THEME_WINE' | 'GLOBAL' | 'AUDIT_PLACE' | 'AUDIT_MEAL' | 'AUDIT_FLOW';
   version: string;
 
   // 1) 관찰 앵커 목록 반환 (단일 명사 1요소 1기준 목록)
@@ -104,4 +104,18 @@ export interface PersonalSocialDossier {
   sessionCount: number; // 누적 참여 횟수 (시계열 아카이빙)
   createdAt: string;
 }
+
+/**
+ * 7. 전주기 모임 점검 감사 리포트 (식당 공간 · 식사 미식 · 가변 타임라인 진행)
+ */
+export interface FullJourneyAuditReport {
+  sessionId: string;
+  totalAuditScore100: number; // 전주기 종합 100점 점수
+  placeReport: NormalizedModuleScore; // 식당 공간 점검 결과
+  mealReport: NormalizedModuleScore; // 식사 미식 점검 결과
+  flowReport: NormalizedModuleScore; // 가변 진행 점검 결과
+  verifiedPartnerEligible: boolean; // 식당 파트너 신뢰 유지 여부 (80점 이상)
+  createdAt: string;
+}
+
 

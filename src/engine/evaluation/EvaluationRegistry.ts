@@ -8,15 +8,23 @@ import { EvaluationModule } from './types';
 import { ModuleTrack3040 } from './modules/ModuleTrack3040';
 import { ModuleTrack5060 } from './modules/ModuleTrack5060';
 import { ModuleDiningEnvironment } from './modules/ModuleDiningEnvironment';
+import { ModulePlaceQuality } from './modules/ModulePlaceQuality';
+import { ModuleMealQuality } from './modules/ModuleMealQuality';
+import { ModuleFlowAudit } from './modules/ModuleFlowAudit';
 
 class EvaluationRegistryClass {
   private modules: Map<string, EvaluationModule> = new Map();
 
   constructor() {
-    // 기본 표준 마이크로 모듈 등록 (3040, 5060, 다이닝 환경)
+    // 1. 참여자 소셜 상호작용 관찰 모듈 (3040, 5060, 다이닝 환경)
     this.register(new ModuleTrack3040());
     this.register(new ModuleTrack5060());
     this.register(new ModuleDiningEnvironment());
+
+    // 2. 전주기 품질 점검 모듈 (식당 공간, 식사 미식, 가변 타임라인 진행)
+    this.register(new ModulePlaceQuality());
+    this.register(new ModuleMealQuality());
+    this.register(new ModuleFlowAudit());
   }
 
   /**
@@ -68,6 +76,20 @@ class EvaluationRegistryClass {
     }
 
     return result;
+  }
+
+  /**
+   * 전주기 품질 점검 모듈 목록 반환 (공간 점검, 식사 점검, 진행 점검)
+   */
+  getAuditModules(): EvaluationModule[] {
+    const place = this.modules.get('MOD_AUDIT_PLACE');
+    const meal = this.modules.get('MOD_AUDIT_MEAL');
+    const flow = this.modules.get('MOD_AUDIT_FLOW');
+    const list: EvaluationModule[] = [];
+    if (place) list.push(place);
+    if (meal) list.push(meal);
+    if (flow) list.push(flow);
+    return list;
   }
 }
 

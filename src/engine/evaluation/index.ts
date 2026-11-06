@@ -9,4 +9,7 @@ export * from './CoreRunner';
 export * from './modules/ModuleTrack3040';
 export * from './modules/ModuleTrack5060';
 export * from './modules/ModuleDiningEnvironment';
+export * from './modules/ModulePlaceQuality';
+export * from './modules/ModuleMealQuality';
+export * from './modules/ModuleFlowAudit';
 
