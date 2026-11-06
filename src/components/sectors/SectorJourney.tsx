@@ -103,17 +103,23 @@ export default function SectorJourney() {
           })}
         </div>
 
-        {/* 안심 보증 띠배너 (모노크롬 톤) */}
-        <div className="mt-12 p-4 rounded-xl bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+        {/* 안심 보증 띠배너 & 상세 이용가이드 링크 */}
+        <div className="mt-12 p-4 sm:p-5 rounded-2xl bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-rose-400 shrink-0">
+            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
             <p className="text-xs text-zinc-300">
-              <strong className="text-white">클린 커뮤니티 케어:</strong> 모임 후 비매너 평점이 누적된 참가자는 향후 모든 모임에서 영구 제명됩니다.
+              <strong className="text-white">120분 룰 기반 소셜 다이닝:</strong> 나도솔로는 사적 주선이 아닌 체계적인 타임라인과 대화 키트 기반의 오프라인 프로그램입니다.
             </p>
           </div>
-          <span className="text-[11px] text-zinc-500 shrink-0">에티켓 규정 준수</span>
+          <a
+            href="/guide"
+            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 transition-all shrink-0 inline-flex items-center gap-1.5"
+          >
+            <span>상세 이용가이드</span>
+            <span>→</span>
+          </a>
         </div>
 
       </div>

@@ -120,6 +120,23 @@ export default function DiningPage() {
           2. 현재 오픈된 테이블 목록 (신청 카드)
           ============================================================== */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 space-y-8 w-full border-b border-white/10">
+        
+        {/* 프로그램 이용 가이드 안내 배너 */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-white/[0.04] to-white/[0.01] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-[#f04f74] uppercase tracking-wider">GUIDE &amp; PROCESS</span>
+            <p className="text-xs sm:text-sm text-zinc-300 font-medium">
+              신청 후 어떻게 진행되는지 궁금하신가요? 120분 타임라인과 식대 정산 규칙을 확인하세요.
+            </p>
+          </div>
+          <Link
+            href="/guide"
+            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 transition-all shrink-0"
+          >
+            이용가이드 보기 →
+          </Link>
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">

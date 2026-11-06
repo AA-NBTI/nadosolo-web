@@ -194,7 +194,7 @@ export interface SiteConfig {
 // ============================================================================
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 6,
+  version: 7,
   header: {
     announcement: {
       text: '🍷 부산 3040 & 5060 소셜 다이닝 참가 신청 안내',
@@ -204,9 +204,10 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     },
     navItems: [
       { id: 'dining', label: '소셜 다이닝', href: '/dining', badge: '대표', visible: true, order: 1 },
-      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 2 },
-      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 3 },
-      { id: 'meetup', label: '테마 밋업', href: '/meetup', badge: '준비중', visible: false, order: 4 },
+      { id: 'guide', label: '프로그램 이용안내', href: '/guide', badge: '필독', visible: true, order: 2 },
+      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 3 },
+      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 4 },
+      { id: 'meetup', label: '테마 밋업', href: '/meetup', badge: '준비중', visible: false, order: 5 },
     ],
     activeCityLabel: '부산',
   },
@@ -299,7 +300,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V121';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V122';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================

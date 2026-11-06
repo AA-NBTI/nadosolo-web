@@ -25,8 +25,15 @@ export default function GlobalFooter() {
             </Link>
           </div>
 
-          {/* 상단 1열: 이용약관, 개인정보처리방침, 환불규정, SNS 링크 */}
+          {/* 상단 1열: 이용약관, 개인정보처리방침, 환불규정, 프로그램 안내, SNS 링크 */}
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
+            <Link
+              href="/guide"
+              className="text-[#f04f74] hover:text-[#d93f63] font-semibold transition-colors"
+            >
+              프로그램 이용안내
+            </Link>
+            <span className="text-zinc-600">|</span>
             <button
               type="button"
               onClick={() => setActiveModal('TERMS')}
