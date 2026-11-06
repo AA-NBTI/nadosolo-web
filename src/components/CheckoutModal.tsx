@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { ShieldCheck, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
-import { loadTossPayments } from '@tosspayments/payment-sdk';
 
 export interface CheckoutEventData {
   eventId: string;
@@ -46,6 +45,7 @@ export default function CheckoutModal({
     setErrorMessage(null);
 
     try {
+      const { loadTossPayments } = await import('@tosspayments/payment-sdk');
       const clientKey =
         process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJqK4Wj7mM05N3LzN97Eq';
       const tossPayments = await loadTossPayments(clientKey);
