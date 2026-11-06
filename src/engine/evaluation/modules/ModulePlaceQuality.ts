@@ -24,11 +24,11 @@ export class ModulePlaceQuality implements EvaluationModule {
    */
   private readonly elements: ObservationElement[] = [
     {
-      id: 'EL_PLC_PRIVATE',
-      anchorNoun: '독립',
-      criterionQuestion: '다른 손님의 시선 간섭 없이 프라이빗하게 분리된 공간인가?',
+      id: 'EL_PLC_SPACE',
+      anchorNoun: '공간',
+      criterionQuestion: '외부 간섭 없이 프라이빗하고 대화에 몰입하기 좋은 공간인가?',
       category: 'PLACE',
-      description: '외부 간섭 없는 프라이빗 룸/단독 테이블 독립성',
+      description: '외부 간섭 없는 프라이빗 룸 및 쾌적한 전용 공간 구성',
     },
     {
       id: 'EL_PLC_NOISE',
@@ -125,3 +125,4 @@ export class ModulePlaceQuality implements EvaluationModule {
     };
   }
 }
+

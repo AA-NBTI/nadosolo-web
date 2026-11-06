@@ -125,3 +125,4 @@ export class ModuleMealQuality implements EvaluationModule {
     };
   }
 }
+

@@ -353,7 +353,7 @@ export default function GuidePage() {
           <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
             <h4 className="text-sm font-bold text-white">Q. 식당 환경이나 음식 품질은 어떻게 관리되나요?</h4>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              공간 품질(독립, 소음, 조명, 위생, 친절), 식사 미식(맛, 온도, 구성, 음료, 비용), 진행 프로세스(안내, 좌석, 카드, 이동, 정산)의 전주기 품질 감사 엔진을 통해 엄격한 기준을 충족한 식당만 파트너로 유지됩니다.
+              공간 품질(공간, 소음, 조명, 위생, 친절), 식사 미식(맛, 온도, 구성, 음료, 비용), 진행 프로세스(안내, 좌석, 카드, 이동, 정산)의 전주기 품질 감사 엔진을 통해 엄격한 기준을 충족한 식당만 파트너로 유지됩니다.
             </p>
           </div>
 
