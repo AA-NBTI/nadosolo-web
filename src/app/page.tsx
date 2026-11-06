@@ -85,7 +85,13 @@ export default function NadoSoloHomePage() {
           />
         );
       case 'categories':
-        return <SectorCategories key={sector.id} />;
+        return (
+          <SectorCategories
+            key={sector.id}
+            config={sector}
+            onUpdate={(updates) => updateSectorConfig(sector.id, updates)}
+          />
+        );
       case 'districts':
         return <SectorDistricts key={sector.id} onOpenCheckout={handleOpenCheckout} />;
       case 'journey':

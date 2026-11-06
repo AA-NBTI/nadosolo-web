@@ -5,6 +5,8 @@ import {
   useSiteConfig,
   SiteConfig,
   SectorConfig,
+  SectorCategoryItem,
+  DEFAULT_CATEGORY_ITEMS,
   ButtonStyleConfig,
   ButtonThemePreset,
   ButtonRoundness,
@@ -190,6 +192,21 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
     });
   };
 
+  // 소셜 프로그램 라인업 개별 항목 토글 제어
+  const handleToggleCategoryItemVisibility = (sectorId: string, itemId: string) => {
+    const sectors = (draftConfig?.mainSectors || []).map((sec) => {
+      if (sec.id !== sectorId) return sec;
+      const items = (sec.categoryItems || DEFAULT_CATEGORY_ITEMS).map((it) =>
+        it.id === itemId ? { ...it, visible: !it.visible } : it
+      );
+      return { ...sec, categoryItems: items };
+    });
+    setDraftConfig({
+      ...draftConfig,
+      mainSectors: sectors,
+    });
+  };
+
   // 버튼 스타일 변경
   const handleUpdateButtonStyle = (partial: Partial<ButtonStyleConfig>) => {
     const current = draftConfig.buttonStyle || DEFAULT_BUTTON_STYLE;
@@ -363,7 +380,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       onClick={() => handleToggleSectorVisibility(sector.id)}
                       className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
                         sector.visible
-                          ? 'bg-rose-600/20 text-rose-300 border-rose-500/40'
+                          ? 'bg-[#f04f74]/15 text-[#f04f74] border-[#f04f74]/30'
                           : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                       }`}
                     >
@@ -386,7 +403,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 {(sector.type === 'video-banner' || sector.type === 'rolling-hero' || sector.type === 'hero') && (
                   <div className="pt-2 border-t border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <span className="text-[11px] font-semibold text-zinc-400 shrink-0 flex items-center gap-1.5">
-                      <Video className="w-3.5 h-3.5 text-rose-400" />
+                      <Video className="w-3.5 h-3.5 text-[#f04f74]" />
                       <span>미디어 URL (MP4 / 사진):</span>
                     </span>
                     <input
@@ -394,8 +411,64 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       value={sector.mediaUrl || ''}
                       placeholder="https://... (동영상 MP4 파일 또는 이미지 링크)"
                       onChange={(e) => handleUpdateSectorMedia(sector.id, e.target.value)}
-                      className="flex-1 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-white text-xs placeholder-zinc-600 focus:outline-none focus:border-rose-500"
+                      className="flex-1 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-white text-xs placeholder-zinc-600 focus:outline-none focus:border-[#f04f74]"
                     />
+                  </div>
+                )}
+
+                {/* 카테고리 프로그램 섹터인 경우 하위 프로그램 개별 [운영/중지] 실시간 제어 창 제공 */}
+                {sector.type === 'categories' && (
+                  <div className="pt-3 border-t border-white/5 space-y-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
+                      <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-[#f04f74]" />
+                        <span>개별 프로그램 운영/중지 제어 (동적 CMS)</span>
+                      </span>
+                      <span className="text-[11px] text-zinc-400">
+                        중지된 프로그램은 메인 화면에서 즉시 숨김 처리됩니다.
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {(sector.categoryItems || DEFAULT_CATEGORY_ITEMS).map((cat) => (
+                        <div
+                          key={cat.id}
+                          className={`p-3 rounded-xl border flex items-center justify-between gap-2.5 transition-all ${
+                            cat.visible
+                              ? 'bg-[#181d2a] border-white/15'
+                              : 'bg-[#10131c]/60 border-white/5 opacity-50'
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-white truncate">
+                                {cat.title}
+                              </span>
+                              {cat.badge && (
+                                <span className="px-1.5 py-0.2 rounded text-[9px] bg-white/10 text-zinc-300">
+                                  {cat.badge}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-zinc-400 truncate mt-0.5">
+                              {cat.desc}
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleCategoryItemVisibility(sector.id, cat.id)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer shrink-0 transition-all shadow-sm ${
+                              cat.visible
+                                ? 'bg-[#f04f74] text-white hover:bg-[#d93f63]'
+                                : 'bg-white/10 text-zinc-400 hover:text-white hover:bg-white/15'
+                            }`}
+                          >
+                            {cat.visible ? '운영중' : '중지됨'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -674,7 +747,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     onClick={() => handleToggleNavVisibility(item.id)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold border cursor-pointer ${
                       item.visible
-                        ? 'bg-rose-600/20 text-rose-300 border-rose-500/40'
+                        ? 'bg-[#f04f74]/15 text-[#f04f74] border-[#f04f74]/30'
                         : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                     }`}
                   >

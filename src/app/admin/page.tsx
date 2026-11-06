@@ -357,16 +357,15 @@ export default function AdminOperationsDashboardPage() {
 
                     <button
                       type="button"
-                      disabled={mod.coreRequired}
                       onClick={() => {
                         toggleProcessModule(mod.processId);
-                        notify(`[${mod.label}] 모듈 상태가 변경되었습니다.`);
+                        notify(`[${mod.label}] 모듈이 ${!mod.enabled ? '활성화' : '비활성화'}되었습니다.`);
                       }}
                       className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer shrink-0 transition-all ${
                         mod.enabled
                           ? 'bg-white text-zinc-950 hover:bg-zinc-200'
                           : 'bg-white/10 text-zinc-400 hover:text-white'
-                      } disabled:opacity-30 disabled:cursor-not-allowed`}
+                      }`}
                     >
                       {mod.enabled ? 'ON (사용중)' : 'OFF (비활성)'}
                     </button>

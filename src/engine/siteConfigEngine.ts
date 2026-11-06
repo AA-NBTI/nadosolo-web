@@ -43,6 +43,18 @@ export interface SectorSlideData {
   ctaText: string;
 }
 
+export interface SectorCategoryItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  badge?: string;
+  desc: string;
+  target?: string;
+  image: string;
+  href: string;
+  visible: boolean;
+}
+
 export interface SectorConfig {
   id: string;
   type: SectorType;
@@ -60,6 +72,7 @@ export interface SectorConfig {
   ctaText?: string;
   ctaLink?: string;
   slides?: SectorSlideData[];
+  categoryItems?: SectorCategoryItem[];
 }
 
 export interface SocialLinkConfig {
@@ -193,6 +206,53 @@ export interface SiteConfig {
 // 2. Default Config: 기본값 (초기 세팅)
 // ============================================================================
 
+export const DEFAULT_CATEGORY_ITEMS: SectorCategoryItem[] = [
+  {
+    id: 'dining',
+    title: '소셜 다이닝',
+    subtitle: 'Social Dining',
+    badge: '모집 진행중',
+    desc: '엄선된 셰프의 디너와 와인을 곁들여 깊이 있게 교류하는 메인 미식 모임입니다.',
+    target: '3040 직장인 & 5060 골든',
+    image: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=800&q=80',
+    href: '/dining',
+    visible: true,
+  },
+  {
+    id: 'salon',
+    title: '소셜 살롱',
+    subtitle: 'Social Salon',
+    badge: '오픈 준비중',
+    desc: '예술, 인문학, 와인 페어링을 주제로 조용한 라운지에서 생각을 나누는 지적 소통 공간입니다.',
+    target: '취향과 가치관 중심',
+    image: 'https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80',
+    href: '/dining',
+    visible: false,
+  },
+  {
+    id: 'club',
+    title: '소셜 클럽',
+    subtitle: 'Social Club',
+    badge: '오픈 준비중',
+    desc: '단발성 모임을 넘어 지속적인 취미 교류와 네트워크를 함께 나누는 신뢰 기반 소셜 클럽입니다.',
+    target: '소셜 네트워크 커뮤니티',
+    image: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?auto=format&fit=crop&w=800&q=80',
+    href: '/dining',
+    visible: false,
+  },
+  {
+    id: 'meetup',
+    title: '테마 밋업',
+    subtitle: 'Theme Meetup',
+    badge: '오픈 준비중',
+    desc: '와인 나이트, 주말 브런치 등 특정 라이프스타일 테마에 맞춰 자유롭게 신청하는 캐주얼 모임입니다.',
+    target: '관심사 중심 소셜 액티비티',
+    image: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=800&q=80',
+    href: '/dining',
+    visible: false,
+  },
+];
+
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
   version: 8,
   header: {
@@ -251,8 +311,9 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     {
       id: 'sector-categories',
       type: 'categories',
-      title: '4대 메인 카테고리',
+      title: '소셜 프로그램 라인업',
       subtitle: '소셜 다이닝 프로그램 안내',
+      categoryItems: DEFAULT_CATEGORY_ITEMS,
       visible: true,
       order: 4,
     },
@@ -300,7 +361,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V123';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V124';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================
@@ -341,7 +402,15 @@ export function getStoredSiteConfig(): SiteConfig {
     const storedSectors: SectorConfig[] = Array.isArray(parsed.mainSectors) ? parsed.mainSectors : [];
     const mergedSectors: SectorConfig[] = DEFAULT_SITE_CONFIG.mainSectors.map((defSector) => {
       const match = storedSectors.find((s) => s.id === defSector.id);
-      return match ? { ...defSector, ...match } : defSector;
+      if (!match) return defSector;
+      return {
+        ...defSector,
+        ...match,
+        categoryItems:
+          Array.isArray(match.categoryItems) && match.categoryItems.length > 0
+            ? match.categoryItems
+            : defSector.categoryItems,
+      };
     });
 
     storedSectors.forEach((s) => {

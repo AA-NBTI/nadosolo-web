@@ -693,7 +693,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const toggleProcessModule = (processId: string) => {
     setProcessModules((prev) =>
       prev.map((m) =>
-        m.processId === processId && !m.coreRequired
+        m.processId === processId
           ? { ...m, enabled: !m.enabled }
           : m
       )
