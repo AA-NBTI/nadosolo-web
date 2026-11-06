@@ -5,63 +5,73 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
-import CategoryProductHero, { GallerySlideItem } from '@/components/CategoryProductHero';
-import AdaptiveButton from '@/components/ui/AdaptiveButton';
 import { useVisualEditor } from '@/engine/siteConfigEngine';
-import { Utensils, Wine, MapPin, HeartHandshake, Ticket, MessageSquare } from 'lucide-react';
+import { ArrowRight, MapPin, Calendar, Wine, ShieldCheck, ChevronRight } from 'lucide-react';
 
-const DINING_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideItem, GallerySlideItem] = [
+const DINING_CHAPTERS = [
   {
-    stage: '01. 은은한 앰비언스',
-    title: '조도와 음향까지 배려한 프라이빗 룸',
-    desc: '테이블 간격 2.5m 이상 확보된 프라이빗 룸에서 오직 마주 앉은 사람의 눈빛과 목소리에 집중합니다.',
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',
+    chapter: 'CHAPTER 01',
+    district: 'BUSAN JEONPO',
+    title: '금요 프라이빗 내추럴 와인 & 셰프 디너',
+    schedule: '매주 금요일 19:30',
+    venue: '비스트로 아틀리에 (전포 살롱 단독 대관)',
+    status: '여성 1석 잔여',
+    image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=85',
+    desc: '소음과 외부 시선이 차단된 프라이빗 룸에서 제철 재료로 빚어낸 셰프의 시그니처 디너와 엄선된 와인을 즐깁니다.',
+    specs: ['3:3 엄선 큐레이션', '단독 프라이빗 룸', '소셜 리포트 발행'],
   },
   {
-    stage: '02. 셰프 디너 & 페어링',
-    title: '정갈한 계절 코스 요리 & 와인 페어링',
-    desc: '엄선된 제휴 레스토랑의 디너 코스와 소믈리에 와인으로, 식사의 모든 순간이 대접받는 품격으로 채워집니다.',
-    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=85',
+    chapter: 'CHAPTER 02',
+    district: 'HAEUNDAE MARINE CITY',
+    title: '토요 해운대 오션 테라스 코스 페어링',
+    schedule: '매주 토요일 19:30',
+    venue: '오션 스위트 다이닝 (해운대 마린시티)',
+    status: '여성 2석 잔여',
+    image: 'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=1200&q=85',
+    desc: '해운대 밤바다의 야경이 내려다보이는 독립된 스위트 룸에서 7코스 파인다이닝과 지적인 대화를 나눕니다.',
+    specs: ['5060 골든 트랙', '소믈리에 페어링', '상호주의 매너 서약'],
   },
   {
-    stage: '03. 설렘과 대화',
-    title: '삶의 결이 닿는 자연스러운 소통',
-    desc: '세련된 대화 카드로 어색한 침묵을 기분 좋게 열고, 서로의 가치관과 일상의 온도를 깊이 있게 나눕니다.',
-    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=85',
-  },
-  {
-    stage: '04. 품격 리포트 & 연결',
-    title: '다면 소셜 리포트와 안전한 연락망',
-    desc: '동석자들의 다정한 다면 관찰로 나의 소셜 매너를 리포트로 확인하고, 상호 호감 시 안전하게 매칭됩니다.',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=85',
+    chapter: 'CHAPTER 03',
+    district: 'BUSAN SEOMYEON',
+    title: '주말 갈라 프라이빗 아카이브 다이닝',
+    schedule: '격주 일요일 18:30',
+    venue: '까사 아카이브 살롱 (서면 프라이빗 룸)',
+    status: '인비테이션 접수중',
+    image: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?auto=format&fit=crop&w=1200&q=85',
+    desc: '조도와 음향까지 섬세하게 튜닝된 공간에서 준비된 플레이북 카드와 함께 서로의 취향과 삶의 궤적을 발견합니다.',
+    specs: ['대화 플레이북 키트', '100% 에티켓 검증', '테이블 1/N 실비 정산'],
   },
 ];
 
-const DINING_PLACES = [
+const CURATED_VENUES = [
   {
-    name: '부산 비스트로 아틀리에 (제휴 공간)',
-    location: '부산 부산진구',
-    mood: '은은한 조도 & 내추럴 와인 페어링',
-    image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
+    name: '비스트로 아틀리에',
+    location: '부산 부산진구 전포살롱가',
+    type: 'NATURAL WINE & MODERN BISTRO',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=85',
+    feature: '테이블 간격 3m 이상 확보 • 앰비언트 사운드 튜닝',
   },
   {
-    name: '부산 오션 라운지 (제휴 공간)',
-    location: '부산 해운대구',
-    mood: '프라이빗 룸 & 코스 요리',
-    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80',
+    name: '오션 스위트 라운지',
+    location: '부산 해운대구 마린시티',
+    type: 'CONTEMPORARY OCEAN DINING',
+    image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=85',
+    feature: '오션 파노라마 뷰 • 단독 룸 전담 셰프 서비스',
   },
   {
-    name: '부산 까사 다이닝 (제휴 공간)',
-    location: '부산 부산진구',
-    mood: '조용한 분위기 & 프라이빗 테이블',
-    image: 'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=600&q=80',
+    name: '까사 아카이브 살롱',
+    location: '부산 부산진구 서면 살롱존',
+    type: 'PRIVATE ARCHIVE SALON',
+    image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=800&q=85',
+    feature: '독립 조도 제어 • 프라이빗 소셜 전용 대관',
   },
 ];
 
 export default function DiningPage() {
   const router = useRouter();
   const { isEditMode } = useVisualEditor();
-  const { currentUser, conditionalEvents, applyForConditionalEvent, appliedEventIds, regionDistricts } = useNadoSoloEngine();
+  const { currentUser, conditionalEvents, applyForConditionalEvent } = useNadoSoloEngine();
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
@@ -90,177 +100,244 @@ export default function DiningPage() {
     router.push('/dashboard');
   };
 
-  const diningEvents = conditionalEvents.filter(
-    (ev) => ev.districtId === 'DIST_JEONPO' || ev.districtId === 'DIST_HAEUNDAE' || ev.districtId === 'DIST_GWANGAN'
-  );
-
   return (
-    <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-20">
+    <div className="min-h-screen bg-[#07080a] text-[#f5f2eb] flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
       
       {/* ==============================================================
-          1. 소셜 다이닝 상품 히어로 (좌측: 대형 사진 슬라이더 / 우측: 헤더라인 & 신청)
+          1. 럭셔리 소셜 다이닝 히어로 (메인 페이지 톤 완벽 이식)
           ============================================================== */}
-      <CategoryProductHero
-        badge="프라이빗 소셜 다이닝 • DINING"
-        headlineTitle="나를 다시 발견하는 시간,"
-        headlineHighlight="품격 있는 소셜 다이닝"
-        description="은은한 조도와 정갈한 셰프 디너, 와인 페어링. 서로의 눈빛과 매너를 다정하게 발견하는 5060 안심 사교 다이닝입니다."
-        specs={[
-          { label: '운영 형태', value: '프라이빗 큐레이션', subText: '5060 안심 에티켓 서약' },
-          { label: '모임 일정', value: '매주 금·토 저녁', subText: '엄선된 프라이빗 비스트로' },
-          { label: '참가 기준', value: '₩30,000', subText: '소셜 다면 리포트 발행 포함' },
-        ]}
-        slides={DINING_GALLERY_SLIDES}
-        onApply={() => handleApplyClick()}
-        trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
-        activeLocationLabel="부산"
-      />
-
-      {/* ==============================================================
-          2. 현재 오픈된 테이블 목록 (신청 카드)
-          ============================================================== */}
-      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 space-y-8 w-full border-b border-white/10">
+      <section className="relative w-full border-b border-white/[0.08] overflow-hidden pt-12 sm:pt-16 pb-20 sm:pb-28">
         
-        {/* 프로그램 이용 가이드 안내 배너 */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-white/[0.04] to-white/[0.01] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-[#f04f74] uppercase tracking-wider">GUIDE &amp; PROCESS</span>
-            <p className="text-xs sm:text-sm text-zinc-300 font-medium">
-              신청 후 어떻게 진행되는지 궁금하신가요? 120분 타임라인과 식대 정산 규칙을 확인하세요.
-            </p>
-          </div>
-          <Link
-            href="/guide"
-            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 transition-all shrink-0"
-          >
-            이용가이드 보기 →
-          </Link>
+        {/* 은은한 앰비언트 그라디언트 배경 */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#f04f74]/5 rounded-full blur-[140px]" />
+          <div className="absolute bottom-0 left-10 w-96 h-96 bg-white/[0.02] rounded-full blur-[120px]" />
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
-              Live Tables
+        <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+          
+          {/* 상단 메타 바 */}
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74] animate-ping" />
+            <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.3em] text-zinc-300 uppercase">
+              Curated Social Dining • Busan Salon
             </span>
-            <h2 className="text-2xl sm:text-3xl font-serif-editorial font-bold text-white mt-1">
-              참가 신청 가능한 테이블
-            </h2>
           </div>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-sm">
-            에티켓 서약이 완료된 회원 대상 선착순 마감됩니다.
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {diningEvents.map((ev) => {
-            const isApplied = appliedEventIds.includes(ev.eventId);
-            return (
-              <div
-                key={ev.eventId}
-                className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 flex flex-col justify-between space-y-5 hover:border-white/20 transition-all shadow-lg"
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/5 text-zinc-300 border border-white/10 flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                      신청 가능
-                    </span>
-                    <span className="text-xs text-rose-400 font-bold">₩30,000</span>
-                  </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
+            
+            <div className="lg:col-span-8 space-y-5">
+              <h1 className="font-serif-editorial text-4xl sm:text-6xl lg:text-[70px] font-normal text-white tracking-tight leading-[1.12]">
+                <span className="block whitespace-nowrap">테이블을 마주하는 순간,</span>
+                <span className="block whitespace-nowrap font-light italic text-[#f5f2eb]/90 mt-1">
+                  우리는 서로의 거울이 됩니다
+                </span>
+              </h1>
 
-                  <div>
-                    <h3 className="text-xl font-bold text-white tracking-tight mb-1">
-                      {ev.title.replace(/3045|3040/g, '5060').replace(/6인/g, '').trim()}
-                    </h3>
-                    <p className="text-xs text-zinc-400 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-[#f04f74]" />
-                      <span>부산</span>
-                      <span className="text-zinc-600">•</span>
-                      <span>{ev.dateText}</span>
-                    </p>
-                  </div>
+              <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed max-w-2xl tracking-wide pt-2">
+                신원과 에티켓이 검증된 6인의 참가자가 엄선된 프라이빗 룸에 모여 코스 디너와 와인을 함께합니다.<br className="hidden sm:inline" />
+                식사와 주류 비용은 당일 현장에서 1/N 실비로 정산하며, 온라인 참가비 ₩30,000은 다면 관찰 엔진 라이선스 및 맞춤형 소셜 리포트 발행비입니다.
+              </p>
+            </div>
 
-                  <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1.5 text-xs">
-                    <div className="flex justify-between text-zinc-400">
-                      <span>참가 대상</span>
-                      <span className="text-zinc-200 font-medium">
-                        5060 골든 신중년
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-zinc-400">
-                      <span>진행 구성</span>
-                      <span className="text-zinc-200 font-medium">테이블 대화카드 킷 제공</span>
-                    </div>
-                  </div>
+            {/* 우측 3대 스펙 인덱스 */}
+            <div className="lg:col-span-4 p-6 sm:p-7 border border-white/[0.1] bg-white/[0.02] backdrop-blur-sm space-y-4">
+              <div className="text-[10px] font-mono tracking-[0.25em] text-[#f04f74] uppercase font-semibold">
+                SALON SPECIFICATIONS
+              </div>
+
+              <div className="space-y-3 divide-y divide-white/[0.06] text-xs">
+                <div className="pt-2 flex justify-between items-center">
+                  <span className="text-zinc-400 font-light">테이블 편성</span>
+                  <span className="text-zinc-100 font-mono">3:3 성향 맞춤 밸런스</span>
                 </div>
-
-                <div>
-                  {isApplied ? (
-                    <Link
-                      href="/dashboard"
-                      className="w-full py-3 rounded-xl bg-white/10 text-white border border-white/15 text-sm font-semibold flex items-center justify-center transition-colors"
-                    >
-                      모임현황 확인
-                    </Link>
-                  ) : (
-                    <AdaptiveButton
-                      onClick={() => handleApplyClick(ev.eventId)}
-                      className="w-full h-11 py-2 text-sm font-semibold"
-                    >
-                      신청하기
-                    </AdaptiveButton>
-                  )}
-                  <p className="text-[11px] text-zinc-500 text-center mt-2">
-                    {ev.mealNote}
-                  </p>
+                <div className="pt-3 flex justify-between items-center">
+                  <span className="text-zinc-400 font-light">운영 거점</span>
+                  <span className="text-zinc-100 font-mono">부산 (전포 • 마린시티)</span>
+                </div>
+                <div className="pt-3 flex justify-between items-center">
+                  <span className="text-zinc-400 font-light">리포트 라이선스</span>
+                  <span className="text-zinc-100 font-mono text-[#f04f74] font-semibold">₩30,000 (온라인 결제)</span>
+                </div>
+                <div className="pt-3 flex justify-between items-center">
+                  <span className="text-zinc-400 font-light">식음료 결제</span>
+                  <span className="text-zinc-100 font-mono">현장 테이블 1/N 실비</span>
                 </div>
               </div>
-            );
-          })}
+
+              <div className="pt-2">
+                <Link
+                  href="/guide"
+                  className="w-full py-3 border border-white/20 hover:border-white/40 bg-black/40 text-xs font-mono tracking-[0.2em] text-zinc-300 hover:text-white uppercase flex items-center justify-center gap-2 transition-all"
+                >
+                  <span>프로세스 가이드 확인</span>
+                  <ArrowRight className="w-3 h-3 text-[#f04f74]" />
+                </Link>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </section>
 
       {/* ==============================================================
-          4. 제휴 공간 갤러리 섹션
+          2. 현재 오픈된 다이닝 챕터 리스트 (Live Chapters)
           ============================================================== */}
-      <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-          <div>
-            <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
-              PLACES
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-serif-editorial font-bold text-white mt-1">
-              제휴 파트너 공간
-            </h2>
+      <section className="w-full py-20 sm:py-28 border-b border-white/[0.08]">
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+          
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-white/[0.1] pb-6 mb-12 sm:mb-16 gap-4">
+            <div>
+              <span className="text-[10px] font-mono tracking-[0.3em] text-[#f04f74] uppercase block font-semibold mb-1">
+                OPEN CHAPTERS
+              </span>
+              <h2 className="font-serif-editorial text-2xl sm:text-4xl text-white font-normal">
+                참가 신청 가능한 프라이빗 다이닝
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-zinc-400 font-light max-w-sm">
+              상호주의 에티켓 서약이 완료된 회원 대상 선착순 마감됩니다.
+            </p>
           </div>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            대화에 몰입할 수 있는 엄선된 부산 제휴 다이닝 공간입니다.
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {DINING_PLACES.map((v, i) => (
-            <div key={i} className="rounded-2xl bg-white/[0.02] border border-white/10 overflow-hidden group">
-              <div className="relative h-44 w-full overflow-hidden bg-zinc-900">
-                <img
-                  src={v.image}
-                  alt={v.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-base font-bold text-white">{v.name}</h3>
-                  <p className="text-xs text-zinc-400 flex items-center gap-1 mt-0.5">
-                    <MapPin className="w-3 h-3 text-rose-500" />
+          <div className="space-y-12">
+            {DINING_CHAPTERS.map((item, index) => (
+              <div
+                key={index}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center p-6 sm:p-8 border border-white/[0.08] hover:border-white/[0.2] bg-white/[0.015] hover:bg-white/[0.03] transition-all duration-500 group"
+              >
+                {/* 좌측: 실사 컷 프레임 */}
+                <div className="lg:col-span-5 relative aspect-[16/10] overflow-hidden bg-zinc-950 border border-white/[0.08]">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover filter brightness-[0.8] contrast-[1.1] group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute top-3 left-3 px-3 py-1 bg-black/75 border border-white/15 text-[10px] font-mono tracking-widest text-[#f04f74] uppercase backdrop-blur-md">
+                    {item.status}
+                  </div>
+                </div>
+
+                {/* 우측: 챕터 상세 및 예약 CTA */}
+                <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 text-xs font-mono tracking-wider text-zinc-400">
+                      <span className="text-[#f04f74] font-semibold">{item.chapter}</span>
+                      <span>•</span>
+                      <span>{item.district}</span>
+                      <span>•</span>
+                      <span className="text-zinc-200">{item.schedule}</span>
+                    </div>
+
+                    <h3 className="font-serif-editorial text-2xl sm:text-3xl font-normal text-white group-hover:text-[#f5f2eb] transition-colors">
+                      {item.title}
+                    </h3>
+
+                    <p className="text-xs sm:text-sm text-zinc-300 font-light leading-relaxed">
+                      {item.desc}
+                    </p>
+
+                    <p className="text-xs text-zinc-400 font-mono pt-1">
+                      장소: <span className="text-zinc-200">{item.venue}</span>
+                    </p>
+                  </div>
+
+                  {/* 3대 특징 태그 */}
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
+                    {item.specs.map((sp, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 border border-white/10 bg-black/40 text-[11px] font-mono text-zinc-300 tracking-wider"
+                      >
+                        {sp}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* 액션 버튼 */}
+                  <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-mono text-zinc-400">REPORT LICENSE</div>
+                      <div className="text-lg font-serif-editorial font-bold text-white">
+                        ₩30,000 <span className="text-xs font-normal text-zinc-400">/ 식사비 현장 1/N</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleApplyClick()}
+                      className="px-8 py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer flex items-center gap-3 shadow-[0_0_25px_rgba(240,79,116,0.25)]"
+                    >
+                      <span>신청하기</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ==============================================================
+          3. 제휴 파트너 공간 아카이브 (Curated Venues)
+          ============================================================== */}
+      <section className="w-full py-20 sm:py-28">
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+          
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-white/[0.1] pb-6 mb-12 gap-4">
+            <div>
+              <span className="text-[10px] font-mono tracking-[0.3em] text-[#f04f74] uppercase block font-semibold mb-1">
+                CURATED ARCHITECTURE
+              </span>
+              <h2 className="font-serif-editorial text-2xl sm:text-4xl text-white font-normal">
+                엄선된 부산 제휴 다이닝 공간
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-zinc-400 font-light">
+              시선과 소음이 완전히 통제된 단독 프라이빗 룸만 엄선합니다.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            {CURATED_VENUES.map((v, i) => (
+              <div
+                key={i}
+                className="border border-white/[0.08] hover:border-white/[0.2] bg-white/[0.015] overflow-hidden transition-all duration-500 group"
+              >
+                <div className="relative aspect-[16/11] overflow-hidden bg-zinc-950">
+                  <img
+                    src={v.image}
+                    alt={v.name}
+                    className="w-full h-full object-cover filter brightness-[0.75] contrast-[1.1] group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#07080a] via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <span className="text-[9px] font-mono tracking-widest text-[#f04f74] uppercase block mb-1">
+                      {v.type}
+                    </span>
+                    <h3 className="font-serif-editorial text-lg text-white font-normal">
+                      {v.name}
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="p-4 sm:p-5 space-y-2 border-t border-white/[0.06] text-xs">
+                  <div className="flex items-center gap-1.5 text-zinc-400">
+                    <MapPin className="w-3.5 h-3.5 text-[#f04f74]" />
                     <span>{v.location}</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-300 font-light leading-relaxed">
+                    {v.feature}
                   </p>
                 </div>
               </div>
-              <div className="p-3.5 text-xs text-zinc-400 bg-black/20">
-                <span className="text-zinc-300 font-medium">특징:</span> {v.mood}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
         </div>
       </section>
 

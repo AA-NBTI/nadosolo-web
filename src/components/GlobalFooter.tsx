@@ -15,13 +15,30 @@ export default function GlobalFooter() {
       <footer className="w-full bg-[#090a0f] border-t border-white/10 text-zinc-400 py-10 px-4 sm:px-6 mt-auto">
         <div className="w-full max-w-[1200px] mx-auto space-y-6">
           
-          {/* 푸터 상단 기본 브랜드 로고 */}
+          {/* 푸터 상단 기본 브랜드 로고: 정통 nadosolo + 솔로공감 나도솔로 */}
           <div className="flex flex-col items-center justify-center">
             <Link
               href="/"
-              className="font-serif-editorial text-2xl sm:text-3xl font-semibold text-white/90 hover:text-white tracking-tight lowercase transition-opacity"
+              className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
             >
-              nadosolo
+              <span className="font-serif-editorial text-[26px] sm:text-[30px] font-light text-white tracking-[-0.02em] lowercase leading-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] group-hover:text-zinc-100 transition-colors duration-300">
+                nadosolo
+              </span>
+              <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
+                <div className="w-[52%] flex justify-between items-center text-[9.5px] sm:text-[11px] font-serif-editorial font-black text-white group-hover:text-[#f04f74] transition-colors duration-200">
+                  <span>솔</span>
+                  <span>로</span>
+                  <span>공</span>
+                  <span>감</span>
+                </div>
+                <div className="w-[6%]" />
+                <div className="w-[42%] flex justify-between items-center text-[9.5px] sm:text-[11px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200">
+                  <span>나</span>
+                  <span>도</span>
+                  <span>솔</span>
+                  <span>로</span>
+                </div>
+              </div>
             </Link>
           </div>
 

@@ -2,30 +2,86 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { 
-  CheckCircle2, 
-  ArrowRight, 
-  ShieldCheck, 
-  Clock, 
-  Users, 
-  Sparkles, 
-  CalendarCheck, 
-  CreditCard, 
-  Lock, 
-  HelpCircle,
-  MessageSquare,
-  Wine,
-  UserCheck
-} from 'lucide-react';
-import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
-import { useNadoSoloEngine } from '@/engine';
 import { useRouter } from 'next/navigation';
+import { useNadoSoloEngine } from '@/engine';
+import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
+import { ArrowRight, CheckCircle2, ShieldCheck, Clock, HelpCircle, ChevronDown, Sparkles } from 'lucide-react';
+
+const PROTOCOL_STEPS = [
+  {
+    step: 'PHASE 01',
+    title: '성향 기반 3:3 테이블 큐레이션',
+    desc: '참가자의 연령대(5060 골든 트랙), 관심사, 대화 성향 데이터를 다면 분석하여 최상의 대화 밸런스를 갖춘 3:3 프라이빗 테이블을 사전 편성합니다.',
+    tag: 'ANALYTICS & CURATION',
+  },
+  {
+    step: 'PHASE 02',
+    title: '소음 없는 프라이빗 살롱 다이닝',
+    desc: '엄선된 프라이빗 룸에서 셰프의 시그니처 코스 요리와 소믈리에 와인 페어링을 즐기며, 대화 플레이북 카드를 통해 자연스럽고 지적인 교류를 이어갑니다.',
+    tag: 'PRIVATE DINING',
+  },
+  {
+    step: 'PHASE 03',
+    title: '단일 명사 1:1 상호 관찰 평가',
+    desc: '다이닝 종료 후 참가자 전원이 동석자들의 소통 품격을 단일 명사 5대 지표(품격, 미소, 경청, 배려, 시선)로 인지적 왜곡 없이 직관적으로 관찰합니다.',
+    tag: 'MUTUAL OBSERVATION',
+  },
+  {
+    step: 'PHASE 04',
+    title: '상호주의 해금 소셜 리포트 발행',
+    desc: '본인이 동석자 전원 평가를 100% 완료하는 즉시, 타인의 시선으로 집계된 100점 만점 표준화 메타인지 소셜 리포트가 안전하게 언락(Unlock)됩니다.',
+    tag: 'RECIPROCAL UNLOCK',
+  },
+];
+
+const TIMELINE = [
+  {
+    time: '19:30',
+    title: '리셉션 및 웰컴 드링크',
+    desc: '프라이빗 룸 개별 입장 후 웰컴 샴페인 또는 탄산수와 함께 테이블 시팅을 안내받습니다.',
+  },
+  {
+    time: '19:45',
+    title: '셰프 시그니처 코스 & 와인 페어링',
+    desc: '엄선된 제철 식자재 요리가 서빙되며, 자연스러운 아이스브레이킹 대화가 시작됩니다.',
+  },
+  {
+    time: '20:30',
+    title: '지적 교류와 대화 플레이북',
+    desc: '테이블에 비치된 나도솔로 감성 플레이북 카드를 통해 삶의 궤적과 깊이 있는 가치관을 공유합니다.',
+  },
+  {
+    time: '21:30',
+    title: '테이블 1/N 실비 정산 & 상호 관찰',
+    desc: '식음료 대금은 테이블에서 직접 1/N 카드 결제하며, 귀가 길에 모바일로 동석자 상호 관찰을 진행합니다.',
+  },
+];
+
+const FAQS = [
+  {
+    q: '온라인 참가비 ₩30,000과 현장 식사비는 어떻게 다른가요?',
+    a: '온라인 결제 ₩30,000은 식사비나 만남 주선비가 아니며, 나도솔로 다면 관찰 엔진 라이선스 및 상호주의 소셜 리포트 발행비입니다. 현장 음식과 주류 비용은 당일 식당에서 참가자들 간 1/N 실비로 직접 카드 결제하며, 나도솔로는 식음료 대금을 일절 수취하거나 관여하지 않습니다.',
+  },
+  {
+    q: '소셜 리포트는 언제 열람할 수 있나요?',
+    a: '나도솔로 헌법인 [상호주의 해금 원칙]에 따라, 이용자 본인이 동석자 전원에 대한 1단어 관찰 평가를 100% 완료하는 즉시 내 소셜 리포트가 잠금 해제되어 대시보드에서 열람하실 수 있습니다.',
+  },
+  {
+    q: '누가 나에게 어떤 평가를 주었는지 상대방이 알 수 있나요?',
+    a: '절대 알 수 없습니다. 나도솔로는 [절대 익명성 원칙]을 준수하여 1:1 개별 점수를 비공개 처리하며, 동석자 전체의 관찰 결과가 집계된 표준화 가중 지표로만 제공됩니다. 주관적 비하 텍스트 입력 역시 기술적으로 원천 차단되어 있습니다.',
+  },
+  {
+    q: '혼자 참석해도 어색하지 않은가요?',
+    a: '참석자의 95% 이상이 동반자 없이 단독으로 참석하십니다. 소음과 외부 시선이 차단된 단독 룸에서 전문 대화 플레이북 카드가 비치되어 있어 어색함 없이 자연스럽고 깊이 있는 대화가 이어집니다.',
+  },
+];
 
 export default function GuidePage() {
   const router = useRouter();
   const { currentUser, conditionalEvents, applyForConditionalEvent } = useNadoSoloEngine();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
+  const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
 
   const handleApplyClick = () => {
     if (!currentUser) {
@@ -52,421 +108,276 @@ export default function GuidePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090a0f] text-white flex flex-col font-sans pb-24">
+    <div className="min-h-screen bg-[#07080a] text-[#f5f2eb] flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
       
       {/* ==============================================================
-          1. 헤더 히어로: 시스템 파이프라인 선언
+          1. 가이드 히어로 (메인 톤 완벽 이식: 세리프 헤드라인 & 모노 뱃지)
           ============================================================== */}
-      <section className="relative pt-24 pb-16 px-4 sm:px-6 max-w-[1240px] mx-auto w-full text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300">
-          <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
-          <span className="font-semibold tracking-wide">SYSTEM ARCHITECTURE &amp; PROCESS</span>
+      <section className="relative w-full border-b border-white/[0.08] overflow-hidden pt-12 sm:pt-16 pb-20 sm:pb-28">
+        
+        {/* 은은한 앰비언트 글로우 */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-0 right-1/3 w-96 h-96 bg-[#f04f74]/5 rounded-full blur-[140px]" />
+          <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-white/[0.02] rounded-full blur-[120px]" />
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight font-serif-editorial">
-          오프라인 소셜 다이닝 기반<br />
-          <span className="text-[#f04f74]">다면 소셜 관찰 및 메타인지 피드백 시스템</span>
-        </h1>
-
-        <p className="max-w-2xl mx-auto text-sm sm:text-base text-zinc-300 leading-relaxed font-normal">
-          데이터 기반 큐레이션 테이블에서 식사와 대화를 나누고, 
-          동석자 상호 관찰을 통해 나의 소통 역량과 매너를 정규화 리포트로 발견하는 4단계 프로세스입니다.
-        </p>
-
-        {/* 시스템 4대 프로세스 파이프라인 */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-4xl mx-auto pt-6 text-left">
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <div className="w-8 h-8 rounded-lg bg-[#f04f74]/15 text-[#f04f74] flex items-center justify-center font-bold text-sm">
-              01
-            </div>
-            <h4 className="text-base font-bold text-white">테이블 큐레이션</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              연령대, 성향, 관심사 데이터를 분석하여 최적의 대화 밸런스 테이블을 편성합니다.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <div className="w-8 h-8 rounded-lg bg-[#f04f74]/15 text-[#f04f74] flex items-center justify-center font-bold text-sm">
-              02
-            </div>
-            <h4 className="text-base font-bold text-white">플레이북 다이닝</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              대화카드 키트와 유연한 진행 플레이북을 통해 대화 독점 없는 오프라인 교류를 진행합니다.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <div className="w-8 h-8 rounded-lg bg-[#f04f74]/15 text-[#f04f74] flex items-center justify-center font-bold text-sm">
-              03
-            </div>
-            <h4 className="text-base font-bold text-white">단일 명사 다면 관찰</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              익일 09시 동석자 상호 간 5대 순수 단일 명사 1:1 관찰 평가를 진행합니다.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <div className="w-8 h-8 rounded-lg bg-[#f04f74]/15 text-[#f04f74] flex items-center justify-center font-bold text-sm">
-              04
-            </div>
-            <h4 className="text-base font-bold text-white">상호주의 리포트</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              전원 평가 완료 시 100점 정규화 리포트 및 전주기 품질 감사 점수가 즉시 잠금 해제됩니다.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ==============================================================
-          2. 이용자 체험 순서 (Step-by-Step Experience Flow)
-          ============================================================== */}
-      <section className="max-w-[1080px] mx-auto px-4 sm:px-6 py-16 w-full space-y-12">
-        <div className="border-b border-white/10 pb-6 text-center sm:text-left">
-          <span className="text-xs uppercase tracking-widest text-[#f04f74] font-semibold">PROCESS TIMELINE</span>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mt-1">
-            이용자 체험 프로세스 &amp; 시스템 제공 내역
-          </h2>
-          <p className="text-xs sm:text-sm text-zinc-400 mt-2">
-            참가 신청부터 모임 종료 및 사후 케어까지, 이용자가 경험하는 여정과 시스템 지원 내용입니다.
-          </p>
-        </div>
-
-        <div className="space-y-8">
+        <div className="relative z-10 w-full max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20 space-y-8">
           
-          {/* STEP 1 */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col lg:flex-row gap-6 items-start">
-            <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] font-extrabold text-xl">
-              1
-            </div>
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xl font-bold text-white">
-                  참가 신청 및 큐레이션 데이터 등록
-                </h3>
-                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
-                  온라인 시스템 (D-Day 이전)
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                이용자는 원하는 일정(금/토)을 선택하고, 간단한 라이프스타일 취향, 관심사, 식이성향(못 먹는 음식/와인 취향)을 입력합니다. (5060 골든 신중년 단독 편성)
-              </p>
-              
-              <div className="p-4 rounded-xl bg-[#090a0f] border border-white/5 space-y-2 text-xs text-zinc-400">
-                <span className="font-semibold text-zinc-200 block">💡 시스템 제공 서비스:</span>
-                <p>• 나도솔로 그룹핑 엔진이 참여자 간 성향 밸런스를 분석하여 최적의 테이블을 사전 편성합니다.</p>
-                <p>• 엄선된 파트너 식당(프라이빗 룸 또는 단독 라운지)의 좌석 예약을 시스템이 자동으로 완료합니다.</p>
-              </div>
-            </div>
-            <div className="w-full lg:w-48 h-36 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-zinc-900">
-              <img
-                src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80"
-                alt="테이블 큐레이션"
-                className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-            </div>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74] animate-ping" />
+            <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.3em] text-zinc-300 uppercase">
+              An Intimate Protocol • Program Guide
+            </span>
           </div>
 
-          {/* STEP 2 */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col lg:flex-row gap-6 items-start">
-            <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] font-extrabold text-xl">
-              2
-            </div>
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xl font-bold text-white">
-                  D-1 프라이빗 공간 및 좌석 비공개 안내
-                </h3>
-                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
-                  알림톡 &amp; 마이페이지 (D-1 목요일 19:00)
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                모임 전날 저녁, 확정된 식당의 정확한 위치와 이동 동선, 지정 테이블 및 본인의 착석 좌석 번호가 카카오톡 알림톡과 대시보드로 비공개 전달됩니다.
-              </p>
-              
-              <div className="p-4 rounded-xl bg-[#090a0f] border border-white/5 space-y-2 text-xs text-zinc-400">
-                <span className="font-semibold text-zinc-200 block">💡 시스템 제공 서비스:</span>
-                <p>• 장소 외부 유출 및 불필요한 노출을 막아 참가자들의 프라이버시를 안전하게 보호합니다.</p>
-                <p>• 당일 결원(노쇼) 발생 시 대기자를 즉시 매칭하는 노쇼 백업 알고리즘이 가동됩니다.</p>
-              </div>
-            </div>
-            <div className="w-full lg:w-48 h-36 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-zinc-900">
-              <img
-                src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80"
-                alt="프라이빗 룸 안내"
-                className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-            </div>
+          <div className="max-w-4xl space-y-4">
+            <h1 className="font-serif-editorial text-4xl sm:text-6xl lg:text-[70px] font-normal text-white tracking-tight leading-[1.12]">
+              <span className="block whitespace-nowrap">소셜 다이닝에서 완성되는</span>
+              <span className="block whitespace-nowrap font-light italic text-[#f5f2eb]/90 mt-1">
+                다면 관찰 및 메타인지 피드백 시스템
+              </span>
+            </h1>
+
+            <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed max-w-2xl tracking-wide pt-2">
+              신원과 에티켓이 검증된 분들이 프라이빗 룸에서 식사와 지적 대화를 나누고,<br className="hidden sm:inline" />
+              동석자 상호 관찰을 통해 나의 소통 품격을 표준화 리포트로 발견하는 4단계 프로세스입니다.
+            </p>
           </div>
 
-          {/* STEP 3 */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col lg:flex-row gap-6 items-start">
-            <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] font-extrabold text-xl">
-              3
-            </div>
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xl font-bold text-white">
-                  D-Day 가변 타임라인 소셜 다이닝 진행 (오프라인 현장)
+          {/* 4대 프로세스 인덱스 카드 (메인 인덱스 그리드 톤) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-6">
+            {PROTOCOL_STEPS.map((ps, idx) => (
+              <div
+                key={idx}
+                className="p-6 border border-white/[0.08] hover:border-white/[0.2] bg-white/[0.015] hover:bg-white/[0.03] transition-all space-y-3"
+              >
+                <div className="flex justify-between items-center text-[10px] font-mono tracking-widest text-[#f04f74]">
+                  <span>{ps.step}</span>
+                  <span className="text-zinc-500 font-light">{ps.tag}</span>
+                </div>
+                <h3 className="font-serif-editorial text-lg text-white font-normal">
+                  {ps.title}
                 </h3>
-                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
-                  오프라인 현장 (금/토 저녁)
-                </span>
+                <p className="text-xs text-zinc-400 font-light leading-relaxed">
+                  {ps.desc}
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                식당에 도착하면 사전 배정된 프라이빗 좌석에 착석합니다. 모바일 대시보드로 제공되는 **단계별 진행 플레이북**과 **대화 키트**에 따라 유연한 호흡으로 대화를 이어갑니다.
-              </p>
-              
-              {/* 유연한 진행 4단계 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <div className="p-3.5 rounded-xl bg-[#090a0f] border border-white/5 space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-zinc-200">
-                    <Clock className="w-3.5 h-3.5 text-[#f04f74]" />
-                    <span>초반부: 웰컴 &amp; 아이스브레이킹</span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400">대화카드를 뽑아 가벼운 취향과 일상 질문으로 첫 어색함을 자연스럽게 해소합니다.</p>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[#090a0f] border border-white/5 space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-zinc-200">
-                    <Wine className="w-3.5 h-3.5 text-[#f04f74]" />
-                    <span>중반부: 셰프 디너 &amp; 딥토크</span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400">요리와 와인을 즐기며 커리어, 가치관, 라이프스타일 대화를 나눕니다.</p>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[#090a0f] border border-white/5 space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-zinc-200">
-                    <Users className="w-3.5 h-3.5 text-[#f04f74]" />
-                    <span>전환기: 하프타임 좌석 로테이션</span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400">특정인 대화 독점을 방지하고 모든 참가자와 골고루 대화하도록 좌석을 전환합니다.</p>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-[#090a0f] border border-white/5 space-y-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-zinc-200">
-                    <CreditCard className="w-3.5 h-3.5 text-[#f04f74]" />
-                    <span>후반부: 마무리 &amp; 식대 1/N 정산</span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400">식사 및 음료비는 식당 카운터에서 참가자들이 투명하게 1/N 실비 정산합니다.</p>
-                </div>
-              </div>
-            </div>
-            <div className="w-full lg:w-48 h-36 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-zinc-900">
-              <img
-                src="https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80"
-                alt="셰프 디너 & 와인"
-                className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-            </div>
-          </div>
-
-          {/* STEP 4 */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#12151e] border border-white/10 flex flex-col lg:flex-row gap-6 items-start">
-            <div className="shrink-0 w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#f04f74] font-extrabold text-xl">
-              4
-            </div>
-            <div className="flex-1 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-xl font-bold text-white">
-                  익일 09시 다면 관찰 평가 &amp; 상호주의 리포트 해금
-                </h3>
-                <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300 font-medium">
-                  온라인 시스템 (모임 다음 날 오전 09:00)
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-                모임 익일, 동석자들에 대한 단일 명사 관찰 평가를 진행합니다. **상호주의 해금 원칙**에 따라 본인이 동석자 전원 평가를 100% 완료해야만 동석자들이 나를 관찰한 내 소셜 리포트가 잠금 해제되며, 쌍방이 모두 동의한 경우에만 시스템을 통해 연락처가 안전하게 전달됩니다.
-              </p>
-              
-              <div className="p-4 rounded-xl bg-[#090a0f] border border-white/5 space-y-2 text-xs text-zinc-400">
-                <span className="font-semibold text-zinc-200 block">💡 시스템 제공 서비스:</span>
-                <p>• 단일 명사 1요소 1기준 관찰 엔진을 기반으로 개인 소셜 분석 리포트가 정규화되어 발행됩니다.</p>
-                <p>• 사람 평가뿐만 아니라 식당 공간, 식사 미식, 진행 프로세스 전주기 점검 감사 리포트가 함께 집계됩니다.</p>
-                <p>• 무단 노쇼, 비매너 행위자는 시스템에서 영구 제명(원아웃제) 처리되어 다음 모임 참여가 제한됩니다.</p>
-              </div>
-            </div>
-            <div className="w-full lg:w-48 h-36 rounded-2xl overflow-hidden shrink-0 border border-white/10 relative bg-zinc-900">
-              <img
-                src="https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=600&q=80"
-                alt="소셜 리포트 & 호감 연결"
-                className="w-full h-full object-cover opacity-85 hover:scale-105 transition-transform duration-500"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-            </div>
+            ))}
           </div>
 
         </div>
       </section>
 
       {/* ==============================================================
-          3. 참가권 ₩30,000 결제 내역과 식대 정산의 명확한 분리 (PG 심사 핵심)
+          2. 120분 프라이빗 다이닝 타임라인 (Timeline Protocol)
           ============================================================== */}
-      <section className="max-w-[1080px] mx-auto px-4 sm:px-6 py-12 w-full">
-        <div className="bg-[#12151e] rounded-3xl p-8 sm:p-10 border border-white/10 space-y-8">
-          <div className="space-y-2 text-center sm:text-left">
-            <span className="text-xs uppercase tracking-widest text-[#f04f74] font-semibold">PRICING &amp; SETTLEMENT</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">
-              참가권 ₩30,000의 서비스 대가와 식대 분리 원칙
+      <section className="w-full py-20 sm:py-28 border-b border-white/[0.08]">
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+          
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-white/[0.1] pb-6 mb-12 sm:mb-16 gap-4">
+            <div>
+              <span className="text-[10px] font-mono tracking-[0.3em] text-[#f04f74] uppercase block font-semibold mb-1">
+                TIME PROTOCOL
+              </span>
+              <h2 className="font-serif-editorial text-2xl sm:text-4xl text-white font-normal">
+                120분 프라이빗 살롱 타임라인
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-zinc-400 font-light max-w-sm">
+              정돈된 템포와 편안한 조도 속에서 대화에 온전히 몰입할 수 있도록 조율됩니다.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
+            {TIMELINE.map((t, i) => (
+              <div
+                key={i}
+                className="p-6 border border-white/[0.08] bg-white/[0.015] space-y-3 relative group hover:border-white/20 transition-all"
+              >
+                <div className="text-2xl font-serif-editorial font-bold text-[#f04f74]">
+                  {t.time}
+                </div>
+                <h4 className="font-serif-editorial text-base text-white font-normal">
+                  {t.title}
+                </h4>
+                <p className="text-xs text-zinc-400 font-light leading-relaxed">
+                  {t.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ==============================================================
+          3. 비용 및 정산 원칙 (Core Identity & Fee Transparency)
+          ============================================================== */}
+      <section className="w-full py-20 sm:py-28 border-b border-white/[0.08]">
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+          
+          <div className="border border-white/[0.1] bg-white/[0.02] p-8 sm:p-12 space-y-8">
+            <div className="space-y-2">
+              <span className="text-[10px] font-mono tracking-[0.3em] text-[#f04f74] uppercase block font-semibold">
+                FEE TRANSPARENCY & BM IDENTITY
+              </span>
+              <h2 className="font-serif-editorial text-2xl sm:text-4xl text-white font-normal">
+                비용 구조 및 투명한 1/N 정산 원칙
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 divide-y md:divide-y-0 md:divide-x divide-white/[0.08] pt-4">
+              
+              <div className="space-y-4 md:pr-8">
+                <div className="inline-block px-3 py-1 bg-[#f04f74]/15 border border-[#f04f74]/30 text-[#f04f74] text-xs font-mono font-semibold">
+                  온라인 사전 결제: ₩30,000
+                </div>
+                <h3 className="font-serif-editorial text-xl text-white">
+                  다면 관찰 엔진 라이선스 및 소셜 리포트 발행비
+                </h3>
+                <p className="text-xs sm:text-sm text-zinc-300 font-light leading-relaxed">
+                  나도솔로는 식음료 판매업자가 아닙니다. ₩30,000은 3:3 성향 밸런스 큐레이션, 단일 명사 관찰 알고리즘 구동, 그리고 참가자 전원의 상호 관찰 데이터가 집계된 표준화 메타인지 소셜 리포트를 생성·발행하는 기술 라이선스 비용입니다.
+                </p>
+              </div>
+
+              <div className="space-y-4 md:pl-8 pt-6 md:pt-0">
+                <div className="inline-block px-3 py-1 bg-white/5 border border-white/10 text-zinc-300 text-xs font-mono font-semibold">
+                  현장 결제: 식음료 실비 1/N
+                </div>
+                <h3 className="font-serif-editorial text-xl text-white">
+                  식당 현장 직접 카드 정산
+                </h3>
+                <p className="text-xs sm:text-sm text-zinc-300 font-light leading-relaxed">
+                  당일 엄선된 레스토랑에서 발생한 식사 및 주류 대금은 모임 종료 시 참가자들이 테이블에서 직접 각자의 카드로 1/N 실비 결제합니다. 나도솔로는 식음료 대금을 단 1원도 중개하거나 수취하지 않습니다.
+                </p>
+              </div>
+
+            </div>
+
+            <div className="pt-6 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-xs text-zinc-400 font-light flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#f04f74]" />
+                <span>상호주의 해금 원칙: 평가 100% 완료 시 내 리포트가 즉시 열람 해제됩니다.</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleApplyClick}
+                className="px-8 py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer shadow-[0_0_25px_rgba(240,79,116,0.25)]"
+              >
+                신청하기
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* ==============================================================
+          4. 단일 명사 5대 관찰 지표 (5 Anchor Metrics)
+          ============================================================== */}
+      <section className="w-full py-20 sm:py-28 border-b border-white/[0.08]">
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+          
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-white/[0.1] pb-6 mb-12 gap-4">
+            <div>
+              <span className="text-[10px] font-mono tracking-[0.3em] text-[#f04f74] uppercase block font-semibold mb-1">
+                EVALUATION CONSTITUTION
+              </span>
+              <h2 className="font-serif-editorial text-2xl sm:text-4xl text-white font-normal">
+                단일 명사 1요소 관찰 원칙
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-zinc-400 font-light max-w-sm">
+              복합적 수식어나 주관적 비하를 배제하고 직관적인 5대 단일 명사로만 나의 소통을 관찰받습니다.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+            {[
+              { anchor: '품격', question: '대화의 태도와 매너에 기품이 느껴지는가?' },
+              { anchor: '미소', question: '온화하고 편안한 미소로 분위기를 밝히는가?' },
+              { anchor: '경청', question: '상대방의 말을 끊지 않고 끝까지 듣는가?' },
+              { anchor: '배려', question: '테이블 전원의 소외됨 없는 대화를 돕는가?' },
+              { anchor: '시선', question: '대화 시 따뜻하고 안정된 시선을 유지하는가?' },
+            ].map((metric, i) => (
+              <div
+                key={i}
+                className="p-5 border border-white/[0.08] bg-white/[0.015] space-y-2 hover:border-[#f04f74]/40 transition-colors"
+              >
+                <div className="text-xl font-serif-editorial font-bold text-white">
+                  {metric.anchor}
+                </div>
+                <div className="text-[10px] font-mono text-[#f04f74]">
+                  SINGLE NOUN 0{i + 1}
+                </div>
+                <p className="text-xs text-zinc-400 font-light leading-relaxed pt-1">
+                  {metric.question}
+                </p>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      </section>
+
+      {/* ==============================================================
+          5. 자주 묻는 질문 (FAQ Accordion)
+          ============================================================== */}
+      <section className="w-full py-20 sm:py-28">
+        <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+          
+          <div className="border-b border-white/[0.1] pb-6 mb-12">
+            <span className="text-[10px] font-mono tracking-[0.3em] text-[#f04f74] uppercase block font-semibold mb-1">
+              QUESTIONS &amp; ANSWERS
+            </span>
+            <h2 className="font-serif-editorial text-2xl sm:text-4xl text-white font-normal">
+              자주 묻는 질문
             </h2>
-            <p className="text-xs sm:text-sm text-zinc-400">
-              나도솔로는 온라인 분석 리포트 라이선스와 오프라인 실비 식대를 철저히 분리하여 투명하게 운영합니다.
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* 좌측: 나도솔로 온라인 결제 (₩30,000) */}
-            <div className="p-6 rounded-2xl bg-[#181c28] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <span className="text-xs font-bold text-zinc-300">나도솔로 온라인 결제</span>
-                <span className="text-xl font-bold text-[#f04f74]">₩30,000</span>
-              </div>
-              <h4 className="text-base font-bold text-white">소셜 분석 엔진 라이선스 &amp; 리포트 발행비</h4>
-              <ul className="space-y-2.5 text-xs text-zinc-300">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#f04f74] shrink-0 mt-0.5" />
-                  <span><strong>타깃별 다면 소셜 관찰 엔진 라이선스</strong>: 결이 맞는 테이블 큐레이션 편성</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#f04f74] shrink-0 mt-0.5" />
-                  <span><strong>개인 소셜 분석 리포트 발행</strong>: 100점 정규화 메타인지 분석 리포트 제공</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#f04f74] shrink-0 mt-0.5" />
-                  <span><strong>전주기 품질 감사 엔진 (공간 · 식사 · 진행)</strong>: 엄선된 식당 단독 룸 좌석 확보 및 점검 감리</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#f04f74] shrink-0 mt-0.5" />
-                  <span><strong>상호주의 안전망 &amp; 비매너 원아웃 케어</strong>: 결원 시 백업 매칭 및 비매너 영구 퇴출 관리</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* 우측: 식당 현장 결제 (식대 1/N) */}
-            <div className="p-6 rounded-2xl bg-[#181c28] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <span className="text-xs font-bold text-zinc-300">식당 현장 결제</span>
-                <span className="text-xl font-bold text-white">매장 현장 1/N</span>
-              </div>
-              <h4 className="text-base font-bold text-white">식음료 및 주류 실비 정산</h4>
-              <ul className="space-y-2.5 text-xs text-zinc-300">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
-                  <span><strong>실제 주문 메뉴만 결제</strong>: 당일 매장에서 주문한 식사 및 와인/음료 비용</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
-                  <span><strong>식당 카운터 직접 결제</strong>: 모임 종료 시 동석자들과 테이블 1/N로 나누어 식당에 직접 카드 결제</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
-                  <span><strong>투명한 정산</strong>: 나도솔로는 식음료 대금을 일절 수취하거나 관여하지 않습니다.</span>
-                </li>
-              </ul>
-            </div>
-
+          <div className="space-y-4 max-w-4xl">
+            {FAQS.map((faq, idx) => {
+              const isOpen = openFaqIdx === idx;
+              return (
+                <div
+                  key={idx}
+                  className="border border-white/[0.08] bg-white/[0.015] overflow-hidden transition-all"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
+                    className="w-full p-6 text-left flex items-center justify-between gap-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+                  >
+                    <span className="font-serif-editorial text-base sm:text-lg text-white font-normal">
+                      {faq.q}
+                    </span>
+                    <ChevronDown
+                      className={`w-4 h-4 text-[#f04f74] shrink-0 transition-transform duration-300 ${
+                        isOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-6 pt-1 text-xs sm:text-sm text-zinc-300 font-light leading-relaxed border-t border-white/[0.05]">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
+
         </div>
       </section>
 
-      {/* ==============================================================
-          4. 자주 묻는 질문 (FAQ)
-          ============================================================== */}
-      <section className="max-w-[1080px] mx-auto px-4 sm:px-6 py-12 w-full space-y-6">
-        <div className="border-b border-white/10 pb-4">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <HelpCircle className="w-5 h-5 text-[#f04f74]" />
-            <span>자주 묻는 질문</span>
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <h4 className="text-sm font-bold text-white">Q. 일반 데이팅 서비스와 시스템 구조가 어떻게 다른가요?</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              단순 프로필 사진 열람이나 일회성 매칭이 아닌, 엄선된 식당 환경에서의 실제 테이블 대화 관찰 데이터를 기반으로 나의 소통 역량과 강점을 리포트로 산출하는 메타인지 피드백 시스템입니다.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <h4 className="text-sm font-bold text-white">Q. 식당 환경이나 음식 품질은 어떻게 관리되나요?</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              공간 품질(공간, 소음, 조명, 위생, 친절), 식사 미식(맛, 온도, 구성, 음료, 비용), 진행 프로세스(안내, 좌석, 카드, 이동, 정산)의 전주기 품질 감사 엔진을 통해 엄격한 기준을 충족한 식당만 파트너로 유지됩니다.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <h4 className="text-sm font-bold text-white">Q. 혼자 참석해도 어색하지 않나요?</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              참가자 100%가 혼자 신청하여 참석합니다. 모바일 대시보드로 제공되는 단계별 대화카드 키트가 있어 침묵 없이 누구나 편안하게 대화에 몰입할 수 있습니다.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <h4 className="text-sm font-bold text-white">Q. 모임 최소 인원이 미달되면 어떻게 되나요?</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              성향 및 인원 밸런스가 충족되지 않아 모임이 성사되지 않을 경우, 결제하신 참가권 ₩30,000은 **취소 수수료 없이 100% 자동 전액 환불**됩니다.
-            </p>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-[#12151e] border border-white/10 space-y-2">
-            <h4 className="text-sm font-bold text-white">Q. 모임 취소 및 환불 기준은 어떻게 되나요?</h4>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              모임 3일 전(수요일 23:59)까지는 100% 전액 환불되며, 모임 2일 전 50%, 전일 및 당일은 식당 예약 확정 및 테이블 세팅으로 인해 환불이 불가합니다.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ==============================================================
-          5. 신청 CTA 배너
-          ============================================================== */}
-      <section className="max-w-[1080px] mx-auto px-4 sm:px-6 pt-6 w-full">
-        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-[#181c28] via-[#12151e] to-[#181c28] border border-white/15 text-center space-y-6 shadow-2xl">
-          <div className="space-y-2 max-w-xl mx-auto">
-            <h3 className="text-2xl sm:text-3xl font-bold text-white font-serif-editorial">
-              부산 소셜 다이닝 프로그램 참가 신청
-            </h3>
-            <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-              매주 금요일·토요일 19:30, 검증된 사람들과 함께하는 특별한 저녁 시간을 경험하세요.
-            </p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={handleApplyClick}
-              className="w-full sm:w-auto h-11 px-6 rounded-xl border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white text-sm sm:text-[15px] font-semibold tracking-wide shadow-md hover:shadow-[0_0_24px_rgba(240,79,116,0.45)] transition-all duration-300 cursor-pointer inline-flex items-center justify-center"
-            >
-              신청하기 (₩30,000)
-            </button>
-            <Link
-              href="/dining"
-              className="w-full sm:w-auto h-11 px-6 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-zinc-300 hover:text-white text-sm sm:text-[15px] font-semibold tracking-wide transition-all inline-flex items-center justify-center shadow-md"
-            >
-              다이닝 프로그램 안내
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 결제 모달 연동 */}
+      {/* 결제 모달 */}
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         event={checkoutEvent}
         onSuccessPayment={handlePaymentSuccess}
       />
-
     </div>
   );
 }
-

@@ -223,22 +223,22 @@ export default function CityLandingPage() {
       </section>
 
       {/* 3. 5대 매너 평가 시스템 안내 배너 */}
-      <section className="max-w-[1240px] mx-auto px-6 w-full">
-        <div className="bg-[#181c28] rounded-3xl p-8 sm:p-10 border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6">
+      <section className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20 w-full">
+        <div className="bg-[#0c0d12] rounded-none p-8 sm:p-10 border border-white/[0.08] flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center md:text-left">
-            <span className="text-xs font-mono text-rose-400 font-bold uppercase">TRUST ASSURANCE</span>
-            <h3 className="text-xl sm:text-2xl font-bold text-white">
+            <span className="text-[10px] font-mono text-[#f04f74] font-semibold tracking-widest uppercase">TRUST ASSURANCE</span>
+            <h3 className="font-serif-editorial text-xl sm:text-2xl font-normal text-white">
               왜 나도솔로는 믿고 참석할 수 있을까요?
             </h3>
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-xl leading-relaxed">
-              직업이나 조건보다 중요한 것은 '사람의 태도와 매너'입니다. 나도솔로는 모임 후 동석자 5인의 다면 평가를 통해 검증된 품격 있는 싱글들만 참여하는 신뢰 네트워크를 유지합니다.
+            <p className="text-xs sm:text-sm text-zinc-400 font-light max-w-xl leading-relaxed">
+              직업이나 조건보다 중요한 것은 '사람의 태도와 매너'입니다. 나도솔로는 모임 후 동석자들의 다면 평가를 통해 검증된 품격 있는 싱글들만 참여하는 신뢰 네트워크를 유지합니다.
             </p>
           </div>
           <Link
-            href="/#coaching-system"
-            className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/15 transition-all shrink-0"
+            href="/guide"
+            className="px-6 py-3.5 rounded-none border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-wider uppercase font-semibold transition-all shrink-0"
           >
-            5대 매너 평가 매트릭스 보기 →
+            5대 매너 평가 시스템 보기 →
           </Link>
         </div>
       </section>

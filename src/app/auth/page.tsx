@@ -217,54 +217,52 @@ function AuthPageContent() {
   };
 
   return (
-    <main className="w-full max-w-[1380px] mx-auto px-6 py-12 min-h-[calc(100vh-5rem)] flex items-center justify-center">
+    <main className="w-full min-h-screen bg-[#07080a] text-[#f5f2eb] px-4 py-12 flex items-center justify-center selection:bg-[#f04f74] selection:text-white">
       {/* ===================================================================
-          절제된 럭셔리 다크 차콜 카드 컨테이너 (#12151E)
-          - 와인 남발 전면 제거: 오직 메인 CTA 버튼에만 핀포인트 집중!
+          절제된 럭셔리 다크 카드 컨테이너 (CORE: Club 벨벳 로프 스타일)
           =================================================================== */}
-      <div className="w-full max-w-[460px] bg-[#12151e] rounded-3xl p-8 sm:p-10 border border-white/10 shadow-2xl shadow-black/90 relative text-white">
+      <div className="w-full max-w-[460px] bg-[#0c0d12] p-8 sm:p-10 border border-white/[0.08] shadow-2xl relative">
         {/* 우측 상단 닫기(X) 버튼 */}
         <Link
           href="/"
-          className="absolute top-6 right-6 w-9 h-9 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 transition-colors text-xl"
+          className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center text-zinc-500 hover:text-white border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] transition-colors text-sm font-mono"
           aria-label="닫기"
         >
           ✕
         </Link>
 
-        {/* 상단 타이틀 */}
+        {/* 상단 타이틀 (로고 제거 완료) */}
         <div className="flex flex-col items-center text-center mb-8">
-          <Link
-            href="/"
-            className="font-serif-editorial text-2xl font-normal text-white lowercase tracking-tight mb-2"
-          >
-            nadosolo
-          </Link>
-          <h1 className="text-xl font-medium text-white tracking-tight">
-            {tab === 'LOGIN' ? '멤버십 로그인' : '멤버십 가입'}
-          </h1>
-          <p className="text-xs text-zinc-400 mt-1">
-            {tab === 'LOGIN'
-              ? '계정에 로그인하고 테이블을 확인하세요.'
-              : signupStep === 1
-              ? '프라이빗 다이닝 멤버십을 시작합니다.'
-              : '맞춤형 테이블 매칭을 위한 정보입니다.'}
-          </p>
+          <div className="space-y-1">
+            <span className="text-[10px] font-mono tracking-[0.25em] text-[#f04f74] uppercase font-semibold">
+              PRIVATE SANCTUARY
+            </span>
+            <h1 className="font-serif-editorial text-2xl font-normal text-white">
+              {tab === 'LOGIN' ? '멤버십 로그인' : '멤버십 가입'}
+            </h1>
+            <p className="text-xs text-zinc-400 font-light mt-1">
+              {tab === 'LOGIN'
+                ? '계정에 로그인하고 배정된 프라이빗 테이블을 확인하세요.'
+                : signupStep === 1
+                ? '신원과 에티켓이 검증된 분들을 위한 프라이빗 살롱입니다.'
+                : '3:3 맞춤형 테이블 편성을 위한 기본 프로필입니다.'}
+            </p>
+          </div>
         </div>
 
         {/* 로그인 / 회원가입 탭 스위치 (대표 포인트 컬러 #f04f74) */}
         {signupStep === 1 && (
-          <div className="grid grid-cols-2 bg-[#0a0c12] p-1.5 rounded-2xl border border-white/10 mb-7">
+          <div className="grid grid-cols-2 bg-black/40 p-1 border border-white/[0.08] mb-7">
             <button
               type="button"
               onClick={() => {
                 setTab('LOGIN');
                 setErrorMsg(null);
               }}
-              className={`py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+              className={`py-2.5 text-xs font-mono tracking-wider transition-all cursor-pointer ${
                 tab === 'LOGIN'
-                  ? 'bg-[#f04f74] text-white shadow-md shadow-[#f04f74]/30'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'border border-[#f04f74] bg-[#f04f74]/15 text-white font-semibold shadow-[0_0_15px_rgba(240,79,116,0.2)]'
+                  : 'text-zinc-400 hover:text-white border border-transparent'
               }`}
             >
               로그인
@@ -275,10 +273,10 @@ function AuthPageContent() {
                 setTab('SIGNUP');
                 setErrorMsg(null);
               }}
-              className={`py-3 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+              className={`py-2.5 text-xs font-mono tracking-wider transition-all cursor-pointer ${
                 tab === 'SIGNUP'
-                  ? 'bg-[#f04f74] text-white shadow-md shadow-[#f04f74]/30'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'border border-[#f04f74] bg-[#f04f74]/15 text-white font-semibold shadow-[0_0_15px_rgba(240,79,116,0.2)]'
+                  : 'text-zinc-400 hover:text-white border border-transparent'
               }`}
             >
               회원가입
@@ -287,7 +285,7 @@ function AuthPageContent() {
         )}
 
         {errorMsg && (
-          <div className="mb-5 p-3 rounded-xl bg-white/5 border border-white/20 text-[#f04f74] text-xs font-bold text-center">
+          <div className="mb-5 p-3 bg-[#f04f74]/10 border border-[#f04f74]/30 text-[#f04f74] text-xs font-mono text-center">
             {errorMsg}
           </div>
         )}
@@ -298,20 +296,20 @@ function AuthPageContent() {
         {tab === 'LOGIN' ? (
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                 아이디 (Username)
               </label>
               <input
                 type="text"
                 value={loginId}
                 onChange={(e) => setLoginId(e.target.value)}
-                placeholder="아이디 입력 (예: user1 또는 admin)"
-                className="w-full px-4 py-3.5 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
+                placeholder="아이디 입력"
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                 비밀번호 (Password)
               </label>
               <input
@@ -319,17 +317,17 @@ function AuthPageContent() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호 입력"
-                className="w-full px-4 py-3.5 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors"
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
               />
             </div>
 
             {/* 빠른 테스트 계정 박스: 6인 실계정 원클릭 전환 */}
-            <div className="p-4 rounded-2xl bg-[#1c202e] border border-white/10 space-y-3">
+            <div className="p-4 border border-white/[0.08] bg-white/[0.015] space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-zinc-300">
-                  체험용 계정 원클릭 로그인:
+                <p className="text-xs font-mono tracking-wider text-zinc-300 uppercase">
+                  체험용 계정 원클릭 로그인
                 </p>
-                <span className="text-[10px] text-emerald-400 font-mono">DB 연동 완료</span>
+                <span className="text-[10px] text-[#f04f74] font-mono">DB 연동 완료</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {REAL_MEMBERS.map((m) => (
@@ -337,15 +335,15 @@ function AuthPageContent() {
                     key={m.id}
                     type="button"
                     onClick={() => handleLoginAsRealMember(m)}
-                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left transition-colors cursor-pointer group"
+                    className="p-2 border border-white/[0.06] hover:border-[#f04f74]/40 bg-black/40 text-left transition-colors cursor-pointer group"
                   >
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="text-white group-hover:text-[#f04f74]">
-                        {m.gender === 'M' ? '👔' : '👗'} {m.name}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-zinc-200 group-hover:text-white font-medium">
+                        {m.name}
                       </span>
-                      <span className="text-[10px] text-zinc-500 font-mono">{m.gender}</span>
+                      <span className="text-[10px] text-[#f04f74] font-mono">{m.gender}</span>
                     </div>
-                    <div className="text-[11px] text-zinc-400 truncate mt-0.5">{m.job}</div>
+                    <div className="text-[11px] text-zinc-400 truncate mt-0.5 font-light">{m.job}</div>
                   </button>
                 ))}
               </div>
@@ -354,13 +352,13 @@ function AuthPageContent() {
             {/* 메인 로그인 CTA 버튼 */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer"
+              className="w-full py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(240,79,116,0.25)]"
             >
               로그인
             </button>
 
             <div className="text-center pt-2">
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-zinc-400 font-light">
                 아직 나도솔로 계정이 없으신가요?{' '}
               </span>
               <button
@@ -370,7 +368,7 @@ function AuthPageContent() {
                   setSignupStep(1);
                   setErrorMsg(null);
                 }}
-                className="text-xs font-bold text-white underline hover:text-zinc-300 cursor-pointer ml-1"
+                className="text-xs font-mono text-[#f04f74] hover:underline cursor-pointer ml-1"
               >
                 회원가입하기
               </button>
@@ -382,7 +380,7 @@ function AuthPageContent() {
              ------------------------------------------------------------- */
           <form onSubmit={handleStep1Submit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                 아이디 (@핸들)
               </label>
               <div className="flex gap-2">
@@ -395,27 +393,27 @@ function AuthPageContent() {
                     );
                     setIsHandleChecked(false);
                   }}
-                  placeholder="예: user1"
+                  placeholder="아이디 입력"
                   required
-                  className="flex-1 px-4 py-3 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                  className="flex-1 px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setIsHandleChecked(true)}
-                  className="px-4 py-3 rounded-xl bg-[#1c202e] hover:bg-[#252b3d] text-white text-xs font-semibold cursor-pointer shrink-0 border border-white/10 transition-colors"
+                  className="px-4 py-3 border border-white/20 hover:border-white/40 bg-black/40 text-xs font-mono text-zinc-300 hover:text-white uppercase transition-colors shrink-0"
                 >
                   중복확인
                 </button>
               </div>
               {isHandleChecked && (
-                <p className="text-[11px] text-emerald-400 font-medium mt-1">
+                <p className="text-[11px] text-[#f04f74] font-mono mt-1">
                   ✓ 사용 가능한 아이디입니다 ({normalizedHandle})
                 </p>
               )}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                 이름 (활동 닉네임)
               </label>
               <input
@@ -424,12 +422,12 @@ function AuthPageContent() {
                 onChange={(e) => setNickname(e.target.value)}
                 placeholder="지수"
                 required
-                className="w-full px-4 py-3 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                 이메일
               </label>
               <input
@@ -438,14 +436,14 @@ function AuthPageContent() {
                 onChange={(e) => setEmailInput(e.target.value)}
                 placeholder="user@nadosolo.com"
                 required
-                className="w-full px-4 py-3 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
               />
             </div>
 
             {/* 비밀번호 & 비밀번호 확인 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+                <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                   비밀번호
                 </label>
                 <input
@@ -454,11 +452,11 @@ function AuthPageContent() {
                   onChange={(e) => setSignupPassword(e.target.value)}
                   placeholder="4자리 이상"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                  className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+                <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                   비밀번호 확인
                 </label>
                 <input
@@ -467,16 +465,16 @@ function AuthPageContent() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="비밀번호 재입력"
                   required
-                  className="w-full px-4 py-3 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                  className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
             {confirmPassword && (
               <p
-                className={`text-[11px] font-medium ${
+                className={`text-[11px] font-mono ${
                   signupPassword === confirmPassword
-                    ? 'text-emerald-400'
+                    ? 'text-zinc-300'
                     : 'text-[#f04f74]'
                 }`}
               >
@@ -489,13 +487,13 @@ function AuthPageContent() {
             {/* 메인 가입 CTA 버튼 */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer mt-2"
+              className="w-full py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(240,79,116,0.25)] mt-2"
             >
               회원가입
             </button>
 
             <div className="text-center pt-2">
-              <span className="text-xs text-zinc-400">
+              <span className="text-xs text-zinc-400 font-light">
                 이미 계정이 있으신가요?{' '}
               </span>
               <button
@@ -504,7 +502,7 @@ function AuthPageContent() {
                   setTab('LOGIN');
                   setErrorMsg(null);
                 }}
-                className="text-xs font-bold text-white underline hover:text-zinc-300 cursor-pointer ml-1"
+                className="text-xs font-mono text-[#f04f74] hover:underline cursor-pointer ml-1"
               >
                 로그인하기
               </button>
@@ -515,36 +513,36 @@ function AuthPageContent() {
               [탭 2 - 2단계] 내 추가 정보 입력 단계
              ------------------------------------------------------------- */
           <div className="space-y-4">
-            <div className="p-4 rounded-2xl bg-[#1c202e] border border-white/10 text-xs text-zinc-300">
-              <span className="font-bold text-white">1단계 가입 완료!</span> 결이 맞는 프라이빗 테이블 좌석 배정을 위해 추가 정보를 입력해 주세요. (추후 수정 가능)
+            <div className="p-4 border border-white/[0.08] bg-white/[0.015] text-xs text-zinc-300 font-light leading-relaxed">
+              <span className="font-semibold text-white">1단계 가입 완료.</span> 3:3 밸런스 테이블 편성을 위해 추가 정보를 입력해 주세요. (추후 수정 가능)
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
-                휴대폰 번호 (모임 안내 알림톡 수신)
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
+                휴대폰 번호 (모임 안내 수신)
               </label>
               <input
                 type="tel"
                 value={extraPhone}
                 onChange={(e) => setExtraPhone(e.target.value)}
                 placeholder="010-0000-0000"
-                className="w-full px-4 py-3 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+                <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                   성별 (3:3 성비 매칭)
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     type="button"
                     onClick={() => setExtraGender('F')}
-                    className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    className={`py-2.5 text-xs font-mono tracking-wider transition-all cursor-pointer ${
                       extraGender === 'F'
-                        ? 'bg-white text-zinc-950'
-                        : 'bg-[#10131c] text-zinc-400 hover:text-white border border-white/10'
+                        ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white font-semibold'
+                        : 'bg-black/40 text-zinc-400 hover:text-white border border-white/[0.08]'
                     }`}
                   >
                     여성 (F)
@@ -552,10 +550,10 @@ function AuthPageContent() {
                   <button
                     type="button"
                     onClick={() => setExtraGender('M')}
-                    className={`py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    className={`py-2.5 text-xs font-mono tracking-wider transition-all cursor-pointer ${
                       extraGender === 'M'
-                        ? 'bg-white text-zinc-950'
-                        : 'bg-[#10131c] text-zinc-400 hover:text-white border border-white/10'
+                        ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white font-semibold'
+                        : 'bg-black/40 text-zinc-400 hover:text-white border border-white/[0.08]'
                     }`}
                   >
                     남성 (M)
@@ -564,20 +562,20 @@ function AuthPageContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+                <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                   출생연도
                 </label>
                 <input
                   type="number"
                   value={extraBirthYear}
                   onChange={(e) => setExtraBirthYear(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white focus:outline-none focus:border-white/30"
+                  className="w-full px-4 py-2.5 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-mono focus:outline-none transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
                 직업 / 전문 분야
               </label>
               <input
@@ -585,7 +583,7 @@ function AuthPageContent() {
                 value={extraJob}
                 onChange={(e) => setExtraJob(e.target.value)}
                 placeholder="예: 프로덕트 디자이너, 건축가, 연구원"
-                className="w-full px-4 py-3 rounded-xl bg-[#10131c] border border-white/10 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white/30"
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
               />
             </div>
 
@@ -593,14 +591,14 @@ function AuthPageContent() {
               <button
                 type="button"
                 onClick={() => handleStep2Complete(false)}
-                className="w-full py-4 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white text-base font-bold shadow-lg transition-all duration-200 cursor-pointer"
+                className="w-full py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(240,79,116,0.25)]"
               >
                 저장 완료
               </button>
               <button
                 type="button"
                 onClick={() => handleStep2Complete(true)}
-                className="w-full py-2.5 rounded-xl bg-transparent hover:bg-white/5 text-zinc-400 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+                className="w-full py-2.5 border border-white/10 hover:border-white/20 bg-transparent text-zinc-400 hover:text-white text-xs font-mono tracking-wider transition-colors cursor-pointer"
               >
                 건너뛰기
               </button>

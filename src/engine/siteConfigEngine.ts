@@ -373,7 +373,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V142_ROSE_CORE';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V148_RELEASE_140';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================

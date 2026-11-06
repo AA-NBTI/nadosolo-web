@@ -241,14 +241,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
   return (
     <div className="space-y-6">
       {/* 상단 탭 & 저장 액션 */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[#141824] border border-white/10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-none bg-[#0c0d12] border border-white/10">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={() => setSubTab('SECTORS')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'SECTORS'
-                ? 'bg-rose-600 text-white shadow'
+                ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white shadow-[0_0_15px_rgba(240,79,116,0.2)]'
                 : 'bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
@@ -259,9 +259,9 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <button
             type="button"
             onClick={() => setSubTab('BUTTON_STYLE')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'BUTTON_STYLE'
-                ? 'bg-rose-600 text-white shadow'
+                ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white shadow-[0_0_15px_rgba(240,79,116,0.2)]'
                 : 'bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
@@ -272,9 +272,9 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <button
             type="button"
             onClick={() => setSubTab('HEADER')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'HEADER'
-                ? 'bg-rose-600 text-white shadow'
+                ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white shadow-[0_0_15px_rgba(240,79,116,0.2)]'
                 : 'bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
@@ -285,9 +285,9 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <button
             type="button"
             onClick={() => setSubTab('FOOTER')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'FOOTER'
-                ? 'bg-rose-600 text-white shadow'
+                ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white shadow-[0_0_15px_rgba(240,79,116,0.2)]'
                 : 'bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
@@ -300,7 +300,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <button
             type="button"
             onClick={handleResetToDefault}
-            className="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
+            className="p-2 sm:px-3 sm:py-2 rounded-none bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-zinc-400 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
             title="초기화"
           >
             <RotateCcw className="w-4 h-4" />
@@ -310,7 +310,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <button
             type="button"
             onClick={handleSaveAll}
-            className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer flex items-center gap-2"
+            className="px-5 py-2 rounded-none border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs sm:text-sm font-mono tracking-wider uppercase font-semibold shadow-[0_0_20px_rgba(240,79,116,0.25)] transition-all cursor-pointer flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             <span>저장</span>
@@ -331,15 +331,15 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             {(draftConfig?.mainSectors || []).map((sector, index) => (
               <div
                 key={sector.id}
-                className={`p-4 rounded-2xl border transition-all space-y-3 ${
+                className={`p-4 rounded-none border transition-all space-y-3 ${
                   sector.visible
-                    ? 'bg-[#151926] border-white/10 shadow-md'
+                    ? 'bg-[#0c0d12] border-white/10 shadow-md'
                     : 'bg-[#10121a]/60 border-white/5 opacity-60'
                 }`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center font-mono font-bold text-xs text-rose-300 shrink-0">
+                    <span className="w-8 h-8 rounded-none bg-white/5 border border-white/10 flex items-center justify-center font-mono font-bold text-xs text-[#f04f74] shrink-0">
                       #{index + 1}
                     </span>
                     <div>
@@ -361,7 +361,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       type="button"
                       disabled={index === 0}
                       onClick={() => handleMoveSector(index, 'UP')}
-                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
+                      className="p-1.5 rounded-none bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
                       title="위로"
                     >
                       <ArrowUp className="w-4 h-4" />
@@ -370,7 +370,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       type="button"
                       disabled={index === (draftConfig?.mainSectors || []).length - 1}
                       onClick={() => handleMoveSector(index, 'DOWN')}
-                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
+                      className="p-1.5 rounded-none bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
                       title="아래로"
                     >
                       <ArrowDown className="w-4 h-4" />
@@ -378,7 +378,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     <button
                       type="button"
                       onClick={() => handleToggleSectorVisibility(sector.id)}
-                      className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-none border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
                         sector.visible
                           ? 'bg-[#f04f74]/15 text-[#f04f74] border-[#f04f74]/30'
                           : 'bg-zinc-800 text-zinc-400 border-zinc-700'
@@ -411,7 +411,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       value={sector.mediaUrl || ''}
                       placeholder="https://... (동영상 MP4 파일 또는 이미지 링크)"
                       onChange={(e) => handleUpdateSectorMedia(sector.id, e.target.value)}
-                      className="flex-1 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-white text-xs placeholder-zinc-600 focus:outline-none focus:border-[#f04f74]"
+                      className="flex-1 px-3 py-1.5 rounded-none bg-black/40 border border-white/10 text-white text-xs placeholder-zinc-600 focus:outline-none focus:border-[#f04f74]"
                     />
                   </div>
                 )}
@@ -433,10 +433,10 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       {(sector.categoryItems || DEFAULT_CATEGORY_ITEMS).map((cat) => (
                         <div
                           key={cat.id}
-                          className={`p-3 rounded-xl border flex items-center justify-between gap-2.5 transition-all ${
+                          className={`p-3 rounded-none border flex items-center justify-between gap-2.5 transition-all ${
                             cat.visible
-                              ? 'bg-[#181d2a] border-white/15'
-                              : 'bg-[#10131c]/60 border-white/5 opacity-50'
+                              ? 'bg-[#0c0d12] border-white/15'
+                              : 'bg-black/40/60 border-white/5 opacity-50'
                           }`}
                         >
                           <div className="min-w-0 flex-1">
@@ -458,7 +458,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                           <button
                             type="button"
                             onClick={() => handleToggleCategoryItemVisibility(sector.id, cat.id)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer shrink-0 transition-all shadow-sm ${
+                            className={`px-3 py-1.5 rounded-none text-xs font-bold cursor-pointer shrink-0 transition-all shadow-sm ${
                               cat.visible
                                 ? 'bg-[#f04f74] text-white hover:bg-[#d93f63]'
                                 : 'bg-white/10 text-zinc-400 hover:text-white hover:bg-white/15'
@@ -483,7 +483,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
       {subTab === 'BUTTON_STYLE' && (
         <div className="space-y-6">
           {/* 실시간 미리보기 */}
-          <div className="p-6 rounded-2xl bg-[#151926] border border-white/10 text-center space-y-3">
+          <div className="p-6 rounded-none bg-[#0c0d12] border border-white/10 text-center space-y-3">
             <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
               버튼 스타일 실시간 미리보기
             </span>
@@ -495,9 +495,9 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           </div>
 
           {/* 1. 테마 프리셋 */}
-          <div className="p-5 rounded-2xl bg-[#151926] border border-white/10 space-y-3">
+          <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-3">
             <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-rose-400" />
+              <Sparkles className="w-4 h-4 text-[#f04f74]" />
               <span>컬러 &amp; 테마 프리셋</span>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -508,16 +508,16 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     key={t.key}
                     type="button"
                     onClick={() => handleUpdateButtonStyle({ theme: t.key })}
-                    className={`p-3.5 rounded-xl border text-left flex items-center justify-between transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-white/[0.08] border-rose-500 shadow-md ring-1 ring-rose-500/50'
+                        ? 'bg-white/[0.08] border-[#f04f74] shadow-md ring-1 ring-rose-500/50'
                         : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.05]'
                     }`}
                   >
                     <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-zinc-300'}`}>
                       {t.label}
                     </span>
-                    <span className={`px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 ml-2 ${t.badgeBg}`}>
+                    <span className={`px-2.5 py-1 rounded-none text-xs font-bold shrink-0 ml-2 ${t.badgeBg}`}>
                       샘플
                     </span>
                   </button>
@@ -528,7 +528,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
 
           {/* 2. 모서리 곡률 & 폰트 크기 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-5 rounded-2xl bg-[#151926] border border-white/10 space-y-3">
+            <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-3">
               <h4 className="text-sm font-bold text-white">모서리 곡률</h4>
               <div className="grid grid-cols-3 gap-2">
                 {ROUNDNESS_OPTIONS.map((r) => {
@@ -538,9 +538,9 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       key={r.key}
                       type="button"
                       onClick={() => handleUpdateButtonStyle({ roundness: r.key })}
-                      className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer ${
+                      className={`p-2.5 rounded-none border text-xs font-bold text-center transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-rose-950/40 border-rose-500 text-rose-300 ring-1 ring-rose-500/50'
+                          ? 'bg-rose-950/40 border-[#f04f74] text-[#f04f74] ring-1 ring-rose-500/50'
                           : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -551,7 +551,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#151926] border border-white/10 space-y-3">
+            <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-3">
               <h4 className="text-sm font-bold text-white">폰트 크기</h4>
               <div className="grid grid-cols-4 gap-2">
                 {SIZE_OPTIONS.map((s) => {
@@ -561,9 +561,9 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       key={s.key}
                       type="button"
                       onClick={() => handleUpdateButtonStyle({ fontSize: s.key })}
-                      className={`p-2.5 rounded-xl border text-xs font-bold text-center transition-all cursor-pointer ${
+                      className={`p-2.5 rounded-none border text-xs font-bold text-center transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-rose-950/40 border-rose-500 text-rose-300 ring-1 ring-rose-500/50'
+                          ? 'bg-rose-950/40 border-[#f04f74] text-[#f04f74] ring-1 ring-rose-500/50'
                           : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -583,10 +583,10 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
       {subTab === 'HEADER' && (
         <div className="space-y-5">
           {/* 상단 띠배너 */}
-          <div className="p-5 rounded-2xl bg-[#151926] border border-white/10 space-y-3">
+          <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Megaphone className="w-4 h-4 text-rose-400" />
+                <Megaphone className="w-4 h-4 text-[#f04f74]" />
                 <h4 className="text-sm font-bold text-white">상단 공지 띠배너</h4>
               </div>
               <button
@@ -603,9 +603,9 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     },
                   })
                 }
-                className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-none text-xs font-semibold border transition-all cursor-pointer ${
                   draftConfig?.header?.announcement?.visible
-                    ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                    ? 'bg-rose-500/20 text-[#f04f74] border-[#f04f74]/40'
                     : 'bg-white/5 text-zinc-400 border-white/10'
                 }`}
               >
@@ -631,7 +631,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-medium"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white font-medium"
                 />
               </div>
               <div className="sm:col-span-7">
@@ -651,7 +651,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-medium"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white font-medium"
                 />
               </div>
               <div className="sm:col-span-3">
@@ -671,14 +671,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white font-medium"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white font-medium"
                 />
               </div>
             </div>
           </div>
 
           {/* 거점 기본 라벨 */}
-          <div className="p-5 rounded-2xl bg-[#151926] border border-white/10 space-y-2">
+          <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-2">
             <h4 className="text-sm font-bold text-white">헤더 우측 거점 뱃지 텍스트</h4>
             <input
               type="text"
@@ -692,7 +692,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   },
                 })
               }
-              className="w-full sm:w-80 px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white text-xs font-medium"
+              className="w-full sm:w-80 px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white text-xs font-medium"
               placeholder="예: 부산 (전포·서면)"
             />
           </div>
@@ -703,22 +703,22 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             {(draftConfig?.header?.navItems || []).map((item, index) => (
               <div
                 key={item.id}
-                className="p-3.5 rounded-xl bg-[#151926] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                className="p-3.5 rounded-none bg-[#0c0d12] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
               >
                 <div className="flex items-center gap-2.5 flex-1">
-                  <span className="font-mono text-xs text-rose-300 font-bold w-6">#{index + 1}</span>
+                  <span className="font-mono text-xs text-[#f04f74] font-bold w-6">#{index + 1}</span>
                   <input
                     type="text"
                     value={item.label || ''}
                     onChange={(e) => handleUpdateNavLabel(item.id, e.target.value)}
-                    className="px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white text-xs font-semibold w-36"
+                    className="px-3 py-1.5 rounded-none bg-black/40 border border-white/10 text-white text-xs font-semibold w-36"
                   />
                   <input
                     type="text"
                     value={item.badge || ''}
                     onChange={(e) => handleUpdateNavBadge(item.id, e.target.value)}
                     placeholder="뱃지"
-                    className="px-2.5 py-1.5 rounded-lg bg-black/40 border border-white/10 text-rose-300 text-[11px] w-24"
+                    className="px-2.5 py-1.5 rounded-none bg-black/40 border border-white/10 text-[#f04f74] text-[11px] w-24"
                   />
                   <span className="text-[11px] font-mono text-zinc-500 hidden sm:inline">
                     {item.href}
@@ -730,7 +730,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     type="button"
                     disabled={index === 0}
                     onClick={() => handleMoveNavItem(index, 'UP')}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
+                    className="p-1.5 rounded-none bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
                   >
                     <ArrowUp className="w-3.5 h-3.5" />
                   </button>
@@ -738,14 +738,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     type="button"
                     disabled={index === (draftConfig?.header?.navItems || []).length - 1}
                     onClick={() => handleMoveNavItem(index, 'DOWN')}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
+                    className="p-1.5 rounded-none bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 disabled:opacity-30 cursor-pointer"
                   >
                     <ArrowDown className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => handleToggleNavVisibility(item.id)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold border cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-none text-xs font-semibold border cursor-pointer ${
                       item.visible
                         ? 'bg-[#f04f74]/15 text-[#f04f74] border-[#f04f74]/30'
                         : 'bg-zinc-800 text-zinc-400 border-zinc-700'
@@ -765,7 +765,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           ====================================================================== */}
       {subTab === 'FOOTER' && (
         <div className="space-y-5">
-          <div className="p-5 rounded-2xl bg-[#151926] border border-white/10 space-y-3">
+          <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-3">
             <h4 className="text-sm font-bold text-white">사업자 정보</h4>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -783,7 +783,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
 
@@ -801,7 +801,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
 
@@ -819,7 +819,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
 
@@ -837,7 +837,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
 
@@ -855,7 +855,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
 
@@ -873,7 +873,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
 
@@ -891,7 +891,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
 
@@ -909,7 +909,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
 
@@ -927,14 +927,14 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-white"
+                  className="w-full px-3 py-2 rounded-none bg-black/40 border border-white/10 text-white"
                 />
               </div>
             </div>
           </div>
 
           {/* SNS 채널 */}
-          <div className="p-5 rounded-2xl bg-[#151926] border border-white/10 space-y-2.5">
+          <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-2.5">
             <h4 className="text-sm font-bold text-white">SNS 및 공식 채널 링크</h4>
             {(draftConfig?.footer?.socialLinks || []).map((social, idx) => (
               <div key={social.id} className="flex items-center gap-2.5 text-xs">
@@ -953,7 +953,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     });
                   }}
-                  className="flex-1 px-3 py-1.5 rounded-lg bg-black/40 border border-white/10 text-white"
+                  className="flex-1 px-3 py-1.5 rounded-none bg-black/40 border border-white/10 text-white"
                 />
                 <button
                   type="button"
@@ -968,9 +968,9 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       },
                     });
                   }}
-                  className={`px-3 py-1.5 rounded-lg border text-xs font-semibold cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-none border text-xs font-semibold cursor-pointer ${
                     social.visible
-                      ? 'bg-rose-600/20 text-rose-300 border-rose-500/40'
+                      ? 'bg-rose-600/20 text-[#f04f74] border-[#f04f74]/40'
                       : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                   }`}
                 >
