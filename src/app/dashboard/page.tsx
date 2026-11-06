@@ -1545,10 +1545,10 @@ function MemberDashboardContent() {
                             });
                             setIsCheckoutOpen(true);
                           }}
-                          className={`px-6 py-3 rounded-xl text-base font-bold cursor-pointer transition-all duration-200 ${
+                          className={`px-6 py-3 rounded-xl text-base font-bold cursor-pointer transition-all duration-300 ${
                             isApplied
                               ? 'bg-white/10 text-zinc-400 border border-white/10 cursor-not-allowed'
-                              : 'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white shadow-lg'
+                              : 'border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white shadow-lg hover:shadow-[0_0_20px_rgba(240,79,116,0.4)]'
                           }`}
                         >
                           {isApplied ? '신청 완료' : '신청하기'}

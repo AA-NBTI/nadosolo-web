@@ -408,7 +408,7 @@ export default function GuidePage() {
             <button
               type="button"
               onClick={handleApplyClick}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#f04f74] hover:bg-[#d93f63] text-white text-base font-bold shadow-xl transition-all cursor-pointer"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white text-base font-bold shadow-xl hover:shadow-[0_0_24px_rgba(240,79,116,0.45)] transition-all duration-300 cursor-pointer"
             >
               신청하기 (₩30,000)
             </button>

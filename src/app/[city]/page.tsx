@@ -139,7 +139,7 @@ export default function CityLandingPage() {
               <button
                 type="button"
                 onClick={() => handleApplyClick('EVT_JEONPO_FRI')}
-                className="px-8 py-3.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-base font-semibold shadow-xl transition-all cursor-pointer"
+                className="px-8 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white text-base font-bold shadow-xl hover:shadow-[0_0_24px_rgba(240,79,116,0.45)] transition-all duration-300 cursor-pointer"
               >
                 신청하기
               </button>

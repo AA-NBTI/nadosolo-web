@@ -25,9 +25,9 @@ const THEME_PRESETS: {
 }[] = [
   {
     key: 'glass-rose',
-    label: '은은한 글래스 + 로즈 텍스트 (기본)',
-    desc: '은은한 다크 글래스 바탕에 선명한 로즈 텍스트 (화면과 완벽한 조화)',
-    badgeBg: 'bg-zinc-800 text-rose-400 border border-white/15',
+    label: '다크 글래스 + 핑크 롤오버 (기본)',
+    desc: '은은한 다크 글래스에서 마우스 롤오버 시 대표 핑크 포인트 컬러로 배경 전환',
+    badgeBg: 'bg-zinc-800 text-[#f04f74] border border-white/15',
   },
   {
     key: 'solid-wine',

@@ -43,13 +43,13 @@ const THEME_PRESETS: {
 }[] = [
   {
     key: 'glass-rose',
-    label: '은은한 글래스 + 로즈 텍스트 (권장)',
-    badgeBg: 'bg-zinc-800 text-rose-400 border border-white/15',
+    label: '다크 글래스 + 핑크 롤오버 (권장)',
+    badgeBg: 'bg-zinc-800 text-[#f04f74] border border-white/15',
   },
   {
     key: 'solid-wine',
-    label: '솔리드 루비 레드와인',
-    badgeBg: 'bg-rose-600 text-white border border-rose-500',
+    label: '솔리드 핑크로즈 포인트',
+    badgeBg: 'bg-[#f04f74] text-white border border-[#f04f74]',
   },
   {
     key: 'pure-white',

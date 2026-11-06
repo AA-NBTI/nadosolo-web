@@ -154,24 +154,24 @@ export function resolveButtonClasses(
   switch (merged.theme) {
     case 'solid-wine':
       themeCls =
-        'bg-rose-600 hover:bg-rose-700 text-white border border-rose-500 shadow-rose-950/50';
+        'bg-[#f04f74] hover:bg-[#d93f63] text-white border border-[#f04f74] shadow-[0_0_20px_rgba(240,79,116,0.35)] transition-all duration-300';
       break;
     case 'pure-white':
       themeCls =
-        'bg-white hover:bg-zinc-200 text-zinc-950 font-bold border border-white shadow-zinc-900/50';
+        'bg-white hover:bg-[#f04f74] hover:border-[#f04f74] text-zinc-950 hover:text-white font-bold border border-white shadow-zinc-900/50 transition-all duration-300';
       break;
     case 'dark-outline':
       themeCls =
-        'bg-zinc-900/80 hover:bg-white/10 text-white border border-white/20 hover:border-white/40 shadow-black/60';
+        'bg-zinc-900/80 hover:bg-[#f04f74] hover:border-[#f04f74] text-white border border-white/20 hover:text-white shadow-black/60 transition-all duration-300';
       break;
     case 'gold-amber':
       themeCls =
-        'bg-amber-950/40 hover:bg-amber-600 border border-amber-500/40 hover:border-amber-500 text-amber-300 hover:text-white shadow-amber-950/40';
+        'bg-amber-950/40 hover:bg-[#f04f74] border border-amber-500/40 hover:border-[#f04f74] text-amber-300 hover:text-white shadow-amber-950/40 transition-all duration-300';
       break;
     case 'glass-rose':
     default:
       themeCls =
-        'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-rose-400 hover:text-white shadow-black/40';
+        'border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white shadow-black/40 hover:shadow-[0_0_24px_rgba(240,79,116,0.45)] transition-all duration-300';
       break;
   }
 
