@@ -277,14 +277,14 @@ export default function CategoryProductHero({
             ))}
           </div>
 
-          {/* 액션 버튼 영역 (AdaptiveButton 적용: 편집 모드 시 결제 차단 및 버튼 스타일 커스터마이저 오픈) */}
+          {/* 액션 버튼 영역 (AdaptiveButton 적용: 샤프하고 정제된 높이) */}
           <div className="pt-2 space-y-3.5">
             <AdaptiveButton
               onClick={onApply}
-              className="w-full py-4 flex items-center justify-center gap-2"
+              className="w-full h-12 py-2.5 flex items-center justify-center gap-2 text-sm sm:text-base font-semibold"
             >
               <span>신청하기</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4" />
             </AdaptiveButton>
 
             {/* 안심 보증 문구 */}

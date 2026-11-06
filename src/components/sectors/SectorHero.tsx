@@ -61,11 +61,11 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
           </p>
         </div>
 
-        {/* 액션 버튼 영역 (AdaptiveButton 적용: 편집 모드 시 결제 차단 및 스타일 팔레트 오픈) */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+        {/* 액션 버튼 영역: '신청하기'와 '자세히 보기' 완벽한 동일 크기/높이/패딩 샤프한 구조 */}
+        <div className="mt-10 flex flex-wrap items-center justify-center gap-3 sm:gap-3.5">
           <AdaptiveButton
             onClick={onOpenCheckout}
-            className="px-9 py-3.5"
+            className="h-11 px-6 inline-flex items-center justify-center"
           >
             <EditableText
               as="span"
@@ -78,7 +78,7 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
 
           <Link
             href="/dining"
-            className="px-8 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-zinc-200 hover:text-white font-medium text-base sm:text-lg transition-all duration-200 flex items-center gap-2 shadow-lg"
+            className="h-11 px-6 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-zinc-200 hover:text-white font-semibold text-sm sm:text-[15px] tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-1.5 shadow-md"
           >
             <span>자세히 보기</span>
             <ArrowRight className="w-4 h-4 text-zinc-400" />

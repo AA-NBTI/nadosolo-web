@@ -404,17 +404,17 @@ export default function GuidePage() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             <button
               type="button"
               onClick={handleApplyClick}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white text-base font-bold shadow-xl hover:shadow-[0_0_24px_rgba(240,79,116,0.45)] transition-all duration-300 cursor-pointer"
+              className="w-full sm:w-auto h-11 px-6 rounded-xl border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white text-sm sm:text-[15px] font-semibold tracking-wide shadow-md hover:shadow-[0_0_24px_rgba(240,79,116,0.45)] transition-all duration-300 cursor-pointer inline-flex items-center justify-center"
             >
               신청하기 (₩30,000)
             </button>
             <Link
               href="/dining"
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-zinc-300 hover:text-white text-sm font-semibold transition-all"
+              className="w-full sm:w-auto h-11 px-6 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-zinc-300 hover:text-white text-sm sm:text-[15px] font-semibold tracking-wide transition-all inline-flex items-center justify-center shadow-md"
             >
               다이닝 프로그램 안내
             </Link>

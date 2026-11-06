@@ -115,10 +115,10 @@ export default function SectorDistricts({ onOpenCheckout }: SectorDistrictsProps
                   </div>
                 </div>
 
-                {/* 신청 버튼: AdaptiveButton 적용 (편집 모드 시 결제 차단 및 버튼 스타일 커스터마이저 오픈) */}
+                {/* 신청 버튼: AdaptiveButton 적용 (샤프하고 컴팩트한 높이) */}
                 <AdaptiveButton
                   onClick={onOpenCheckout}
-                  className="w-full py-3.5"
+                  className="w-full h-10 py-2 text-xs sm:text-sm font-semibold"
                 >
                   신청하기
                 </AdaptiveButton>

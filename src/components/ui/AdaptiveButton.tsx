@@ -30,7 +30,7 @@ export default function AdaptiveButton({
     ...(config.buttonStyle || {
       theme: 'glass-rose',
       roundness: 'xl',
-      fontSize: 'lg',
+      fontSize: 'base',
     }),
     ...(overrideStyle || {}),
   };

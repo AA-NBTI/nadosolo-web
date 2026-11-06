@@ -136,7 +136,7 @@ export interface ButtonStyleConfig {
 export const DEFAULT_BUTTON_STYLE: ButtonStyleConfig = {
   theme: 'glass-rose',
   roundness: 'xl',
-  fontSize: 'lg',
+  fontSize: 'base',
 };
 
 // 헬퍼: ButtonStyleConfig를 실제 Tailwind 클래스로 변환
@@ -180,13 +180,14 @@ export function resolveButtonClasses(
   if (merged.roundness === 'md') roundCls = 'rounded-lg';
   if (merged.roundness === 'full') roundCls = 'rounded-full';
 
-  // 3. 폰트 크기
-  let fontCls = 'text-base sm:text-lg';
+  // 3. 폰트 크기 및 두께 (샤프하고 세련된 구조)
+  let fontCls = 'text-sm sm:text-[15px]';
   if (merged.fontSize === 'sm') fontCls = 'text-xs sm:text-sm';
-  if (merged.fontSize === 'base') fontCls = 'text-sm sm:text-base';
-  if (merged.fontSize === 'xl') fontCls = 'text-lg sm:text-xl';
+  if (merged.fontSize === 'base') fontCls = 'text-sm sm:text-[15px]';
+  if (merged.fontSize === 'lg') fontCls = 'text-sm sm:text-base';
+  if (merged.fontSize === 'xl') fontCls = 'text-base sm:text-lg';
 
-  return `${themeCls} ${roundCls} ${fontCls} font-bold transition-all duration-200 shadow-lg ${extraClasses}`.trim();
+  return `${themeCls} ${roundCls} ${fontCls} font-semibold tracking-wide transition-all duration-200 shadow-md ${extraClasses}`.trim();
 }
 
 export interface SiteConfig {

@@ -100,11 +100,11 @@ export default function SectorVideoBanner({
             />
           </p>
 
-          {/* 액션 버튼 */}
+          {/* 액션 버튼: 완벽한 동일 크기/높이/패딩 샤프한 구조 */}
           <div className="pt-2 flex flex-wrap items-center gap-3">
             <AdaptiveButton
               onClick={onOpenCheckout}
-              className="px-8 py-3.5 backdrop-blur-md"
+              className="h-11 px-6 inline-flex items-center justify-center backdrop-blur-md"
             >
               <EditableText
                 as="span"
@@ -117,7 +117,7 @@ export default function SectorVideoBanner({
 
             <Link
               href="/dining"
-              className="px-7 py-3.5 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-white font-medium text-base sm:text-lg transition-all duration-200 flex items-center gap-2 backdrop-blur-md shadow-lg"
+              className="h-11 px-6 rounded-xl border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-white font-semibold text-sm sm:text-[15px] tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-1.5 backdrop-blur-md shadow-md"
             >
               <span>자세히 보기</span>
               <ArrowRight className="w-4 h-4 text-zinc-300" />

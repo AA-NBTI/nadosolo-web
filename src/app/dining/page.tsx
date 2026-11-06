@@ -205,7 +205,7 @@ export default function DiningPage() {
                   ) : (
                     <AdaptiveButton
                       onClick={() => handleApplyClick(ev.eventId)}
-                      className="w-full py-3.5"
+                      className="w-full h-11 py-2 text-sm font-semibold"
                     >
                       신청하기
                     </AdaptiveButton>
