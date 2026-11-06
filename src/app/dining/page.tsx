@@ -37,7 +37,7 @@ const DINING_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideIt
   },
 ];
 
-const DINING_VENUES = [
+const DINING_PLACES = [
   {
     name: '부산 비스트로 아틀리에 (제휴 공간)',
     location: '부산 부산진구',
@@ -221,13 +221,13 @@ export default function DiningPage() {
       </section>
 
       {/* ==============================================================
-          4. 제휴 베뉴 갤러리 섹션
+          4. 제휴 공간 갤러리 섹션
           ============================================================== */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 w-full">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <span className="text-xs uppercase tracking-widest text-zinc-400 font-semibold">
-              Partner Venues
+              PLACES
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif-editorial font-bold text-white mt-1">
               제휴 파트너 공간
@@ -239,7 +239,7 @@ export default function DiningPage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {DINING_VENUES.map((v, i) => (
+          {DINING_PLACES.map((v, i) => (
             <div key={i} className="rounded-2xl bg-white/[0.02] border border-white/10 overflow-hidden group">
               <div className="relative h-44 w-full overflow-hidden bg-zinc-900">
                 <img

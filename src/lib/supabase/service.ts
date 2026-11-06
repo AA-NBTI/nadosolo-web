@@ -219,4 +219,99 @@ export const nadoSoloSupabaseService = {
       return false;
     }
   },
+
+  /**
+   * 단일 명사 참여자 관찰 기록 저장
+   */
+  async saveParticipantObservation(record: {
+    sessionId: string;
+    moduleId: string;
+    fromUserId: string;
+    toUserId: string;
+    elementId: string;
+    anchorNoun: string;
+    scoreStep: 1 | 2 | 3 | 4 | 5;
+  }): Promise<boolean> {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('participant_observations')
+        .upsert(
+          {
+            session_id: record.sessionId,
+            module_id: record.moduleId,
+            from_user_id: record.fromUserId,
+            to_user_id: record.toUserId,
+            element_id: record.elementId,
+            anchor_noun: record.anchorNoun,
+            score_step: record.scoreStep,
+          },
+          { onConflict: 'session_id,from_user_id,to_user_id,element_id' }
+        );
+      if (error) {
+        console.warn('[Supabase] saveParticipantObservation warning:', error.message);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('[Supabase] saveParticipantObservation error:', e);
+      return false;
+    }
+  },
+
+  /**
+   * 단일 명사 참여자 관찰 기록 조회
+   */
+  async getParticipantObservations(sessionId: string): Promise<any[]> {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('participant_observations')
+        .select('*')
+        .eq('session_id', sessionId);
+      if (error || !data) return [];
+      return data;
+    } catch (e) {
+      console.warn('[Supabase] getParticipantObservations error:', e);
+      return [];
+    }
+  },
+
+  /**
+   * 개인 리포트 상태 및 점수 캐시 저장
+   */
+  async upsertPersonalReport(report: {
+    sessionId: string;
+    userId: string;
+    unlocked: boolean;
+    completedCount: number;
+    totalScore100: number;
+    topStrengths: string[];
+  }): Promise<boolean> {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('personal_reports')
+        .upsert(
+          {
+            session_id: report.sessionId,
+            user_id: report.userId,
+            unlocked: report.unlocked,
+            completed_count: report.completedCount,
+            total_score100: report.totalScore100,
+            top_strengths: report.topStrengths,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'session_id,user_id' }
+        );
+      if (error) {
+        console.warn('[Supabase] upsertPersonalReport warning:', error.message);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('[Supabase] upsertPersonalReport error:', e);
+      return false;
+    }
+  },
 };

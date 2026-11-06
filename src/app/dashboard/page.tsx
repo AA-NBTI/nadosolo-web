@@ -272,6 +272,22 @@ function MemberDashboardContent() {
     C4_STABILITY: 4,
     C5_APPEAL: 4,
   });
+  const [draftSingleNounScores, setDraftSingleNounScores] = useState<Record<string, 1 | 2 | 3 | 4 | 5>>({
+    EL_3040_QUESTION: 4,
+    EL_3040_LISTEN: 4,
+    EL_3040_EXPRESSION: 4,
+    EL_3040_SENSE: 4,
+    EL_3040_CONSIDERATION: 4,
+  });
+
+  const track3040Elements = [
+    { id: 'EL_3040_QUESTION', anchorNoun: '질문', question: '상대방의 관심사를 이끌어내는 질문을 하는가?' },
+    { id: 'EL_3040_LISTEN', anchorNoun: '경청', question: '상대방의 말을 끊지 않고 끝까지 경청하는가?' },
+    { id: 'EL_3040_EXPRESSION', anchorNoun: '표현', question: '자신의 생각과 취향을 명확하고 솔직하게 표현하는가?' },
+    { id: 'EL_3040_SENSE', anchorNoun: '센스', question: '상황과 대화 흐름에 맞게 유연한 태도를 보이는가?' },
+    { id: 'EL_3040_CONSIDERATION', anchorNoun: '배려', question: '테이블 전체가 소외되지 않도록 고루 배려하는가?' },
+  ];
+
   const [evalSavedMsg, setEvalSavedMsg] = useState<string | null>(null);
 
   const dashConfig = cmsPages.find((p) => p.pageId === 'PAGE_DASHBOARD');
@@ -1820,200 +1836,152 @@ function MemberDashboardContent() {
           )}
 
           {/* ----------------------------------------------------------
-              [P08] 개인평가 모듈 (5대분류 × 5중분류 × 5대 평가기준 = 20점/100점 정규화)
+              [P08] 평가 모듈 (단일 명사 1요소 1기준 매핑)
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P08_EVALUATION' && (
-            <section className="bg-[#12151e] rounded-3xl p-8 border border-white/10 shadow-sm space-y-6">
-              <div className="border-b border-white/10 pb-4">
-                <h3 className="text-2xl font-bold text-white">
-                  개인평가 (5×5×5 정규화 엔진)
-                </h3>
-                <p className="text-sm text-zinc-400 mt-1">
-                  동석자를 선택하고 이번 모임에 배정된 핵심 요소({activeEvalSubElements.length}개)를 5대 기준(정돈 · 조화 · 센스 · 안정 · 호감)으로 평가합니다.
-                </p>
-              </div>
-
-              {/* 1. 평가 대상 동석자 선택 */}
-              <div>
-                <label className="block text-sm font-bold text-zinc-300 mb-2">
-                  1. 평가할 동석자 선택
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {tablePeers.map((peer) => (
+            <section className="bg-[#12151e] rounded-3xl p-6 sm:p-8 border border-white/10 shadow-sm space-y-6">
+              <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                    EVALUATION
+                  </span>
+                  <h3 className="text-2xl font-bold text-white mt-0.5">
+                    평가
+                  </h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300">
+                    완료: <strong className="text-white">{completedEvalUserIds.length}</strong> / 5명
+                  </span>
+                  {completedEvalUserIds.length >= 5 ? (
                     <button
-                      key={peer.userId}
                       type="button"
-                      onClick={() => setEvalTargetUserId(peer.userId)}
-                      className={`px-4 py-2.5 rounded-xl text-sm font-bold border cursor-pointer ${
-                        evalTargetUserId === peer.userId
-                          ? 'bg-[#10131c] text-white border-stone-900'
-                          : 'bg-[#10131c] text-zinc-400 border border-white/10 hover:text-white'
-                      }`}
+                      onClick={() => setActiveProcessId('P10_REPORT')}
+                      className="px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold hover:bg-emerald-500/30 transition-all cursor-pointer"
                     >
-                      {peer.nickname} ({peer.gender === 'F' ? '여' : '남'} ·{' '}
-                      {peer.birthYear}년생)
+                      리포트 열람 가능 ➔
                     </button>
-                  ))}
+                  ) : (
+                    <span className="px-3 py-1 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs font-semibold">
+                      잠금 상태
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* 2. 이번 모임 활성 평가 요소 탭 (양방향 이동 가능) */}
+              {/* 1. 동석자 선택 버튼 */}
               <div>
-                <label className="block text-sm font-bold text-zinc-300 mb-2">
-                  2. 평가 요소 선택 (현재 모임 프리셋:{' '}
-                  {activeEvalSubElements.length}개 항목 활성화됨)
+                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                  동석자 선택
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {activeEvalSubElements.map((sub, idx) => {
-                    const dom = majorDomains.find(
-                      (d) => d.code === sub.majorCode
-                    );
+                  {tablePeers.map((peer) => {
+                    const isDone = completedEvalUserIds.includes(peer.userId);
+                    const isSelected = evalTargetUserId === peer.userId;
                     return (
                       <button
-                        key={sub.id}
+                        key={peer.userId}
                         type="button"
-                        onClick={() => setEvalSubIdx(idx)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all ${
-                          evalSubIdx === idx
-                            ? 'bg-white text-zinc-950'
-                            : 'bg-[#1c202e] text-zinc-400 hover:text-white'
+                        onClick={() => setEvalTargetUserId(peer.userId)}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-2 ${
+                          isSelected
+                            ? 'bg-[#f04f74] text-white border-[#f04f74] shadow-md'
+                            : isDone
+                            ? 'bg-white/5 text-zinc-300 border-white/10 hover:border-white/20'
+                            : 'bg-[#181c28] text-zinc-400 border-white/5 hover:text-white'
                         }`}
                       >
-                        [{dom?.label}] {sub.label}
+                        <span>{peer.nickname}</span>
+                        {isDone && <span className="text-[10px] text-emerald-400">✓</span>}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* 3. 선택된 요소에 대한 5대 기준(정돈·조화·센스·안정·호감) 채점 */}
-              {currentEvalSub && (
-                <div className="p-6 rounded-2xl bg-[#1c202e] border border-white/10 space-y-5">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                    <div>
-                      <span className="text-xs font-mono text-zinc-400">
-                        항목 {evalSubIdx + 1} / {activeEvalSubElements.length} ·{' '}
-                        {
-                          majorDomains.find(
-                            (d) => d.code === currentEvalSub.majorCode
-                          )?.label
-                        }{' '}
-                        대분류
-                      </span>
-                      <h4 className="text-2xl font-bold text-white mt-0.5">
-                        [{currentEvalSub.label}] 요소 5기준 평가
-                      </h4>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-2xl font-mono text-white">
-                        {EvaluationMatrixEngine.computeSubScore20(
-                          draftCriteriaScores
-                        )}
-                        점
-                      </span>
-                      <span className="text-xs text-zinc-400 block">
-                        / 20점 만점 (5기준 × 4점)
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {evaluationCriteria.map((crit) => {
-                      const val = draftCriteriaScores[crit.code] ?? 4;
-                      return (
-                        <div
-                          key={crit.code}
-                          className="p-4 rounded-xl bg-[#1c202e] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                        >
-                          <div>
-                            <span className="text-base font-bold text-white">
-                              {crit.stepOrder}. {crit.label}
-                            </span>
-                            <p className="text-xs text-zinc-400">
-                              {crit.definition}
-                            </p>
-                          </div>
-                          <div className="flex gap-1.5 shrink-0">
-                            {[1, 2, 3, 4, 5].map((scoreNum) => (
-                              <button
-                                key={scoreNum}
-                                type="button"
-                                onClick={() =>
-                                  setDraftCriteriaScores((prev) => ({
-                                    ...prev,
-                                    [crit.code]: scoreNum,
-                                  }))
-                                }
-                                className={`w-10 h-10 rounded-xl text-sm font-semibold cursor-pointer transition-all ${
-                                  val === scoreNum
-                                    ? 'bg-white text-zinc-950'
-                                    : 'bg-[#1c202e] text-zinc-400 hover:text-white'
-                                }`}
-                              >
-                                {scoreNum}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {evalSavedMsg && (
-                    <div className="p-3 rounded-xl bg-white/10 border border-white/15 text-white text-xs font-medium">
-                      {evalSavedMsg}
-                    </div>
-                  )}
-
-                  {/* 이전 요소 / 저장 / 다음 요소 양방향 컨트롤 */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                    <button
-                      type="button"
-                      disabled={evalSubIdx === 0}
-                      onClick={() => setEvalSubIdx((p) => Math.max(0, p - 1))}
-                      className="px-4 py-2.5 rounded-xl border border-white/10 bg-[#10131c] text-zinc-400 hover:text-white text-xs font-semibold disabled:opacity-40 cursor-pointer"
+              {/* 2. 단일 명사 5대 항목 평가 폼 */}
+              <div className="space-y-3">
+                {track3040Elements.map((el) => {
+                  const currentScore = draftSingleNounScores[el.id] ?? 4;
+                  return (
+                    <div
+                      key={el.id}
+                      className="p-4 rounded-2xl bg-[#181c28] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
-                      이전 요소
-                    </button>
+                      <div className="space-y-0.5">
+                        <span className="text-sm font-bold text-[#f04f74] font-mono">
+                          #{el.anchorNoun}
+                        </span>
+                        <p className="text-xs text-zinc-300">
+                          {el.question}
+                        </p>
+                      </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        submitMatrixEvaluation(
-                          evalTargetUserId,
-                          currentEvalSub.id,
-                          draftCriteriaScores
-                        );
-                        const targetNick =
-                          tablePeers.find((p) => p.userId === evalTargetUserId)
-                            ?.nickname ?? evalTargetUserId;
-                        setEvalSavedMsg(
-                          `[${targetNick}]님의 [${currentEvalSub.label}] 평가(${EvaluationMatrixEngine.computeSubScore20(
-                            draftCriteriaScores
-                          )}/20점)가 프로파일 DB에 저장되었습니다.`
-                        );
-                        setTimeout(() => setEvalSavedMsg(null), 2500);
-                      }}
-                      className="px-6 py-3 rounded-xl bg-white hover:bg-zinc-200 text-zinc-950 text-sm font-semibold cursor-pointer transition-all"
-                    >
-                      현재 요소 점수 저장
-                    </button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {([1, 2, 3, 4, 5] as const).map((stepVal) => (
+                          <button
+                            key={stepVal}
+                            type="button"
+                            onClick={() =>
+                              setDraftSingleNounScores((prev) => ({
+                                ...prev,
+                                [el.id]: stepVal,
+                              }))
+                            }
+                            className={`w-9 h-9 rounded-xl text-xs font-bold font-mono transition-all cursor-pointer ${
+                              currentScore === stepVal
+                                ? 'bg-white text-zinc-950 shadow-md scale-105'
+                                : 'bg-[#12151e] text-zinc-400 border border-white/10 hover:text-white hover:border-white/20'
+                            }`}
+                          >
+                            {stepVal}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
 
-                    <button
-                      type="button"
-                      disabled={evalSubIdx >= activeEvalSubElements.length - 1}
-                      onClick={() =>
-                        setEvalSubIdx((p) =>
-                          Math.min(activeEvalSubElements.length - 1, p + 1)
-                        )
-                      }
-                      className="px-4 py-2.5 rounded-xl bg-[#10131c] text-white text-xs font-bold disabled:opacity-40 cursor-pointer"
-                    >
-                      다음 요소 ▶
-                    </button>
-                  </div>
+              {/* 저장 알림 및 액션 버튼 */}
+              {evalSavedMsg && (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-medium">
+                  {evalSavedMsg}
                 </div>
               )}
+
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <span className="text-xs text-zinc-500">
+                  전원 완료 시 리포트 자동 해금
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    track3040Elements.forEach((el) => {
+                      submitParticipantObservation(
+                        evalTargetUserId,
+                        'MOD_TRACK_3040',
+                        el.id,
+                        draftSingleNounScores[el.id] ?? 4
+                      );
+                    });
+                    const targetPeer = tablePeers.find((p) => p.userId === evalTargetUserId);
+                    setEvalSavedMsg(`${targetPeer?.nickname ?? evalTargetUserId} 평가 완료`);
+                    setTimeout(() => setEvalSavedMsg(null), 2000);
+
+                    // 다음 미완료 동석자로 자동 전환
+                    const remainingPeers = tablePeers.filter(
+                      (p) => p.userId !== evalTargetUserId && !completedEvalUserIds.includes(p.userId)
+                    );
+                    if (remainingPeers.length > 0) {
+                      setEvalTargetUserId(remainingPeers[0].userId);
+                    }
+                  }}
+                  className="px-8 py-3 rounded-xl bg-[#f04f74] hover:bg-[#d93f63] text-white text-sm font-bold shadow-lg transition-all cursor-pointer"
+                >
+                  저장
+                </button>
+              </div>
             </section>
           )}
 
@@ -2145,19 +2113,13 @@ function MemberDashboardContent() {
             <section className="bg-[#12151e] rounded-3xl p-8 border border-white/10 shadow-sm space-y-8">
               <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <span className="text-xs font-mono text-zinc-500 uppercase">
-                    5×5×5 PERSONAL DOSSIER
+                  <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                    REPORT
                   </span>
                   <h3 className="text-2xl font-bold text-white mt-1">
-                    개인 마스터 코칭 프로파일 (100점 정규화 지표)
+                    리포트
                   </h3>
                 </div>
-                <Link
-                  href="/mirror"
-                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-medium transition-all"
-                >
-                  전용 리포트 페이지에서 크게 보기 →
-                </Link>
               </div>
 
               {/* 상호주의 해금 원칙 배너 (헌법 규칙 1 적용) */}
@@ -2402,25 +2364,25 @@ function MemberDashboardContent() {
                 </div>
               </div>
 
-              {/* 6. 전주기 품질 감사 리포트 (식당 공간 · 식사 미식 · 가변 진행) */}
+              {/* 4. 품질 점검 (공간 · 식사 · 진행) */}
               <div className="pt-6 border-t border-white/10 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <span className="text-xs font-mono text-zinc-500 uppercase">FULL-JOURNEY AUDIT</span>
+                    <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">AUDIT</span>
                     <h4 className="text-lg font-bold text-white mt-0.5">
-                      4. 소셜 다이닝 전주기 품질 감사 리포트
+                      품질 점검
                     </h4>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-zinc-300">
-                      종합 감리지수: <strong className="text-white font-bold">{fullJourneyAudit.totalAuditScore100}점</strong>
+                      종합 점수: <strong className="text-white font-bold">{fullJourneyAudit.totalAuditScore100}점</strong>
                     </span>
                     <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
                       fullJourneyAudit.verifiedPartnerEligible
                         ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
                         : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                     }`}>
-                      {fullJourneyAudit.verifiedPartnerEligible ? '공식 인증 파트너 규격 통과' : '집중 점검 대상'}
+                      {fullJourneyAudit.verifiedPartnerEligible ? '인증 완료' : '점검 대상'}
                     </span>
                   </div>
                 </div>
@@ -2432,7 +2394,7 @@ function MemberDashboardContent() {
                     <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
-                        <span className="text-sm font-bold text-white">식당 공간 환경</span>
+                        <span className="text-sm font-bold text-white">공간</span>
                       </div>
                       <span className="text-base font-bold text-[#f04f74] font-mono">
                         {fullJourneyAudit.placeReport.totalScore100}점
@@ -2456,7 +2418,7 @@ function MemberDashboardContent() {
                     <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-amber-400" />
-                        <span className="text-sm font-bold text-white">식사 미식 품질</span>
+                        <span className="text-sm font-bold text-white">식사</span>
                       </div>
                       <span className="text-base font-bold text-amber-400 font-mono">
                         {fullJourneyAudit.mealReport.totalScore100}점
@@ -2480,7 +2442,7 @@ function MemberDashboardContent() {
                     <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-sky-400" />
-                        <span className="text-sm font-bold text-white">가변 진행 감리</span>
+                        <span className="text-sm font-bold text-white">진행</span>
                       </div>
                       <span className="text-base font-bold text-sky-400 font-mono">
                         {fullJourneyAudit.flowReport.totalScore100}점

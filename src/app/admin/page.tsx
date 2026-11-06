@@ -10,6 +10,7 @@ import {
   PartnerVenue,
   PlaybookCard,
   SocialMode,
+  EvaluationRegistry,
   useNadoSoloEngine,
 } from '@/engine';
 
@@ -17,6 +18,7 @@ import AdminLayoutManager from '@/components/admin/AdminLayoutManager';
 
 type AdminTabKey =
   | 'PROCESS'
+  | 'AUDIT'
   | 'LAYOUT_CMS'
   | 'MEMBER_DOSSIER'
   | 'EVAL_ENGINE'
@@ -30,9 +32,10 @@ type AdminTabKey =
 
 const ADMIN_CATEGORIES: { key: AdminTabKey; label: string; badge?: string }[] = [
   { key: 'PROCESS', label: '프로세스' },
-  { key: 'LAYOUT_CMS', label: '화면/모듈배치', badge: 'NEW' },
+  { key: 'AUDIT', label: '품질점검', badge: '6대모듈' },
+  { key: 'LAYOUT_CMS', label: '화면/모듈배치' },
   { key: 'MEMBER_DOSSIER', label: '회원프로파일' },
-  { key: 'EVAL_ENGINE', label: '평가엔진', badge: '5×5×5' },
+  { key: 'EVAL_ENGINE', label: '평가엔진' },
   { key: 'BADGE', label: '뱃지' },
   { key: 'REGION', label: '지역' },
   { key: 'VENUE', label: '매장' },
@@ -45,6 +48,7 @@ const ADMIN_CATEGORIES: { key: AdminTabKey; label: string; badge?: string }[] = 
 export default function AdminOperationsDashboardPage() {
   const {
     currentUser,
+    fullJourneyAudit,
     processModules,
     toggleProcessModule,
     majorDomains,
@@ -368,6 +372,135 @@ export default function AdminOperationsDashboardPage() {
                     </button>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          {/* ----------------------------------------------------------
+              [품질점검] 6대 마이크로 평가 모듈 및 전주기 품질 감사 관제
+              ---------------------------------------------------------- */}
+          {activeTab === 'AUDIT' && (
+            <section className="space-y-6">
+              {/* 상단 전주기 감사 지표 카드 */}
+              <div className="bg-[#12151e] rounded-3xl p-6 sm:p-8 border border-white/10 space-y-6 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+                  <div>
+                    <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                      FULL-JOURNEY AUDIT DASHBOARD
+                    </span>
+                    <h3 className="text-2xl font-bold text-white mt-0.5">
+                      품질 점검 관제
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-zinc-300">
+                      종합 점수: <strong className="text-white font-bold">{fullJourneyAudit.totalAuditScore100}점</strong>
+                    </span>
+                    <span className={`px-3.5 py-1.5 rounded-full text-xs font-bold border ${
+                      fullJourneyAudit.verifiedPartnerEligible
+                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                        : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                    }`}>
+                      {fullJourneyAudit.verifiedPartnerEligible ? '공식 인증 완료' : '점검 대상'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-5 rounded-2xl bg-[#181c28] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-sm font-bold text-white">공간</span>
+                      <span className="text-base font-bold text-[#f04f74] font-mono">
+                        {fullJourneyAudit.placeReport.totalScore100}점
+                      </span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {fullJourneyAudit.placeReport.elementScores.map((el) => (
+                        <div key={el.elementId} className="flex justify-between text-xs">
+                          <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
+                          <span className="font-mono text-white font-bold">{el.score100}점</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-[#181c28] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-sm font-bold text-white">식사</span>
+                      <span className="text-base font-bold text-amber-400 font-mono">
+                        {fullJourneyAudit.mealReport.totalScore100}점
+                      </span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {fullJourneyAudit.mealReport.elementScores.map((el) => (
+                        <div key={el.elementId} className="flex justify-between text-xs">
+                          <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
+                          <span className="font-mono text-white font-bold">{el.score100}점</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-[#181c28] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-sm font-bold text-white">진행</span>
+                      <span className="text-base font-bold text-sky-400 font-mono">
+                        {fullJourneyAudit.flowReport.totalScore100}점
+                      </span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {fullJourneyAudit.flowReport.elementScores.map((el) => (
+                        <div key={el.elementId} className="flex justify-between text-xs">
+                          <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
+                          <span className="font-mono text-white font-bold">{el.score100}점</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 하단 6대 핫플러그 등록 모듈 현황 */}
+              <div className="bg-[#12151e] rounded-3xl p-6 sm:p-8 border border-white/10 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <div>
+                    <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest">
+                      PLUGGABLE MODULES
+                    </span>
+                    <h4 className="text-lg font-bold text-white mt-0.5">
+                      등록 모듈 ({EvaluationRegistry.getAllModules().length}개)
+                    </h4>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {EvaluationRegistry.getAllModules().map((mod) => (
+                    <div
+                      key={mod.id}
+                      className="p-5 rounded-2xl bg-[#181c28] border border-white/10 space-y-3"
+                    >
+                      <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                        <span className="text-sm font-bold text-white">{mod.name}</span>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/10">
+                          {mod.targetContext}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <span className="text-[11px] text-zinc-400 font-medium">단일 명사 5대 앵커:</span>
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                          {mod.getObservationElements().map((el) => (
+                            <span
+                              key={el.id}
+                              className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-zinc-200 font-mono"
+                            >
+                              #{el.anchorNoun}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
           )}

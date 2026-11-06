@@ -88,7 +88,7 @@ export interface NormalizedModuleScore {
 }
 
 /**
- * 6. 개인화 소셜 프로필 도시에 (Dossier) 리포트 모델
+ * 6. 개인 소셜 분석 리포트 모델 (PersonalSocialReport)
  * 상호주의 해금 원칙에 의해 동석자 전원 평가 완료 시에만 unlocked: true
  */
 export interface PersonalSocialDossier {

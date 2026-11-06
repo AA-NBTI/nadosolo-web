@@ -61,6 +61,7 @@ import {
   VenueAndYieldEngine,
   VoteCategory,
   CoreRunner,
+  EvaluationRegistry,
   PersonalSocialDossier,
   ParticipantObservationRecord,
   FullJourneyAuditReport,
@@ -871,6 +872,19 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     };
     setParticipantObservations((prev) => [...prev, nextRec]);
     setCompletedEvalUserIds((prev) => (prev.includes(toUserId) ? prev : [...prev, toUserId]));
+
+    // Supabase 비동기 동기화
+    const targetModule = EvaluationRegistry.getModule(moduleId);
+    const anchorNoun = targetModule?.getObservationElements().find((el: { id: string; anchorNoun: string }) => el.id === elementId)?.anchorNoun ?? '관찰';
+    nadoSoloSupabaseService.saveParticipantObservation({
+      sessionId: 'SES_BUSAN_01',
+      moduleId,
+      fromUserId: fromId,
+      toUserId,
+      elementId,
+      anchorNoun,
+      scoreStep,
+    }).catch((err) => console.warn('[Supabase Sync]', err));
   };
 
   const personalSocialDossier = useMemo(() => {

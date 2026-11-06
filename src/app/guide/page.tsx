@@ -250,7 +250,7 @@ export default function GuidePage() {
               
               <div className="p-4 rounded-xl bg-[#090a0f] border border-white/5 space-y-2 text-xs text-zinc-400">
                 <span className="font-semibold text-zinc-200 block">💡 시스템 제공 서비스:</span>
-                <p>• 단일 명사 1요소 1기준 관찰 엔진을 기반으로 개인화 소셜 프로필 도시에(Dossier)가 정규화되어 발행됩니다.</p>
+                <p>• 단일 명사 1요소 1기준 관찰 엔진을 기반으로 개인 소셜 분석 리포트가 정규화되어 발행됩니다.</p>
                 <p>• 사람 평가뿐만 아니라 식당 공간, 식사 미식, 진행 프로세스 전주기 점검 감사 리포트가 함께 집계됩니다.</p>
                 <p>• 무단 노쇼, 비매너 행위자는 시스템에서 영구 제명(원아웃제) 처리되어 다음 모임 참여가 제한됩니다.</p>
               </div>
@@ -291,7 +291,7 @@ export default function GuidePage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#f04f74] shrink-0 mt-0.5" />
-                  <span><strong>개인화 소셜 프로필 도시에(Dossier) 발행</strong>: 100점 정규화 메타인지 분석 리포트 제공</span>
+                  <span><strong>개인 소셜 분석 리포트 발행</strong>: 100점 정규화 메타인지 분석 리포트 제공</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#f04f74] shrink-0 mt-0.5" />
