@@ -194,7 +194,7 @@ export interface SiteConfig {
 // ============================================================================
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 5,
+  version: 6,
   header: {
     announcement: {
       text: '🍷 부산 3040 & 5060 소셜 다이닝 참가 신청 안내',
@@ -299,7 +299,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V120';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V121';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================

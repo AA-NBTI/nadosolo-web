@@ -89,8 +89,8 @@ export default function GlobalHeader() {
 
           {/* 하단: 영문 기준 비율에 완벽히 매칭된 한글 (솔로공감 ↔ nado / 나도솔로 ↔ solo) */}
           <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
-            {/* 솔로공감: nado 영역(약 52%) - 세련된 소프트 실버 ➔ 호버 시 포인트 컬러(#f04f74) 전환 */}
-            <div className="w-[52%] flex justify-between items-center text-[11px] sm:text-[12.5px] font-serif-editorial font-black text-zinc-300 group-hover:text-[#f04f74] transition-colors duration-200 [-webkit-text-stroke:0.25px_currentColor]">
+            {/* 솔로공감: nado 영역(약 52%) - 순수 font-black(900), 인위적 외곽선 제거로 깨끗한 원본 렌더링 */}
+            <div className="w-[52%] flex justify-between items-center text-[11px] sm:text-[12.5px] font-serif-editorial font-black text-white group-hover:text-[#f04f74] transition-colors duration-200">
               <span>솔</span>
               <span>로</span>
               <span>공</span>
@@ -100,8 +100,8 @@ export default function GlobalHeader() {
             {/* 감-나 사이의 균형 잡힌 단어 분리 여백 (영문 o-s 분기점과 일치) */}
             <div className="w-[6%]" />
 
-            {/* 나도솔로: solo 영역(약 42%) - 진한 핑크로즈(#f04f74) ➔ 호버 시 빛나는 순백색 전환 */}
-            <div className="w-[42%] flex justify-between items-center text-[11px] sm:text-[12.5px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200 [-webkit-text-stroke:0.25px_currentColor]">
+            {/* 나도솔로: solo 영역(약 42%) - 순수 font-black(900), 진한 핑크로즈(#f04f74) */}
+            <div className="w-[42%] flex justify-between items-center text-[11px] sm:text-[12.5px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200">
               <span>나</span>
               <span>도</span>
               <span>솔</span>
