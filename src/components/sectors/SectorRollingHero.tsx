@@ -24,10 +24,10 @@ export interface SlideItem {
 const DEFAULT_SLIDES: SlideItem[] = [
   {
     id: 'slide-dining',
-    tag: 'SIGNATURE SOCIAL DINING',
-    title: '결이 맞는 사람들과의',
-    highlight: '품격 있는 주말 다이닝',
-    desc: '매주 금·토 저녁, 엄선된 셰프의 코스 요리와 와인을 곁들여 성향과 에티켓이 검증된 6인이 마주 앉는 시크릿 디너입니다.',
+    tag: 'BUSAN SOCIAL DINING',
+    title: '좋은 사람들과 나누는',
+    highlight: '부산 소셜 다이닝',
+    desc: '매주 금·토 저녁, 엄선된 셰프의 요리와 와인을 곁들여 에티켓이 검증된 분들이 마주 앉는 프라이빗 다이닝입니다.',
     image: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=1600&q=85',
     mediaType: 'image',
     link: '/dining',
@@ -58,8 +58,8 @@ const DEFAULT_SLIDES: SlideItem[] = [
   {
     id: 'slide-meetup',
     tag: 'SPECIAL THEME MEETUP',
-    title: '엄선된 소수를 위한',
-    highlight: '3045 & 5060 테마 밋업',
+    title: '관심사 기반의 교류,',
+    highlight: '3040 & 5060 테마 밋업',
     desc: '루프탑과 오션뷰 프라이빗 라운지에서 월 2~4회 한정으로 개최되는 세대별 안심 소셜 와인 파티입니다.',
     image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1600&q=85',
     mediaType: 'image',

@@ -327,7 +327,7 @@ function AuthPageContent() {
             <div className="p-4 rounded-2xl bg-[#1c202e] border border-white/10 space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-zinc-300">
-                  실제 6인 모임 계정 원클릭 로그인:
+                  체험용 계정 원클릭 로그인:
                 </p>
                 <span className="text-[10px] text-emerald-400 font-mono">DB 연동 완료</span>
               </div>
@@ -516,7 +516,7 @@ function AuthPageContent() {
              ------------------------------------------------------------- */
           <div className="space-y-4">
             <div className="p-4 rounded-2xl bg-[#1c202e] border border-white/10 text-xs text-zinc-300">
-              <span className="font-bold text-white">1단계 가입 완료!</span> 결이 맞는 6인 테이블 좌석 배정을 위해 추가 정보를 입력해 주세요. (추후 수정 가능)
+              <span className="font-bold text-white">1단계 가입 완료!</span> 결이 맞는 프라이빗 테이블 좌석 배정을 위해 추가 정보를 입력해 주세요. (추후 수정 가능)
             </div>
 
             <div>

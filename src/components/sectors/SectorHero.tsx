@@ -16,11 +16,11 @@ interface SectorHeroProps {
 export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorHeroProps) {
   const { isEditMode } = useVisualEditor();
 
-  const headlineTitle = config?.headlineTitle || '결이 맞는 사람들과의';
-  const headlineHighlight = config?.headlineHighlight || '품격 있는 주말 다이닝';
+  const headlineTitle = config?.headlineTitle || '좋은 사람들과 나누는';
+  const headlineHighlight = config?.headlineHighlight || '부산 소셜 다이닝';
   const description =
     config?.description ||
-    '끝없는 스와이프와 어색한 침묵 대신, 에티켓과 결이 검증된 솔로들이 모여 미식과 와인, 그리고 진솔한 대화를 나누는 프라이빗 소셜 살롱입니다.';
+    '에티켓 서약 기반의 프라이빗 다이닝 테이블. 와인과 디너, 진솔한 대화가 있는 시간.';
   const ctaText = config?.ctaText || '신청하기';
 
   return (
@@ -88,7 +88,7 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
         {/* 하단 신뢰 지표 3열 (블랙/그레이/와인레드 모노크롬 통일) */}
         <div className="mt-14 pt-10 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-center">
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-            <p className="text-xl sm:text-2xl font-bold text-white font-serif-editorial">3045 &amp; 5060</p>
+            <p className="text-xl sm:text-2xl font-bold text-white font-serif-editorial">3040 &amp; 5060</p>
             <p className="text-xs text-zinc-400 mt-1">연령·성향별 맞춤 테이블 큐레이션</p>
           </div>
           <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">

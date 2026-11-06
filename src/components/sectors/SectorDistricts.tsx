@@ -17,30 +17,30 @@ interface DistrictCard {
 const DISTRICT_LIST: DistrictCard[] = [
   {
     id: 'busan-jeonpo',
-    name: '전포 · 서면',
+    name: '부산 서면',
     tagline: '내추럴 와인바 & 캐주얼 비스트로',
     atmosphere: '따뜻한 조명과 감각적인 플레이트, 자연스러운 대화의 자리',
     image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
     schedule: '매주 금/토 저녁',
-    target: '3045 전문직 직장인',
+    target: '3040 직장인',
   },
   {
     id: 'busan-haeundae',
-    name: '해운대 · 광안리',
+    name: '부산 해운대',
     tagline: '오션뷰 다이닝 & 라운지',
-    atmosphere: '바다 야경과 함께하는 코스 요리 및 프리미엄 와인',
+    atmosphere: '바다 야경과 함께하는 디너 및 와인 페어링',
     image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
     schedule: '매주 토 저녁',
-    target: '3045 & 5060 골든 솔로',
+    target: '3040 & 5060',
   },
   {
     id: 'busan-nampo',
-    name: '남포 · 영도',
+    name: '부산 남포',
     tagline: '헤리티지 소셜 다이닝',
     atmosphere: '클래식한 무드가 어우러진 깊이 있는 대화의 밤',
     image: 'https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=800&q=80',
     schedule: '격주 토 저녁',
-    target: '3045 직장인 & 골든 솔로',
+    target: '3040 & 5060',
   },
 ];
 

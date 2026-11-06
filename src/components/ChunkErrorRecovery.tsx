@@ -45,3 +45,4 @@ export default function ChunkErrorRecovery() {
 
   return null;
 }
+

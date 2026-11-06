@@ -8,7 +8,7 @@ import ChunkErrorRecovery from '@/components/ChunkErrorRecovery';
 export const metadata: Metadata = {
   title: 'nadosolo | 좋은 사람들과, 좋은 시간을. 신뢰 기반 프리미엄 솔로 라이프스타일 플랫폼',
   description:
-    '검증된 매너와 삶의 결이 맞는 사람들의 만남. 3045 프라임 & 5060 골든 솔로를 위한 소셜 다이닝 및 라이프스타일 소셜 클럽',
+    '검증된 매너와 삶의 결이 맞는 사람들의 만남. 3040 & 5060을 위한 부산 소셜 다이닝 플랫폼',
 };
 
 export default function RootLayout({

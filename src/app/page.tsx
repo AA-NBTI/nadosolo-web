@@ -34,12 +34,12 @@ export default function NadoSoloHomePage() {
       return;
     }
     setCheckoutEvent({
-      eventId: 'EVT_JEONPO_FRI',
-      title: '부산 전포 6인 프라이빗 소셜 다이닝 (3045 & 5060)',
-      dateText: '이번 주 금요일 19:30',
-      priceKrw: 19900,
-      districtName: '부산 · 전포/서면',
-      mealNote: '디너 식대 및 주류 비용은 식당 현장에서 테이블 1/N 정산',
+      eventId: 'EVT_BUSAN_DINING',
+      title: '부산 소셜 다이닝 (3040 & 5060)',
+      dateText: '매주 금/토 19:30',
+      priceKrw: 30000,
+      districtName: '부산',
+      mealNote: '식음료 비용은 매장 현장에서 1/N 개별 정산',
     });
     setIsCheckoutOpen(true);
   };

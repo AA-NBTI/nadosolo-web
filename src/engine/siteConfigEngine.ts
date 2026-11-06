@@ -194,21 +194,21 @@ export interface SiteConfig {
 // ============================================================================
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 4,
+  version: 5,
   header: {
     announcement: {
-      text: '🍷 이번 주 금요일 전포/서면 3040 & 5060 소셜 다이닝 좌석 마감 임박!',
+      text: '🍷 부산 3040 & 5060 소셜 다이닝 참가 신청 안내',
       link: '/dining',
       visible: true,
-      tag: 'HOT',
+      tag: 'NOTICE',
     },
     navItems: [
       { id: 'dining', label: '소셜 다이닝', href: '/dining', badge: '대표', visible: true, order: 1 },
-      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: true, order: 2 },
-      { id: 'club', label: '소셜 클럽', href: '/club', visible: true, order: 3 },
-      { id: 'meetup', label: '테마 밋업', href: '/meetup', badge: 'NEW', visible: true, order: 4 },
+      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 2 },
+      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 3 },
+      { id: 'meetup', label: '테마 밋업', href: '/meetup', badge: '준비중', visible: false, order: 4 },
     ],
-    activeCityLabel: '부산 (전포·서면)',
+    activeCityLabel: '부산',
   },
   buttonStyle: DEFAULT_BUTTON_STYLE,
   mainSectors: [
@@ -216,7 +216,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       id: 'sector-rolling-hero',
       type: 'rolling-hero',
       title: '메인 롤링 쇼케이스',
-      subtitle: '4대 핵심 프로그램 자동 롤링 캐러셀',
+      subtitle: '부산 소셜 다이닝 쇼케이스',
       visible: true,
       order: 1,
     },
@@ -224,10 +224,10 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       id: 'sector-hero',
       type: 'hero',
       title: '소셜 다이닝 헤드라인',
-      subtitle: '선택된 도시 집중 조명 및 핵심 가치 소개',
-      headlineTitle: '결이 맞는 사람들과의',
-      headlineHighlight: '품격 있는 주말 다이닝',
-      description: '끝없는 스와이프와 어색한 침묵 대신, 에티켓과 결이 검증된 솔로들이 모여 미식과 와인, 그리고 진솔한 대화를 나누는 프라이빗 소셜 살롱입니다.',
+      subtitle: '부산 소셜 다이닝 집중 조명',
+      headlineTitle: '좋은 사람들과 나누는',
+      headlineHighlight: '부산 소셜 다이닝',
+      description: '에티켓 서약 기반의 프라이빗 다이닝 테이블. 와인과 디너, 진솔한 대화가 있는 시간.',
       ctaText: '신청하기',
       visible: true,
       order: 2,
@@ -251,7 +251,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       id: 'sector-categories',
       type: 'categories',
       title: '4대 메인 카테고리',
-      subtitle: '소셜 다이닝, 살롱, 클럽, 밋업 쇼케이스',
+      subtitle: '소셜 다이닝 프로그램 안내',
       visible: true,
       order: 4,
     },
@@ -259,7 +259,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       id: 'sector-districts',
       type: 'districts',
       title: '권역별 탐색',
-      subtitle: '전포·서면, 해운대·광안리, 남포·영도 등',
+      subtitle: '부산 중심 권역 안내',
       visible: true,
       order: 5,
     },
@@ -299,7 +299,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V110';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V120';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================

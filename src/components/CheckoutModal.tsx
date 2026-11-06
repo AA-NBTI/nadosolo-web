@@ -129,9 +129,9 @@ export default function CheckoutModal({
               <span className="text-[11px] font-semibold tracking-wider text-rose-400 uppercase">
                 TOSS PAYMENTS CHECKOUT
               </span>
-              <h2 className="text-2xl font-bold text-white mt-1">참가 신청 및 주문 결제</h2>
+              <h2 className="text-2xl font-bold text-white mt-1">소셜 다이닝 참가 신청</h2>
               <p className="text-xs text-zinc-400 mt-1">
-                결이 맞는 6인 프라이빗 테이블 배정을 위해 참가권을 결제합니다.
+                좌석 예약 대행, 테이블 대화 카드 킷, 모임 운영비가 포함된 참가권입니다.
               </p>
             </div>
 
@@ -140,20 +140,20 @@ export default function CheckoutModal({
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-white/10 text-zinc-300 font-medium">
-                    {event.districtName || '부산 · 전포'}
+                    {event.districtName || '부산'}
                   </span>
                   <h4 className="text-base font-bold text-white mt-1.5">{event.title}</h4>
                   <p className="text-xs text-zinc-400 mt-0.5">{event.dateText}</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs text-zinc-500 line-through">₩25,000</span>
-                  <p className="text-lg font-bold text-rose-300">₩{event.priceKrw.toLocaleString()}</p>
+                  <span className="text-xs text-zinc-400 font-medium">참가비</span>
+                  <p className="text-lg font-bold text-[#f04f74]">₩{event.priceKrw.toLocaleString()}</p>
                 </div>
               </div>
 
               <div className="pt-2 border-t border-white/5 flex items-center gap-1.5 text-[11px] text-zinc-400">
                 <AlertCircle className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
-                <span>{event.mealNote || '식대 및 주류 비용은 식당 현장에서 테이블 1/N 개별 정산됩니다.'}</span>
+                <span>{event.mealNote || '식음료 비용은 매장 현장에서 1/N 개별 정산됩니다.'}</span>
               </div>
             </div>
 
@@ -230,7 +230,8 @@ export default function CheckoutModal({
               <ul className="text-[11px] text-zinc-400 space-y-1 list-disc pl-4 leading-relaxed">
                 <li>모임 3일 전 취소 시: <strong>100% 전액 환불</strong></li>
                 <li>모임 2일 전 취소 시: <strong>50% 부분 환불</strong></li>
-                <li>모임 1일 전 및 당일 취소/노쇼: <strong>환불 불가</strong> (6인 성비 및 좌석 밸런스 보호)</li>
+                <li>모임 1일 전 및 당일 취소/노쇼: <strong>환불 불가</strong> (좌석 예약 확정 및 테이블 세팅 완료)</li>
+                <li>최소 인원 미달 등으로 주최 측 모임 취소 시: <strong>100% 전액 자동 환불</strong></li>
               </ul>
 
               <div className="space-y-2 pt-2 border-t border-white/5">
@@ -251,7 +252,7 @@ export default function CheckoutModal({
                     onChange={(e) => setAgreePrivacy(e.target.checked)}
                     className="mt-0.5 rounded border-white/20 bg-black/40 text-rose-600 focus:ring-0"
                   />
-                  <span>[필수] 6인 테이블 배정 및 알림톡 안내를 위한 개인정보 제3자 제공에 동의합니다.</span>
+                  <span>[필수] 테이블 좌석 배정 및 알림톡 안내를 위한 개인정보 제3자 제공에 동의합니다.</span>
                 </label>
               </div>
             </div>

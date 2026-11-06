@@ -1077,7 +1077,7 @@ export default function AdminOperationsDashboardPage() {
           )}
 
           {/* ----------------------------------------------------------
-              7. [모임조건] 조건부 모임 개설 & 6인 테이블 노쇼 대기자 관리
+              7. [모임조건] 조건부 모임 개설 & 테이블 노쇼 대기자 관리
               ---------------------------------------------------------- */}
           {activeTab === 'EVENT_GATE' && (
             <section className="space-y-6">
@@ -1181,7 +1181,7 @@ export default function AdminOperationsDashboardPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h4 className="text-lg font-bold text-white">
-                      6인 테이블 편성 및 노쇼 대기자 자동 대체
+                      테이블 편성 및 노쇼 대기자 자동 대체
                     </h4>
                     <p className="text-xs text-zinc-400">
                       당일 취소 발생 시 신뢰점수 80점 이상 대기자를 즉시 투입합니다.

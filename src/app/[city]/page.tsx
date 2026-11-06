@@ -23,7 +23,7 @@ const CITIES_DATA: Record<string, CityMeta> = {
     nameKr: '부산',
     nameEn: 'BUSAN',
     status: 'ACTIVE',
-    tagline: '전포 비스트로와 해운대·광안 오션뷰에서 열리는 6인의 시크릿 디너',
+    tagline: '감각적인 비스트로와 오션뷰에서 열리는 소셜 다이닝',
     districts: [
       {
         name: '전포 · 서면',
@@ -91,10 +91,10 @@ export default function CityLandingPage() {
     if (targetEv) {
       setCheckoutEvent({
         eventId: targetEv.eventId,
-        title: `부산 ${targetEv.title}`,
+        title: targetEv.title.includes('부산') ? targetEv.title : `부산 ${targetEv.title}`,
         dateText: targetEv.dateText,
-        priceKrw: targetEv.priceKrw,
-        districtName: `${city.nameKr} • 전포/서면`,
+        priceKrw: targetEv.priceKrw || 30000,
+        districtName: city.nameKr,
         mealNote: targetEv.mealNote,
       });
       setIsCheckoutOpen(true);
@@ -126,11 +126,11 @@ export default function CityLandingPage() {
 
           <div className="space-y-4 max-w-3xl">
             <h1 className="font-serif-editorial text-4xl sm:text-6xl font-normal text-white tracking-tight leading-[1.15]">
-              {city.nameKr}, 결이 맞는 6인의<br />
+              {city.nameKr}, 결이 맞는 사람들의<br />
               프라이빗 소셜 다이닝
             </h1>
             <p className="text-base sm:text-lg text-zinc-300 leading-relaxed font-normal">
-              {city.tagline}. 끝없는 스와이프 대신, 서로를 배려하는 에티켓을 갖춘 3045 직장인 &amp; 5060 골든 솔로들의 품격 있는 만남을 제안합니다.
+              {city.tagline}. 끝없는 스와이프 대신, 서로를 배려하는 에티켓을 갖춘 3040 직장인 &amp; 5060 솔로들의 품격 있는 만남을 제안합니다.
             </p>
           </div>
 

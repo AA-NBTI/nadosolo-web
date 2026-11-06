@@ -30,30 +30,30 @@ const DINING_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideIt
     image: 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=85',
   },
   {
-    stage: '04. 호감 & 여운',
-    title: '익일 09시 비공개 시크릿 매칭',
-    desc: '모임 다음 날 아침 대시보드에서 비공개 호감 투표가 진행되며, 상호 호감 시 1:1 연락처가 오픈됩니다.',
+    stage: '04. 매너 & 연결',
+    title: '익일 비공개 매너 피드백',
+    desc: '모임 종료 후 참가자 상호 동의 시에 한해 대시보드를 통해 안전하게 연락처가 교환됩니다.',
     image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=85',
   },
 ];
 
 const DINING_VENUES = [
   {
-    name: '전포 아틀리에 비스트로',
-    location: '부산 부산진구 전포동',
-    mood: '은은한 조도 & 내추럴 와인',
+    name: '부산 비스트로 아틀리에 (제휴 공간)',
+    location: '부산 부산진구',
+    mood: '은은한 조도 & 내추럴 와인 페어링',
     image: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80',
   },
   {
-    name: '해운대 오션 앤 와인 라운지',
-    location: '부산 해운대구 마린시티',
-    mood: '오션뷰 프라이빗 룸 & 코스',
+    name: '부산 오션 라운지 (제휴 공간)',
+    location: '부산 해운대구',
+    mood: '프라이빗 룸 & 코스 요리',
     image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80',
   },
   {
-    name: '서면 까사 디 루체',
-    location: '부산 부산진구 서면',
-    mood: '컨템포러리 다이닝 & 소음 통제',
+    name: '부산 까사 다이닝 (제휴 공간)',
+    location: '부산 부산진구',
+    mood: '조용한 분위기 & 프라이빗 테이블',
     image: 'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=600&q=80',
   },
 ];
@@ -77,8 +77,8 @@ export default function DiningPage() {
         eventId: targetEv.eventId,
         title: targetEv.title,
         dateText: targetEv.dateText,
-        priceKrw: targetEv.priceKrw,
-        districtName: '부산 · 전포/서면',
+        priceKrw: 30000,
+        districtName: '부산',
         mealNote: targetEv.mealNote,
       });
       setIsCheckoutOpen(true);
@@ -101,19 +101,19 @@ export default function DiningPage() {
           1. 소셜 다이닝 상품 히어로 (좌측: 대형 사진 슬라이더 / 우측: 헤더라인 & 신청)
           ============================================================== */}
       <CategoryProductHero
-        badge="소셜 다이닝 • SIGNATURE DINING"
-        headlineTitle="결이 맞는 사람들과의"
-        headlineHighlight="프라이빗 시크릿 디너"
-        description="어색한 소개팅 대신, 에티켓과 성향이 검증된 6인이 마주 앉아 셰프의 요리와 와인을 곁들이며 삶의 결을 나누는 정통 소셜 다이닝입니다."
+        badge="소셜 다이닝 • DINING"
+        headlineTitle="좋은 사람들과 나누는"
+        headlineHighlight="부산 소셜 다이닝"
+        description="에티켓 서약 기반의 프라이빗 다이닝 테이블. 와인과 디너, 진솔한 대화가 있는 시간."
         specs={[
-          { label: '운영 형태', value: '프라이빗 큐레이션', subText: '신원·에티켓 서약 회원' },
-          { label: '모임 일정 및 인원', value: '매주 금·토 저녁', subText: '성별 3:3 균형 큐레이션' },
-          { label: '품격 보장', value: '매너 평가제', subText: '익일 비공개 호감 투표' },
+          { label: '운영 형태', value: '프라이빗 큐레이션', subText: '에티켓 서약 회원' },
+          { label: '모임 일정', value: '매주 금·토 저녁', subText: '부산 엄선 비스트로' },
+          { label: '참가 기준', value: '₩30,000', subText: '예약대행·대화카드 포함' },
         ]}
         slides={DINING_GALLERY_SLIDES}
         onApply={() => handleApplyClick()}
         trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
-        activeLocationLabel="부산 (전포·서면·해운대)"
+        activeLocationLabel="부산"
       />
 
       {/* ==============================================================
@@ -130,7 +130,7 @@ export default function DiningPage() {
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-zinc-400 max-w-sm">
-            성별 및 연령대 밸런스가 충족되는 즉시 자리가 마감됩니다.
+            에티켓 서약이 완료된 회원 대상 선착순 마감됩니다.
           </p>
         </div>
 
@@ -148,16 +148,16 @@ export default function DiningPage() {
                       <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                       신청 가능
                     </span>
-                    <span className="text-xs text-zinc-400">정원 6인 (3:3)</span>
+                    <span className="text-xs text-rose-400 font-bold">₩30,000</span>
                   </div>
 
                   <div>
                     <h3 className="text-xl font-bold text-white tracking-tight mb-1">
-                      {ev.title}
+                      {ev.title.replace(/3045/g, '3040').replace(/6인/g, '').trim()}
                     </h3>
                     <p className="text-xs text-zinc-400 flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                      <span>{regionDistricts.find((d) => d.districtId === ev.districtId)?.districtName || '부산 · 전포/서면'}</span>
+                      <span>부산</span>
                       <span className="text-zinc-600">•</span>
                       <span>{ev.dateText}</span>
                     </p>
@@ -166,11 +166,13 @@ export default function DiningPage() {
                   <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 space-y-1.5 text-xs">
                     <div className="flex justify-between text-zinc-400">
                       <span>참가 대상</span>
-                      <span className="text-zinc-200 font-medium">{ev.targetAgeGroup} 직장인/골든</span>
+                      <span className="text-zinc-200 font-medium">
+                        {ev.targetAgeGroup?.includes('5060') ? '5060 골든' : '3040 직장인'}
+                      </span>
                     </div>
                     <div className="flex justify-between text-zinc-400">
-                      <span>좌석 배정</span>
-                      <span className="text-zinc-200 font-medium">성향 매칭 3:3</span>
+                      <span>진행 구성</span>
+                      <span className="text-zinc-200 font-medium">테이블 대화카드 킷 제공</span>
                     </div>
                   </div>
                 </div>
@@ -215,7 +217,7 @@ export default function DiningPage() {
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-zinc-400">
-            소음도 50dB 이하, 대화가 끊이지 않는 최적의 조도와 테이블 간격을 보장합니다.
+            대화에 몰입할 수 있는 엄선된 부산 제휴 다이닝 공간입니다.
           </p>
         </div>
 

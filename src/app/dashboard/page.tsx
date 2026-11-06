@@ -498,13 +498,13 @@ function MemberDashboardContent() {
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
                       <div className="space-y-1">
                         <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold border border-rose-500/30">
-                          부산 • 전포/서면
+                          부산
                         </span>
                         <h4 className="text-2xl font-bold text-white mt-2">
-                          부산 전포 6인 프라이빗 소셜 다이닝 (3045 &amp; 5060)
+                          부산 소셜 다이닝 (3040 &amp; 5060)
                         </h4>
                         <p className="text-sm text-zinc-400">
-                          매주 금요일 19:30 • 결이 맞는 6인과의 시크릿 디너
+                          매주 금요일 19:30 • 소셜 다이닝 테이블
                         </p>
                       </div>
                       <div className="text-right">
@@ -520,7 +520,7 @@ function MemberDashboardContent() {
                         <span>D-1 목요일 19:00 비공개 식당 및 좌석이 공개됩니다.</span>
                       </div>
                       <p className="text-xs text-zinc-400 leading-relaxed">
-                        엄선된 비스트로/와인바로 최종 확정되며, 참가자 6인의 동선과 분위기에 맞는 프라이빗 룸으로 안내됩니다. 
+                        엄선된 비스트로/와인바로 최종 확정되며, 참가자 전원의 동선과 분위기에 맞는 프라이빗 공간으로 안내됩니다. 
                         식대 및 주류 비용은 식당 현장에서 테이블 1/N 정산됩니다.
                       </p>
                     </div>
@@ -1387,7 +1387,7 @@ function MemberDashboardContent() {
           )}
 
           {/* ----------------------------------------------------------
-              [P05] 모임신청 모듈 (Timeleft식 2.5만 원 참가비 & 세대별 트랙)
+              [P05] 모임신청 모듈 (₩30,000 참가비 & 세대별 트랙)
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P05_EVENT_APPLY' && (
             <section className="bg-[#12151e] rounded-3xl p-8 border border-white/10 shadow-sm space-y-6">
@@ -1395,7 +1395,7 @@ function MemberDashboardContent() {
                 <div>
                   <h3 className="text-2xl font-bold text-white">소셜 다이닝 모임 신청</h3>
                   <p className="text-sm text-zinc-400 mt-1">
-                    3045 프라임 및 5060 골든 솔로를 위한 검증된 테이블에 참가 신청합니다. (참가권 ₩25,000 / 식대는 현장 1/N)
+                    3040 &amp; 5060을 위한 검증된 테이블에 참가 신청합니다. (참가권 ₩30,000 / 식대는 현장 1/N)
                   </p>
                 </div>
                 <div className="text-right">
@@ -1435,11 +1435,11 @@ function MemberDashboardContent() {
                       <div className="space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="px-3 py-1 rounded-full bg-[#10131c] text-white text-xs font-semibold border border-white/10">
-                            {dist ? `${dist.regionName} · ${dist.districtName}` : '부산 · 전포'}
+                            {dist ? dist.regionName : '부산'}
                           </span>
                           {ev.targetAgeGroup === '3045_PRIME' && (
                             <span className="px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-300 text-xs font-semibold border border-rose-500/25">
-                              3045 프라임 트랙
+                              3040 트랙
                             </span>
                           )}
                           {ev.targetAgeGroup === '5060_GOLDEN' && (
@@ -1541,7 +1541,7 @@ function MemberDashboardContent() {
           )}
 
           {/* ----------------------------------------------------------
-              [P06] 좌석배정 모듈 (6인 테이블 및 1부/2부 좌석 확인)
+              [P06] 좌석배정 모듈 (테이블 및 1부/2부 좌석 확인)
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P06_SEAT' && (
             <section className="bg-[#12151e] rounded-3xl p-8 border border-white/10 shadow-sm space-y-6">
@@ -1567,7 +1567,7 @@ function MemberDashboardContent() {
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
                 <div>
                   <h3 className="text-2xl font-bold text-white">
-                    좌석배정 (6인 테이블)
+                    좌석배정
                   </h3>
                   <p className="text-sm text-zinc-400 mt-1">
                     1부 착석 위치와 2부 하프타임 로테이션 좌석을 확인합니다.

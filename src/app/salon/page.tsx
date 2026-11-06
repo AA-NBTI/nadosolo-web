@@ -65,7 +65,7 @@ export default function SocialSalonPage() {
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
-  const handleApplyClick = (trackName = '3045 프라임 살롱') => {
+  const handleApplyClick = (trackName = '3040 살롱') => {
     if (isEditMode) return;
     if (!currentUser) {
       router.push(`/auth?next=/salon`);
@@ -73,11 +73,11 @@ export default function SocialSalonPage() {
     }
     setCheckoutEvent({
       eventId: 'EVT_SALON_FRI',
-      title: `부산 전포 소셜 살롱 (${trackName})`,
+      title: `부산 소셜 살롱 (${trackName})`,
       dateText: '매주 금요일 19:30',
-      priceKrw: 25000,
-      districtName: '부산 · 전포 사교 살롱',
-      mealNote: '웰컴 음료 및 핑거푸드 포함, 추가 주류는 현장 1/N 정산',
+      priceKrw: 30000,
+      districtName: '부산',
+      mealNote: '참가권 ₩30,000 (웰컴 음료 및 공간 예약 운영비 포함 / 추가 식음료는 현장 1/N)',
     });
     setIsCheckoutOpen(true);
   };
@@ -100,17 +100,17 @@ export default function SocialSalonPage() {
         description="어색하고 목적이 불분명한 번개 모임 대신, 서로를 배려하는 에티켓과 대화의 결을 갖춘 솔로들이 엄선된 라운지에서 취향과 철학을 나누는 품격 있는 사교 살롱입니다."
         specs={[
           { label: '운영 방식', value: '소수정예 살롱', subText: '웰컴 드링크 & 페어링 푸드' },
-          { label: '참여 정원', value: '4~6인 소규모', subText: '성별 밸런스 큐레이션' },
+          { label: '참여 정원', value: '소규모 정예', subText: '성별 밸런스 큐레이션' },
           { label: '대화 분위기', value: '경청 & 에티켓', subText: '대화 독점 금지 룰 준수' },
         ]}
         slides={SALON_GALLERY_SLIDES}
-        onApply={() => handleApplyClick('3045 프라임 살롱')}
+        onApply={() => handleApplyClick('3040 살롱')}
         trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
-        activeLocationLabel="부산 (전포 사교 살롱)"
+        activeLocationLabel="부산"
       />
 
       {/* ==============================================================
-          2. 트랙 안내 (3045 & 5060)
+          2. 트랙 안내 (3040 & 5060)
           ============================================================== */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-6 py-16 space-y-8 w-full border-b border-white/10">
         <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -125,15 +125,15 @@ export default function SocialSalonPage() {
           <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 flex flex-col justify-between space-y-5 hover:border-white/20 transition-all">
             <div className="space-y-3">
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/5 text-zinc-300 border border-white/10 inline-block">
-                3045 PRIME
+                3040 PRIME
               </span>
-              <h3 className="text-xl font-bold text-white">3045 프라임 살롱</h3>
+              <h3 className="text-xl font-bold text-white">3040 살롱</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">
                 커리어와 일상의 밸런스, 취미와 인문학을 넘나드는 세련된 사교의 장입니다.
               </p>
             </div>
             <AdaptiveButton
-              onClick={() => handleApplyClick('3045 프라임 살롱')}
+              onClick={() => handleApplyClick('3040 살롱')}
               className="w-full py-3.5"
             >
               신청하기

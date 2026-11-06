@@ -115,18 +115,10 @@ export default function GlobalFooter() {
               <span>고객센터 운영시간: <strong className="text-zinc-300">{f?.csHours || '평일 10:00 ~ 18:00 (주말 및 공휴일 휴무)'}</strong></span>
             </div>
 
-            {/* 결제 심사 필수 배너 (토스페이먼츠 PG 심사 공식 규격 준수) */}
+            {/* 결제 심사 필수 배너 (토스페이먼츠 PG 심사 규격 준수) */}
             <div className="mt-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/10 max-w-3xl mx-auto space-y-1.5 text-[11px] text-zinc-400">
               <div>
-                <strong>구매안전서비스(에스크로) 안내:</strong> 고객님의 안전한 전자상거래를 위해 <strong>토스페이먼츠(주)</strong>의 구매안전(에스크로) 서비스를 적용하고 있습니다.
-                <a
-                  href="https://pgweb.tosspayments.com/ms/escrow/auth/service"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-zinc-300 underline font-medium ml-1.5 hover:text-white inline-flex items-center gap-0.5"
-                >
-                  [가입사실확인]
-                </a>
+                <strong>구매안전서비스(에스크로) 안내:</strong> 고객님의 안전한 전자상거래를 위해 <strong>토스페이먼츠(주)</strong>의 구매안전(에스크로) 서비스 연동 및 계약 절차를 진행하고 있습니다.
               </div>
               <div>
                 <strong>전자결제 연동 수탁 고지:</strong> 전자결제(PG) 및 에스크로 대행 업무는 「개인정보 보호법」 제26조에 따라 수탁사인 <strong>토스페이먼츠(주)</strong>에 위탁 운영됩니다.
@@ -207,6 +199,7 @@ export default function GlobalFooter() {
                     <li>모임 시작 1일 전(D-1) 및 당일(D-Day) 취소/노쇼: <strong>환불 불가</strong> (테이블 예약 및 좌석 배정 완료로 인한 손실 발생)</li>
                   </ul>
                   <p><strong>제2조 (회사 귀책 사유)</strong> 최소 인원 미달로 모임이 취소되거나 주최 측 사정으로 행사가 취소될 경우, 참가비는 <strong>100% 전액 환불</strong>됩니다.</p>
+                  <p><strong>제3조 (회원 제명 시 처리)</strong> 비매너 행위 등으로 이용 자격이 박탈되거나 제명 조치되는 경우, 이미 예약이 확정된 당일 모임 참가비는 좌석 배정 완료 손실로 환불되지 않으며, 사전에 선결제된 차후 일정 참가권은 전액 환불 처리됩니다.</p>
                 </div>
               </div>
             )}

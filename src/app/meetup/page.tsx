@@ -25,14 +25,14 @@ const MEETUP_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideIt
   },
   {
     stage: '03. 세대별 만남',
-    title: '3045 & 5060 안심 소셜 네트워킹',
-    desc: '정확한 1:1 성비 균형과 에티켓 검증을 거친 싱글들이 모여 편안하게 인사를 나눕니다.',
+    title: '3040 & 5060 안심 소셜 네트워킹',
+    desc: '정확한 성비 균형과 에티켓 검증을 거친 싱글들이 모여 편안하게 인사를 나눕니다.',
     image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=1200&q=85',
   },
   {
     stage: '04. 매칭 & 여운',
     title: '익일 09시 비공개 호감 투표',
-    desc: '서로에게 호감을 표한 남녀에게만 비공개로 연락처가 전달되어 부담 없이 인연을 이어갑니다.',
+    desc: '상호 동의한 경우에만 비공개로 연락처가 교환되어 부담 없이 인연을 이어갑니다.',
     image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1200&q=85',
   },
 ];
@@ -40,16 +40,16 @@ const MEETUP_GALLERY_SLIDES: [GallerySlideItem, GallerySlideItem, GallerySlideIt
 const SPECIAL_EVENTS = [
   {
     id: 'EVT_PRIME_NIGHT_01',
-    generation: '3045 PRIME',
-    title: '3045 프라임 커리어 & 와인 나이트',
+    generation: '3040 PRIME',
+    title: '3040 커리어 & 와인 나이트',
     date: '매월 둘째 주 금요일 저녁',
-    location: '서면·전포 프라이빗 라운지',
-    capacity: '정원 12명 (남6 : 여6)',
-    target: '30~45세 일반 직장인 및 전문직',
-    desc: '자신의 일과 삶을 사랑하는 3045 싱글들을 위한 교류 파티. 편안한 웰컴 와인과 핑거푸드를 곁들이며 새로운 인맥과 설레는 인연을 만납니다.',
-    priceKrw: 35000,
-    districtName: '부산 · 전포/서면',
-    mealNote: '웰컴 드링크 1잔 포함, 추가 주류 및 안주는 현장 1/N 정산',
+    location: '부산 프라이빗 라운지',
+    capacity: '소수정예 성비 균형',
+    target: '30~40대 직장인',
+    desc: '자신의 일과 삶을 사랑하는 3040 싱글들을 위한 교류 모임. 편안한 웰컴 드링크와 함께 새로운 인맥을 만납니다.',
+    priceKrw: 30000,
+    districtName: '부산',
+    mealNote: '참가권 ₩30,000 (공간 예약 및 운영비 포함 / 추가 식음료는 현장 1/N)',
     image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=800&q=80',
   },
   {
@@ -109,16 +109,16 @@ export default function MeetupPage() {
         badge="테마 밋업 • SPECIAL MEETUP"
         headlineTitle="엄선된 소수를 위한"
         headlineHighlight="세대별 안심 테마 밋업"
-        description="자주 열리지 않기에 더욱 특별합니다. 나도솔로는 월 2~4회의 제한된 인원만을 엄선하여 3045 프라임 및 5060 골든 세대별로 신뢰할 수 있는 품격 있는 파티를 개최합니다."
+        description="자주 열리지 않기에 더욱 특별합니다. 나도솔로는 월 2~4회의 한정된 일정으로 3040 및 5060 세대별로 신뢰할 수 있는 품격 있는 모임을 개최합니다."
         specs={[
-          { label: '참가 인원', value: '10~12인 소수정예', subText: '남녀 정확한 1:1 성비' },
+          { label: '참가 인원', value: '소수정예', subText: '성비 균형 큐레이션' },
           { label: '개최 주기', value: '월 2~4회 한정', subText: '사전 신청자 선별 확정' },
           { label: '장소 특권', value: '라운지 & 비스트로', subText: '프라이빗 대관 공간' },
         ]}
         slides={MEETUP_GALLERY_SLIDES}
         onApply={() => handleApplyClick(SPECIAL_EVENTS[0])}
         trustNote="에티켓 서약 및 신원 확인이 완료된 검증된 회원만 참석 가능합니다."
-        activeLocationLabel="부산 (전포·서면·해운대)"
+        activeLocationLabel="부산"
       />
 
       {/* ==============================================================

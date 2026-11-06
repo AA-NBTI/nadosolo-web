@@ -17,7 +17,7 @@ export class LocalePolicyEngine {
       countryCode: 'KR',
       ianaTimezone: 'Asia/Seoul',
       currency: 'KRW',
-      baseTicketPrice: 25000,
+      baseTicketPrice: 30000,
       cultureTag: 'KR',
     },
     BUSAN_HAEUNDAE: {
@@ -25,7 +25,7 @@ export class LocalePolicyEngine {
       countryCode: 'KR',
       ianaTimezone: 'Asia/Seoul',
       currency: 'KRW',
-      baseTicketPrice: 25000,
+      baseTicketPrice: 30000,
       cultureTag: 'KR',
     },
     BUSAN_GWANGAN: {
@@ -33,7 +33,7 @@ export class LocalePolicyEngine {
       countryCode: 'KR',
       ianaTimezone: 'Asia/Seoul',
       currency: 'KRW',
-      baseTicketPrice: 25000,
+      baseTicketPrice: 30000,
       cultureTag: 'KR',
     },
     SEOUL_SEONGSU: {
@@ -41,7 +41,7 @@ export class LocalePolicyEngine {
       countryCode: 'KR',
       ianaTimezone: 'Asia/Seoul',
       currency: 'KRW',
-      baseTicketPrice: 25000,
+      baseTicketPrice: 30000,
       cultureTag: 'KR',
     },
     SEOUL_GANGNAM: {
@@ -49,7 +49,7 @@ export class LocalePolicyEngine {
       countryCode: 'KR',
       ianaTimezone: 'Asia/Seoul',
       currency: 'KRW',
-      baseTicketPrice: 25000,
+      baseTicketPrice: 30000,
       cultureTag: 'KR',
     },
     TOKYO_SHIBUYA: {

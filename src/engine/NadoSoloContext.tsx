@@ -195,11 +195,11 @@ const INITIAL_CMS_ATMOSPHERES: CmsAtmosphereItem[] = [
     badgeColor: 'bg-secondary-fixed text-secondary',
     icon: 'forum',
     title: '플라토닉 동네 친구 다이닝',
-    subtitle: '열린 마음의 로컬 6인 • 성별 무관 소셜',
-    desc: '연애 부담은 덜어내고, 같은 동네에 사는 크리에이터·직장인·창업가들과 맛있는 음식을 나누며 진짜 친구를 만듭니다.',
+    subtitle: '열린 마음의 로컬 소셜 다이닝',
+    desc: '연애 부담은 덜어내고, 동네 이웃들과 맛있는 음식을 나누며 진짜 친구를 만듭니다.',
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuA0IGtq9pAsly2ttJLA7Iy0xBbLvvpRtJfNQwwpiaFReBPIfAc8kgrQzLTbGeAmR0rPz05p-K2mjOGZr67ldDYL18L46--ADi5Lmj-wbZxYLoEK3z7fwnrWKb6OnwLKLw6JuROAoWTqsMeSZZpUAZuGjJw1EBfOp5jbpfU4JeleLt5xnsu1I8EUy7WY4E8HLsGXXQZiwXC4X_yArzUp_HN7_yeEm0jtEzQjU5q0A-M',
-    tags: ['코지 와인바', '크리에이티브 & IT', '성별 무관 6인'],
+    tags: ['코지 와인바', '크리에이티브 & IT', '소셜 다이닝'],
   },
   {
     id: 'ATM_THEME',
@@ -208,7 +208,7 @@ const INITIAL_CMS_ATMOSPHERES: CmsAtmosphereItem[] = [
     badgeColor: 'bg-tertiary-fixed text-tertiary',
     icon: 'wine_bar',
     title: '와인 & 미식 딥토크',
-    subtitle: '미식가 6인 • 내추럴 와인 페어링 & 가치관 대화',
+    subtitle: '미식 소셜 • 내추럴 와인 페어링 & 가치관 대화',
     desc: '셰프의 계절 요리와 내추럴 와인을 곁들이며, 일상에서 쉽게 나누지 못했던 깊이 있는 질문 카드로 밤을 채웁니다.',
     image:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuD-tmtY7XKJE4kOUE02AtAu9CnWgDlNzZAmC2Ty5YsBxraXjjcSN3XjiGAN_4XyB2Hy1S1R4o0dMJLBkqmQAHzJh4-PNkUAU2tNahZ7K7GzGO5ZTttcR-J4HZ0v55tLvX2cgnwcztYEgyi5DC385diQBFFgCvZ1oWoYNuYOP3JvUJiee40a-YA5eA0Tq-ZDGXtmpi_vsOOCdf0vEwPo7rYBAxVFFE7UF_hcrDpYAhk',
@@ -226,8 +226,8 @@ const INITIAL_CMS_STEPS: CmsStepItem[] = [
   {
     id: 'STEP_2',
     stepNum: '2',
-    title: '6인 소셜 다이닝 & 양방향 대화카드',
-    desc: '배정된 제휴 레스토랑에서 6인이 마주 앉아 라운드별 대화카드로 깊이 있는 대화를 나눕니다.',
+    title: '소셜 다이닝 & 양방향 대화카드',
+    desc: '배정된 제휴 레스토랑에서 라운드별 대화카드로 깊이 있는 대화를 나눕니다.',
   },
   {
     id: 'STEP_3',

@@ -47,7 +47,7 @@ function PaymentSuccessContent() {
       </div>
 
       <p className="text-xs text-zinc-400 leading-relaxed">
-        D-1에 배정된 6인 프라이빗 테이블 및 상세 장소가 카카오톡 알림톡으로 비공개 안내됩니다.
+        D-1에 배정된 프라이빗 테이블 및 상세 장소가 카카오톡 알림톡으로 비공개 안내됩니다.
       </p>
 
       <div className="grid grid-cols-2 gap-3 pt-2">
