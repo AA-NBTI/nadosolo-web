@@ -60,6 +60,9 @@ import {
   TraitVector,
   VenueAndYieldEngine,
   VoteCategory,
+  CoreRunner,
+  PersonalSocialDossier,
+  ParticipantObservationRecord,
 } from './index';
 
 export type CityKey =
@@ -297,6 +300,17 @@ interface NadoSoloEngineContextValue {
   ) => void;
   myPersonalDossier: PersonalDossierReport;
   getPersonalDossierForUser: (userId: string) => PersonalDossierReport;
+
+  // [신규 헌법 기반] 마이크로 플러그인 평가 엔진 및 상호주의 해금 소셜 프로필
+  participantObservations: ParticipantObservationRecord[];
+  submitParticipantObservation: (
+    toUserId: string,
+    moduleId: string,
+    elementId: string,
+    scoreStep: 1 | 2 | 3 | 4 | 5
+  ) => void;
+  completedEvalUserIds: string[];
+  personalSocialDossier: PersonalSocialDossier;
 
   // [신규] 세분화 뱃지 도감 엔진
   granularBadges: GranularBadgeDef[];
@@ -787,6 +801,88 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     selfDomainScores100,
     granularBadges,
   ]);
+
+  // ==========================================================================
+  // [신규 헌법 기반] 마이크로 플러그인 평가 엔진 및 상호주의 해금 소셜 프로필
+  // ==========================================================================
+  const [participantObservations, setParticipantObservations] = useState<ParticipantObservationRecord[]>([
+    {
+      recordId: 'REC_SAMPLE_01',
+      sessionId: 'SES_BUSAN_01',
+      moduleId: 'MOD_TRACK_3040',
+      fromUserId: 'U02',
+      toUserId: 'U01',
+      elementId: 'EL_3040_LISTEN',
+      scoreStep: 5,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      recordId: 'REC_SAMPLE_02',
+      sessionId: 'SES_BUSAN_01',
+      moduleId: 'MOD_TRACK_3040',
+      fromUserId: 'U03',
+      toUserId: 'U01',
+      elementId: 'EL_3040_QUESTION',
+      scoreStep: 4,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      recordId: 'REC_SAMPLE_03',
+      sessionId: 'SES_BUSAN_01',
+      moduleId: 'MOD_TRACK_3040',
+      fromUserId: 'U04',
+      toUserId: 'U01',
+      elementId: 'EL_3040_SENSE',
+      scoreStep: 5,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      recordId: 'REC_SAMPLE_04',
+      sessionId: 'SES_BUSAN_01',
+      moduleId: 'MOD_THEME_DINING',
+      fromUserId: 'U05',
+      toUserId: 'U01',
+      elementId: 'EL_DIN_NEAT',
+      scoreStep: 5,
+      createdAt: new Date().toISOString(),
+    },
+  ]);
+
+  const [completedEvalUserIds, setCompletedEvalUserIds] = useState<string[]>(['U02', 'U03', 'U04', 'U05', 'U06']);
+
+  const submitParticipantObservation = (
+    toUserId: string,
+    moduleId: string,
+    elementId: string,
+    scoreStep: 1 | 2 | 3 | 4 | 5
+  ) => {
+    const fromId = currentUser?.userId ?? 'U01';
+    const nextRec: ParticipantObservationRecord = {
+      recordId: `REC_OBS_${Date.now()}`,
+      sessionId: 'SES_BUSAN_01',
+      moduleId,
+      fromUserId: fromId,
+      toUserId,
+      elementId,
+      scoreStep,
+      createdAt: new Date().toISOString(),
+    };
+    setParticipantObservations((prev) => [...prev, nextRec]);
+    setCompletedEvalUserIds((prev) => (prev.includes(toUserId) ? prev : [...prev, toUserId]));
+  };
+
+  const personalSocialDossier = useMemo(() => {
+    const myId = currentUser?.userId ?? 'U01';
+    return CoreRunner.generateDossier(
+      myId,
+      'SES_BUSAN_01',
+      '3045_PRIME',
+      participantObservations,
+      completedEvalUserIds.length,
+      5,
+      currentUser?.sessionCount ?? 1
+    );
+  }, [currentUser, participantObservations, completedEvalUserIds]);
 
   // 세분화 뱃지 CRUD
   const addGranularBadge = (b: GranularBadgeDef) => {
@@ -1289,6 +1385,10 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         submitMatrixEvaluation,
         myPersonalDossier,
         getPersonalDossierForUser,
+        participantObservations,
+        submitParticipantObservation,
+        completedEvalUserIds,
+        personalSocialDossier,
         granularBadges,
         addGranularBadge,
         updateGranularBadge,

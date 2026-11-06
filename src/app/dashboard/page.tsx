@@ -54,6 +54,10 @@ function MemberDashboardContent() {
     matrixEvaluations,
     submitMatrixEvaluation,
     myPersonalDossier,
+    participantObservations,
+    submitParticipantObservation,
+    completedEvalUserIds,
+    personalSocialDossier,
     granularBadges,
     regionDistricts,
     selectedDistrictId,
@@ -2153,6 +2157,37 @@ function MemberDashboardContent() {
                 >
                   전용 리포트 페이지에서 크게 보기 →
                 </Link>
+              </div>
+
+              {/* 상호주의 해금 원칙 배너 (헌법 규칙 1 적용) */}
+              <div className={`p-5 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+                personalSocialDossier.unlocked
+                  ? 'bg-gradient-to-r from-emerald-950/30 via-emerald-900/10 to-transparent border-emerald-500/30'
+                  : 'bg-rose-950/30 border-rose-500/30'
+              }`}>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">{personalSocialDossier.unlocked ? '🔓' : '🔒'}</span>
+                    <span className={`text-xs font-bold uppercase tracking-wider ${personalSocialDossier.unlocked ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {personalSocialDossier.unlocked ? '상호주의 해금 완료 (내 소셜 리포트 열람 가능)' : '상호주의 잠금 상태 (무임승차 방지)'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-300">
+                    {personalSocialDossier.unlocked
+                      ? '동석자 전원 평가를 100% 완료하여 타인의 시선으로 관찰된 나의 소셜 프로필이 잠금 해제되었습니다.'
+                      : `동석자 전원에 대한 관찰 평가를 완료해야만 내 리포트가 공개됩니다. (현재 진행도: ${completedEvalUserIds.length}/5명 완료)`}
+                  </p>
+                </div>
+                {personalSocialDossier.unlocked && (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[11px] text-zinc-400 font-medium">최고 돋보인 단일 명사:</span>
+                    {personalSocialDossier.topStrengths.map((str) => (
+                      <span key={str} className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 text-xs font-bold font-mono">
+                        #{str}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* 1. 종합 점수 & 이성/동성 분리 점수 카드 */}
