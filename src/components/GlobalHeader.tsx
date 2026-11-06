@@ -77,27 +77,37 @@ export default function GlobalHeader() {
 
       <div className="w-full max-w-[1320px] mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-3 sm:gap-6">
         
-        {/* [좌측] 나도솔로 정통 로고 (시원한 가독성의 한글 '솔로공감 나도솔로' 기준 폭 일치) */}
+        {/* [좌측] 나도솔로 정통 로고 (연결된 영문 nadosolo 기준 + 하단 nado/solo 완벽 대칭 한글 밸런스) */}
         <Link
           href="/"
           className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
         >
-          {/* 상단 영문 로고 */}
-          <span className="font-serif-editorial text-3xl sm:text-[33px] font-bold text-white tracking-tight lowercase leading-none">
+          {/* 상단: 연결된 오리지널 영문 로고 (기준 앵커: 폰트 및 디자인 불변 유지) */}
+          <span className="font-serif-editorial text-2xl sm:text-3xl font-semibold text-white tracking-tight lowercase leading-none">
             nadosolo
           </span>
-          {/* 하단 한글 문구 (선명한 볼드와 큼직한 가독성 확보, 양 끝 폭 완벽 일치) */}
-          <span className="w-full flex justify-between items-center text-[11px] sm:text-[12.5px] font-bold text-rose-400 group-hover:text-rose-300 transition-colors mt-1.5 leading-none">
-            <span>솔</span>
-            <span>로</span>
-            <span>공</span>
-            <span>감</span>
-            <span className="w-1.5 sm:w-2" />
-            <span>나</span>
-            <span>도</span>
-            <span>솔</span>
-            <span>로</span>
-          </span>
+
+          {/* 하단: 영문 기준 비율에 완벽히 매칭된 한글 (솔로공감 ↔ nado / 나도솔로 ↔ solo) */}
+          <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
+            {/* 솔로공감: nado 영역(약 52%) - 세련된 소프트 실버 ➔ 호버 시 포인트 컬러(#f04f74) 전환 */}
+            <div className="w-[52%] flex justify-between items-center text-[11px] sm:text-[12.5px] font-serif-editorial font-black text-zinc-300 group-hover:text-[#f04f74] transition-colors duration-200 [-webkit-text-stroke:0.25px_currentColor]">
+              <span>솔</span>
+              <span>로</span>
+              <span>공</span>
+              <span>감</span>
+            </div>
+
+            {/* 감-나 사이의 균형 잡힌 단어 분리 여백 (영문 o-s 분기점과 일치) */}
+            <div className="w-[6%]" />
+
+            {/* 나도솔로: solo 영역(약 42%) - 진한 핑크로즈(#f04f74) ➔ 호버 시 빛나는 순백색 전환 */}
+            <div className="w-[42%] flex justify-between items-center text-[11px] sm:text-[12.5px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200 [-webkit-text-stroke:0.25px_currentColor]">
+              <span>나</span>
+              <span>도</span>
+              <span>솔</span>
+              <span>로</span>
+            </div>
+          </div>
         </Link>
 
         {/* 4대 핵심 카테고리 네비게이션 (빨간 라인 효과 제거, 볼드 & 텍스트 컬러로만 심플하게 활성화 표시) */}

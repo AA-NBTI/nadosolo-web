@@ -26,23 +26,26 @@
   --color-outline: rgba(255, 255, 255, 0.12);
   --color-outline-variant: rgba(255, 255, 255, 0.08);
 
-  /* 4. 절제된 핀포인트 컬러: 핵심 액션 전용 루비 레드와인 (#881337) */
-  --color-surface-tint: #881337;
-  --color-primary: #881337;
+  /* 4. 절제된 핀포인트 컬러: 핵심 채널 기본 공식 포인트 컬러 (#f04f74 - 딥 핑크로즈) */
+  --color-point: #f04f74;
+  --color-brand: #f04f74;
+  --color-brand-pink: #f04f74;
+  --color-surface-tint: #f04f74;
+  --color-primary: #f04f74;
   --color-on-primary: #ffffff;
-  --color-primary-container: #881337;
+  --color-primary-container: #f04f74;
   --color-on-primary-container: #ffffff;
-  --color-inverse-primary: #f43f5e;
-  --color-secondary: #881337;
+  --color-inverse-primary: #f04f74;
+  --color-secondary: #f04f74;
   --color-on-secondary: #ffffff;
-  --color-secondary-container: #881337;
+  --color-secondary-container: #f04f74;
   --color-on-secondary-container: #ffffff;
   --color-tertiary: #1c202e;
   --color-on-tertiary: #ffffff;
   --color-tertiary-container: #1c202e;
   --color-on-tertiary-container: #ffffff;
   --color-primary-fixed: #1c202e;
-  --color-primary-fixed-dim: #881337;
+  --color-primary-fixed-dim: #f04f74;
   --color-secondary-fixed: #1c202e;
   --color-tertiary-fixed: #1c202e;
 
@@ -59,6 +62,7 @@
 
 :root {
   color-scheme: dark;
+  --brand-point: #f04f74;
 }
 
 /* 굴림·굴림체 원천 차단: Pretendard 및 맑은 고딕 최우선 지정 */
