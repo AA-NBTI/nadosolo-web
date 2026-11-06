@@ -37,7 +37,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary">
+      <body className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-white/20 selection:text-white">
         <ChunkErrorRecovery />
         <NadoSoloProvider>
           <GlobalHeader />

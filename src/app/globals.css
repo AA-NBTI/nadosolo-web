@@ -74,6 +74,12 @@ body {
   letter-spacing: -0.015em;
 }
 
+/* 텍스트 드래그 선택 시 편안한 중립 반투명 하이라이트 */
+::selection {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
 /* 폼 입력 필드 기본 다크 인셋 */
 input:not([type="range"]),
 select,
