@@ -156,24 +156,24 @@ export function resolveButtonClasses(
   switch (merged.theme) {
     case 'solid-wine':
       themeCls =
-        'bg-[#f04f74] hover:bg-[#d93f63] text-white border border-[#f04f74] shadow-[0_0_20px_rgba(240,79,116,0.35)] transition-all duration-300';
+        'bg-transparent hover:bg-white/[0.04] text-[#f04f74] border border-[#f04f74] transition-all duration-300';
       break;
     case 'pure-white':
       themeCls =
-        'bg-white hover:bg-[#f04f74] hover:border-[#f04f74] text-zinc-950 hover:text-white font-bold border border-white shadow-zinc-900/50 transition-all duration-300';
+        'bg-white hover:bg-zinc-100 text-zinc-950 hover:text-[#f04f74] font-bold border border-white transition-all duration-300';
       break;
     case 'dark-outline':
       themeCls =
-        'bg-zinc-900/80 hover:bg-[#f04f74] hover:border-[#f04f74] text-white border border-white/20 hover:text-white shadow-black/60 transition-all duration-300';
+        'bg-zinc-900/80 hover:bg-white/[0.04] hover:border-[#f04f74] text-white border border-white/20 hover:text-[#f04f74] transition-all duration-300';
       break;
     case 'gold-amber':
       themeCls =
-        'bg-amber-950/40 hover:bg-[#f04f74] border border-amber-500/40 hover:border-[#f04f74] text-amber-300 hover:text-white shadow-amber-950/40 transition-all duration-300';
+        'bg-transparent hover:bg-white/[0.04] border border-amber-500/50 hover:border-[#f04f74] text-amber-300 hover:text-[#f04f74] transition-all duration-300';
       break;
     case 'glass-rose':
     default:
       themeCls =
-        'border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white shadow-black/40 hover:shadow-[0_0_24px_rgba(240,79,116,0.45)] transition-all duration-300';
+        'border border-[#f04f74]/80 hover:border-[#f04f74] bg-black/50 hover:bg-white/[0.04] text-white hover:text-[#f04f74] transition-all duration-300';
       break;
   }
 
@@ -267,10 +267,9 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     },
     navItems: [
       { id: 'dining', label: '소셜 다이닝', href: '/dining', visible: true, order: 1 },
-      { id: 'guide', label: '프로그램 이용안내', href: '/guide', visible: true, order: 2 },
-      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 3 },
-      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 4 },
-      { id: 'meetup', label: '테마 밋업', href: '/meetup', visible: false, order: 5 },
+      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 2 },
+      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 3 },
+      { id: 'meetup', label: '테마 밋업', href: '/meetup', visible: false, order: 4 },
     ],
     activeCityLabel: '부산',
   },
@@ -373,7 +372,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   },
 };
 
-const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V148_RELEASE_140';
+const STORAGE_KEY = 'NADOSOLO_SITE_CONFIG_V150_CLEAN';
 const EDIT_MODE_STORAGE_KEY = 'NADOSOLO_VISUAL_EDIT_MODE';
 
 // ============================================================================

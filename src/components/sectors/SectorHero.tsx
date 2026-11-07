@@ -75,10 +75,10 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
             <button
               type="button"
               onClick={onOpenCheckout}
-              className="group px-8 py-4 rounded-none border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-500 cursor-pointer flex items-center gap-3 shadow-[0_0_35px_rgba(240,79,116,0.35)] backdrop-blur-sm"
+              className="group px-8 py-4 rounded-none border border-[#f04f74] bg-black/50 hover:bg-white/[0.05] text-white hover:text-[#f04f74] text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer flex items-center gap-3 backdrop-blur-sm"
             >
               <span>REQUEST INVITATION</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="w-3.5 h-3.5 text-[#f04f74] group-hover:translate-x-1 transition-transform" />
             </button>
 
             <Link

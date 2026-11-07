@@ -139,7 +139,7 @@ export default function CityLandingPage() {
               <button
                 type="button"
                 onClick={() => handleApplyClick('EVT_JEONPO_FRI')}
-                className="h-11 px-6 rounded-xl border border-white/15 bg-white/10 hover:bg-[#f04f74] hover:border-[#f04f74] text-white hover:text-white text-sm sm:text-[15px] font-semibold tracking-wide shadow-md hover:shadow-[0_0_24px_rgba(240,79,116,0.45)] transition-all duration-300 cursor-pointer inline-flex items-center justify-center"
+                className="h-11 px-6 rounded-xl border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-sm sm:text-[15px] font-semibold tracking-wide transition-all duration-300 cursor-pointer inline-flex items-center justify-center"
               >
                 신청하기
               </button>
@@ -236,7 +236,7 @@ export default function CityLandingPage() {
           </div>
           <Link
             href="/guide"
-            className="px-6 py-3.5 rounded-none border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-wider uppercase font-semibold transition-all shrink-0"
+            className="px-6 py-3.5 rounded-none border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-wider uppercase font-semibold transition-all shrink-0"
           >
             5대 매너 평가 시스템 보기 →
           </Link>

@@ -168,7 +168,7 @@ export default function CheckoutModal({
                   onClick={() => setPayMethod('CARD')}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                     payMethod === 'CARD'
-                      ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
+                      ? 'bg-[#10131c] border-[#f04f74] text-[#f04f74]'
                       : 'bg-[#10131c] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -181,7 +181,7 @@ export default function CheckoutModal({
                   onClick={() => setPayMethod('TOSS_PAY')}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                     payMethod === 'TOSS_PAY'
-                      ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
+                      ? 'bg-[#10131c] border-[#f04f74] text-[#f04f74]'
                       : 'bg-[#10131c] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -194,7 +194,7 @@ export default function CheckoutModal({
                   onClick={() => setPayMethod('KAKAO_PAY')}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                     payMethod === 'KAKAO_PAY'
-                      ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
+                      ? 'bg-[#10131c] border-[#f04f74] text-[#f04f74]'
                       : 'bg-[#10131c] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -209,7 +209,7 @@ export default function CheckoutModal({
                   onClick={() => setPayMethod('NAVER_PAY')}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                     payMethod === 'NAVER_PAY'
-                      ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
+                      ? 'bg-[#10131c] border-[#f04f74] text-[#f04f74]'
                       : 'bg-[#10131c] border-white/10 text-zinc-400 hover:text-white'
                   }`}
                 >
@@ -259,7 +259,7 @@ export default function CheckoutModal({
 
             {/* 에러 메시지 표시 */}
             {errorMessage && (
-              <div className="p-3 rounded-xl bg-[#f04f74]/10 border border-[#f04f74]/30 text-[#f04f74] text-xs flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-transparent border border-[#f04f74]/60 text-[#f04f74] text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 text-[#f04f74]" />
                 <span>{errorMessage}</span>
               </div>
@@ -270,10 +270,10 @@ export default function CheckoutModal({
               <button
                 type="submit"
                 disabled={!isFormValid || isProcessing}
-                className={`w-full py-4 rounded-xl text-lg font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 ${
+                className={`w-full py-4 rounded-xl text-lg font-bold transition-all duration-200 flex items-center justify-center gap-2 ${
                   isFormValid && !isProcessing
-                    ? 'border border-white/15 bg-white/10 hover:bg-white/20 hover:border-white/30 text-[#f04f74] hover:text-white cursor-pointer'
-                    : 'bg-white/10 text-zinc-500 cursor-not-allowed border border-white/5'
+                    ? 'border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] cursor-pointer'
+                    : 'bg-white/5 text-zinc-500 cursor-not-allowed border border-white/5'
                 }`}
               >
                 {isProcessing ? (

@@ -43,10 +43,10 @@ export default function GlobalFooter() {
           </div>
 
           {/* 상단 1열: 이용약관, 개인정보처리방침, 환불규정, 프로그램 안내, SNS 링크 */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-medium">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-normal">
             <Link
               href="/guide"
-              className="text-[#f04f74] hover:text-[#d93f63] font-semibold transition-colors"
+              className="text-zinc-400 hover:text-white transition-colors"
             >
               프로그램 이용안내
             </Link>
@@ -54,7 +54,7 @@ export default function GlobalFooter() {
             <button
               type="button"
               onClick={() => setActiveModal('TERMS')}
-              className="text-zinc-300 hover:text-white transition-colors cursor-pointer"
+              className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               이용약관
             </button>
@@ -62,7 +62,7 @@ export default function GlobalFooter() {
             <button
               type="button"
               onClick={() => setActiveModal('PRIVACY')}
-              className="text-zinc-200 hover:text-white font-semibold transition-colors cursor-pointer"
+              className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               개인정보처리방침
             </button>
@@ -70,7 +70,7 @@ export default function GlobalFooter() {
             <button
               type="button"
               onClick={() => setActiveModal('REFUND')}
-              className="text-zinc-300 hover:text-white transition-colors cursor-pointer"
+              className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               취소 및 환불규정
             </button>
@@ -102,50 +102,50 @@ export default function GlobalFooter() {
           </div>
 
           {/* 중간 2열: 정식 법정 사업자 정보 (관리자 설정 동적 연동) */}
-          <div className="flex flex-col gap-2 font-sans text-xs text-zinc-400 text-center max-w-4xl mx-auto leading-relaxed">
+          <div className="flex flex-col gap-2 font-sans text-xs text-zinc-400 text-center max-w-4xl mx-auto leading-relaxed font-normal">
             <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-              <span>상호: <strong className="text-zinc-300">{f?.companyName || '템바보드 주식회사'}</strong></span>
+              <span>상호: <span className="text-zinc-300">{f?.companyName || '템바보드 주식회사'}</span></span>
               <span className="text-zinc-700">|</span>
-              <span>대표자: <strong className="text-zinc-300">{f?.ceo || '박경민'}</strong></span>
+              <span>대표자: <span className="text-zinc-300">{f?.ceo || '박경민'}</span></span>
               <span className="text-zinc-700">|</span>
               <span>
-                사업자등록번호: <strong className="text-zinc-300">{f?.bizNum || '107-88-44796'}</strong>
+                사업자등록번호: <span className="text-zinc-300">{f?.bizNum || '107-88-44796'}</span>
                 <a
                   href={`https://www.ftc.go.kr/bizCommPop.do?wrkr_no=${String(f?.bizNum || '107-88-44796').replace(/-/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-zinc-300 underline font-medium ml-1 hover:text-white"
+                  className="text-zinc-400 underline ml-1 hover:text-white"
                 >
                   [사업자정보확인]
                 </a>
               </span>
               <span className="text-zinc-700">|</span>
-              <span>통신판매업신고: <strong className="text-zinc-300">{f?.mailOrderNum || '제 2026-부산사하-0589호'}</strong></span>
+              <span>통신판매업신고: <span className="text-zinc-300">{f?.mailOrderNum || '제 2026-부산사하-0589호'}</span></span>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-              <span>사업장 소재지: <strong className="text-zinc-300">{f?.address || '부산광역시 사하구 하신번영로 328, 302호 (하단동)'}</strong></span>
+              <span>사업장 소재지: <span className="text-zinc-300">{f?.address || '부산광역시 사하구 하신번영로 328, 302호 (하단동)'}</span></span>
               <span className="text-zinc-700">|</span>
-              <span>대표전화: <strong className="text-zinc-300">{f?.tel || '051-208-8746'}</strong></span>
+              <span>대표전화: <span className="text-zinc-300">{f?.tel || '051-208-8746'}</span></span>
               <span className="text-zinc-700">|</span>
-              <span>전자우편: <strong className="text-zinc-300">{f?.email || 'nadosoloteam@gmail.com'}</strong></span>
+              <span>전자우편: <span className="text-zinc-300">{f?.email || 'nadosoloteam@gmail.com'}</span></span>
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-              <span>개인정보보호책임자: <strong className="text-zinc-300">{f?.privacyOfficer || '박경민'}</strong></span>
+              <span>개인정보보호책임자: <span className="text-zinc-300">{f?.privacyOfficer || '박경민'}</span></span>
               <span className="text-zinc-700">|</span>
-              <span>호스팅서비스: <strong className="text-zinc-300">{f?.hosting || 'Vercel Inc.'}</strong></span>
+              <span>호스팅서비스: <span className="text-zinc-300">{f?.hosting || 'Vercel Inc.'}</span></span>
               <span className="text-zinc-700">|</span>
-              <span>고객센터 운영시간: <strong className="text-zinc-300">{f?.csHours || '평일 10:00 ~ 18:00 (주말 및 공휴일 휴무)'}</strong></span>
+              <span>고객센터 운영시간: <span className="text-zinc-300">{f?.csHours || '평일 10:00 ~ 18:00 (주말 및 공휴일 휴무)'}</span></span>
             </div>
 
             {/* 결제 심사 필수 배너 (토스페이먼츠 PG 심사 규격 준수) */}
-            <div className="mt-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/10 max-w-3xl mx-auto space-y-1.5 text-[11px] text-zinc-400">
+            <div className="mt-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/10 max-w-3xl mx-auto space-y-1.5 text-[11px] text-zinc-400 font-normal">
               <div>
-                <strong>구매안전서비스(에스크로) 안내:</strong> 고객님의 안전한 전자상거래를 위해 <strong>토스페이먼츠(주)</strong>의 구매안전(에스크로) 서비스 연동 및 계약 절차를 진행하고 있습니다.
+                <span>구매안전서비스(에스크로) 안내: 고객님의 안전한 전자상거래를 위해 토스페이먼츠(주)의 구매안전(에스크로) 서비스 연동 및 계약 절차를 진행하고 있습니다.</span>
               </div>
               <div>
-                <strong>전자결제 연동 수탁 고지:</strong> 전자결제(PG) 및 에스크로 대행 업무는 「개인정보 보호법」 제26조에 따라 수탁사인 <strong>토스페이먼츠(주)</strong>에 위탁 운영됩니다.
+                <span>전자결제 연동 수탁 고지: 전자결제(PG) 및 에스크로 대행 업무는 「개인정보 보호법」 제26조에 따라 수탁사인 토스페이먼츠(주)에 위탁 운영됩니다.</span>
               </div>
             </div>
           </div>

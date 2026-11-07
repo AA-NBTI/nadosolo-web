@@ -134,7 +134,7 @@ export default function SectorOpenTables({ onOpenCheckout }: OpenTableProps) {
                     <button
                       type="button"
                       onClick={onOpenCheckout}
-                      className="px-7 py-3.5 border border-white/20 hover:border-[#f04f74] bg-transparent hover:bg-[#f04f74] text-white hover:text-white text-xs font-mono tracking-[0.2em] uppercase font-semibold transition-all duration-300 cursor-pointer flex items-center gap-2"
+                      className="px-7 py-3.5 border border-white/20 hover:border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-white hover:text-[#f04f74] text-xs font-mono tracking-[0.2em] uppercase font-semibold transition-all duration-300 cursor-pointer flex items-center gap-2"
                     >
                       <span>RESERVE SEAT</span>
                       <ArrowRight className="w-3.5 h-3.5" />

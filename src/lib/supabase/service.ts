@@ -91,7 +91,7 @@ export const nadoSoloSupabaseService = {
         .eq('status', 'APPLIED');
 
       if (error || !data) return [];
-      return data.map((row) => row.event_id);
+      return (data as Array<{ event_id: string }>).map((row) => row.event_id);
     } catch (e) {
       console.warn('[Supabase] getAppliedEventIds error:', e);
       return [];

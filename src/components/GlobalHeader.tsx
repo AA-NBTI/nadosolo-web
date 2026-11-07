@@ -13,9 +13,9 @@ export default function GlobalHeader() {
   const { currentUser, logout } = useNadoSoloEngine();
   const { config } = useSiteConfig();
 
-  // 전역 설정에서 네비게이션 메뉴 가져오기
+  // 전역 설정에서 네비게이션 메뉴 가져오기 ('프로그램 이용안내' 제외)
   const navItems = [...(config?.header?.navItems || [])]
-    .filter((item) => item.visible)
+    .filter((item) => item.visible && item.id !== 'guide' && item.href !== '/guide')
     .sort((a, b) => a.order - b.order);
 
   const handleLogout = () => {
@@ -132,10 +132,10 @@ export default function GlobalHeader() {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className="w-7 h-7 rounded-none bg-[#f04f74]/15 hover:bg-[#f04f74]/30 border border-[#f04f74]/40 text-[#f04f74] flex items-center justify-center transition-all text-xs font-mono ml-1"
-                  title="관리자 대시보드"
+                  className="w-8 h-8 rounded-none bg-transparent hover:bg-white/[0.05] border border-white/20 hover:border-[#f04f74] text-zinc-300 hover:text-[#f04f74] flex items-center justify-center transition-all ml-1"
+                  title="최고 관리자 대시보드"
                 >
-                  ADM
+                  <ShieldCheck className="w-4 h-4 text-[#f04f74]" />
                 </Link>
               )}
             </div>

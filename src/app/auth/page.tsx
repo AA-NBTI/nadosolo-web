@@ -261,7 +261,7 @@ function AuthPageContent() {
               }}
               className={`py-2.5 text-xs font-mono tracking-wider transition-all cursor-pointer ${
                 tab === 'LOGIN'
-                  ? 'border border-[#f04f74] bg-[#f04f74]/15 text-white font-semibold shadow-[0_0_15px_rgba(240,79,116,0.2)]'
+                  ? 'border border-[#f04f74] bg-white/[0.03] text-[#f04f74] font-semibold'
                   : 'text-zinc-400 hover:text-white border border-transparent'
               }`}
             >
@@ -275,7 +275,7 @@ function AuthPageContent() {
               }}
               className={`py-2.5 text-xs font-mono tracking-wider transition-all cursor-pointer ${
                 tab === 'SIGNUP'
-                  ? 'border border-[#f04f74] bg-[#f04f74]/15 text-white font-semibold shadow-[0_0_15px_rgba(240,79,116,0.2)]'
+                  ? 'border border-[#f04f74] bg-white/[0.03] text-[#f04f74] font-semibold'
                   : 'text-zinc-400 hover:text-white border border-transparent'
               }`}
             >
@@ -285,7 +285,7 @@ function AuthPageContent() {
         )}
 
         {errorMsg && (
-          <div className="mb-5 p-3 bg-[#f04f74]/10 border border-[#f04f74]/30 text-[#f04f74] text-xs font-mono text-center">
+          <div className="mb-5 p-3 bg-transparent border border-[#f04f74]/60 text-[#f04f74] text-xs font-mono text-center">
             {errorMsg}
           </div>
         )}
@@ -352,7 +352,7 @@ function AuthPageContent() {
             {/* 메인 로그인 CTA 버튼 */}
             <button
               type="submit"
-              className="w-full py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(240,79,116,0.25)]"
+              className="w-full py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer"
             >
               로그인
             </button>
@@ -487,7 +487,7 @@ function AuthPageContent() {
             {/* 메인 가입 CTA 버튼 */}
             <button
               type="submit"
-              className="w-full py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(240,79,116,0.25)] mt-2"
+              className="w-full py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer mt-2"
             >
               회원가입
             </button>
@@ -541,7 +541,7 @@ function AuthPageContent() {
                     onClick={() => setExtraGender('F')}
                     className={`py-2.5 text-xs font-mono tracking-wider transition-all cursor-pointer ${
                       extraGender === 'F'
-                        ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white font-semibold'
+                        ? 'border border-[#f04f74] bg-transparent text-[#f04f74] font-semibold'
                         : 'bg-black/40 text-zinc-400 hover:text-white border border-white/[0.08]'
                     }`}
                   >
@@ -552,7 +552,7 @@ function AuthPageContent() {
                     onClick={() => setExtraGender('M')}
                     className={`py-2.5 text-xs font-mono tracking-wider transition-all cursor-pointer ${
                       extraGender === 'M'
-                        ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white font-semibold'
+                        ? 'border border-[#f04f74] bg-transparent text-[#f04f74] font-semibold'
                         : 'bg-black/40 text-zinc-400 hover:text-white border border-white/[0.08]'
                     }`}
                   >
@@ -591,7 +591,7 @@ function AuthPageContent() {
               <button
                 type="button"
                 onClick={() => handleStep2Complete(false)}
-                className="w-full py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer shadow-[0_0_20px_rgba(240,79,116,0.25)]"
+                className="w-full py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer"
               >
                 저장 완료
               </button>

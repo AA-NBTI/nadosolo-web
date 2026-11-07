@@ -23,7 +23,7 @@ export default function NotFound() {
 
       <Link
         href="/"
-        className="px-6 py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.2em] uppercase transition-all duration-300"
+        className="px-6 py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-[0.2em] uppercase transition-all duration-300"
       >
         홈으로
       </Link>

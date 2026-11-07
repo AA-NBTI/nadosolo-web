@@ -229,7 +229,7 @@ export default function GuidePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 divide-y md:divide-y-0 md:divide-x divide-white/[0.08] pt-4">
               
               <div className="space-y-4 md:pr-8">
-                <div className="inline-block px-3 py-1 bg-[#f04f74]/15 border border-[#f04f74]/30 text-[#f04f74] text-xs font-mono font-semibold">
+                <div className="inline-block px-3 py-1 bg-transparent border border-[#f04f74]/60 text-[#f04f74] text-xs font-mono font-semibold">
                   온라인 사전 결제: ₩30,000
                 </div>
                 <h3 className="font-serif-editorial text-xl text-white">
@@ -262,7 +262,7 @@ export default function GuidePage() {
               <button
                 type="button"
                 onClick={handleApplyClick}
-                className="px-8 py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer shadow-[0_0_25px_rgba(240,79,116,0.25)]"
+                className="px-8 py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer"
               >
                 신청하기
               </button>

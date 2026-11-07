@@ -171,7 +171,7 @@ export default function CategoryProductHero({
                   onClick={() => setCurrentIdx(idx)}
                   className={`group relative rounded-xl overflow-hidden border text-left transition-all p-1.5 cursor-pointer ${
                     isActive
-                      ? 'border-[#f04f74] bg-[#f04f74]/15 ring-2 ring-[#f04f74]/50'
+                      ? 'border-[#f04f74] bg-white/[0.03]'
                       : 'border-white/10 bg-white/[0.02] hover:border-white/30 hover:bg-white/[0.05]'
                   }`}
                 >

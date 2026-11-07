@@ -267,7 +267,7 @@ export default function DiningPage() {
                     <button
                       type="button"
                       onClick={() => handleApplyClick()}
-                      className="px-8 py-3.5 border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer flex items-center gap-3 shadow-[0_0_25px_rgba(240,79,116,0.25)]"
+                      className="px-8 py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer flex items-center gap-3"
                     >
                       <span>신청하기</span>
                       <ArrowRight className="w-3.5 h-3.5" />

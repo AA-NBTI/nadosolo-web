@@ -248,8 +248,8 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             onClick={() => setSubTab('SECTORS')}
             className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'SECTORS'
-                ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white shadow-[0_0_15px_rgba(240,79,116,0.2)]'
-                : 'bg-white/5 text-zinc-400 hover:text-white'
+                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                : 'border border-transparent bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
             <Layout className="w-4 h-4" />
@@ -261,8 +261,8 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             onClick={() => setSubTab('BUTTON_STYLE')}
             className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'BUTTON_STYLE'
-                ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white shadow-[0_0_15px_rgba(240,79,116,0.2)]'
-                : 'bg-white/5 text-zinc-400 hover:text-white'
+                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                : 'border border-transparent bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
             <Paintbrush className="w-4 h-4" />
@@ -274,8 +274,8 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             onClick={() => setSubTab('HEADER')}
             className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'HEADER'
-                ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white shadow-[0_0_15px_rgba(240,79,116,0.2)]'
-                : 'bg-white/5 text-zinc-400 hover:text-white'
+                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                : 'border border-transparent bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
             <Compass className="w-4 h-4" />
@@ -287,8 +287,8 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             onClick={() => setSubTab('FOOTER')}
             className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'FOOTER'
-                ? 'border border-[#f04f74] bg-[#f04f74]/20 text-white shadow-[0_0_15px_rgba(240,79,116,0.2)]'
-                : 'bg-white/5 text-zinc-400 hover:text-white'
+                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                : 'border border-transparent bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
             <FileText className="w-4 h-4" />
@@ -310,7 +310,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <button
             type="button"
             onClick={handleSaveAll}
-            className="px-5 py-2 rounded-none border border-[#f04f74] bg-[#f04f74]/15 hover:bg-[#f04f74] text-white text-xs sm:text-sm font-mono tracking-wider uppercase font-semibold shadow-[0_0_20px_rgba(240,79,116,0.25)] transition-all cursor-pointer flex items-center gap-2"
+            className="px-5 py-2 rounded-none border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs sm:text-sm font-mono tracking-wider uppercase font-semibold transition-all cursor-pointer flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             <span>저장</span>
@@ -380,7 +380,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       onClick={() => handleToggleSectorVisibility(sector.id)}
                       className={`px-3 py-1.5 rounded-none border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
                         sector.visible
-                          ? 'bg-[#f04f74]/15 text-[#f04f74] border-[#f04f74]/30'
+                          ? 'bg-transparent text-[#f04f74] border-[#f04f74]'
                           : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                       }`}
                     >
@@ -458,10 +458,10 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                           <button
                             type="button"
                             onClick={() => handleToggleCategoryItemVisibility(sector.id, cat.id)}
-                            className={`px-3 py-1.5 rounded-none text-xs font-bold cursor-pointer shrink-0 transition-all shadow-sm ${
+                            className={`px-3 py-1.5 rounded-none text-xs font-bold cursor-pointer shrink-0 transition-all ${
                               cat.visible
-                                ? 'bg-[#f04f74] text-white hover:bg-[#d93f63]'
-                                : 'bg-white/10 text-zinc-400 hover:text-white hover:bg-white/15'
+                                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                                : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
                             }`}
                           >
                             {cat.visible ? '운영중' : '중지됨'}
@@ -540,7 +540,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       onClick={() => handleUpdateButtonStyle({ roundness: r.key })}
                       className={`p-2.5 rounded-none border text-xs font-bold text-center transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-rose-950/40 border-[#f04f74] text-[#f04f74] ring-1 ring-rose-500/50'
+                          ? 'bg-transparent border-[#f04f74] text-[#f04f74]'
                           : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -563,7 +563,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       onClick={() => handleUpdateButtonStyle({ fontSize: s.key })}
                       className={`p-2.5 rounded-none border text-xs font-bold text-center transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-rose-950/40 border-[#f04f74] text-[#f04f74] ring-1 ring-rose-500/50'
+                          ? 'bg-transparent border-[#f04f74] text-[#f04f74]'
                           : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -605,7 +605,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 }
                 className={`px-3 py-1 rounded-none text-xs font-semibold border transition-all cursor-pointer ${
                   draftConfig?.header?.announcement?.visible
-                    ? 'bg-rose-500/20 text-[#f04f74] border-[#f04f74]/40'
+                    ? 'bg-transparent text-[#f04f74] border-[#f04f74]'
                     : 'bg-white/5 text-zinc-400 border-white/10'
                 }`}
               >
@@ -747,7 +747,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     onClick={() => handleToggleNavVisibility(item.id)}
                     className={`px-2.5 py-1 rounded-none text-xs font-semibold border cursor-pointer ${
                       item.visible
-                        ? 'bg-[#f04f74]/15 text-[#f04f74] border-[#f04f74]/30'
+                        ? 'bg-transparent text-[#f04f74] border-[#f04f74]'
                         : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                     }`}
                   >
@@ -970,7 +970,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   }}
                   className={`px-3 py-1.5 rounded-none border text-xs font-semibold cursor-pointer ${
                     social.visible
-                      ? 'bg-rose-600/20 text-[#f04f74] border-[#f04f74]/40'
+                      ? 'bg-transparent text-[#f04f74] border-[#f04f74]'
                       : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                   }`}
                 >
