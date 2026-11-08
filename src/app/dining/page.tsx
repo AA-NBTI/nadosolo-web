@@ -127,16 +127,15 @@ export default function DiningPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
             
             <div className="lg:col-span-8 space-y-5">
-              <h1 className="font-serif-editorial text-4xl sm:text-6xl lg:text-[70px] font-normal text-white tracking-tight leading-[1.12]">
-                <span className="block whitespace-nowrap">테이블을 마주하는 순간,</span>
-                <span className="block whitespace-nowrap font-light italic text-[#f5f2eb]/90 mt-1">
+              <h1 className="font-serif-editorial text-4xl sm:text-6xl lg:text-[70px] font-normal text-white tracking-tight leading-[1.14]">
+                <span className="block">테이블을 마주하는 순간,</span>
+                <span className="block font-light italic text-[#f5f2eb]/90 mt-1 sm:mt-1.5">
                   우리는 서로의 거울이 됩니다
                 </span>
               </h1>
 
-              <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed max-w-2xl tracking-wide pt-2">
-                신원과 에티켓이 검증된 6인의 참가자가 엄선된 프라이빗 룸에 모여 코스 디너와 와인을 함께합니다.<br className="hidden sm:inline" />
-                식사와 주류 비용은 당일 현장에서 1/N 실비로 정산하며, 온라인 참가비 ₩30,000은 다면 관찰 엔진 라이선스 및 맞춤형 소셜 리포트 발행비입니다.
+              <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed pt-2">
+                신원과 에티켓이 검증된 6인의 참가자가 엄선된 프라이빗 룸에 모여 코스 디너와 와인을 함께합니다. 식사와 주류 비용은 당일 현장에서 1/N 실비로 정산하며, 온라인 참가비 ₩30,000은 다면 관찰 엔진 라이선스 및 맞춤형 소셜 리포트 발행비입니다.
               </p>
             </div>
 

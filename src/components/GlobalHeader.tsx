@@ -39,14 +39,13 @@ export default function GlobalHeader() {
             href="/"
             className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
           >
-            {/* 상단: 현재 럭셔리 에디토리얼 세리프 디자인 톤으로 정밀 조율된 영문 nadosolo */}
+            {/* 상단: 영문 nadosolo */}
             <span className="font-serif-editorial text-[26px] sm:text-[30px] font-light text-white tracking-[-0.02em] lowercase leading-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] group-hover:text-zinc-100 transition-colors duration-300">
               nadosolo
             </span>
 
-            {/* 하단: 영문 기준 비율에 완벽히 매칭된 한글 (솔로공감 ↔ nado / 나도솔로 ↔ solo) */}
+            {/* 하단: 한글 (솔로공감 / 나도솔로) */}
             <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
-              {/* 솔로공감: nado 영역(약 52%) - 순백색 화이트(text-white font-black) ➔ 호버 시 포인트 컬러(#f04f74) 전환 */}
               <div className="w-[52%] flex justify-between items-center text-[10px] sm:text-[11.5px] font-serif-editorial font-black text-white group-hover:text-[#f04f74] transition-colors duration-200">
                 <span>솔</span>
                 <span>로</span>
@@ -54,10 +53,8 @@ export default function GlobalHeader() {
                 <span>감</span>
               </div>
 
-              {/* 감-나 사이의 분기 여백 */}
               <div className="w-[6%]" />
 
-              {/* 나도솔로: solo 영역(약 42%) - 진한 핑크로즈(#f04f74) ➔ 호버 시 화이트 전환 */}
               <div className="w-[42%] flex justify-between items-center text-[10px] sm:text-[11.5px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200">
                 <span>나</span>
                 <span>도</span>
@@ -67,7 +64,7 @@ export default function GlobalHeader() {
             </div>
           </Link>
 
-          {/* 로고 옆 세련된 보조 문구 디자인 (디바이더 라인 + 핑크로즈 도트) */}
+          {/* 로고 옆 세련된 보조 문구 디자인 */}
           <div className="hidden sm:inline-flex items-center gap-2 pl-3.5 border-l border-white/15 text-[11px] font-mono tracking-[0.2em] text-zinc-400 font-light uppercase">
             <span>Private Salon</span>
             <span className="w-1 h-1 rounded-full bg-[#f04f74]" />
@@ -75,7 +72,7 @@ export default function GlobalHeader() {
           </div>
         </div>
 
-        {/* [중앙] 절제된 럭셔리 네비게이션 */}
+        {/* [중앙] 네비게이션 */}
         <nav className="hidden md:flex items-center gap-8">
           {navItems.map((item) => {
             const isActive =
@@ -98,10 +95,9 @@ export default function GlobalHeader() {
           })}
         </nav>
 
-        {/* [우측] INVITATION ONLY 뱃지 & 프로필/로그인 */}
+        {/* [우측] 뱃지 & 프로필/로그인 */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           
-          {/* INVITATION ONLY 뱃지 */}
           <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[10px] font-mono tracking-[0.2em] text-zinc-400 uppercase font-light">
             INVITATION ONLY
           </span>

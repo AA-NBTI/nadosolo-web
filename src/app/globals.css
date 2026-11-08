@@ -122,3 +122,144 @@ textarea:focus {
   direction: ltr;
   vertical-align: middle;
 }
+
+/* ==========================================================================
+   관리자 대시보드 전용 라이트 모드 (완전무결 화이트 백오피스 / 문서 창고)
+   ========================================================================== */
+.admin-light-mode {
+  background-color: #f4f5f7 !important;
+  color: #18181b !important;
+}
+
+/* 1. 관리자 화면 내의 모든 다크 배경 컨테이너/카드를 완벽한 화이트 카드로 강제 변환 */
+.admin-light-mode section,
+.admin-light-mode aside,
+.admin-light-mode article,
+.admin-light-mode div,
+.admin-light-mode nav {
+  border-color: #e4e4e7 !important;
+}
+
+.admin-light-mode aside,
+.admin-light-mode section > div,
+.admin-light-mode .admin-card,
+.admin-light-mode [class*="bg-\\[\\#0c0d12\\]"],
+.admin-light-mode [class*="bg-\\[\\#07080a\\]"],
+.admin-light-mode [class*="bg-black"],
+.admin-light-mode [class*="bg-zinc-950"],
+.admin-light-mode [class*="bg-zinc-900"],
+.admin-light-mode div[style*="background-color: rgb(12, 13, 18)"],
+.admin-light-mode div[style*="background-color: #0c0d12"] {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 2. 내부 리스트 행, 테이블 행, 서브 컨테이너 (연한 회색 바탕) */
+.admin-light-mode div[class*="bg-white/"],
+.admin-light-mode div[class*="bg-black/"],
+.admin-light-mode .admin-sub-card {
+  background-color: #f8f9fa !important;
+  color: #18181b !important;
+}
+
+/* 3. 텍스트 가독성 완전 보장 (검은 배경에 검은 글씨 원천 차단) */
+.admin-light-mode h1,
+.admin-light-mode h2,
+.admin-light-mode h3,
+.admin-light-mode h4,
+.admin-light-mode h5,
+.admin-light-mode h6,
+.admin-light-mode strong,
+.admin-light-mode b,
+.admin-light-mode [class*="text-white"],
+.admin-light-mode [class*="text-zinc-100"],
+.admin-light-mode [class*="text-zinc-200"] {
+  color: #09090b !important;
+}
+
+.admin-light-mode p,
+.admin-light-mode span:not([class*="text-\\[\\#f04f74\\]"]):not([class*="bg-\\[\\#f04f74\\]"]),
+.admin-light-mode [class*="text-zinc-300"],
+.admin-light-mode [class*="text-zinc-400"] {
+  color: #52525b !important;
+}
+
+.admin-light-mode [class*="text-zinc-500"],
+.admin-light-mode [class*="text-zinc-600"] {
+  color: #71717a !important;
+}
+
+/* 브랜드 포인트 컬러는 선명하게 유지 */
+.admin-light-mode [class*="text-\\[\\#f04f74\\]"] {
+  color: #f04f74 !important;
+}
+
+/* 4. 입력 폼 (input, select, textarea) */
+.admin-light-mode input,
+.admin-light-mode select,
+.admin-light-mode textarea {
+  background-color: #ffffff !important;
+  border-color: #d4d4d8 !important;
+  color: #18181b !important;
+}
+
+.admin-light-mode input::placeholder,
+.admin-light-mode textarea::placeholder {
+  color: #a1a1aa !important;
+}
+
+.admin-light-mode input:focus,
+.admin-light-mode select:focus,
+.admin-light-mode textarea:focus {
+  background-color: #ffffff !important;
+  border-color: #18181b !important;
+  outline: none !important;
+}
+
+/* 5. 버튼 규격 */
+.admin-light-mode button {
+  border-color: #d4d4d8 !important;
+}
+
+.admin-light-mode button:not([class*="bg-\\[\\#f04f74\\]"]):not([class*="text-\\[\\#f04f74\\]"]) {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+}
+
+.admin-light-mode button:hover:not([class*="bg-\\[\\#f04f74\\]"]):not([class*="text-\\[\\#f04f74\\]"]) {
+  background-color: #f4f5f7 !important;
+  color: #000000 !important;
+}
+
+/* 사이드바 액티브 탭 */
+.admin-light-mode button[class*="border-l-2 border-\\[\\#f04f74\\]"] {
+  background-color: #f4f5f7 !important;
+  color: #09090b !important;
+  font-weight: 600 !important;
+}
+
+/* 6. 테두리 보정 */
+.admin-light-mode [class*="border-white"] {
+  border-color: #e4e4e7 !important;
+}
+
+/* 7. 테이블 규격 */
+.admin-light-mode table {
+  background-color: #ffffff !important;
+}
+
+.admin-light-mode table th {
+  background-color: #f4f5f7 !important;
+  color: #3f3f46 !important;
+  border-color: #e4e4e7 !important;
+}
+
+.admin-light-mode table td {
+  border-color: #f4f5f7 !important;
+  color: #18181b !important;
+}
+
+.admin-light-mode table tr:hover td {
+  background-color: #fafafa !important;
+}

@@ -222,6 +222,17 @@ export const DEFAULT_CATEGORY_ITEMS: SectorCategoryItem[] = [
     visible: true,
   },
   {
+    id: 'showcase',
+    title: '쇼케이스',
+    subtitle: 'Brand Showcase',
+    badge: '둘러보기',
+    desc: '소셜 미러 다면 관찰 엔진과 엄선된 공간, 나도솔로의 브랜드 철학을 한눈에 조망합니다.',
+    target: '소셜 메타인지 아카이브',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80',
+    href: '/showcase',
+    visible: true,
+  },
+  {
     id: 'salon',
     title: '소셜 살롱',
     subtitle: 'Social Salon',
@@ -267,9 +278,10 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     },
     navItems: [
       { id: 'dining', label: '소셜 다이닝', href: '/dining', visible: true, order: 1 },
-      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 2 },
-      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 3 },
-      { id: 'meetup', label: '테마 밋업', href: '/meetup', visible: false, order: 4 },
+      { id: 'showcase', label: '쇼케이스', href: '/showcase', visible: true, order: 2 },
+      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 3 },
+      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 4 },
+      { id: 'meetup', label: '테마 밋업', href: '/meetup', visible: false, order: 5 },
     ],
     activeCityLabel: '부산',
   },
@@ -387,6 +399,22 @@ export function getStoredSiteConfig(): SiteConfig {
     const parsed = JSON.parse(raw);
 
     // 안전한 Deep Merge 및 Fallback 처리
+    const rawNavItems =
+      Array.isArray(parsed.header?.navItems) && parsed.header.navItems.length > 0
+        ? parsed.header.navItems
+        : DEFAULT_SITE_CONFIG.header.navItems;
+
+    // showcase 메뉴가 누락되었을 경우 기본 병합
+    const hasShowcase = rawNavItems.some(
+      (item: NavItemConfig) => item.id === 'showcase' || item.href === '/showcase'
+    );
+    const mergedNavItems = hasShowcase
+      ? rawNavItems
+      : [
+          ...rawNavItems,
+          { id: 'showcase', label: '쇼케이스', href: '/showcase', visible: true, order: 2 },
+        ].sort((a, b) => a.order - b.order);
+
     const mergedHeader = {
       ...DEFAULT_SITE_CONFIG.header,
       ...(parsed.header || {}),
@@ -394,10 +422,7 @@ export function getStoredSiteConfig(): SiteConfig {
         ...DEFAULT_SITE_CONFIG.header.announcement,
         ...(parsed.header?.announcement || {}),
       },
-      navItems:
-        Array.isArray(parsed.header?.navItems) && parsed.header.navItems.length > 0
-          ? parsed.header.navItems
-          : DEFAULT_SITE_CONFIG.header.navItems,
+      navItems: mergedNavItems,
     };
 
     const mergedFooter = {

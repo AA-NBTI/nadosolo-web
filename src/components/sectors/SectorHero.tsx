@@ -58,15 +58,14 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
 
           <div className="space-y-3">
             <h1 className="font-serif-editorial text-3xl sm:text-5xl lg:text-6xl xl:text-[68px] font-normal text-white tracking-tight leading-[1.14] drop-shadow-2xl">
-              <span className="block whitespace-nowrap">소음이 닿지 않는 밤,</span>
-              <span className="block whitespace-nowrap font-light italic text-[#f5f2eb]/90 mt-1 sm:mt-1.5">
+              <span className="block">소음이 닿지 않는 밤,</span>
+              <span className="block font-light italic text-[#f5f2eb]/90 mt-1 sm:mt-1.5">
                 지성과 취향이 마주하는 식탁
               </span>
             </h1>
 
-            <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed max-w-2xl tracking-wide pt-1 drop-shadow-md">
-              엄선된 프라이빗 룸과 셰프의 시그니처 코스 요리, 소믈리에 와인 페어링.<br className="hidden sm:inline" />
-              신원과 에티켓이 검증된 분들이 마주 앉아 서로의 품격과 온도를 나누는 5060 프라이빗 소셜 살롱입니다.
+            <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed pt-1 drop-shadow-md">
+              엄선된 프라이빗 룸과 셰프의 시그니처 코스 요리, 소믈리에 와인 페어링. 신원과 에티켓이 검증된 분들이 마주 앉아 서로의 품격과 온도를 나누는 5060 프라이빗 소셜 살롱입니다.
             </p>
           </div>
 
