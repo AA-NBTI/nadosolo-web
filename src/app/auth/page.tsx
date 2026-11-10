@@ -5,6 +5,37 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 
+const DISTRICT_MAP: Record<string, string[]> = {
+  부산광역시: [
+    '해운대구',
+    '부산진구(전포/서면)',
+    '수영구(광안리)',
+    '동래구',
+    '남구',
+    '금정구',
+    '연제구',
+    '기장군',
+    '기타 구',
+  ],
+  서울특별시: [
+    '성동구(성수)',
+    '강남구',
+    '서초구',
+    '마포구',
+    '송파구',
+    '용산구',
+    '영등포구',
+    '기타 구',
+  ],
+  대구광역시: ['수성구', '중구', '달서구', '기타 구'],
+  인천광역시: ['연수구(송도)', '남동구', '부평구', '기타 구'],
+  대전광역시: ['유성구', '서구', '중구', '기타 구'],
+  광주광역시: ['동구', '서구', '광산구', '기타 구'],
+  울산광역시: ['남구', '중구', '울주군', '기타 구'],
+  경기도: ['성남시(분당/판교)', '수원시', '고양시', '용인시', '기타 시·군'],
+  기타지역: ['기타 시·군·구'],
+};
+
 function AuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -34,6 +65,8 @@ function AuthPageContent() {
   const [extraGender, setExtraGender] = useState<'F' | 'M'>('F');
   const [extraBirthYear, setExtraBirthYear] = useState(1995);
   const [extraJob, setExtraJob] = useState('');
+  const [residenceCity, setResidenceCity] = useState('부산광역시');
+  const [residenceDistrict, setResidenceDistrict] = useState('해운대구');
 
   const normalizedHandle = handleInput.startsWith('@')
     ? handleInput.toLowerCase()
@@ -209,6 +242,8 @@ function AuthPageContent() {
         jobTitle: extraJob || '미입력',
         gender: extraGender,
         birthYear: extraBirthYear,
+        residenceCity,
+        residenceDistrict,
         authProvider: 'EMAIL',
         verifiedBadge: '프로필 등록 완료',
         sessionCount: 1,
@@ -555,6 +590,42 @@ function AuthPageContent() {
                 onChange={(e) => setExtraJob(e.target.value)}
                 className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-light focus:outline-none transition-colors"
               />
+            </div>
+
+            {/* [신설] 활동 및 거주 지역 필수 입력 */}
+            <div>
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
+                활동 및 거주 지역 (필수)
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={residenceCity}
+                  onChange={(e) => {
+                    const nextCity = e.target.value;
+                    setResidenceCity(nextCity);
+                    setResidenceDistrict(DISTRICT_MAP[nextCity]?.[0] || '기타');
+                  }}
+                  className="w-full px-3 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-mono focus:outline-none transition-colors"
+                >
+                  {Object.keys(DISTRICT_MAP).map((c) => (
+                    <option key={c} value={c} className="bg-[#0c0d12] text-white">
+                      {c}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={residenceDistrict}
+                  onChange={(e) => setResidenceDistrict(e.target.value)}
+                  className="w-full px-3 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-mono focus:outline-none transition-colors"
+                >
+                  {(DISTRICT_MAP[residenceCity] || []).map((d) => (
+                    <option key={d} value={d} className="bg-[#0c0d12] text-white">
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="space-y-2 pt-2">

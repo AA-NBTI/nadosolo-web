@@ -415,12 +415,21 @@ interface NadoSoloEngineContextValue {
 const NadoSoloContext = createContext<NadoSoloEngineContextValue | null>(null);
 
 function mapDbProfileToParticipant(p: DbProfile): ParticipantProfile {
+  let mappedCity = 'BUSAN_JEONPO';
+  if (p.residence_district) {
+    if (p.residence_district.includes('해운대')) mappedCity = 'BUSAN_HAEUNDAE';
+    else if (p.residence_district.includes('광안') || p.residence_district.includes('수영')) mappedCity = 'BUSAN_GWANGAN';
+    else if (p.residence_district.includes('전포') || p.residence_district.includes('부산진') || p.residence_district.includes('서면')) mappedCity = 'BUSAN_JEONPO';
+    else if (p.residence_district.includes('성수') || p.residence_district.includes('성동')) mappedCity = 'SEOUL_SEONGSU';
+    else if (p.residence_district.includes('강남')) mappedCity = 'SEOUL_GANGNAM';
+  }
+
   return {
     userId: p.id,
     nickname: p.nickname,
     gender: p.gender,
     birthYear: p.birth_year,
-    cityCode: 'SEOUL_SEONGSU',
+    cityCode: mappedCity,
     preferredMode: 'ROMANCE',
     languages: { ko: 'NATIVE' },
     preferredTableLanguage: 'ko',
@@ -700,6 +709,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       self_domain_scores: selfDomainScores100,
       verified_badge: user.verifiedBadge,
       session_count: user.sessionCount,
+      residence_city: user.residenceCity,
+      residence_district: user.residenceDistrict,
     });
 
     // participantsPool 실시간 동기화

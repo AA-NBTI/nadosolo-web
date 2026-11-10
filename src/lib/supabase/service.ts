@@ -16,6 +16,8 @@ export interface DbProfile {
   survey_answers?: Record<string, string>;
   verified_badge?: string;
   session_count?: number;
+  residence_city?: string;
+  residence_district?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -88,6 +90,8 @@ export const nadoSoloSupabaseService = {
             interests: profile.interests,
             self_domain_scores: profile.self_domain_scores,
             survey_answers: profile.survey_answers,
+            residence_city: profile.residence_city,
+            residence_district: profile.residence_district,
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'id' }

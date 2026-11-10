@@ -36,6 +36,8 @@ export interface LoggedInUser {
   authProvider: 'KAKAO' | 'GOOGLE' | 'APPLE' | 'EMAIL';
   verifiedBadge: string;
   sessionCount: number;
+  residenceCity?: string;     // 광역시·도 (예: 부산광역시)
+  residenceDistrict?: string; // 시·군·구 (예: 해운대구, 부산진구)
 }
 
 // ============================================================================
