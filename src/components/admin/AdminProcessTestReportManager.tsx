@@ -25,8 +25,8 @@ interface ProcessAuditStep {
 export default function AdminProcessTestReportManager() {
   const { startAdminImpersonation } = useNadoSoloEngine();
 
-  // 최고관리자 버전 선택 (기본값: 최신 v2.0)
-  const [selectedVersion, setSelectedVersion] = useState<string>('v2.0');
+  // 최고관리자 버전 선택 (기본값: 최신 v2.1.0)
+  const [selectedVersion, setSelectedVersion] = useState<string>('v2.1.0');
   const [expandedChangeId, setExpandedChangeId] = useState<string | null>(null);
 
   // 하단 엔지니어링 세부 점검 명세 펼침 여부 (기본값: 닫힘)
