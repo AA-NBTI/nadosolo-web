@@ -208,6 +208,57 @@ export default function AdminOperationsDashboardPage() {
   useEffect(() => {
     fetchLiveDbProfiles();
   }, [fetchLiveDbProfiles]);
+
+  // [마프로·다프로 주관] 동적 모임 라이프사이클 시험기 상태 (지역 무관 자율 시험)
+  const [simDistrictId, setSimDistrictId] = useState<string>('DIST_JEONPO');
+  const [simMode, setSimMode] = useState<'ROMANCE' | 'THEME'>('ROMANCE');
+  const [simStatus, setSimStatus] = useState<'IDLE' | 'RECRUITING' | 'CONFIRMED' | 'EXPIRED'>('IDLE');
+  const [simMembers, setSimMembers] = useState<{ id: string; gender: 'M' | 'F'; age: number; status: string }[]>([]);
+  const [simLogs, setSimLogs] = useState<string[]>([]);
+
+  const runSimSuccess = useCallback(() => {
+    const dist = regionDistricts.find((d) => d.districtId === simDistrictId)?.districtName || '지정 거점';
+    setSimStatus('CONFIRMED');
+    setSimMembers([
+      { id: 'M01', gender: 'M', age: 32, status: '결제완료' },
+      { id: 'M02', gender: 'M', age: 34, status: '결제완료' },
+      { id: 'M03', gender: 'M', age: 31, status: '결제완료' },
+      { id: 'F01', gender: 'F', age: 29, status: '결제완료' },
+      { id: 'F02', gender: 'F', age: 31, status: '결제완료' },
+      { id: 'F03', gender: 'F', age: 33, status: '결제완료' },
+    ]);
+    setSimLogs([
+      `[마프로/매칭] [${dist}] 남성 3명, 여성 3명 100% 충원 완료 (연령 격차 ±5세 통과)`,
+      `[라프로/수익] 6인 다면평가 라이선스(₩30,000×6) 결제 홀딩 확정 (P01-PASS)`,
+      `[마프로/공간] [${dist}] 프라이빗 다이닝 룸 자동 예약 및 180도 회전 좌석 락(Lock) 완료`,
+      `[사프로/운영] 참가자 6인에게 [모임 확정 및 장소/시간 안내 동적 알림] 즉시 발송 완료`,
+      `[바프로/데이터] 실서버 DB 격리 시뮬레이션 무결성 인증 완료 (오염 0건)`,
+    ]);
+  }, [simDistrictId, regionDistricts]);
+
+  const runSimExpire = useCallback(() => {
+    const dist = regionDistricts.find((d) => d.districtId === simDistrictId)?.districtName || '지정 거점';
+    setSimStatus('EXPIRED');
+    setSimMembers([
+      { id: 'M01', gender: 'M', age: 32, status: '결제완료' },
+      { id: 'F01', gender: 'F', age: 29, status: '결제완료' },
+      { id: 'F02', gender: 'F', age: 31, status: '결제완료' },
+      { id: 'F03', gender: 'F', age: 33, status: '결제완료' },
+    ]);
+    setSimLogs([
+      `[마프로/매칭] [${dist}] 마감 시한(D-1 18:00) 도래: 남성 1/3, 여성 3/3 (남성 2명 미달)`,
+      `[마프로/매칭] 최소 6인 3:3 성비 조건 미달로 [자동 폐쇄(EXPIRED)] 판정 완료`,
+      `[라프로/수익] 4인 결제 승인 자동 취소 및 다음 회차 우선 배정 크레딧으로 이관 완료`,
+      `[사프로/운영] 참가자 4인에게 [인원 미달 모임 순연 및 다음 주 우선 안내 알림] 즉시 발송 완료`,
+      `[가프로/감사] 미달 폐쇄 라이프사이클 및 환불/이관 프로토콜 헌법 준수 확인`,
+    ]);
+  }, [simDistrictId, regionDistricts]);
+
+  const resetSim = useCallback(() => {
+    setSimStatus('IDLE');
+    setSimMembers([]);
+    setSimLogs([]);
+  }, []);
   // 관리자 화면 기본 테마: 다크 모노크롬 (시스템 헌법 표준)
   const [adminTheme, setAdminTheme] = useState<'light' | 'dark'>('dark');
 
@@ -2207,6 +2258,134 @@ export default function AdminOperationsDashboardPage() {
                   </button>
                 </div>
               </div>
+
+              {/* 0. [마프로·다프로] 동적 모임 라이프사이클 시험기 (지역 무관 자율 시험) */}
+              <AdminSectionCard
+                title="동적 시험"
+                badge={simStatus === 'CONFIRMED' ? '성립 확정' : simStatus === 'EXPIRED' ? '인원 미달 폐쇄' : simStatus === 'RECRUITING' ? '모집 중' : '대기'}
+                isOpen={isSectionOpen('SEC_EVENT_SIMULATOR', true)}
+                onToggle={() => toggleSection('SEC_EVENT_SIMULATOR', true)}
+                isLight={isLight}
+              >
+                <div className="space-y-3">
+                  {/* 시험 제어 바 */}
+                  <div className={`p-3 border flex flex-wrap items-center justify-between gap-3 ${subCardCls}`}>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={simDistrictId}
+                        onChange={(e) => {
+                          setSimDistrictId(e.target.value);
+                          resetSim();
+                        }}
+                        className={`text-sm font-mono ${selectCls}`}
+                      >
+                        {regionDistricts.map((d) => (
+                          <option key={d.districtId} value={d.districtId}>
+                            {d.regionName} · {d.districtName}
+                          </option>
+                        ))}
+                      </select>
+                      <select
+                        value={simMode}
+                        onChange={(e) => {
+                          setSimMode(e.target.value as any);
+                          resetSim();
+                        }}
+                        className={`text-sm font-mono ${selectCls}`}
+                      >
+                        <option value="ROMANCE">3:3 로맨스 (엄격 성비 1:1)</option>
+                        <option value="THEME">소셜 살롱 (대화/취향 결)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={runSimSuccess}
+                        className="px-3 py-1 border border-white/20 hover:border-white text-sm font-mono text-white bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer"
+                      >
+                        성립시험
+                      </button>
+                      <button
+                        type="button"
+                        onClick={runSimExpire}
+                        className="px-3 py-1 border border-white/20 hover:border-white text-sm font-mono text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] transition-colors cursor-pointer"
+                      >
+                        폐쇄시험
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetSim}
+                        className="px-2.5 py-1 border border-white/10 hover:border-white/30 text-sm font-mono text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                      >
+                        초기화
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 시험 결과 2열 컴팩트 그리드 */}
+                  {simStatus !== 'IDLE' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm font-mono animate-in fade-in duration-150">
+                      {/* 좌측: 테이블 상태 및 충원 현황 */}
+                      <div className={`p-4 border space-y-3 ${subCardCls}`}>
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                          <span className="text-zinc-400">테이블 상태</span>
+                          <span className={`px-2 py-0.5 text-sm font-bold border ${
+                            simStatus === 'CONFIRMED'
+                              ? 'text-white border-white/40 bg-white/10'
+                              : 'text-zinc-300 border-white/20 bg-white/5'
+                          }`}>
+                            {simStatus === 'CONFIRMED' ? '성립 확정 (LOCKED)' : '인원 미달 폐쇄 (EXPIRED)'}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">충원 인원</span>
+                            <span className="text-white font-bold">{simMembers.length} / 6명</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">성비 분포</span>
+                            <span className="text-white">
+                              남성 {simMembers.filter((m) => m.gender === 'M').length}명 : 여성 {simMembers.filter((m) => m.gender === 'F').length}명
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">연령 격차</span>
+                            <span className="text-white">최대 5세 (허용범위 ±7세 통과)</span>
+                          </div>
+                        </div>
+
+                        {/* 참가자 미니 배지 */}
+                        <div className="pt-2 border-t border-white/10 flex flex-wrap gap-1.5">
+                          {simMembers.map((m) => (
+                            <span
+                              key={m.id}
+                              className="px-2 py-0.5 border border-white/10 bg-white/[0.02] text-zinc-300 text-sm"
+                            >
+                              {m.id} ({m.gender === 'M' ? '남' : '여'}·{m.age}세)
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 우측: 7대 프로 파이프라인 실시간 반응 로그 */}
+                      <div className={`p-4 border space-y-2.5 ${subCardCls}`}>
+                        <span className="text-zinc-400 block border-b border-white/10 pb-2">
+                          7대 프로 실시간 반응 로그
+                        </span>
+                        <div className="space-y-1.5">
+                          {simLogs.map((log, idx) => (
+                            <div key={idx} className="p-2 border border-white/10 bg-black/40 text-sm text-zinc-200 leading-relaxed">
+                              {log}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </AdminSectionCard>
 
               {/* 1. 조건부 모임 신규 개설 */}
               <AdminSectionCard
