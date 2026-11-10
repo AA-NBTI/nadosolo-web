@@ -4,6 +4,7 @@ import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
+import { nadoSoloSupabaseService } from '@/lib/supabase/service';
 
 const DISTRICT_MAP: Record<string, string[]> = {
   부산광역시: [
@@ -42,7 +43,7 @@ function AuthPageContent() {
   const initialTab = searchParams.get('tab') === 'signup' ? 'SIGNUP' : 'LOGIN';
   const nextUrl = searchParams.get('next') || '/dashboard';
 
-  const { loginAsUser } = useNadoSoloEngine();
+  const { currentUser, loginAsUser } = useNadoSoloEngine();
 
   const [tab, setTab] = useState<'LOGIN' | 'SIGNUP'>(initialTab);
   const [loginId, setLoginId] = useState('');
@@ -89,7 +90,7 @@ function AuthPageContent() {
   };
 
   // 인증 및 로그인 처리
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
@@ -126,7 +127,41 @@ function AuthPageContent() {
       return;
     }
 
-    // 2. 검증 회원 aa (여성 / 1994년생 / 브랜드 마케터)
+    // 2. Supabase DB에 저장된 실제 프로필 존재 여부 우선 조회 (SSOT)
+    const targetUserId =
+      trimmedId.toLowerCase() === 'aa'
+        ? 'USER_AA'
+        : trimmedId.toLowerCase() === 'bb'
+        ? 'USER_BB'
+        : `U_${trimmedId}`;
+
+    try {
+      const dbProfile = await nadoSoloSupabaseService.getProfile(targetUserId);
+      if (dbProfile) {
+        loginAsUser({
+          userId: dbProfile.id,
+          handle: dbProfile.handle,
+          role: dbProfile.handle === '@admin' || dbProfile.id === 'ADMIN_01' ? 'ADMIN' : 'MEMBER',
+          email: dbProfile.email ?? `${trimmedId}@nadosolo.com`,
+          nickname: dbProfile.nickname,
+          phone: dbProfile.phone ?? '010-0000-0000',
+          jobTitle: dbProfile.job_title ?? '일반 회원',
+          gender: dbProfile.gender,
+          birthYear: dbProfile.birth_year,
+          residenceCity: dbProfile.residence_city,
+          residenceDistrict: dbProfile.residence_district,
+          authProvider: 'EMAIL',
+          verifiedBadge: dbProfile.verified_badge ?? '본인인증 완료',
+          sessionCount: (dbProfile.session_count ?? 1) + 1,
+        });
+        router.push(nextUrl);
+        return;
+      }
+    } catch (err) {
+      console.warn('[handleLoginSubmit] DB lookup error:', err);
+    }
+
+    // 3. 검증 회원 aa (여성 / 1994년생 / 브랜드 마케터)
     if (trimmedId.toLowerCase() === 'aa') {
       loginAsUser({
         userId: 'USER_AA',
@@ -146,7 +181,7 @@ function AuthPageContent() {
       return;
     }
 
-    // 3. 검증 회원 bb (남성 / 1992년생 / IT 기획자)
+    // 4. 검증 회원 bb (남성 / 1992년생 / IT 기획자)
     if (trimmedId.toLowerCase() === 'bb') {
       loginAsUser({
         userId: 'USER_BB',
@@ -166,7 +201,7 @@ function AuthPageContent() {
       return;
     }
 
-    // 4. 기타 회원 (아이디 자유 로그인)
+    // 5. 기타 회원 (아이디 자유 로그인)
     loginAsUser({
       userId: `U_${trimmedId}`,
       handle: `@${trimmedId}`,
@@ -209,9 +244,10 @@ function AuthPageContent() {
       return;
     }
 
-    // 회원가입 완료 즉시 첫 로그인 처리 (아이디와 이메일로 1차 가입)
+    // 회원가입 완료 즉시 첫 로그인 처리 (아이디와 이메일로 1차 가입, 고유 영구 ID 부여)
+    const memberUserId = `U_${handleInput.trim().replace(/^@/, '')}`;
     loginAsUser({
-      userId: `U_${Date.now().toString().slice(-4)}`,
+      userId: memberUserId,
       handle: normalizedHandle,
       role: 'MEMBER',
       email: emailInput,
@@ -231,9 +267,10 @@ function AuthPageContent() {
   };
 
   const handleStep2Complete = (skipExtra = false) => {
+    const memberUserId = currentUser?.userId || `U_${handleInput.trim().replace(/^@/, '')}`;
     if (!skipExtra) {
       loginAsUser({
-        userId: `U_${Date.now().toString().slice(-4)}`,
+        userId: memberUserId,
         handle: normalizedHandle,
         role: 'MEMBER',
         email: emailInput || `${handleInput}@nadosolo.com`,

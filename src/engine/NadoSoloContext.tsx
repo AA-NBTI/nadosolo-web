@@ -730,7 +730,13 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
           nickname: user.nickname,
           gender: user.gender,
           birthYear: user.birthYear,
-          cityCode: 'SEOUL_SEONGSU',
+          cityCode: user.residenceDistrict?.includes('해운대')
+            ? 'BUSAN_HAEUNDAE'
+            : user.residenceDistrict?.includes('진구') || user.residenceDistrict?.includes('전포')
+            ? 'BUSAN_JEONPO'
+            : user.residenceCity?.includes('서울')
+            ? 'SEOUL_SEONGSU'
+            : 'BUSAN_JEONPO',
           preferredMode: 'ROMANCE',
           languages: { ko: 'NATIVE' },
           preferredTableLanguage: 'ko',

@@ -1728,6 +1728,9 @@ export default function AdminOperationsDashboardPage() {
                             <span className="text-sm font-mono text-zinc-400 shrink-0">
                               {m.birth_year}년생
                             </span>
+                            <span className="text-sm font-mono text-zinc-300 shrink-0 border border-white/10 px-1.5 py-0.5">
+                              {m.residence_district ? `${m.residence_city || ''} ${m.residence_district}`.trim() : (m.residence_city || '지역미등록')}
+                            </span>
                             <span className="text-sm font-mono text-zinc-500 truncate hidden sm:inline">
                               {m.email}
                             </span>
@@ -1762,6 +1765,12 @@ export default function AdminOperationsDashboardPage() {
                               <div className="p-2.5 border border-white/10 bg-white/[0.02]">
                                 <span className="text-zinc-500 block mb-1">직업</span>
                                 <span className="text-white font-medium">{m.job_title || '미입력'}</span>
+                              </div>
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">활동 거주지역</span>
+                                <span className="text-white font-medium truncate block">
+                                  {m.residence_city ? `${m.residence_city} ${m.residence_district || ''}`.trim() : '미등록'}
+                                </span>
                               </div>
                               <div className="p-2.5 border border-white/10 bg-white/[0.02]">
                                 <span className="text-zinc-500 block mb-1">식이 제약</span>
