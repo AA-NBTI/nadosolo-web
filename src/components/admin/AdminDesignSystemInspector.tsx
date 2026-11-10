@@ -1257,7 +1257,7 @@ export default function AdminDesignSystemInspector({
                                   : 'bg-zinc-100 border-zinc-200 text-zinc-700'
                               }`}
                             >
-                              {item.subCategory}
+                              {item.role}
                             </span>
                             <ChevronRight
                               className={`w-3.5 h-3.5 text-zinc-500 transition-transform ${

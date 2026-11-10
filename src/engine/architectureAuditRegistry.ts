@@ -7,12 +7,13 @@
  */
 
 export type ArchitectureCategory =
-  | 'PROCESS'    // 참여 프로세스 및 게이트
-  | 'AUTH'       // 인증/가입/세션
-  | 'EVALUATION' // 다면 관찰 및 상호주의 해금
-  | 'DATABASE'   // 수파베이스 DB 및 스키마
-  | 'ADMIN'      // 관리자 관제 및 뷰어
-  | 'PAGE';      // 신규 라우트 및 페이지
+  | 'PROCESS'      // 참여 프로세스 및 게이트
+  | 'AUTH'         // 인증/가입/세션
+  | 'EVALUATION'   // 다면 관찰 및 상호주의 해금
+  | 'DATABASE'     // 수파베이스 DB 및 스키마
+  | 'ADMIN'        // 관리자 관제 및 뷰어
+  | 'PAGE'         // 신규 라우트 및 페이지
+  | 'CONSTITUTION'; // 시스템 헌법 및 아키텍처 규격
 
 export interface ArchitectureChangeRecord {
   id: string;
