@@ -396,12 +396,12 @@ function MemberDashboardContent() {
                     onClick={() => setActiveProcessId(mod.processId)}
                     className={`w-full text-left px-3 py-2.5 transition-all flex items-center justify-between cursor-pointer text-sm font-mono tracking-wide ${
                       active
-                        ? 'bg-white/[0.04] text-white font-medium border-l-2 border-[#f04f74] pl-2.5'
-                        : 'bg-transparent hover:bg-white/[0.02] text-zinc-400 hover:text-white border-l-2 border-transparent pl-2.5 font-normal'
+                        ? 'bg-white/[0.04] text-[#f04f74] font-bold'
+                        : 'bg-transparent hover:bg-white/[0.02] text-zinc-400 hover:text-white font-normal'
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className={`w-1 h-1 rounded-full ${active ? 'bg-[#f04f74]' : 'bg-zinc-600'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-[#f04f74]' : 'bg-zinc-600'}`} />
                       <span className="text-sm truncate">{mod.label}</span>
                     </div>
                     <span className="text-sm text-zinc-500 font-mono">
@@ -419,13 +419,13 @@ function MemberDashboardContent() {
                 onClick={() => setActiveProcessId('P01_ACCOUNT')}
                 className={`w-full text-left px-3 py-2.5 transition-all flex items-center justify-between cursor-pointer text-sm font-mono tracking-wide ${
                   currentProcess?.processId === 'P01_ACCOUNT'
-                    ? 'bg-white/[0.04] text-white font-medium border-l-2 border-[#f04f74] pl-2.5'
-                    : 'bg-transparent hover:bg-white/[0.02] text-zinc-400 hover:text-white border-l-2 border-transparent pl-2.5 font-normal'
+                    ? 'bg-white/[0.04] text-[#f04f74] font-bold'
+                    : 'bg-transparent hover:bg-white/[0.02] text-zinc-400 hover:text-white font-normal'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-1 h-1 rounded-full ${
+                    className={`w-1.5 h-1.5 rounded-full ${
                       currentProcess?.processId === 'P01_ACCOUNT' ? 'bg-[#f04f74]' : 'bg-zinc-600'
                     }`}
                   />
@@ -446,28 +446,22 @@ function MemberDashboardContent() {
           {/* [동적 프로세스 3단계 체계] 진행 마일스톤 및 선행 조건 즉시 안내 배너 */}
           <ProcessJourneyTracker onNavigateTab={(tabKey) => setActiveProcessId(tabKey)} />
           
-          {/* [5번 요구사항] 연락처 세팅 유도 배너 (휴대폰 번호 미등록 시) */}
+          {/* 연락처 세팅 유도 배너 (보조설명 제거 및 컴팩트 1줄 규격화) */}
           {(needsPhoneSetup || needsEmailSetup) && (
-            <div className="p-4 sm:p-5 border border-white/[0.08] bg-[#0c0d12] flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 border border-white/10 bg-white/[0.03] flex items-center justify-center text-[#f04f74] shrink-0">
-                  <Phone className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-serif-editorial text-base font-normal text-white">
-                    모임 장소 및 좌석 안내 수신을 위해 연락처를 등록해주세요
-                  </h4>
-                  <p className="text-sm text-zinc-400 font-light mt-0.5">
-                    모임 D-1 비공개 식당 및 당일 좌석 번호가 등록된 연락처로 안전하게 발송됩니다.
-                  </p>
-                </div>
+            <div className="p-3.5 border border-white/10 bg-[#0c0d12] flex items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                <span className="text-sm font-mono text-zinc-400">안내:</span>
+                <span className="text-sm font-bold text-[#f04f74] truncate">
+                  식당 및 좌석 수신용 연락처 등록 필요
+                </span>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveProcessId('P01_ACCOUNT')}
-                className="px-4 py-2 border border-white/20 bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 hover:text-white text-sm font-mono tracking-wider uppercase font-medium shrink-0 cursor-pointer transition-all duration-200"
+                className="px-3 py-1 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors shrink-0 cursor-pointer"
               >
-                연락처 등록
+                등록
               </button>
             </div>
           )}
@@ -865,25 +859,22 @@ function MemberDashboardContent() {
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P01_ACCOUNT' && (
             <div className="space-y-6">
-              {/* 1. 기본 계정정보 및 연락처 관리 */}
-              <section className="bg-[#0c0d12] border border-white/[0.08] p-6 sm:p-8 space-y-6">
-                <div className="border-b border-white/[0.08] pb-4 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-serif-editorial text-xl font-normal text-white">기본 계정정보</h3>
-                    <p className="text-sm text-zinc-400 mt-1 font-light">
-                      모임 안내 SMS 및 영수증 발송에 사용되는 기본 연락처입니다.
-                    </p>
-                  </div>
-                  <span className="px-3 py-1 rounded-none bg-white/5 border border-white/10 text-zinc-400 text-sm font-mono flex items-center gap-1.5">
+              {/* 1. 기본 계정정보 및 연락처 관리 (보조설명 제거 및 단일 명사화) */}
+              <section className="bg-[#0c0d12] border border-white/10 p-5 sm:p-6 shadow-sm space-y-5">
+                <div className="border-b border-white/10 pb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                    <span>인증 계정</span>
+                    <h3 className="font-serif-editorial text-lg font-normal text-white">기본 계정정보</h3>
+                  </div>
+                  <span className="px-2.5 py-0.5 border border-white/15 bg-white/5 text-zinc-300 text-sm font-mono">
+                    인증 계정
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-mono text-zinc-400 mb-1.5 font-normal">
-                      고유 아이디 (@핸들)
+                      아이디
                     </label>
                     <input
                       type="text"
@@ -895,51 +886,49 @@ function MemberDashboardContent() {
                             : `@${e.target.value}`
                         )
                       }
-                      className="w-full px-3.5 py-2.5 rounded-none border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/30"
+                      className="w-full px-3.5 py-2.5 border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/30"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-mono text-zinc-400 mb-1.5 font-normal">
-                      이름 (닉네임)
+                      닉네임
                     </label>
                     <input
                       type="text"
                       value={editNickname}
                       onChange={(e) => setEditNickname(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-none border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/30"
+                      className="w-full px-3.5 py-2.5 border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/30"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-mono text-zinc-400 mb-1.5 flex items-center gap-1 font-normal">
                       <Mail className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>이메일 주소</span>
-                      <span className="text-sm text-[#f04f74] font-normal">(필수 수신용)</span>
+                      <span>이메일</span>
                     </label>
                     <input
                       type="email"
                       value={editEmail}
                       onChange={(e) => setEditEmail(e.target.value)}
                       placeholder="예: user@example.com"
-                      className="w-full px-3.5 py-2.5 rounded-none border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/30"
+                      className="w-full px-3.5 py-2.5 border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/30"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-mono text-zinc-400 mb-1.5 flex items-center gap-1 font-normal">
                       <Phone className="w-3.5 h-3.5 text-zinc-400" />
-                      <span>휴대폰 번호</span>
-                      <span className="text-sm text-[#f04f74] font-normal">(D-1 식당 SMS 수신)</span>
+                      <span>연락처</span>
                     </label>
                     <input
                       type="tel"
                       value={editPhone}
                       onChange={(e) => setEditPhone(e.target.value)}
                       placeholder="예: 010-1234-5678"
-                      className="w-full px-3.5 py-2.5 rounded-none border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/30"
+                      className="w-full px-3.5 py-2.5 border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/30"
                     />
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex justify-end pt-2 border-t border-white/[0.06]">
                   <button
                     type="button"
                     onClick={() => {
@@ -951,9 +940,9 @@ function MemberDashboardContent() {
                       });
                       showToast('계정정보가 저장되었습니다.');
                     }}
-                    className="px-6 py-2.5 rounded-none border border-white/20 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/40 text-white text-sm font-mono tracking-wider uppercase font-medium transition-all duration-300"
+                    className="px-6 py-2 border border-white/30 bg-white/15 hover:bg-white/25 text-white text-sm font-mono font-semibold transition-colors cursor-pointer"
                   >
-                    계정정보 저장
+                    저장
                   </button>
                 </div>
               </section>
