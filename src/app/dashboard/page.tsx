@@ -472,23 +472,21 @@ function MemberDashboardContent() {
             </div>
           )}
 
-          {/* 상단 프로세스 진행 표시바 (메인 톤 에디토리얼 세리프 헤더) */}
-          <div className="bg-[#0c0d12] p-4 sm:p-5 border border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="px-2.5 py-1 text-sm font-mono tracking-widest text-zinc-400 border border-white/10 bg-white/[0.02] uppercase font-medium">
-                {currentProcess?.processId === 'P01_ACCOUNT'
-                  ? 'ACCOUNT SETTINGS'
-                  : `STEP ${currentProcessIdx + 1} / ${serviceModules.length}`}
-              </span>
-              <h2 className="font-serif-editorial text-2xl font-normal text-white">
+          {/* 상단 컨트롤 바 (표준 일체형 테두리 박스 규격 강제) */}
+          <div className="p-3.5 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-3 shadow-sm">
+            <div className="flex items-center gap-2.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+              <h2 className="font-serif-editorial text-lg text-white font-normal">
                 {currentProcess?.label}
               </h2>
-              <span className="text-sm text-zinc-400 font-light hidden sm:inline border-l border-white/10 pl-3">
-                {currentProcess?.description}
+              <span className="px-2 py-0.5 text-sm font-mono border border-white/10 bg-white/5 text-zinc-300">
+                {currentProcess?.processId === 'P01_ACCOUNT'
+                  ? '계정'
+                  : `${currentProcessIdx + 1} / ${serviceModules.length}단계`}
               </span>
             </div>
             {saveNotice && (
-              <span className="px-3 py-1 bg-white/[0.04] border border-white/[0.08] text-zinc-300 text-sm font-mono">
+              <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-zinc-200 text-sm font-mono">
                 {saveNotice}
               </span>
             )}
@@ -499,156 +497,150 @@ function MemberDashboardContent() {
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P00_MEETUP_STATUS' && (
             <div className="space-y-6">
-              {/* 모임 진행 단계 타임라인 탭 */}
-              <div className="bg-[#0c0d12] p-2 border border-white/[0.08]">
+              {/* 모임 진행 단계 타임라인 탭 (단일 명사화) */}
+              <div className="bg-[#0c0d12] p-2 border border-white/10">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full">
                   <button
                     type="button"
                     onClick={() => setMeetupPhase('TICKET')}
-                    className={`py-2.5 px-3 text-sm font-mono tracking-wider transition-all cursor-pointer ${
+                    className={`py-2 px-3 text-sm font-mono tracking-wider transition-all cursor-pointer ${
                       meetupPhase === 'TICKET'
-                        ? 'border border-white/30 bg-white/10 text-white font-medium'
-                        : 'border border-white/[0.06] bg-black/40 text-zinc-400 hover:text-white'
+                        ? 'border border-white/40 bg-white/15 text-white font-bold'
+                        : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
                     }`}
                   >
-                    01. 티켓 &amp; 매칭현황
+                    티켓·매칭
                   </button>
                   <button
                     type="button"
                     onClick={() => setMeetupPhase('VENUE_SEAT')}
-                    className={`py-2.5 px-3 text-sm font-mono tracking-wider transition-all cursor-pointer ${
+                    className={`py-2 px-3 text-sm font-mono tracking-wider transition-all cursor-pointer ${
                       meetupPhase === 'VENUE_SEAT'
-                        ? 'border border-white/30 bg-white/10 text-white font-medium'
-                        : 'border border-white/[0.06] bg-black/40 text-zinc-400 hover:text-white'
+                        ? 'border border-white/40 bg-white/15 text-white font-bold'
+                        : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
                     }`}
                   >
-                    02. D-1 장소 &amp; 좌석
+                    식당·좌석
                   </button>
                   <button
                     type="button"
                     onClick={() => setMeetupPhase('LIVE_DECK')}
-                    className={`py-2.5 px-3 text-sm font-mono tracking-wider transition-all cursor-pointer ${
+                    className={`py-2 px-3 text-sm font-mono tracking-wider transition-all cursor-pointer ${
                       meetupPhase === 'LIVE_DECK'
-                        ? 'border border-white/30 bg-white/10 text-white font-medium'
-                        : 'border border-white/[0.06] bg-black/40 text-zinc-400 hover:text-white'
+                        ? 'border border-white/40 bg-white/15 text-white font-bold'
+                        : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
                     }`}
                   >
-                    03. 현장 대화카드
+                    대화카드
                   </button>
                   <button
                     type="button"
                     onClick={() => setMeetupPhase('POST_FEEDBACK')}
-                    className={`py-2.5 px-3 text-sm font-mono tracking-wider transition-all cursor-pointer ${
+                    className={`py-2 px-3 text-sm font-mono tracking-wider transition-all cursor-pointer ${
                       meetupPhase === 'POST_FEEDBACK'
-                        ? 'border border-white/30 bg-white/10 text-white font-medium'
-                        : 'border border-white/[0.06] bg-black/40 text-zinc-400 hover:text-white'
+                        ? 'border border-white/40 bg-white/15 text-white font-bold'
+                        : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
                     }`}
                   >
-                    04. 평가 &amp; 호감투표
+                    평가·투표
                   </button>
                 </div>
               </div>
 
-              {/* [단계 1] 티켓 및 매칭 현황 */}
+              {/* [단계 1] 티켓 및 매칭 현황 (모노크롬 고대비) */}
               {meetupPhase === 'TICKET' && (
-                <section className="bg-[#0c0d12] p-8 border border-white/[0.08] shadow-sm space-y-6">
-                  <div className="border-b border-white/[0.08] pb-4 flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <span className="text-sm font-mono tracking-[0.25em] text-[#f04f74] uppercase block font-semibold mb-1">
-                        CONFIRMED INVITATION
-                      </span>
-                      <h3 className="font-serif-editorial text-2xl font-normal text-white">모임현황</h3>
-                      <p className="text-sm text-zinc-400 font-light mt-1">
-                        내가 신청한 테이블 일정과 좌석 배정, 매칭 진행 상태를 실시간 확인합니다.
-                      </p>
+                <section className="bg-[#0c0d12] p-5 sm:p-6 border border-white/10 shadow-sm space-y-5">
+                  <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                      <h3 className="font-serif-editorial text-xl font-normal text-white">모임현황</h3>
                     </div>
-                    <span className="px-3 py-1 border border-[#f04f74]/40 bg-transparent text-[#f04f74] text-sm font-mono">
-                      매칭 완료 (3:3)
+                    <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-white text-sm font-mono font-semibold">
+                      매칭완료 (3:3)
                     </span>
                   </div>
 
-                  {/* 확정된 모임 티켓 카드 */}
-                  <div className="p-7 border border-white/[0.08] bg-white/[0.015] space-y-6">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-4">
-                      <div className="space-y-1">
-                        <span className="px-2.5 py-0.5 bg-black/60 text-zinc-300 text-sm font-mono border border-white/10 uppercase">
-                          BUSAN SALON
+                  {/* 확정된 모임 티켓 카드 (2열 컴팩트 조망 그리드) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="p-4 border border-white/10 bg-white/[0.02] space-y-3">
+                      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                        <span className="px-2 py-0.5 bg-white/5 text-zinc-300 text-sm font-mono border border-white/10">
+                          부산 살롱
                         </span>
-                        <h4 className="font-serif-editorial text-2xl font-normal text-white mt-2">
-                          부산 5060 골든 소셜 다이닝
-                        </h4>
-                        <p className="text-sm text-zinc-400 font-light">
-                          매주 금요일 19:30 • 프라이빗 소셜 살롱
-                        </p>
+                        <span className="px-2 py-0.5 border border-white/20 bg-white/10 text-white text-sm font-mono font-bold">
+                          결제완료
+                        </span>
                       </div>
-                      <div className="text-right">
-                        <span className="text-sm font-mono text-zinc-400 block uppercase">STATUS</span>
-                        <p className="text-base font-serif-editorial text-[#f04f74] font-bold">참가권 결제완료</p>
-                      </div>
-                    </div>
-
-                    {/* D-1 장소 비공개 상태 안내 */}
-                    <div className="p-5 bg-black/40 border border-white/[0.08] space-y-2">
-                      <div className="flex items-center gap-2 text-[#f04f74] font-mono text-sm font-semibold">
-                        <span>🔒</span>
-                        <span>D-1 목요일 19:00 비공개 식당 및 좌석 안내</span>
-                      </div>
-                      <p className="text-sm text-zinc-400 font-light leading-relaxed">
-                        엄선된 프라이빗 비스트로/와인바로 최종 확정되며, 시선과 소음이 차단된 단독 룸으로 안내됩니다. 
-                        식대 및 주류 비용은 식당 현장에서 테이블 1/N 실비로 직접 카드 결제합니다.
+                      <h4 className="font-serif-editorial text-lg font-normal text-white">
+                        부산 5060 골든 소셜 다이닝
+                      </h4>
+                      <p className="text-sm text-zinc-300 font-mono">
+                        매주 금요일 19:30 • 프라이빗 소셜 살롱
                       </p>
                     </div>
 
-                    {/* 3:3 큐레이션 현황 */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm text-zinc-300 font-medium">
-                        <span>테이블 성비 밸런스</span>
-                        <span className="text-zinc-200 font-bold">정원 6명 확정 (남 3 / 여 3)</span>
+                    {/* D-1 장소 비공개 상태 안내 카드 */}
+                    <div className="p-4 bg-white/[0.02] border border-white/10 space-y-2.5 flex flex-col justify-between">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-white font-mono text-sm font-bold">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                          <span>D-1 목요일 19:00 비공개 식당 및 좌석 안내</span>
+                        </div>
+                        <p className="text-sm text-zinc-400 font-normal leading-relaxed">
+                          엄선된 프라이빗 비스트로/와인바로 확정되며 단독 룸으로 안내됩니다. 
+                          식대 및 주류 비용은 당일 현장에서 1/N 실비 카드 결제합니다.
+                        </p>
                       </div>
-                      <div className="grid grid-cols-6 gap-2">
-                        <div className="p-2.5 rounded-none bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block">👔</span>
-                          <span className="text-sm text-zinc-300 font-bold">건축가</span>
-                        </div>
-                        <div className="p-2.5 rounded-none bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block">👗</span>
-                          <span className="text-sm text-[#f04f74] font-bold">나 (디자이너)</span>
-                        </div>
-                        <div className="p-2.5 rounded-none bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block">👔</span>
-                          <span className="text-sm text-zinc-300 font-bold">브랜드마케터</span>
-                        </div>
-                        <div className="p-2.5 rounded-none bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block">👗</span>
-                          <span className="text-sm text-zinc-300 font-bold">스타트업 대표</span>
-                        </div>
-                        <div className="p-2.5 rounded-none bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block">👔</span>
-                          <span className="text-sm text-zinc-300 font-bold">개발자</span>
-                        </div>
-                        <div className="p-2.5 rounded-none bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block">👗</span>
-                          <span className="text-sm text-zinc-300 font-bold">약사</span>
-                        </div>
+                      <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                        <button
+                          type="button"
+                          onClick={() => setMeetupPhase('VENUE_SEAT')}
+                          className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors cursor-pointer"
+                        >
+                          좌석 배치도
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMeetupPhase('LIVE_DECK')}
+                          className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors cursor-pointer"
+                        >
+                          대화카드
+                        </button>
                       </div>
                     </div>
 
-                    {/* 빠른 시뮬레이션 이동 버튼 */}
-                    <div className="pt-2 flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setMeetupPhase('VENUE_SEAT')}
-                        className="py-3 px-5 rounded-none bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all border border-white/15 cursor-pointer"
-                      >
-                        D-1 식당 &amp; 좌석 배치도 미리보기 →
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setMeetupPhase('LIVE_DECK')}
-                        className="py-3 px-5 rounded-none border border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10 hover:text-white text-sm font-bold transition-all duration-200 shadow-sm cursor-pointer"
-                      >
-                        현장 대화카드 모드 열기 →
-                      </button>
+                    {/* 3:3 큐레이션 현황 카드 (2열 전체폭 확장) */}
+                    <div className="col-span-full p-4 border border-white/10 bg-white/[0.015] space-y-2.5">
+                      <div className="flex items-center justify-between text-sm text-zinc-300 font-medium">
+                        <span className="font-mono text-zinc-400">테이블 성비 밸런스</span>
+                        <span className="text-white font-bold">정원 6명 확정 (남 3 / 여 3)</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
+                          <span className="text-sm block mb-1">👔</span>
+                          <span className="text-sm text-zinc-300 font-medium">건축가</span>
+                        </div>
+                        <div className="p-2.5 bg-white/10 border border-white/30 text-center">
+                          <span className="text-sm block mb-1">👗</span>
+                          <span className="text-sm text-white font-bold">나 (디자이너)</span>
+                        </div>
+                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
+                          <span className="text-sm block mb-1">👔</span>
+                          <span className="text-sm text-zinc-300 font-medium">브랜드마케터</span>
+                        </div>
+                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
+                          <span className="text-sm block mb-1">👗</span>
+                          <span className="text-sm text-zinc-300 font-medium">스타트업 대표</span>
+                        </div>
+                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
+                          <span className="text-sm block mb-1">👔</span>
+                          <span className="text-sm text-zinc-300 font-medium">개발자</span>
+                        </div>
+                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
+                          <span className="text-sm block mb-1">👗</span>
+                          <span className="text-sm text-zinc-300 font-medium">약사</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </section>
@@ -1477,22 +1469,21 @@ function MemberDashboardContent() {
           )}
 
           {/* ----------------------------------------------------------
-              [P05] 모임신청 모듈 (₩30,000 참가비 & 세대별 트랙)
+              [P05] 모임신청 모듈 (2열 컴팩트 그리드 & 고대비 모노크롬)
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P05_EVENT_APPLY' && (
-            <section className="bg-[#0c0d12] border border-white/[0.08] p-6 sm:p-8 space-y-6">
-              <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-serif-editorial text-xl font-normal text-white">소셜 다이닝 모임 신청</h3>
-                  <p className="text-sm text-zinc-400 mt-1 font-light">
-                    5060 골든 신중년을 위한 품격 있는 프라이빗 테이블에 참가 신청합니다. (참가권 ₩30,000 / 식대는 현장 1/N)
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className="text-sm font-medium text-zinc-400">
-                    내 매너 프로파일:{' '}
+            <section className="bg-[#0c0d12] border border-white/10 p-5 sm:p-6 shadow-sm space-y-5">
+              <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h3 className="font-serif-editorial text-xl font-normal text-white">소셜 다이닝 신청</h3>
+                  <span className="px-2 py-0.5 text-sm font-mono border border-white/10 bg-white/5 text-zinc-300">
+                    {conditionalEvents.length}개 테이블
                   </span>
-                  <span className="text-base font-semibold text-white">
+                </div>
+                <div className="flex items-center gap-2 text-sm font-mono">
+                  <span className="text-zinc-400">내 매너 점수:</span>
+                  <span className="px-2 py-0.5 border border-white/20 bg-white/5 text-white font-bold">
                     {myPersonalDossier.totalScore100}점
                   </span>
                 </div>
@@ -1500,17 +1491,18 @@ function MemberDashboardContent() {
 
               {applyFeedback && (
                 <div
-                  className={`p-4 rounded-none text-sm font-medium border ${
+                  className={`p-3 text-sm font-medium border ${
                     applyFeedback.ok
-                      ? 'bg-black/40 text-white border-white/20'
-                      : 'bg-transparent text-white border-[#f04f74]/30'
+                      ? 'bg-white/5 text-white border-white/20'
+                      : 'bg-white/5 text-zinc-200 border-white/30'
                   }`}
                 >
                   {applyFeedback.message}
                 </div>
               )}
 
-              <div className="space-y-4">
+              {/* 2열 컴팩트 그리드로 한 화면 조망 (관리자 대시보드 규격 준수) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 {conditionalEvents.map((ev) => {
                   const dist = regionDistricts.find(
                     (d) => d.districtId === ev.districtId
@@ -1520,78 +1512,78 @@ function MemberDashboardContent() {
                   return (
                     <div
                       key={ev.eventId}
-                      className="p-6 rounded-none border border-white/10 bg-white/[0.015] flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      className="p-4 border border-white/10 bg-white/[0.02] hover:border-white/20 transition-colors flex flex-col justify-between space-y-3.5"
                     >
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="px-3 py-1 rounded-full bg-[#08090d] text-white text-sm font-semibold border border-white/10">
-                            {dist ? dist.regionName : '부산'}
-                          </span>
-                          <span className="px-2.5 py-1 rounded-full bg-transparent text-[#f04f74] text-sm font-semibold border border-[#f04f74]/25">
-                            5060 골든 트랙
-                          </span>
-                          <span className="px-3 py-1 rounded-none text-zinc-300 text-sm font-semibold border border-white/10">
-                            {ev.mode === 'ROMANCE'
-                              ? '3:3 로맨스'
-                              : ev.mode === 'ONE_ON_ONE'
-                              ? '1:1 매칭'
-                              : '소셜 다이닝'}
-                          </span>
-                          <span className="text-sm font-medium text-zinc-400">
+                      <div className="space-y-2.5">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2 py-0.5 bg-white/10 text-white text-sm font-semibold border border-white/20">
+                              {dist ? dist.regionName : '부산'}
+                            </span>
+                            <span className="px-2 py-0.5 bg-white/5 text-zinc-300 text-sm font-mono border border-white/10">
+                              5060 골든
+                            </span>
+                            <span className="px-2 py-0.5 text-zinc-300 text-sm font-mono border border-white/10">
+                              {ev.mode === 'ROMANCE'
+                                ? '3:3 로맨스'
+                                : ev.mode === 'ONE_ON_ONE'
+                                ? '1:1 매칭'
+                                : '소셜 다이닝'}
+                            </span>
+                          </div>
+                          <span className="text-sm font-mono text-zinc-300">
                             {ev.dateText}
                           </span>
                         </div>
 
-                        <h4 className="text-xl font-bold text-white">
+                        <h4 className="font-serif-editorial text-lg font-normal text-white">
                           {ev.title}
                         </h4>
 
                         {/* 식대 안내 */}
-                        <p className="text-sm text-zinc-400 flex items-center gap-1.5">
-                          <span className="text-[#f04f74]">✓</span>
-                          <span>{ev.mealNote || '식사 및 주류 비용은 식당 현장에서 테이블 동행자들과 1/N 정산됩니다.'}</span>
+                        <p className="text-sm text-zinc-400 font-normal leading-relaxed">
+                          {ev.mealNote || '식음료 비용은 당일 식당 현장에서 테이블 1/N 실비 카드 결제합니다.'}
                         </p>
 
-                        {/* 참가 자격 조건 표시 */}
-                        <div className="flex flex-wrap gap-2 pt-1">
+                        {/* 참가 조건 태그 */}
+                        <div className="flex flex-wrap gap-1.5 pt-0.5">
                           {ev.minTotalScore100 > 0 ? (
-                            <span className="px-2.5 py-1 rounded-none bg-white/5 border border-white/10 text-zinc-300 text-sm font-medium">
-                              조건: 종합 {ev.minTotalScore100}점 이상
+                            <span className="px-2 py-0.5 bg-white/5 border border-white/10 text-zinc-300 text-sm font-mono">
+                              조건: {ev.minTotalScore100}점 이상
                             </span>
                           ) : (
-                            <span className="px-2.5 py-1 rounded-none bg-white/5 border border-white/10 text-zinc-300 text-sm font-medium">
-                              누구나 신청 가능
+                            <span className="px-2 py-0.5 bg-white/5 border border-white/10 text-zinc-300 text-sm font-mono">
+                              신청 가능
                             </span>
                           )}
                           {ev.requiredBadgeIds.map((bId) => {
-                            const badge = granularBadges.find(
-                              (b) => b.badgeId === bId
-                            );
-                            const hasIt =
-                              myPersonalDossier.earnedBadgeIds.includes(bId);
+                            const badge = granularBadges.find((b) => b.badgeId === bId);
+                            const hasIt = myPersonalDossier.earnedBadgeIds.includes(bId);
                             return (
                               <span
                                 key={bId}
-                                className={`px-2.5 py-1 rounded-none text-sm font-medium border ${
+                                className={`px-2 py-0.5 text-sm font-mono border ${
                                   hasIt
-                                    ? 'bg-transparent border-[#f04f74]/30 text-[#f04f74]'
+                                    ? 'bg-white/10 border-white/30 text-white font-semibold'
                                     : 'bg-white/5 border-white/10 text-zinc-500'
                                 }`}
                               >
-                                필수: {badge?.name ?? bId}{' '}
-                                {hasIt ? '(보유)' : '(미보유)'}
+                                {badge?.name ?? bId} {hasIt ? '(보유)' : '(미보유)'}
                               </span>
                             );
                           })}
                         </div>
                       </div>
 
-                      <div className="flex sm:flex-col items-end justify-between gap-2 shrink-0">
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-white">
+                      {/* 하단 가격 및 신청 버튼 바 */}
+                      <div className="flex items-center justify-between pt-2.5 border-t border-white/[0.08]">
+                        <div>
+                          <span className="text-lg font-bold text-white font-mono">
                             ₩{ev.priceKrw.toLocaleString()}
-                          </p>
-                          <p className="text-sm text-zinc-400">참가권 (식대 별도 1/N)</p>
+                          </span>
+                          <span className="text-sm text-zinc-400 ml-1.5 font-mono">
+                            (식대 별도 1/N)
+                          </span>
                         </div>
                         <button
                           type="button"
@@ -1607,13 +1599,13 @@ function MemberDashboardContent() {
                             });
                             setIsCheckoutOpen(true);
                           }}
-                          className={`h-11 px-5 rounded-none text-sm font-semibold cursor-pointer transition-all duration-300 inline-flex items-center justify-center ${
+                          className={`px-4 py-1.5 text-sm font-mono transition-colors cursor-pointer font-semibold ${
                             isApplied
-                              ? 'bg-white/10 text-zinc-400 border border-white/10 cursor-not-allowed'
-                              : 'border border-white/15 bg-white/5 hover:bg-white/10 hover:border-[#f04f74] text-white hover:text-[#f04f74]'
+                              ? 'border border-white/10 text-zinc-500 bg-transparent cursor-not-allowed'
+                              : 'border border-white/30 bg-white/15 hover:bg-white/25 text-white'
                           }`}
                         >
-                          {isApplied ? '신청 완료' : '신청하기'}
+                          {isApplied ? '완료' : '신청하기'}
                         </button>
                       </div>
                     </div>
@@ -1898,34 +1890,32 @@ function MemberDashboardContent() {
           )}
 
           {/* ----------------------------------------------------------
-              [P08] 평가 모듈 (단일 명사 1요소 1기준 매핑)
+              [P08] 다면평가 모듈 (상호주의 잠금 & 고대비 모노크롬)
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P08_EVALUATION' && (
-            <section className="bg-[#0c0d12] border border-white/[0.08] p-6 sm:p-8 border border-white/10 shadow-sm space-y-6">
-              <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <span className="text-sm font-mono text-zinc-500 uppercase tracking-widest">
-                    EVALUATION
-                  </span>
-                  <h3 className="text-2xl font-bold text-white mt-0.5">
-                    평가
+            <section className="bg-[#0c0d12] border border-white/10 p-5 sm:p-6 shadow-sm space-y-5">
+              <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h3 className="font-serif-editorial text-xl font-normal text-white">
+                    다면평가
                   </h3>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-none bg-white/5 border border-white/10 text-sm text-zinc-300">
+                <div className="flex items-center gap-2 font-mono text-sm">
+                  <span className="px-2.5 py-0.5 border border-white/10 bg-white/5 text-zinc-300">
                     완료: <strong className="text-white">{completedEvalUserIds.length}</strong> / 5명
                   </span>
                   {completedEvalUserIds.length >= 5 ? (
                     <button
                       type="button"
                       onClick={() => setActiveProcessId('P10_REPORT')}
-                      className="px-3.5 py-1.5 rounded-none border border-[#f04f74] bg-transparent text-[#f04f74] hover:bg-white/[0.04] text-sm font-mono font-bold transition-all cursor-pointer"
+                      className="px-3 py-1 border border-white/30 bg-white/15 hover:bg-white/25 text-white text-sm font-mono font-bold transition-all cursor-pointer"
                     >
-                      리포트 열람 가능 ➔
+                      리포트 열람
                     </button>
                   ) : (
-                    <span className="px-3 py-1 rounded-full bg-transparent text-[#f04f74] border border-[#f04f74]/30 text-sm font-semibold">
-                      잠금 상태
+                    <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-zinc-300 text-sm font-semibold">
+                      잠금상태
                     </span>
                   )}
                 </div>
@@ -1933,7 +1923,7 @@ function MemberDashboardContent() {
 
               {/* 1. 동석자 선택 버튼 */}
               <div>
-                <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider mb-2">
+                <label className="block text-sm font-mono text-zinc-400 mb-2">
                   동석자 선택
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -1945,9 +1935,9 @@ function MemberDashboardContent() {
                         key={peer.userId}
                         type="button"
                         onClick={() => setEvalTargetUserId(peer.userId)}
-                        className={`px-3.5 py-2 rounded-none text-sm font-mono tracking-wider border transition-all cursor-pointer flex items-center gap-2 ${
+                        className={`px-3.5 py-1.5 text-sm font-mono tracking-wider border transition-all cursor-pointer flex items-center gap-2 ${
                           isSelected
-                            ? 'border-white/40 bg-white/10 text-white font-medium'
+                            ? 'border-white/40 bg-white/15 text-white font-bold'
                             : isDone
                             ? 'bg-white/5 text-zinc-300 border-white/10 hover:border-white/20'
                             : 'bg-black/40 text-zinc-400 border-white/10 hover:text-white'
@@ -1962,19 +1952,19 @@ function MemberDashboardContent() {
               </div>
 
               {/* 2. 5060 골든 단일 명사 5대 항목 평가 폼 (품격, 온화, 공감, 인품, 예절) */}
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {track5060Elements.map((el) => {
                   const currentScore = draftSingleNounScores[el.id] ?? 5;
                   return (
                     <div
                       key={el.id}
-                      className="p-4 rounded-none bg-white/[0.02] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      className="p-3.5 bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div className="space-y-0.5">
-                        <span className="text-sm font-medium text-zinc-200 font-mono">
+                        <span className="text-sm font-bold text-white font-mono">
                           #{el.anchorNoun}
                         </span>
-                        <p className="text-sm text-zinc-400 font-light">
+                        <p className="text-sm text-zinc-300 font-normal">
                           {el.question}
                         </p>
                       </div>
@@ -1990,9 +1980,9 @@ function MemberDashboardContent() {
                                 [el.id]: stepVal,
                               }))
                             }
-                            className={`w-8 h-8 rounded-none text-sm font-mono transition-all cursor-pointer ${
+                            className={`w-8 h-8 text-sm font-mono transition-all cursor-pointer ${
                               currentScore === stepVal
-                                ? 'border border-white/40 bg-white/10 text-white font-medium'
+                                ? 'border border-white/40 bg-white/20 text-white font-bold'
                                 : 'bg-[#0c0d12] text-zinc-400 border border-white/10 hover:text-white hover:border-white/20'
                             }`}
                           >
@@ -2007,13 +1997,13 @@ function MemberDashboardContent() {
 
               {/* 저장 알림 및 액션 버튼 */}
               {evalSavedMsg && (
-                <div className="p-3 rounded-none bg-transparent border border-[#f04f74]/30 text-[#f04f74] text-sm font-mono">
+                <div className="p-3 bg-white/5 border border-white/20 text-white text-sm font-mono font-medium">
                   {evalSavedMsg}
                 </div>
               )}
 
-              <div className="flex items-center justify-between gap-3 pt-2">
-                <span className="text-sm text-zinc-500">
+              <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/[0.08]">
+                <span className="text-sm text-zinc-400 font-mono">
                   전원 완료 시 리포트 자동 해금
                 </span>
                 <button
@@ -2039,7 +2029,7 @@ function MemberDashboardContent() {
                       setEvalTargetUserId(remainingPeers[0].userId);
                     }
                   }}
-                  className="px-8 py-3 rounded-none border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-sm font-mono tracking-wider uppercase font-semibold transition-all duration-300 cursor-pointer"
+                  className="px-6 py-2 border border-white/30 bg-white/15 hover:bg-white/25 text-white text-sm font-mono font-bold transition-colors cursor-pointer"
                 >
                   저장
                 </button>
@@ -2198,85 +2188,85 @@ function MemberDashboardContent() {
               ) : (
                 <>
                   {/* 상호주의 해금 원칙 배너 (헌법 규칙 1 적용) */}
-                  <div className="p-5 rounded-none border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/[0.02] border-[#f04f74]/30">
+                  <div className="p-4 border border-white/20 bg-white/[0.02] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm">🔓</span>
-                        <span className="text-sm font-mono font-medium uppercase tracking-wider text-[#f04f74]">
-                          상호주의 해금 완료 (내 소셜 리포트 열람 가능)
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                        <span className="text-sm font-mono font-bold text-white">
+                          상호주의 해금 완료
                         </span>
                       </div>
-                      <p className="text-sm text-zinc-400 font-light leading-relaxed">
-                        동석자 전원 평가를 100% 완료하여 타인의 시선으로 관찰된 나의 소셜 프로필이 잠금 해제되었습니다.
+                      <p className="text-sm text-zinc-300 font-normal leading-relaxed">
+                        동석자 전원 평가를 완료하여 타인의 시선으로 관찰된 소셜 프로필이 잠금 해제되었습니다.
                       </p>
                     </div>
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm text-zinc-500 font-mono">핵심 관찰 앵커:</span>
+                      <span className="text-sm text-zinc-400 font-mono">핵심 앵커:</span>
                       {personalSocialDossier.topStrengths.map((str) => (
-                        <span key={str} className="px-2.5 py-1 rounded-none bg-white/[0.04] text-zinc-300 border border-white/10 text-sm font-mono font-medium">
+                        <span key={str} className="px-2 py-0.5 bg-white/10 text-white border border-white/20 text-sm font-mono font-bold">
                           #{str}
                         </span>
                       ))}
                     </div>
                   </div>
 
-              {/* 1. 종합 점수 & 이성/동성 분리 점수 카드 (텍스트 계층화 및 세리프 타이포 적용) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-6 rounded-none bg-white/[0.02] border border-white/[0.08] relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-mono tracking-widest text-zinc-500 uppercase">
-                      OVERALL INDEX
+              {/* 1. 종합 점수 & 이성/동성 분리 점수 카드 (2열/3열 컴팩트 조망) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-5 bg-white/[0.02] border border-white/10 relative space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-mono text-zinc-400 font-semibold">
+                      종합 지표
                     </span>
                     <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                   </div>
-                  <p className="text-sm text-zinc-400 font-normal">
-                    종합 소셜 프로파일 (5대 영역 평균)
+                  <p className="text-sm text-zinc-300 font-normal">
+                    5대 영역 종합 평균
                   </p>
-                  <div className="mt-3 flex items-baseline gap-1.5">
+                  <div className="pt-1 flex items-baseline gap-1.5">
                     <span className="font-serif-editorial text-4xl sm:text-5xl font-normal text-white tracking-tight">
                       {myPersonalDossier.totalScore100}
                     </span>
-                    <span className="text-sm font-mono text-zinc-500 font-normal">
+                    <span className="text-sm font-mono text-zinc-400 font-normal">
                       / 100점
                     </span>
                   </div>
                 </div>
 
-                <div className="p-6 rounded-none bg-white/[0.015] border border-white/[0.06]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-mono tracking-widest text-zinc-500 uppercase">
-                      CROSS-GENDER
+                <div className="p-5 bg-white/[0.015] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-mono text-zinc-400 font-semibold">
+                      이성 관찰
                     </span>
-                    <span className="text-sm font-mono text-zinc-500">3인 관찰</span>
+                    <span className="text-sm font-mono text-zinc-400">3인</span>
                   </div>
-                  <p className="text-sm text-zinc-400 font-normal">
-                    이성 동석자 평가 환산 지표
+                  <p className="text-sm text-zinc-300 font-normal">
+                    이성 동석자 평가 지표
                   </p>
-                  <div className="mt-3 flex items-baseline gap-1.5">
-                    <span className="font-serif-editorial text-4xl sm:text-5xl font-normal text-zinc-200 tracking-tight">
+                  <div className="pt-1 flex items-baseline gap-1.5">
+                    <span className="font-serif-editorial text-4xl sm:text-5xl font-normal text-white tracking-tight">
                       {myPersonalDossier.oppositeSexTotal100}
                     </span>
-                    <span className="text-sm font-mono text-zinc-500 font-normal">
+                    <span className="text-sm font-mono text-zinc-400 font-normal">
                       / 100점
                     </span>
                   </div>
                 </div>
 
-                <div className="p-6 rounded-none bg-white/[0.015] border border-white/[0.06]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-mono tracking-widest text-zinc-500 uppercase">
-                      PEER EVALUATION
+                <div className="p-5 bg-white/[0.015] border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-mono text-zinc-400 font-semibold">
+                      동성 관찰
                     </span>
-                    <span className="text-sm font-mono text-zinc-500">2인 관찰</span>
+                    <span className="text-sm font-mono text-zinc-400">2인</span>
                   </div>
-                  <p className="text-sm text-zinc-400 font-normal">
-                    동성 동석자 평가 환산 지표
+                  <p className="text-sm text-zinc-300 font-normal">
+                    동성 동석자 평가 지표
                   </p>
-                  <div className="mt-3 flex items-baseline gap-1.5">
-                    <span className="font-serif-editorial text-4xl sm:text-5xl font-normal text-zinc-300 tracking-tight">
+                  <div className="pt-1 flex items-baseline gap-1.5">
+                    <span className="font-serif-editorial text-4xl sm:text-5xl font-normal text-white tracking-tight">
                       {myPersonalDossier.sameSexTotal100}
                     </span>
-                    <span className="text-sm font-mono text-zinc-500 font-normal">
+                    <span className="text-sm font-mono text-zinc-400 font-normal">
                       / 100점
                     </span>
                   </div>

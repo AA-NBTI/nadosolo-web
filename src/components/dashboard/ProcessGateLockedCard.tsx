@@ -61,7 +61,7 @@ export default function ProcessGateLockedCard({
         {actionHref ? (
           <Link
             href={actionHref}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-[#f04f74] hover:bg-[#d84063] text-white text-sm font-medium tracking-wider transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 border border-white/30 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors"
           >
             <span>{actionLabel}</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -70,7 +70,7 @@ export default function ProcessGateLockedCard({
           <button
             type="button"
             onClick={onAction}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-[#f04f74] hover:bg-[#d84063] text-white text-sm font-medium tracking-wider transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 border border-white/30 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-colors cursor-pointer"
           >
             <span>{actionLabel}</span>
             <ArrowRight className="w-3.5 h-3.5" />

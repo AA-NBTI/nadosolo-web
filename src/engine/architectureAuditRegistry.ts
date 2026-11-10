@@ -91,6 +91,17 @@ export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
         status: 'VERIFIED',
         affectedRoutes: ['/admin'],
       },
+      {
+        id: 'CHG-2105',
+        category: 'PAGE',
+        categoryLabel: '대시보드',
+        title: '이용자 대시보드(/dashboard) 관리자 헌법 규격 전면 적용',
+        beforeSummary: '이용자 대시보드에 10pt 미만 폰트, 영문 슬로건, 1열 나열 및 침침한 유색 텍스트 산재',
+        afterSummary: '표준 테두리 헤더 박스, 2열 컴팩트 그리드(모임신청/티켓), 고대비 모노크롬, 10pt 미만 전수 제거(14px 표준화)',
+        impactLabel: '이용자 대시보드 한눈 조망률 및 가독성 100% 극대화',
+        status: 'VERIFIED',
+        affectedRoutes: ['/dashboard'],
+      },
     ],
   },
   {
