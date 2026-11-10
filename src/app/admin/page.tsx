@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -24,6 +24,7 @@ import AdminSingleAuditReportManager from '@/components/admin/AdminSingleAuditRe
 import AdminProcessTestReportManager from '@/components/admin/AdminProcessTestReportManager';
 import AdminAuditReportManager from '@/components/admin/AdminAuditReportManager';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
+import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import {
   EXECUTIVE_GOVERNANCE_TEAM,
   GovernanceRole,
@@ -182,6 +183,31 @@ export default function AdminOperationsDashboardPage() {
   const [selectedStalledUserId, setSelectedStalledUserId] = useState<string | null>(null);
   const [notifiedUserIds, setNotifiedUserIds] = useState<string[]>([]);
   const [adminToast, setAdminToast] = useState<string | null>(null);
+
+  // [바프로 주관] Supabase 실서버 라이브 DB 회원 실시간 직결 상태 (SSOT)
+  const [liveDbProfiles, setLiveDbProfiles] = useState<DbProfile[]>([]);
+  const [isDbLoading, setIsDbLoading] = useState(false);
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<string>('');
+
+  const fetchLiveDbProfiles = useCallback(async () => {
+    setIsDbLoading(true);
+    try {
+      const data = await nadoSoloSupabaseService.getAllProfiles();
+      setLiveDbProfiles(data);
+      const now = new Date();
+      setLastRefreshedAt(
+        `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
+      );
+    } catch (err) {
+      console.warn('[Admin Live Viewer] fetch error:', err);
+    } finally {
+      setIsDbLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchLiveDbProfiles();
+  }, [fetchLiveDbProfiles]);
   // 관리자 화면 기본 테마: 다크 모노크롬 (시스템 헌법 표준)
   const [adminTheme, setAdminTheme] = useState<'light' | 'dark'>('dark');
 
@@ -363,6 +389,21 @@ export default function AdminOperationsDashboardPage() {
   );
 
   // [회원관리] 필터링 및 10명 단위 페이징 연산
+  const filteredLiveMembers = useMemo(() => {
+    return liveDbProfiles.filter((p) => {
+      const q = memberSearchQuery.trim().toLowerCase();
+      const matchQuery =
+        !q ||
+        p.nickname.toLowerCase().includes(q) ||
+        p.handle.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q) ||
+        (p.email && p.email.toLowerCase().includes(q));
+      const matchGender =
+        memberGenderFilter === 'ALL' || p.gender === memberGenderFilter;
+      return matchQuery && matchGender;
+    });
+  }, [liveDbProfiles, memberSearchQuery, memberGenderFilter]);
+
   const filteredMembers = useMemo(() => {
     return participantsPool.filter((p) => {
       const q = memberSearchQuery.trim().toLowerCase();
@@ -1527,15 +1568,13 @@ export default function AdminOperationsDashboardPage() {
           )}
 
           {/* ----------------------------------------------------------
-              [회원정보] 리스트 우선 조망 ➔ 클릭 시 상세 노출 (Click-to-Reveal)
+              [회원정보] 실서버 Supabase 라이브 DB 직결 뷰어 (SSOT 단일 진실 공급원)
               ---------------------------------------------------------- */}
           {activeTab === 'MEMBER_MGMT' && (
-            <div className="space-y-3">
-              {/* 상단 컴팩트 컨트롤 바 (1줄 인라인: 인원수 + 검색 + 성별 필터) */}
+            <div className="space-y-3 animate-in fade-in duration-150">
+              {/* 상단 컴팩트 컨트롤 바 (1줄 인라인: 실서버 카운트 + 새로고침 + 검색 + 필터) */}
               <div
-                className={`p-3 border ${
-                  isLight ? 'bg-white border-zinc-200' : 'bg-[#0c0d12] border-white/10'
-                } flex flex-wrap items-center justify-between gap-3`}
+                className={`p-3 border ${cardCls} flex flex-wrap items-center justify-between gap-3`}
               >
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
@@ -1543,30 +1582,40 @@ export default function AdminOperationsDashboardPage() {
                     회원 정보
                   </h2>
                   <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
-                    {filteredMembers.length}명
+                    실서버 DB {filteredLiveMembers.length}명 • SSOT
                   </span>
+                  {lastRefreshedAt && (
+                    <span className="text-sm font-mono text-zinc-500">
+                      ({lastRefreshedAt} 갱신)
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fetchLiveDbProfiles();
+                      notify('Supabase 실서버 회원 목록을 새로고침했습니다.');
+                    }}
+                    disabled={isDbLoading}
+                    className="px-2.5 py-1 border border-white/10 hover:border-white/30 text-sm font-mono text-zinc-300 hover:text-white transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {isDbLoading ? '조회중...' : '새로고침'}
+                  </button>
                   <input
                     type="text"
-                    placeholder="검색 (이름, ID)"
+                    placeholder="검색 (이름, 핸들, 이메일)"
                     value={memberSearchQuery}
-                    onChange={(e) => {
-                      setMemberSearchQuery(e.target.value);
-                      setMemberPage(1);
-                    }}
-                    className="px-3 py-1 bg-black/40 border border-white/10 text-sm font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-[#f04f74]/60 w-36 sm:w-44"
+                    onChange={(e) => setMemberSearchQuery(e.target.value)}
+                    className="px-3 py-1 bg-black/40 border border-white/10 text-sm font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-[#f04f74]/60 w-36 sm:w-48"
                   />
                   <div className="flex border border-white/10 divide-x divide-white/10 text-sm font-mono">
                     {(['ALL', 'F', 'M'] as const).map((g) => (
                       <button
                         key={g}
                         type="button"
-                        onClick={() => {
-                          setMemberGenderFilter(g);
-                          setMemberPage(1);
-                        }}
+                        onClick={() => setMemberGenderFilter(g)}
                         className={`px-2.5 py-1 transition-colors cursor-pointer ${
                           memberGenderFilter === g
                             ? 'bg-white/15 text-white font-semibold'
@@ -1580,25 +1629,36 @@ export default function AdminOperationsDashboardPage() {
                 </div>
               </div>
 
-              {/* 회원 2열 컴팩트 목록 & 클릭 시 세부 아코디언 노출 */}
+              {/* 2열 컴팩트 그리드 (실서버 레코드 직결 ➔ 클릭 시 상세 확장) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                {filteredMembers.length === 0 ? (
+                {filteredLiveMembers.length === 0 ? (
                   <div className="col-span-full p-8 text-center text-sm font-mono text-zinc-500 border border-white/10 bg-[#0c0d12]">
-                    조건에 일치하는 회원이 없습니다.
+                    실서버 DB에 등록된 회원이 없습니다.
                   </div>
                 ) : (
-                  filteredMembers.map((m) => {
-                    const isExpanded = expandedMemberId === m.userId;
+                  filteredLiveMembers.map((m) => {
+                    const isExpanded = expandedMemberId === m.id;
+                    const createdStr = m.created_at
+                      ? new Date(m.created_at).toLocaleDateString('ko-KR', {
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })
+                      : '일시미상';
+
                     return (
                       <div
-                        key={m.userId}
+                        key={m.id}
                         className={`border border-white/10 bg-[#0c0d12] transition-colors ${
-                          isExpanded ? 'col-span-full bg-white/[0.04] border-white/20' : 'hover:bg-white/[0.02] hover:border-white/20'
+                          isExpanded
+                            ? 'col-span-full bg-white/[0.04] border-white/20'
+                            : 'hover:bg-white/[0.02] hover:border-white/20'
                         }`}
                       >
-                        {/* 1단계: 컴팩트 1줄 행 (클릭 시 상세 펼침) */}
+                        {/* 1단계: 컴팩트 1줄 요약 행 */}
                         <div
-                          onClick={() => setExpandedMemberId(isExpanded ? null : m.userId)}
+                          onClick={() => setExpandedMemberId(isExpanded ? null : m.id)}
                           className="p-3.5 flex items-center justify-between cursor-pointer transition-colors"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
@@ -1606,111 +1666,86 @@ export default function AdminOperationsDashboardPage() {
                               {isExpanded ? '▾' : '▸'}
                             </span>
                             <span className="text-sm font-mono font-bold text-white tracking-wide shrink-0">
-                              {m.userId}
+                              {m.handle}
                             </span>
-                            <span className="text-sm font-mono text-zinc-300 font-medium shrink-0">
-                              {m.userId === 'USER_AA' ? '@aa' : m.userId === 'USER_BB' ? '@bb' : `@${m.userId.toLowerCase()}`}
-                            </span>
-                            <span className="text-sm font-semibold text-white truncate">
+                            <span className="text-sm font-semibold text-zinc-200 truncate">
                               {m.nickname}
                             </span>
-                            <span className="text-sm text-zinc-300 shrink-0">
+                            <span className="text-sm text-zinc-400 shrink-0">
                               {m.gender === 'F' ? '여성' : '남성'}
                             </span>
-                            <span className="text-sm font-mono text-zinc-300 shrink-0">
-                              {m.birthYear}년생
+                            <span className="text-sm font-mono text-zinc-400 shrink-0">
+                              {m.birth_year}년생
+                            </span>
+                            <span className="text-sm font-mono text-zinc-500 truncate hidden sm:inline">
+                              {m.email}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2.5 shrink-0">
-                            <span className="text-sm font-mono text-zinc-300">
-                              신뢰: <strong className="text-white text-sm font-bold">{m.trustScore}점</strong>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-sm font-mono text-zinc-400">
+                              {createdStr}
                             </span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedUserId(m.userId);
-                                setExpandedEvalMemberId(m.userId);
-                                handleSelectTab('MEMBER_EVAL');
-                              }}
-                              className="px-2.5 py-1 border border-white/20 hover:border-white bg-white/[0.04] text-sm font-mono text-zinc-200 hover:text-white transition-colors cursor-pointer"
-                            >
-                              평가 ↗
-                            </button>
+                            <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-300">
+                              {m.id === 'ADMIN_01' ? '관리자' : '실회원'}
+                            </span>
                           </div>
                         </div>
 
-                        {/* 2단계: 클릭 시 펼쳐지는 상세 (Click-to-Reveal) */}
+                        {/* 2단계: 클릭 시 펼쳐지는 실서버 DB 전체 상세 (Click-to-Reveal) */}
                         {isExpanded && (
-                          <div className="px-6 pb-5 pt-2 bg-black/50">
-                            <div className="pl-4 border-l-2 border-white/20 ml-1 space-y-4 text-sm">
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono">
-                                <div>
-                                  <span className="text-sm text-zinc-400 font-semibold block uppercase mb-1">이메일</span>
-                                  <span className="text-zinc-100 text-sm font-medium">{m.userId === 'USER_AA' ? 'aa@nadosolo.com' : 'bb@nadosolo.com'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-sm text-zinc-400 font-semibold block uppercase mb-1">직무</span>
-                                  <span className="text-zinc-100 text-sm font-medium">{m.userId === 'USER_AA' ? '브랜드 마케터' : 'IT 기획자'}</span>
-                                </div>
-                                <div>
-                                  <span className="text-sm text-zinc-400 font-semibold block uppercase mb-1">식이</span>
-                                  <span className="text-zinc-100 text-sm font-medium">{m.dietary.join(', ')}</span>
-                                </div>
-                                <div>
-                                  <span className="text-sm text-zinc-400 font-semibold block uppercase mb-1">관심사</span>
-                                  <span className="text-zinc-100 text-sm font-medium">{m.interests.join(', ')}</span>
-                                </div>
+                          <div className="p-4 border-t border-white/10 bg-black/40 space-y-3 animate-in fade-in duration-100">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-mono">
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">고유 DB ID</span>
+                                <span className="text-white font-medium">{m.id}</span>
                               </div>
-
-                              <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
-                                <div className="flex items-center gap-2.5">
-                                  <span className="text-zinc-400 text-sm font-mono">신뢰점수 조정:</span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      adjustTrustScore(m.userId, 5);
-                                      notify(`[${m.nickname}] 신뢰점수 +5점 조정`);
-                                    }}
-                                    className="px-2.5 py-1 border border-white/20 hover:border-white/40 text-sm font-mono text-zinc-200 hover:text-white transition-colors"
-                                  >
-                                    +5점
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      adjustTrustScore(m.userId, -5);
-                                      notify(`[${m.nickname}] 신뢰점수 -5점 조정`);
-                                    }}
-                                    className="px-2.5 py-1 border border-white/20 hover:border-white/40 text-sm font-mono text-zinc-200 hover:text-white transition-colors"
-                                  >
-                                    -5점
-                                  </button>
-                                </div>
-
-                                <div className="flex items-center gap-4">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleGoToUserDashboard(m.userId)}
-                                    className="text-zinc-200 hover:text-white hover:underline font-mono text-sm cursor-pointer"
-                                  >
-                                    대시보드 ↗
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedUserId(m.userId);
-                                      setExpandedEvalMemberId(m.userId);
-                                      handleSelectTab('MEMBER_EVAL');
-                                    }}
-                                    className="text-white hover:underline font-mono text-sm cursor-pointer font-medium"
-                                  >
-                                    평가 ➔
-                                  </button>
-                                </div>
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">이메일</span>
+                                <span className="text-white font-medium truncate block">{m.email || '미등록'}</span>
+                              </div>
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">휴대폰</span>
+                                <span className="text-white font-medium">{m.phone || '미등록'}</span>
+                              </div>
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">직업</span>
+                                <span className="text-white font-medium">{m.job_title || '미입력'}</span>
+                              </div>
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">식이 제약</span>
+                                <span className="text-white font-medium">{m.dietary || 'NONE'}</span>
+                              </div>
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">관심사</span>
+                                <span className="text-white font-medium truncate block">
+                                  {(m.interests && m.interests.length > 0) ? m.interests.join(', ') : '미설정'}
+                                </span>
+                              </div>
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">인증 뱃지</span>
+                                <span className="text-white font-medium">{m.verified_badge || 'VERIFIED_MEMBER'}</span>
+                              </div>
+                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                <span className="text-zinc-500 block mb-1">참여 세션 수</span>
+                                <span className="text-white font-medium">{m.session_count ?? 1}회</span>
                               </div>
                             </div>
+
+                            {/* 성향 자가진단 점수 */}
+                            {m.self_domain_scores && (
+                              <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5 text-sm font-mono">
+                                <span className="text-zinc-500 block">성향 자가진단 5대 영역 (NBTI 점수)</span>
+                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                  {Object.entries(m.self_domain_scores).map(([k, v]) => (
+                                    <div key={k} className="p-1.5 border border-white/10 text-center">
+                                      <span className="text-zinc-400 block text-sm">{k}</span>
+                                      <span className="text-white font-bold text-sm">{v}점</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
