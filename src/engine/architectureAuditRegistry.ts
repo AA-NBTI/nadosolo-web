@@ -208,6 +208,17 @@ export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
         status: 'VERIFIED',
         affectedRoutes: ['/admin', 'GEMINI.md'],
       },
+      {
+        id: 'CHG-2116',
+        category: 'AUTH',
+        categoryLabel: '거주지역필수',
+        title: '회원가입 온보딩 내 이용자 실제 거주지역(시·도 및 시·군·구) 필수 수집 및 DB 직결 구축',
+        beforeSummary: '거점 정보만 취급하고 이용자의 실제 거주·활동 지역을 수집·보존하는 체계 부재',
+        afterSummary: '가입 2단계에 행정구역 드롭다운 필수 연동, Supabase 라이브 DB 영구 보존 및 관리자 실시간 조망 완료',
+        impactLabel: '회원 거주지역 기반 맞춤 테이블 배정 및 SSOT 데이터 무결성 100% 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/auth', '/admin', '/dashboard'],
+      },
     ],
   },
   {

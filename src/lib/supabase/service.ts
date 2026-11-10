@@ -22,6 +22,15 @@ export interface DbProfile {
   updated_at?: string;
 }
 
+function normalizeDbProfile(raw: any): DbProfile {
+  const scores = (raw.self_domain_scores || {}) as Record<string, any>;
+  return {
+    ...raw,
+    residence_city: raw.residence_city || scores._residence_city,
+    residence_district: raw.residence_district || scores._residence_district,
+  };
+}
+
 export const nadoSoloSupabaseService = {
   /**
    * 사용자 프로필 조회
@@ -39,7 +48,7 @@ export const nadoSoloSupabaseService = {
         console.warn('[Supabase] getProfile warning (using fallback):', error.message);
         return null;
       }
-      return data as DbProfile;
+      return normalizeDbProfile(data);
     } catch (e) {
       console.warn('[Supabase] getProfile failed:', e);
       return null;
@@ -61,7 +70,7 @@ export const nadoSoloSupabaseService = {
         console.warn('[Supabase] getAllProfiles warning:', error.message);
         return [];
       }
-      return (data || []) as DbProfile[];
+      return (data || []).map(normalizeDbProfile);
     } catch (e) {
       console.warn('[Supabase] getAllProfiles failed:', e);
       return [];
@@ -74,28 +83,33 @@ export const nadoSoloSupabaseService = {
   async upsertProfile(profile: DbProfile): Promise<boolean> {
     try {
       const supabase = createClient();
+      const domainScoresWithRegion = {
+        ...(profile.self_domain_scores || {}),
+        ...(profile.residence_city ? { _residence_city: profile.residence_city } : {}),
+        ...(profile.residence_district ? { _residence_district: profile.residence_district } : {}),
+        ...(profile.survey_answers ? { _survey_answers: profile.survey_answers } : {}),
+      };
+
+      const rowPayload: Record<string, any> = {
+        id: profile.id,
+        handle: profile.handle,
+        email: profile.email,
+        phone: profile.phone,
+        nickname: profile.nickname,
+        gender: profile.gender,
+        birth_year: profile.birth_year,
+        job_title: profile.job_title,
+        dietary: profile.dietary,
+        interests: profile.interests,
+        self_domain_scores: domainScoresWithRegion,
+        verified_badge: profile.verified_badge,
+        session_count: profile.session_count,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .upsert(
-          {
-            id: profile.id,
-            handle: profile.handle,
-            email: profile.email,
-            phone: profile.phone,
-            nickname: profile.nickname,
-            gender: profile.gender,
-            birth_year: profile.birth_year,
-            job_title: profile.job_title,
-            dietary: profile.dietary,
-            interests: profile.interests,
-            self_domain_scores: profile.self_domain_scores,
-            survey_answers: profile.survey_answers,
-            residence_city: profile.residence_city,
-            residence_district: profile.residence_district,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'id' }
-        );
+        .upsert(rowPayload, { onConflict: 'id' });
 
       if (error) {
         console.warn('[Supabase] upsertProfile warning:', error.message);
