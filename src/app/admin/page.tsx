@@ -24,8 +24,13 @@ import AdminSingleAuditReportManager from '@/components/admin/AdminSingleAuditRe
 import AdminProcessTestReportManager from '@/components/admin/AdminProcessTestReportManager';
 import AdminAuditReportManager from '@/components/admin/AdminAuditReportManager';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
+import {
+  EXECUTIVE_GOVERNANCE_TEAM,
+  GovernanceRole,
+} from '@/engine/architectureAuditRegistry';
 
 type AdminTabKey =
+  | 'GOVERNANCE'
   | 'PROCESS'
   | 'AUDIT'
   | 'EVENT_GATE'
@@ -80,6 +85,7 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
   {
     groupTitle: '관제',
     items: [
+      { key: 'GOVERNANCE', label: '조직' },
       { key: 'EVENT_GATE', label: '조건' },
       { key: 'PROCESS', label: '프로세스' },
       { key: 'AUDIT', label: '감사' },
@@ -172,6 +178,7 @@ export default function AdminOperationsDashboardPage() {
   // 신규 접속 기본값: 선택된 탭 없음 → 우측에 전체 카테고리 목록이 먼저 노출
   const [activeTab, setActiveTab] = useState<AdminTabKey | null>(null);
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
+  const [selectedProCode, setSelectedProCode] = useState<string | null>(null);
   const [selectedStalledUserId, setSelectedStalledUserId] = useState<string | null>(null);
   const [notifiedUserIds, setNotifiedUserIds] = useState<string[]>([]);
   const [adminToast, setAdminToast] = useState<string | null>(null);
@@ -757,6 +764,131 @@ export default function AdminOperationsDashboardPage() {
                 isLight={isLight}
                 onNotify={notify}
               />
+            </section>
+          )}
+
+          {/* ----------------------------------------------------------
+              [거버넌스] 회장실 직속 안프로 사단 '가·나·다·라·마' 직보 체계
+              ---------------------------------------------------------- */}
+          {activeTab === 'GOVERNANCE' && (
+            <section className="space-y-3 animate-in fade-in duration-150">
+              {/* 상단 컨트롤 바 (헌법 제6조 원칙 6 표준 테두리 박스) */}
+              <div className={`p-3 border ${cardCls} flex items-center justify-between gap-3`}>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className={`font-serif-editorial text-lg font-normal ${textTitleCls}`}>
+                    조직
+                  </h2>
+                  <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                    회장실 직속 • 안프로 사단 {EXECUTIVE_GOVERNANCE_TEAM.length}인
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedProCode(null);
+                      notify('조직 명부가 전체 목록 모드로 정돈되었습니다.');
+                    }}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 border border-white/10 hover:border-white/30 text-sm font-mono text-zinc-400 hover:text-white transition-all cursor-pointer"
+                  >
+                    <span>목록</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2열 컴팩트 그리드 (헌법 제6조 원칙 5) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {EXECUTIVE_GOVERNANCE_TEAM.map((pro) => {
+                  const isExpanded = selectedProCode === pro.code;
+
+                  return (
+                    <div
+                      key={pro.code}
+                      className={`border border-white/10 bg-[#0c0d12] transition-colors ${
+                        isExpanded
+                          ? 'col-span-full bg-white/[0.03] border-white/20'
+                          : 'hover:bg-white/[0.02] hover:border-white/20'
+                      }`}
+                    >
+                      {/* 1단계: 컴팩트 1줄 요약 행 */}
+                      <div
+                        onClick={() => setSelectedProCode(isExpanded ? null : pro.code)}
+                        className="p-3.5 flex items-center justify-between cursor-pointer transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="text-sm font-mono text-zinc-500 w-3.5 shrink-0">
+                            {isExpanded ? '▾' : '▸'}
+                          </span>
+                          <span className="text-sm font-mono font-bold text-white shrink-0">
+                            {pro.name}
+                          </span>
+                          <span className="text-sm font-mono text-zinc-400 truncate">
+                            {pro.englishTitle}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-300">
+                            {pro.koreanRole}
+                          </span>
+                          <span className="text-sm font-mono text-zinc-500">
+                            {pro.rank === 0 ? '총괄' : `${pro.rank}순위`}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 2단계: 클릭 시 2열 전체폭 상세 확장 (Click-to-Reveal) */}
+                      {isExpanded && (
+                        <div className="border-t border-white/10 p-4 space-y-3 bg-black/40 animate-in fade-in duration-100">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm font-mono">
+                            <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5">
+                              <span className="text-zinc-500 block">공식 직함</span>
+                              <p className="text-white font-medium leading-relaxed">
+                                {pro.fullRoleTitle}
+                              </p>
+                            </div>
+                            <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5">
+                              <span className="text-zinc-500 block">회장실 핫라인</span>
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-white font-medium">
+                                  {pro.hotlineSummon}
+                                </p>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(pro.hotlineSummon.split('/')[0].trim());
+                                    notify(`'${pro.name}' 호출어가 복사되었습니다.`);
+                                  }}
+                                  className="px-2 py-0.5 border border-white/20 hover:border-white/40 text-sm font-mono text-zinc-300 hover:text-white"
+                                >
+                                  복사
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5 text-sm font-mono">
+                            <span className="text-zinc-500 block">헌법상 고유 책임 (R&R)</span>
+                            <p className="text-white leading-relaxed">
+                              {pro.responsibility}
+                            </p>
+                          </div>
+
+                          <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5 text-sm font-mono">
+                            <span className="text-zinc-500 block">최근 수행 성과</span>
+                            <p className="text-zinc-200 leading-relaxed">
+                              {pro.recentMilestone}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </section>
           )}
 

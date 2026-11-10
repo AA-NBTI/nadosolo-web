@@ -36,6 +36,90 @@ export interface ArchitectureReleaseSnapshot {
   changes: ArchitectureChangeRecord[];
 }
 
+export interface GovernanceRole {
+  code: 'AN' | 'GA' | 'NA' | 'DA' | 'RA' | 'MA';
+  name: string;          // 직함 명칭 (예: 안프로, 가프로 등)
+  rank: number;          // 직무 서열 (0: 총괄, 1~5: 전문 프로)
+  englishTitle: string;  // 공식 영문 직책
+  koreanRole: string;    // 핵심 직무 (단일 명사화)
+  fullRoleTitle: string; // 공식 부서 직함
+  responsibility: string;// 핵심 헌법 책임
+  hotlineSummon: string; // 회장실 직접 호출어
+  recentMilestone: string; // 최근 주요 수행 성과
+}
+
+/**
+ * 회장실 직속 안프로 사단 '가·나·다·라·마' 거버넌스 헌법(제8조) 팀 명부
+ */
+export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
+  {
+    code: 'AN',
+    name: '안프로',
+    rank: 0,
+    englishTitle: 'Executive Chief of Staff / COO',
+    koreanRole: '총괄',
+    fullRoleTitle: '회장실 직속 총괄수석실장 (운영 & 통합 조율)',
+    responsibility: '회장 직속 보좌, 5대 프로 조직 총괄 지휘, 회장 지시 하달 및 1장 종합 직보',
+    hotlineSummon: '안프로 (또는 평시 일반 대화)',
+    recentMilestone: 'v2.1.1 릴리즈 배포 완료 및 안프로 사단 5대 프로 직보 거버넌스 체계 가동',
+  },
+  {
+    code: 'GA',
+    name: '가프로',
+    rank: 1,
+    englishTitle: 'Chief Compliance Officer',
+    koreanRole: '감사',
+    fullRoleTitle: '헌법 수호 및 원칙 감사 총괄 (1순위 방어선)',
+    responsibility: '헌법(GEMINI.md) 전역 감사, 10pt 미만 폰트 영구 금지, 단일 명사 원칙, 모노크롬 고대비, 2열 컴팩트 검증',
+    hotlineSummon: '가프로 / 가프로 나와봐',
+    recentMilestone: '10pt 미만 폰트 전수 정밀 감사 완료 및 붉은색 보조설명 전수 퇴출 승인',
+  },
+  {
+    code: 'NA',
+    name: '나프로',
+    rank: 2,
+    englishTitle: 'Chief Product Officer',
+    koreanRole: '기획',
+    fullRoleTitle: '프로덕트 기획 및 고객 여정 총괄 (2순위)',
+    responsibility: '실존적 솔로 재정의, 3040/5060 트랙, 1요소 1기준 질문지 기획, 사용자 능동형 여정 UX/UI 설계',
+    hotlineSummon: '나프로 / 나프로 보고해',
+    recentMilestone: '하단 구식 페이징 바 완전 삭제 및 상단 능동형 탭 여정 단일화 완료',
+  },
+  {
+    code: 'DA',
+    name: '다프로',
+    rank: 3,
+    englishTitle: 'Chief Technology Officer',
+    koreanRole: '개발',
+    fullRoleTitle: '시스템 아키텍트 및 개발 총괄 (3순위)',
+    responsibility: '5×5×5 다면평가 엔진, 100점 표준 정규화, Supabase DB 아키텍처, 0-Error 무결점 빌드 및 배포',
+    hotlineSummon: '다프로 / 다프로 상태 어때',
+    recentMilestone: 'Next.js 20/20 전 라우트 0-Error 빌드 통과 및 Git 커밋 31897f8 배포',
+  },
+  {
+    code: 'RA',
+    name: '라프로',
+    rank: 4,
+    englishTitle: 'Chief Revenue Officer',
+    koreanRole: '수익',
+    fullRoleTitle: '비즈니스 수익성 및 결제 퍼널 총괄 (4순위)',
+    responsibility: '다면관찰 라이선스 ₩30,000 결제 퍼널, 구매전환율(CVR), 테이블 정체(P01-STALL) 감지, BM 건전성 모니터링',
+    hotlineSummon: '라프로 / 라프로 수익성 어때',
+    recentMilestone: '1인 ₩30,000 라이선스 결제 게이트 정상 연동 및 정체 사용자 자동 감지 검증',
+  },
+  {
+    code: 'MA',
+    name: '마프로',
+    rank: 5,
+    englishTitle: 'Chief Field & Matching Officer',
+    koreanRole: '매칭',
+    fullRoleTitle: '테이블 매칭 및 현장 관제 총괄 (5순위)',
+    responsibility: 'NBTI 8옥탄트 3:3 성비 매칭, D-1 프라이빗 다이닝 예약, 좌석 배치 및 현장 대화카드 덱 관제',
+    hotlineSummon: '마프로 / 마프로 매칭 상황은',
+    recentMilestone: '남녀 3:3 밸런스 및 180도 회전 좌석 시선 분산 알고리즘 시뮬레이션 완료',
+  },
+];
+
 /**
  * 전역 아키텍처 변경 이력 데이터베이스 (버전별 자동 누적)
  */
@@ -44,7 +128,7 @@ export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
     version: 'v2.1.1',
     releaseTitle: '능동형 아키텍처 완성 & 대시보드 사족 요소 및 구식 위저드 전수 제거',
     releaseDate: '2026-11-10',
-    summary: '구식 선형 이전/다음 단계 바 완전 삭제, 보조설명 및 붉은색 라벨 전수 제거, 활성 탭 및 동적 진행 글자 중심의 세련된 포인트 컬러 적용, 성향 자가진단 5대 영역 상단 능동형 탭 개편',
+    summary: '구식 선형 이전/다음 단계 바 완전 삭제, 보조설명 및 붉은색 라벨 전수 제거, 활성 탭 및 동적 진행 글자 중심의 세련된 포인트 컬러 적용, 성향 자가진단 5대 영역 상단 능동형 탭 개편, 회장실 직속 안프로 사단 거버넌스 헌법 제정',
     isLatest: true,
     changes: [
       {
@@ -79,6 +163,17 @@ export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
         impactLabel: '자가진단 입력 속도 및 편의성 3배 향상',
         status: 'VERIFIED',
         affectedRoutes: ['/dashboard'],
+      },
+      {
+        id: 'CHG-2114',
+        category: 'CONSTITUTION',
+        categoryLabel: '거버넌스',
+        title: '회장실 직속 안프로 사단(가·나·다·라·마) 5대 직보 거버넌스 체계 정식 발족',
+        beforeSummary: '단일 AI 모델 응답 체제로 전문 역할별 책임 경계 및 감사·수익·매칭 분리 부재',
+        afterSummary: '회장 직속 총괄수석실장(안프로) 및 5대 전문 프로(가·나·다·라·마) 거버넌스 헌법(제8조) 제정 및 관리자 관제 연동',
+        impactLabel: '헌법준수·기획·개발·수익·매칭 5중 방어선 및 회장실 직접 호출 직보 체계 확립',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin', 'GEMINI.md'],
       },
     ],
   },
