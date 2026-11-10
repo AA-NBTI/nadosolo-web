@@ -500,14 +500,14 @@ export default function AdminOperationsDashboardPage() {
                 isLight ? 'border-zinc-200' : 'border-white/[0.08]'
               }`}
             >
-              {/* 1행: 관리 콘솔 & v2.1.0 */}
+              {/* 1행: 관리 콘솔 & v2.1.1 */}
               <div className="flex items-center justify-between">
                 <p className="text-sm font-mono tracking-wider text-white font-semibold flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
                   관리자
                 </p>
                 <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-sm font-mono font-bold text-white">
-                  v2.1.0
+                  v2.1.1
                 </span>
               </div>
 

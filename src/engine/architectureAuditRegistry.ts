@@ -41,11 +41,52 @@ export interface ArchitectureReleaseSnapshot {
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.1.1',
+    releaseTitle: '능동형 아키텍처 완성 & 대시보드 사족 요소 및 구식 위저드 전수 제거',
+    releaseDate: '2026-11-10',
+    summary: '구식 선형 이전/다음 단계 바 완전 삭제, 보조설명 및 붉은색 라벨 전수 제거, 활성 탭 및 동적 진행 글자 중심의 세련된 포인트 컬러 적용, 성향 자가진단 5대 영역 상단 능동형 탭 개편',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2111',
+        category: 'PROCESS',
+        categoryLabel: '능동형체계',
+        title: '구식 선형 페이징 바(이전/다음 단계) 및 수동적 중복 요소 전수 영구 삭제',
+        beforeSummary: '대시보드 하단에 이전/다음 단계 버튼이 고정되어 있어 상단 능동형 트래커 및 상호주의 게이트와 모순 발생',
+        afterSummary: '하단 페이징 바를 완전히 제거하고 상단 실시간 여정 트래커와 좌측 1클릭 네비게이션으로 단일화',
+        impactLabel: '능동형 사용자 경험 일관성 100% 확보 및 사족 제거',
+        status: 'VERIFIED',
+        affectedRoutes: ['/dashboard'],
+      },
+      {
+        id: 'CHG-2112',
+        category: 'PAGE',
+        categoryLabel: '타이포',
+        title: '보조설명 및 붉은색 라벨 전수 제거 & 글자 중심 세련된 포인트 컬러 적용',
+        beforeSummary: '입력 폼에 필수 수신용 등의 붉은 보조설명 노출 및 사이드바에 투박한 컬러 라인 적용',
+        afterSummary: '사족 보조설명을 완전히 제거하여 단일 명사화하고, 라인이 아닌 동적 활성 글자 자체에 포인트 컬러 적용',
+        impactLabel: '시각적 피로도 90% 감소 및 럭셔리 모노크롬 완성',
+        status: 'VERIFIED',
+        affectedRoutes: ['/dashboard'],
+      },
+      {
+        id: 'CHG-2113',
+        category: 'EVALUATION',
+        categoryLabel: '자가진단',
+        title: '성향 자가진단(NBTI) 5대 영역 상단 능동 선택 탭 개편',
+        beforeSummary: '하단 이전 영역 / 다음 영역 버튼을 눌러 순차적으로 이동해야 하는 불편함',
+        afterSummary: '5대 영역을 상단 그리드 탭으로 노출하여 1클릭으로 원하는 영역을 즉시 선택 및 점수 조절',
+        impactLabel: '자가진단 입력 속도 및 편의성 3배 향상',
+        status: 'VERIFIED',
+        affectedRoutes: ['/dashboard'],
+      },
+    ],
+  },
+  {
     version: 'v2.1.0',
     releaseTitle: '관리자 화면 모노크롬 고대비 & 2열 컴팩트 & Click-to-Reveal 체계',
     releaseDate: '2026-11-10',
     summary: '관리자 대시보드 2열 컴팩트 그리드, 상단 표준 테두리 박스, 영문 배너 및 나열형 설명문 전수 제거, 리스트 우선 조망 및 클릭 후 상세 노출(Click-to-Reveal) 전역 표준화',
-    isLatest: true,
     changes: [
       {
         id: 'CHG-2101',
