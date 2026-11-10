@@ -37,9 +37,9 @@ export interface ArchitectureReleaseSnapshot {
 }
 
 export interface GovernanceRole {
-  code: 'AN' | 'GA' | 'NA' | 'DA' | 'RA' | 'MA';
+  code: 'AN' | 'GA' | 'NA' | 'DA' | 'RA' | 'MA' | 'BA' | 'SA';
   name: string;          // 직함 명칭 (예: 안프로, 가프로 등)
-  rank: number;          // 직무 서열 (0: 총괄, 1~5: 전문 프로)
+  rank: number;          // 직무 서열 (0: 총괄, 1~7: 전문 프로)
   englishTitle: string;  // 공식 영문 직책
   koreanRole: string;    // 핵심 직무 (단일 명사화)
   fullRoleTitle: string; // 공식 부서 직함
@@ -49,7 +49,7 @@ export interface GovernanceRole {
 }
 
 /**
- * 회장실 직속 안프로 사단 '가·나·다·라·마' 거버넌스 헌법(제8조) 팀 명부
+ * 회장실 직속 안프로 사단 '가·나·다·라·마·바·사' 7대 프로 거버넌스 헌법(제8조) 팀 명부
  */
 export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
   {
@@ -59,9 +59,9 @@ export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
     englishTitle: 'Executive Chief of Staff / COO',
     koreanRole: '총괄',
     fullRoleTitle: '회장실 직속 총괄수석실장 (운영 & 통합 조율)',
-    responsibility: '회장 직속 보좌, 5대 프로 조직 총괄 지휘, 회장 지시 하달 및 1장 종합 직보',
+    responsibility: '회장 직속 보좌, 7대 프로 조직 총괄 지휘, 회장 지시 하달, 코드 직접 개입 금지 및 1장 종합 직보',
     hotlineSummon: '안프로 (또는 평시 일반 대화)',
-    recentMilestone: 'v2.1.1 릴리즈 배포 완료 및 안프로 사단 5대 프로 직보 거버넌스 체계 가동',
+    recentMilestone: '거버넌스 헌법 개정 및 7대 전문 프로 사단 3중 교차 검증 파이프라인 가동',
   },
   {
     code: 'GA',
@@ -70,9 +70,9 @@ export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
     englishTitle: 'Chief Compliance Officer',
     koreanRole: '감사',
     fullRoleTitle: '헌법 수호 및 원칙 감사 총괄 (1순위 방어선)',
-    responsibility: '헌법(GEMINI.md) 전역 감사, 10pt 미만 폰트 영구 금지, 단일 명사 원칙, 모노크롬 고대비, 2열 컴팩트 검증',
+    responsibility: '헌법(GEMINI.md) 전역 감사, 10pt 미만 폰트 영구 금지, 단일 명사 원칙, 모노크롬 고대비, 2열 컴팩트 검증 및 배포 최종 날인',
     hotlineSummon: '가프로 / 가프로 나와봐',
-    recentMilestone: '10pt 미만 폰트 전수 정밀 감사 완료 및 붉은색 보조설명 전수 퇴출 승인',
+    recentMilestone: '10pt 미만 폰트 전수 정밀 감사 완료 및 배포 전역 감사 서명제 가동',
   },
   {
     code: 'NA',
@@ -94,7 +94,7 @@ export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
     fullRoleTitle: '시스템 아키텍트 및 개발 총괄 (3순위)',
     responsibility: '5×5×5 다면평가 엔진, 100점 표준 정규화, Supabase DB 아키텍처, 0-Error 무결점 빌드 및 배포',
     hotlineSummon: '다프로 / 다프로 상태 어때',
-    recentMilestone: 'Next.js 20/20 전 라우트 0-Error 빌드 통과 및 Git 커밋 31897f8 배포',
+    recentMilestone: 'Next.js 20/20 전 라우트 0-Error 빌드 통과 및 SSOT 실시간 연동 완료',
   },
   {
     code: 'RA',
@@ -117,6 +117,28 @@ export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
     responsibility: 'NBTI 8옥탄트 3:3 성비 매칭, D-1 프라이빗 다이닝 예약, 좌석 배치 및 현장 대화카드 덱 관제',
     hotlineSummon: '마프로 / 마프로 매칭 상황은',
     recentMilestone: '남녀 3:3 밸런스 및 180도 회전 좌석 시선 분산 알고리즘 시뮬레이션 완료',
+  },
+  {
+    code: 'BA',
+    name: '바프로',
+    rank: 6,
+    englishTitle: 'Chief Data Officer',
+    koreanRole: '데이터',
+    fullRoleTitle: '데이터 무결성 및 SSOT 인텔리전스 총괄 (6순위 - 신설)',
+    responsibility: 'Supabase 라이브 DB 단일 진실 공급원(SSOT) 24시간 실시간 무결성 보증, 임의 데이터(더미/목업) 잔재 0건 상시 감사, 실서버 실시간 쿼리 데이터 인증 날인',
+    hotlineSummon: '바프로 / 바프로 DB 상태 어때',
+    recentMilestone: 'Supabase 라이브 DB 더미 8명 전수 삭제 완료 및 실시간 쿼리 동기화 검증',
+  },
+  {
+    code: 'SA',
+    name: '사프로',
+    rank: 7,
+    englishTitle: 'Chief Experience Officer',
+    koreanRole: '운영',
+    fullRoleTitle: '회원 온보딩 및 고객 경험 총괄 (7순위 - 신설)',
+    responsibility: '신규 가입 회원 온보딩 완료율(프로필/자가진단/식단/목적) 100% 추적, 정체 사용자(Stalled) 1:1 밀착 케어, 회원가입 여정 이탈 방지',
+    hotlineSummon: '사프로 / 사프로 온보딩 현황은',
+    recentMilestone: '가입 회원 온보딩 트래커 연동 및 정체 회원 감지 자동화 준비 완료',
   },
 ];
 
@@ -172,6 +194,17 @@ export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
         beforeSummary: '단일 AI 모델 응답 체제로 전문 역할별 책임 경계 및 감사·수익·매칭 분리 부재',
         afterSummary: '회장 직속 총괄수석실장(안프로) 및 5대 전문 프로(가·나·다·라·마) 거버넌스 헌법(제8조) 제정 및 관리자 관제 연동',
         impactLabel: '헌법준수·기획·개발·수익·매칭 5중 방어선 및 회장실 직접 호출 직보 체계 확립',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin', 'GEMINI.md'],
+      },
+      {
+        id: 'CHG-2115',
+        category: 'CONSTITUTION',
+        categoryLabel: '거버넌스개편',
+        title: '회장실 직속 안프로 사단 7대 프로(가·나·다·라·마·바·사) 3중 교차 검증 파이프라인 신설',
+        beforeSummary: '데이터 무결성 검증 조직 부재로 코드와 DB 간 이중 분열(Dual State) 및 더미 잔재 발생',
+        afterSummary: '바프로(CDO/데이터무결성) 및 사프로(CXO/온보딩) 신설, 다프로➔바프로➔가프로➔안프로 3중 서명제 구축',
+        impactLabel: '더미 0건 실시간 DB 보증 및 회장실 직보 신뢰도 100% 확보',
         status: 'VERIFIED',
         affectedRoutes: ['/admin', 'GEMINI.md'],
       },
