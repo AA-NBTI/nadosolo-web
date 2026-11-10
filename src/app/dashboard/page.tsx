@@ -1246,6 +1246,32 @@ function MemberDashboardContent() {
                 </div>
               </div>
 
+              {/* 5대 대분류 능동 선택 탭 (1클릭 즉시 전환) */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {majorDomains.map((dom, idx) => {
+                  const isSelected = selfStepIdx === idx;
+                  return (
+                    <button
+                      key={dom.code}
+                      type="button"
+                      onClick={() => setSelfStepIdx(idx)}
+                      className={`p-3 border text-center cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-white/40 bg-white/15 text-white'
+                          : 'border-white/10 bg-[#0c0d12] hover:border-white/20 text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      <p className={`text-sm font-mono ${isSelected ? 'text-[#f04f74] font-bold' : 'text-zinc-400'}`}>
+                        {dom.label}
+                      </p>
+                      <p className="text-lg font-bold text-white mt-0.5 font-mono">
+                        {selfDomainScores100[dom.code]}점
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+
               {(() => {
                 const activeDom = majorDomains[selfStepIdx] ?? majorDomains[0];
                 const domSubs = subElements.filter(
@@ -1254,26 +1280,26 @@ function MemberDashboardContent() {
                 const currentVal = selfDomainScores100[activeDom.code] ?? 80;
 
                 return (
-                  <div className="bg-white/[0.015] rounded-none p-6 border border-white/[0.08] space-y-6">
-                    <div className="flex items-center justify-between">
+                  <div className="bg-[#0c0d12] p-5 sm:p-6 border border-white/10 space-y-5">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
                       <div>
-                        <span className="text-sm font-mono tracking-widest text-zinc-500 uppercase">
-                          영역 {selfStepIdx + 1} / {majorDomains.length}
-                        </span>
-                        <h4 className="font-serif-editorial text-xl font-normal text-white mt-1">
-                          [{activeDom.label}] 영역 자가 점수
-                        </h4>
-                        <p className="text-sm text-zinc-400 mt-1 font-light">
-                          포함 중분류 (5요소):{' '}
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                          <h4 className="font-serif-editorial text-lg font-normal text-white">
+                            [{activeDom.label}] 자가진단
+                          </h4>
+                        </div>
+                        <p className="text-sm text-zinc-400 mt-1 font-normal">
+                          포함 항목:{' '}
                           {domSubs.map((s) => s.label).join(' · ')}
                         </p>
                       </div>
                       <div className="text-right">
-                        <span className="font-serif-editorial text-3xl font-normal text-white">
+                        <span className="font-mono text-2xl font-bold text-white">
                           {currentVal}점
                         </span>
                         <span className="text-sm font-mono text-zinc-500 block">
-                          / 100점 만점
+                          / 100점
                         </span>
                       </div>
                     </div>
@@ -1293,68 +1319,16 @@ function MemberDashboardContent() {
                         }
                         className="w-full accent-primary cursor-pointer"
                       />
-                      <div className="flex justify-between text-sm font-bold text-zinc-400 mt-2">
-                        <span>40점 (보완 필요)</span>
+                      <div className="flex justify-between text-sm font-mono text-zinc-400 mt-2">
+                        <span>40점 (보완)</span>
                         <span>60점 (보통)</span>
                         <span>80점 (우수)</span>
                         <span>100점 (최상)</span>
                       </div>
                     </div>
-
-                    {/* 이전 / 다음 양방향 버튼 */}
-                    <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                      <button
-                        type="button"
-                        disabled={selfStepIdx === 0}
-                        onClick={() =>
-                          setSelfStepIdx((p) => Math.max(0, p - 1))
-                        }
-                        className="px-5 py-2.5 rounded-none border border-white/10 bg-[#08090d] text-zinc-400 hover:text-white text-sm font-semibold disabled:opacity-40 cursor-pointer"
-                      >
-                        ◀ 이전 영역
-                      </button>
-                      <span className="text-sm font-bold text-zinc-400">
-                        {selfStepIdx + 1} / {majorDomains.length}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={selfStepIdx === majorDomains.length - 1}
-                        onClick={() =>
-                          setSelfStepIdx((p) =>
-                            Math.min(majorDomains.length - 1, p + 1)
-                          )
-                        }
-                        className="px-5 py-2.5 rounded-none bg-[#08090d] text-white text-sm font-bold disabled:opacity-40 cursor-pointer"
-                      >
-                        다음 영역 ▶
-                      </button>
-                    </div>
                   </div>
                 );
               })()}
-
-              {/* 5대 대분류 자가 점수 요약 표 */}
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-                {majorDomains.map((dom, idx) => (
-                  <button
-                    key={dom.code}
-                    type="button"
-                    onClick={() => setSelfStepIdx(idx)}
-                    className={`p-4 rounded-none border text-center cursor-pointer transition-all ${
-                      selfStepIdx === idx
-                        ? 'border-white/40 bg-white/10 ring-1 ring-white/20'
-                        : 'border-white/10 bg-[#08090d] hover:border-white/25'
-                    }`}
-                  >
-                    <p className="text-sm font-bold text-zinc-400">
-                      {dom.label}
-                    </p>
-                    <p className="text-xl font-bold text-white mt-1">
-                      {selfDomainScores100[dom.code]}점
-                    </p>
-                  </button>
-                ))}
-              </div>
             </section>
           )}
         </div>
@@ -2441,15 +2415,15 @@ function MemberDashboardContent() {
                         }`}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-mono text-zinc-500 uppercase tracking-wider">BADGE</span>
+                          <span className="text-sm font-mono text-zinc-400">뱃지</span>
                           <span
-                            className={`px-2 py-0.5 rounded-none text-sm font-mono tracking-wider ${
+                            className={`px-2 py-0.5 text-sm font-mono tracking-wider border ${
                               earned
-                                ? 'border border-[#f04f74]/60 bg-transparent text-[#f04f74]'
-                                : 'bg-white/5 text-zinc-500'
+                                ? 'border-white/30 bg-white/10 text-white font-bold'
+                                : 'bg-white/5 text-zinc-500 border-white/10'
                             }`}
                           >
-                            {earned ? '획득 완료' : '미획득'}
+                            {earned ? '획득' : '미획득'}
                           </span>
                         </div>
                         <p className="font-serif-editorial text-base font-normal text-white">
@@ -2467,33 +2441,33 @@ function MemberDashboardContent() {
               {/* 4. 품질 점검 (공간 · 식사 · 진행) */}
               <div className="pt-6 border-t border-white/10 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <span className="text-sm font-mono text-zinc-500 uppercase tracking-widest">AUDIT</span>
-                    <h4 className="text-lg font-bold text-white mt-0.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                    <h4 className="font-serif-editorial text-lg font-normal text-white">
                       품질 점검
                     </h4>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-none bg-white/5 border border-white/10 text-sm font-medium text-zinc-300">
+                    <span className="px-2.5 py-0.5 border border-white/10 bg-white/5 text-sm font-mono text-zinc-300">
                       종합 점수: <strong className="text-white font-bold">{fullJourneyAudit.totalAuditScore100}점</strong>
                     </span>
-                    <span className={`px-3 py-1 rounded-none text-sm font-mono font-bold border ${
+                    <span className={`px-2.5 py-0.5 text-sm font-mono font-bold border ${
                       fullJourneyAudit.verifiedPartnerEligible
-                        ? 'bg-transparent text-[#f04f74] border-[#f04f74]/30'
+                        ? 'bg-white/10 text-white border-white/30'
                         : 'bg-white/5 text-zinc-400 border-white/10'
                     }`}>
-                      {fullJourneyAudit.verifiedPartnerEligible ? '인증 완료' : '점검 대상'}
+                      {fullJourneyAudit.verifiedPartnerEligible ? '인증' : '점검'}
                     </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
                   
                   {/* 기둥 1: 식당 공간 점검 */}
-                  <div className="p-5 rounded-none bg-white/[0.02] border border-white/[0.08] space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                  <div className="p-4 bg-white/[0.02] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-white/70" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
                         <span className="text-sm font-bold text-white">공간</span>
                       </div>
                       <span className="text-base font-bold text-white font-mono">
@@ -2505,7 +2479,7 @@ function MemberDashboardContent() {
                         <div key={el.elementId} className="flex items-center justify-between text-sm">
                           <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-zinc-500 text-sm">{el.rawAverageStep}단계</span>
+                            <span className="text-zinc-500 text-sm font-mono">{el.rawAverageStep}단계</span>
                             <span className="font-mono font-bold text-white">{el.score100}점</span>
                           </div>
                         </div>
@@ -2514,13 +2488,13 @@ function MemberDashboardContent() {
                   </div>
 
                   {/* 기둥 2: 식사 미식 점검 */}
-                  <div className="p-5 rounded-none bg-white/[0.02] border border-white/[0.08] space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                  <div className="p-4 bg-white/[0.02] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-amber-400" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
                         <span className="text-sm font-bold text-white">식사</span>
                       </div>
-                      <span className="text-base font-bold text-amber-400 font-mono">
+                      <span className="text-base font-bold text-white font-mono">
                         {fullJourneyAudit.mealReport.totalScore100}점
                       </span>
                     </div>
@@ -2529,7 +2503,7 @@ function MemberDashboardContent() {
                         <div key={el.elementId} className="flex items-center justify-between text-sm">
                           <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-zinc-500 text-sm">{el.rawAverageStep}단계</span>
+                            <span className="text-zinc-500 text-sm font-mono">{el.rawAverageStep}단계</span>
                             <span className="font-mono font-bold text-white">{el.score100}점</span>
                           </div>
                         </div>
@@ -2538,13 +2512,13 @@ function MemberDashboardContent() {
                   </div>
 
                   {/* 기둥 3: 가변 진행 점검 */}
-                  <div className="p-5 rounded-none bg-white/[0.02] border border-white/[0.08] space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                  <div className="p-4 bg-white/[0.02] border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-sky-400" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-white/70" />
                         <span className="text-sm font-bold text-white">진행</span>
                       </div>
-                      <span className="text-base font-bold text-sky-400 font-mono">
+                      <span className="text-base font-bold text-white font-mono">
                         {fullJourneyAudit.flowReport.totalScore100}점
                       </span>
                     </div>
@@ -2553,7 +2527,7 @@ function MemberDashboardContent() {
                         <div key={el.elementId} className="flex items-center justify-between text-sm">
                           <span className="text-zinc-300 font-medium">#{el.anchorNoun}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-zinc-500 text-sm">{el.rawAverageStep}단계</span>
+                            <span className="text-zinc-500 text-sm font-mono">{el.rawAverageStep}단계</span>
                             <span className="font-mono font-bold text-white">{el.score100}점</span>
                           </div>
                         </div>
@@ -2567,36 +2541,6 @@ function MemberDashboardContent() {
           )}
         </section>
           )}
-
-          {/* 하단 프로세스 이전/다음 단계 이동 네비게이션 */}
-          <div className="bg-[#0c0d12] rounded-none p-4 border border-white/10 flex items-center justify-between">
-            <button
-              type="button"
-              disabled={currentProcessIdx <= 0}
-              onClick={() => {
-                const prevMod = enabledModules[currentProcessIdx - 1];
-                if (prevMod) setActiveProcessId(prevMod.processId);
-              }}
-              className="px-5 py-2.5 rounded-none border border-white/10 bg-[#08090d] text-zinc-400 hover:text-white text-sm font-semibold disabled:opacity-40 cursor-pointer"
-            >
-              ◀ 이전 단계 ({enabledModules[currentProcessIdx - 1]?.label ?? '없음'})
-            </button>
-            <span className="text-sm font-bold text-zinc-400">
-              {currentProcess?.label} ({currentProcessIdx + 1} /{' '}
-              {enabledModules.length})
-            </span>
-            <button
-              type="button"
-              disabled={currentProcessIdx >= enabledModules.length - 1}
-              onClick={() => {
-                const nextMod = enabledModules[currentProcessIdx + 1];
-                if (nextMod) setActiveProcessId(nextMod.processId);
-              }}
-              className="px-5 py-2.5 rounded-none bg-[#08090d] text-white text-sm font-bold disabled:opacity-40 cursor-pointer"
-            >
-              다음 단계 ({enabledModules[currentProcessIdx + 1]?.label ?? '완료'}) ▶
-            </button>
-          </div>
         </div>
       </div>
 

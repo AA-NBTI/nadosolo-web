@@ -102,6 +102,17 @@ export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
         status: 'VERIFIED',
         affectedRoutes: ['/dashboard'],
       },
+      {
+        id: 'CHG-2106',
+        category: 'PROCESS',
+        categoryLabel: '능동형개편',
+        title: '구식 선형 페이징 바(이전/다음 단계) 및 중복 위저드 요소 전수 제거',
+        beforeSummary: '대시보드 하단 및 자가진단 내에 이전/다음 단계 이동 버튼이 잔존하여 능동형 여정 트래커와 모순 발생',
+        afterSummary: '하단 페이징 바 전면 삭제 및 자가진단 5대 영역 상단 능동 탭 배치, 영문 잔재 및 중복 버튼 완전 제거',
+        impactLabel: '능동형 사용자 플로우 일관성 100% 확보 및 사족 제거',
+        status: 'VERIFIED',
+        affectedRoutes: ['/dashboard'],
+      },
     ],
   },
   {
