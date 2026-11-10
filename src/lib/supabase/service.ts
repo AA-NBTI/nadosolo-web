@@ -43,6 +43,28 @@ export const nadoSoloSupabaseService = {
   },
 
   /**
+   * 전체 등록 회원 프로필 목록 조회 (SSOT)
+   */
+  async getAllProfiles(): Promise<DbProfile[]> {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.warn('[Supabase] getAllProfiles warning:', error.message);
+        return [];
+      }
+      return (data || []) as DbProfile[];
+    } catch (e) {
+      console.warn('[Supabase] getAllProfiles failed:', e);
+      return [];
+    }
+  },
+
+  /**
    * 사용자 프로필 업데이트 (Upsert)
    */
   async upsertProfile(profile: DbProfile): Promise<boolean> {

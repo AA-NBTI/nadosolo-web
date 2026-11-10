@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { nadoSoloSupabaseService } from '@/lib/supabase/service';
+import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import {
   ADAPTIVE_DINING_PLAYBOOK,
   CityLocaleConfig,
@@ -414,6 +414,31 @@ interface NadoSoloEngineContextValue {
 
 const NadoSoloContext = createContext<NadoSoloEngineContextValue | null>(null);
 
+function mapDbProfileToParticipant(p: DbProfile): ParticipantProfile {
+  return {
+    userId: p.id,
+    nickname: p.nickname,
+    gender: p.gender,
+    birthYear: p.birth_year,
+    cityCode: 'SEOUL_SEONGSU',
+    preferredMode: 'ROMANCE',
+    languages: { ko: 'NATIVE' },
+    preferredTableLanguage: 'ko',
+    budgetTier: '$$',
+    dietary: p.dietary ? [p.dietary as DietaryRestriction] : ['NONE'],
+    interests: (p.interests && p.interests.length > 0 ? (p.interests as InterestTag[]) : ['WINE', 'COOKING']),
+    selfVector: {
+      extroversion: 0.7,
+      talkLead: 0.6,
+      lifestyleActive: 0.8,
+      romanceIntent: 0.8,
+      alcoholPreference: 0.7,
+    },
+    trustScore: 95,
+    verified: true,
+  };
+}
+
 export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<LoggedInUser | null>(null);
   const [adminOriginUser, setAdminOriginUser] = useState<LoggedInUser | null>(null);
@@ -566,6 +591,16 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         // 세션 복원 완료 (이 시점 이전에는 관리자/회원 가드 화면을 그리지 않는다)
         if (isMounted) setIsSessionReady(true);
 
+        // [SSOT] Supabase 라이브 DB 전체 회원 실시간 로드 (이중 목업 완전 배제)
+        try {
+          const allDbProfiles = await nadoSoloSupabaseService.getAllProfiles();
+          if (isMounted && allDbProfiles && allDbProfiles.length > 0) {
+            setParticipantsPool(allDbProfiles.map(mapDbProfileToParticipant));
+          }
+        } catch (e) {
+          console.warn('[Supabase] getAllProfiles load error:', e);
+        }
+
         // 로그인 세션이 없는 경우 자동 로그인(기본 사용자 강제 로그인)을 차단하고 비로그인 초기 세팅 유지
         const activeUser = localUser ?? currentUser;
         if (!activeUser) {
@@ -665,6 +700,43 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       self_domain_scores: selfDomainScores100,
       verified_badge: user.verifiedBadge,
       session_count: user.sessionCount,
+    });
+
+    // participantsPool 실시간 동기화
+    setParticipantsPool((prev) => {
+      const exists = prev.some((p) => p.userId === user.userId);
+      if (exists) {
+        return prev.map((p) =>
+          p.userId === user.userId
+            ? { ...p, nickname: user.nickname, gender: user.gender, birthYear: user.birthYear }
+            : p
+        );
+      }
+      return [
+        ...prev,
+        {
+          userId: user.userId,
+          nickname: user.nickname,
+          gender: user.gender,
+          birthYear: user.birthYear,
+          cityCode: 'SEOUL_SEONGSU',
+          preferredMode: 'ROMANCE',
+          languages: { ko: 'NATIVE' },
+          preferredTableLanguage: 'ko',
+          budgetTier: '$$',
+          dietary: ['NONE'],
+          interests: ['WINE', 'COOKING'],
+          selfVector: {
+            extroversion: 0.7,
+            talkLead: 0.6,
+            lifestyleActive: 0.8,
+            romanceIntent: 0.8,
+            alcoholPreference: 0.7,
+          },
+          trustScore: 95,
+          verified: true,
+        },
+      ];
     });
   };
 

@@ -130,40 +130,7 @@ export const INITIAL_GROWTH_SNAPSHOTS: SessionGrowthSnapshot[] = [
   },
 ];
 
-export const INITIAL_PARTICIPANTS: ParticipantProfile[] = [
-  {
-    userId: 'USER_AA',
-    nickname: '김에이',
-    gender: 'F',
-    birthYear: 1994,
-    cityCode: 'SEOUL_SEONGSU',
-    preferredMode: 'ROMANCE',
-    languages: { ko: 'NATIVE' },
-    preferredTableLanguage: 'ko',
-    budgetTier: '$$',
-    dietary: ['NONE'],
-    interests: ['COOKING', 'WINE'],
-    selfVector: INITIAL_U01_SELF_VECTOR,
-    trustScore: 98,
-    verified: true,
-  },
-  {
-    userId: 'USER_BB',
-    nickname: '이비비',
-    gender: 'M',
-    birthYear: 1992,
-    cityCode: 'SEOUL_SEONGSU',
-    preferredMode: 'ROMANCE',
-    languages: { ko: 'NATIVE' },
-    preferredTableLanguage: 'ko',
-    budgetTier: '$$',
-    dietary: ['NONE'],
-    interests: ['RUNNING', 'TECH_STARTUP'],
-    selfVector: { extroversion: 0.7, talkLead: 0.6, lifestyleActive: 0.8, romanceIntent: 0.85, alcoholPreference: 0.7 },
-    trustScore: 96,
-    verified: true,
-  },
-];
+export const INITIAL_PARTICIPANTS: ParticipantProfile[] = [];
 
 export const STANDBY_WAITLIST_POOL: ParticipantProfile[] = [];
 
