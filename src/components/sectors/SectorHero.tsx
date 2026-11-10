@@ -82,6 +82,7 @@ export default function SectorHero({ config, onUpdate, onOpenCheckout }: SectorH
 
             <Link
               href="/dining"
+              prefetch={true}
               className="px-6 py-4 border border-white/20 hover:border-white/40 bg-black/30 hover:bg-black/50 text-xs font-mono tracking-[0.2em] text-zinc-300 hover:text-white uppercase transition-all backdrop-blur-sm flex items-center gap-2"
             >
               <span>VIEW CHAPTERS</span>

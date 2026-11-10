@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   DietaryRestriction,
   Gender,
@@ -17,6 +18,12 @@ import {
 import AdminLayoutManager from '@/components/admin/AdminLayoutManager';
 import AdminDesignSystemInspector from '@/components/admin/AdminDesignSystemInspector';
 import AdminSectionCard from '@/components/admin/AdminSectionCard';
+import AdminPipelineEngineManager from '@/components/admin/AdminPipelineEngineManager';
+import AdminEvalEngineManager from '@/components/admin/AdminEvalEngineManager';
+import AdminSingleAuditReportManager from '@/components/admin/AdminSingleAuditReportManager';
+import AdminProcessTestReportManager from '@/components/admin/AdminProcessTestReportManager';
+import AdminAuditReportManager from '@/components/admin/AdminAuditReportManager';
+import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
 
 type AdminTabKey =
   | 'PROCESS'
@@ -25,7 +32,13 @@ type AdminTabKey =
   | 'MEMBER_EVAL'
   | 'MEMBER_MGMT'
   | 'MEMBER_DOSSIER'
+  | 'PROCESS_TEST_REPORT'
+  | 'SINGLE_AUDIT_REPORT'
+  | 'PIPELINE_ENGINE'
   | 'EVAL_ENGINE'
+  | 'REPORT_PLAN'
+  | 'REPORT_CHECKLIST'
+  | 'REPORT_APPROVAL'
   | 'BADGE'
   | 'REGION'
   | 'VENUE'
@@ -48,37 +61,53 @@ interface AdminCategoryGroup {
 
 const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
   {
-    groupTitle: '운영 관제',
+    groupTitle: '보고서',
     items: [
-      { key: 'PROCESS', label: '프로세스' },
-      { key: 'AUDIT', label: '품질점검' },
-      { key: 'EVENT_GATE', label: '모임조건' },
+      { key: 'REPORT_PLAN', label: '계획' },
+      { key: 'REPORT_CHECKLIST', label: '항목' },
+      { key: 'REPORT_APPROVAL', label: '승인' },
     ],
   },
   {
-    groupTitle: '평가 & 회원',
+    groupTitle: '시스템',
     items: [
-      { key: 'MEMBER_EVAL', label: '회원평가' },
-      { key: 'MEMBER_MGMT', label: '회원관리' },
-      { key: 'EVAL_ENGINE', label: '평가엔진' },
+      { key: 'EVAL_ENGINE', label: '엔진' },
+      { key: 'PIPELINE_ENGINE', label: '매칭' },
+      { key: 'PROCESS_TEST_REPORT', label: '점검' },
+      { key: 'SINGLE_AUDIT_REPORT', label: '테스트' },
+    ],
+  },
+  {
+    groupTitle: '관제',
+    items: [
+      { key: 'EVENT_GATE', label: '조건' },
+      { key: 'PROCESS', label: '프로세스' },
+      { key: 'AUDIT', label: '감사' },
+    ],
+  },
+  {
+    groupTitle: '회원',
+    items: [
+      { key: 'MEMBER_MGMT', label: '정보' },
+      { key: 'MEMBER_EVAL', label: '평가' },
       { key: 'BADGE', label: '뱃지' },
     ],
   },
   {
-    groupTitle: '공간 & 콘텐츠',
+    groupTitle: '공간',
     items: [
       { key: 'REGION', label: '지역' },
       { key: 'VENUE', label: '매장' },
-      { key: 'DECK', label: '대화카드' },
+      { key: 'DECK', label: '카드' },
     ],
   },
   {
-    groupTitle: '사이트 설정',
+    groupTitle: '설정',
     items: [
-      { key: 'LAYOUT_CMS', label: '화면배치' },
+      { key: 'LAYOUT_CMS', label: '배치' },
       { key: 'PAGE_CMS', label: '페이지' },
       { key: 'DESIGN_SYSTEM', label: '디자인' },
-      { key: 'ADMIN_ACCOUNT', label: '관리자계정' },
+      { key: 'ADMIN_ACCOUNT', label: '계정' },
     ],
   },
 ];
@@ -88,6 +117,12 @@ const ALL_ADMIN_CATEGORIES: AdminCategoryItem[] = ADMIN_CATEGORY_GROUPS.flatMap(
 export default function AdminOperationsDashboardPage() {
   const {
     currentUser,
+    adminOriginUser,
+    isSessionReady,
+    isImpersonating,
+    startAdminImpersonation,
+    stopAdminImpersonation,
+    loginAsUser,
     fullJourneyAudit,
     processModules,
     toggleProcessModule,
@@ -134,13 +169,17 @@ export default function AdminOperationsDashboardPage() {
     updateCmsStep,
   } = useNadoSoloEngine();
 
-  const [activeTab, setActiveTab] = useState<AdminTabKey>('PROCESS');
+  // 신규 접속 기본값: 선택된 탭 없음 → 우측에 전체 카테고리 목록이 먼저 노출
+  const [activeTab, setActiveTab] = useState<AdminTabKey | null>(null);
+  const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
+  const [selectedStalledUserId, setSelectedStalledUserId] = useState<string | null>(null);
+  const [notifiedUserIds, setNotifiedUserIds] = useState<string[]>([]);
   const [adminToast, setAdminToast] = useState<string | null>(null);
   // 관리자 화면 기본 테마: 다크 모노크롬 (시스템 헌법 표준)
   const [adminTheme, setAdminTheme] = useState<'light' | 'dark'>('dark');
 
-  // [대분류 아코디언] 열린 그룹 타이틀 목록 (기본값: 현재 활성 탭이 속한 그룹 1개만 열어 컴팩트하게 조망)
-  const [openGroupTitles, setOpenGroupTitles] = useState<string[]>(['운영 관제']);
+  // [대분류 아코디언] 열린 그룹 타이틀 목록 (기본값: 전 메뉴 닫힌 컴팩트 목록 구조)
+  const [openGroupTitles, setOpenGroupTitles] = useState<string[]>([]);
 
   const toggleGroup = useCallback((groupTitle: string) => {
     setOpenGroupTitles((prev) =>
@@ -156,6 +195,7 @@ export default function AdminOperationsDashboardPage() {
 
   const collapseAllGroups = useCallback(() => {
     setOpenGroupTitles([]);
+    setActiveTab(null);
   }, []);
 
   // [우측 메인 워크스페이스 아코디언] 섹션별 열림/닫힘 상태 관리 (기본 닫힘 / 펼침 제어)
@@ -195,7 +235,9 @@ export default function AdminOperationsDashboardPage() {
   }, []);
 
   // [회원평가] 상세 조회할 회원 ID 및 검색/페이징 (10명 단위)
-  const [selectedUserId, setSelectedUserId] = useState<string>('U01');
+  const [selectedUserId, setSelectedUserId] = useState<string>('USER_AA');
+  const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
+  const [expandedEvalMemberId, setExpandedEvalMemberId] = useState<string | null>(null);
   const [evalMemberSearch, setEvalMemberSearch] = useState('');
   const [evalMemberGender, setEvalMemberGender] = useState<'ALL' | 'F' | 'M'>('ALL');
   const [evalMemberPage, setEvalMemberPage] = useState<number>(1);
@@ -249,9 +291,22 @@ export default function AdminOperationsDashboardPage() {
   // [페이지] 선택된 페이지 ID
   const [selectedPageId, setSelectedPageId] = useState<string>('PAGE_HOME');
 
-  // 카테고리 탭 클릭 시 스크롤 점프 방지 및 소속 그룹 자동 오픈
+  // 사이드바 및 본문 스크롤 컨테이너 참조
+  const sidebarRef = useRef<HTMLElement | null>(null);
+  const mainContentRef = useRef<HTMLDivElement | null>(null);
+
+  // 사이드바 카테고리 선택:
+  // 1) 사이드바의 자체 스크롤 위치는 그대로 유지하여 화면 튐/리셋 방지
+  // 2) 우측 메인 콘텐츠만 최상단으로 정렬
   const handleSelectTab = useCallback((key: AdminTabKey) => {
+    // 사이드바의 현재 스크롤 위치 기록
+    const currentSidebarScroll = sidebarRef.current?.scrollTop;
+
     setActiveTab(key);
+    setExpandedMemberId(null);
+    setExpandedEvalMemberId(null);
+    setSelectedProcessId(null);
+    setOpenSections({});
     const parentGroup = ADMIN_CATEGORY_GROUPS.find((g) =>
       g.items.some((item) => item.key === key)
     );
@@ -262,10 +317,28 @@ export default function AdminOperationsDashboardPage() {
           : [...prev, parentGroup.groupTitle]
       );
     }
+
+    // 우측 내용만 브라우저 뷰포트 최상단으로 정렬
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
+
+    // 사이드바 자체 스크롤 위치 유지 (위로 튀지 않고 클릭 위치 100% 고정)
+    if (currentSidebarScroll !== undefined && sidebarRef.current) {
+      requestAnimationFrame(() => {
+        if (sidebarRef.current && sidebarRef.current.scrollTop !== currentSidebarScroll) {
+          sidebarRef.current.scrollTop = currentSidebarScroll;
+        }
+      });
+    }
   }, []);
+
+  const router = useRouter();
+
+  const handleGoToUserDashboard = useCallback((targetUserId: string) => {
+    // 세션 백업 → 저장소 갱신 → /dashboard 전체 이동까지 컨텍스트가 일괄 처리
+    startAdminImpersonation(targetUserId);
+  }, [startAdminImpersonation]);
 
   const notify = useCallback((msg: string) => {
     setAdminToast(msg);
@@ -324,11 +397,18 @@ export default function AdminOperationsDashboardPage() {
     return evalFilteredMembers.slice(start, start + EVAL_MEMBERS_PER_PAGE);
   }, [evalFilteredMembers, evalMemberPage]);
 
-  // [보안 가드] 최고 관리자 인증 검증
+  // [보안 가드] 최고 관리자 인증 검증 (관리자 뷰어 모드 백업 세션 포함)
   const isAdmin =
     currentUser?.role === 'ADMIN' ||
     currentUser?.handle === '@admin' ||
-    currentUser?.userId === 'ADMIN_01';
+    currentUser?.userId === 'ADMIN_01' ||
+    adminOriginUser?.role === 'ADMIN' ||
+    adminOriginUser?.handle === '@admin';
+
+  // 세션 복원 전에는 가드/로그인 화면을 그리지 않는다 (최고 관리자 전용 구역 깜빡임 방지)
+  if (!isSessionReady) {
+    return <div className="min-h-screen bg-[#07080a]" />;
+  }
 
   if (!isAdmin) {
     return (
@@ -338,24 +418,24 @@ export default function AdminOperationsDashboardPage() {
             !
           </div>
           <div className="space-y-2">
-            <span className="text-[10px] font-mono tracking-[0.25em] text-[#f04f74] uppercase font-semibold">
+            <span className="text-sm font-mono tracking-[0.25em] text-[#f04f74] uppercase font-semibold">
               RESTRICTED CONSOLE
             </span>
             <h1 className="font-serif-editorial text-2xl font-normal text-white">최고 관리자 전용 구역</h1>
-            <p className="text-xs text-zinc-400 font-light leading-relaxed">
+            <p className="text-sm text-zinc-400 font-light leading-relaxed">
               본 콘솔은 나도솔로 시스템 총괄 관리자만 접근할 수 있습니다. 관리자 계정(@admin)으로 인증 후 이용해 주십시오.
             </p>
           </div>
           <div className="pt-2 flex flex-col gap-2.5">
             <Link
               href="/auth"
-              className="w-full py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-[0.2em] uppercase font-semibold transition-all duration-300"
+              className="w-full py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-sm font-mono tracking-[0.2em] uppercase font-semibold transition-all duration-300"
             >
               관리자 로그인
             </Link>
             <Link
               href="/"
-              className="w-full py-3 border border-white/10 hover:border-white/20 bg-white/[0.02] text-zinc-400 hover:text-white text-xs font-mono tracking-wider transition-colors"
+              className="w-full py-3 border border-white/10 hover:border-white/20 bg-white/[0.02] text-zinc-400 hover:text-white text-sm font-mono tracking-wider transition-colors"
             >
               ← 홈으로 돌아가기
             </Link>
@@ -377,17 +457,17 @@ export default function AdminOperationsDashboardPage() {
   const textTitleCls = isLight ? 'text-zinc-900' : 'text-white';
   const textMutedCls = isLight ? 'text-zinc-500' : 'text-zinc-400';
   const inputCls = isLight
-    ? 'px-3.5 py-2 rounded-none border border-zinc-300 bg-white text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-800 text-xs font-mono'
-    : 'px-3.5 py-2 rounded-none border border-white/15 bg-black/40 text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 text-xs font-mono';
+    ? 'px-3.5 py-2 rounded-none border border-zinc-300 bg-white text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-zinc-800 text-sm font-mono'
+    : 'px-3.5 py-2 rounded-none border border-white/15 bg-black/40 text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 text-sm font-mono';
   const selectCls = isLight
-    ? 'px-3 py-2 rounded-none border border-zinc-300 bg-white text-zinc-900 focus:outline-none focus:border-zinc-800 text-xs font-mono cursor-pointer'
-    : 'px-3 py-2 rounded-none border border-white/15 bg-black/40 text-white focus:outline-none focus:border-white/30 text-xs font-mono cursor-pointer';
+    ? 'px-3 py-2 rounded-none border border-zinc-300 bg-white text-zinc-900 focus:outline-none focus:border-zinc-800 text-sm font-mono cursor-pointer'
+    : 'px-3 py-2 rounded-none border border-white/15 bg-black/40 text-white focus:outline-none focus:border-white/30 text-sm font-mono cursor-pointer';
   const btnSubCls = isLight
-    ? 'px-3 py-1.5 rounded-none bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 text-zinc-700 text-xs font-mono cursor-pointer transition-colors'
-    : 'px-3 py-1.5 rounded-none bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white text-xs font-mono cursor-pointer transition-colors';
+    ? 'px-3 py-1.5 rounded-none bg-zinc-100 hover:bg-zinc-200 border border-zinc-300 text-zinc-700 text-sm font-mono cursor-pointer transition-colors'
+    : 'px-3 py-1.5 rounded-none bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white text-sm font-mono cursor-pointer transition-colors';
   const btnPrimaryCls = isLight
-    ? 'px-4 py-2 rounded-none border border-zinc-900 bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-mono tracking-wider uppercase font-medium transition-all cursor-pointer'
-    : 'px-4 py-2 rounded-none border border-white/20 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/40 text-white text-xs font-mono tracking-wider uppercase font-medium transition-all cursor-pointer';
+    ? 'px-4 py-2 rounded-none border border-zinc-900 bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-mono tracking-wider uppercase font-medium transition-all cursor-pointer'
+    : 'px-4 py-2 rounded-none border border-white/20 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/40 text-white text-sm font-mono tracking-wider uppercase font-medium transition-all cursor-pointer';
 
   return (
     <div
@@ -397,85 +477,64 @@ export default function AdminOperationsDashboardPage() {
           : 'bg-[#07080a] text-[#f5f2eb]'
       } pt-3 pb-10 sm:pt-5 sm:pb-12 transition-colors duration-150`}
     >
-      <main className="w-full max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
+      <main className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* ============================================================
               좌측 사이드바: 일반화된 백오피스 문서 창고 네비게이션
               ============================================================ */}
           <aside
-            className={`w-full lg:w-64 shrink-0 border p-5 shadow-xl lg:sticky lg:top-24 space-y-4 transition-colors ${
+            ref={sidebarRef}
+            className={`w-full lg:w-72 shrink-0 border p-4 sm:p-5 shadow-xl lg:sticky lg:top-20 lg:h-[calc(100vh-5.5rem)] lg:overflow-y-auto space-y-4 transition-colors select-none ${
               isLight
-                ? 'bg-white border-zinc-200 text-zinc-900'
-                : 'bg-[#0c0d12] border-white/[0.08] text-white'
+                ? 'bg-white border-zinc-200 text-zinc-900 [scrollbar-color:rgba(0,0,0,0.2)_transparent]'
+                : 'bg-[#0c0d12] border-white/[0.08] text-white [scrollbar-color:rgba(255,255,255,0.15)_transparent]'
+            } [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent ${
+              isLight
+                ? '[&::-webkit-scrollbar-thumb]:bg-zinc-300 [&::-webkit-scrollbar-thumb]:hover:bg-zinc-400'
+                : '[&::-webkit-scrollbar-thumb]:bg-white/15 [&::-webkit-scrollbar-thumb]:hover:bg-white/30'
             }`}
+            style={{ scrollbarWidth: 'thin' }}
           >
             <div
-              className={`px-2 pb-4 border-b ${
+              className={`px-2 pb-4 border-b space-y-3 ${
                 isLight ? 'border-zinc-200' : 'border-white/[0.08]'
               }`}
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#f04f74] font-semibold flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74] animate-ping" />
-                  SYSTEM ADMIN
+              {/* 1행: 관리 콘솔 & v2.0 */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-mono tracking-wider text-white font-semibold flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
+                  관리자
                 </p>
-                <span className="px-2 py-0.5 rounded-none bg-transparent border border-[#f04f74]/60 text-[9px] font-mono font-bold text-[#f04f74]">
-                  v1.4.3
+                <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-sm font-mono font-bold text-white">
+                  v2.0
                 </span>
               </div>
-              <h1
-                className={`font-serif-editorial text-xl font-normal ${
-                  isLight ? 'text-zinc-900' : 'text-white'
-                }`}
-              >
-                {currentUser?.nickname || '최고관리자'}
-              </h1>
-              <p
-                className={`text-[11px] mt-0.5 font-mono ${
-                  isLight ? 'text-zinc-500' : 'text-zinc-400'
-                }`}
-              >
-                {currentUser?.handle || '@admin'} • 슈퍼 권한
-              </p>
 
-              {/* 화이트 모드(문서 창고) / 다크 모드 뷰어 토글 */}
-              <div
-                className={`flex items-center gap-1 p-0.5 border text-[10px] font-mono mt-3 rounded-none ${
-                  isLight
-                    ? 'border-zinc-300 bg-zinc-100'
-                    : 'border-white/15 bg-black/40'
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setAdminTheme('light')}
-                  className={`flex-1 py-1 text-center font-medium transition-all cursor-pointer ${
-                    isLight
-                      ? 'bg-white text-zinc-900 shadow-sm font-bold border border-zinc-200'
-                      : 'text-zinc-400 hover:text-white'
+              {/* 2행: 관리자 / @admin • 슈퍼 권한 */}
+              <div className="flex items-baseline justify-between gap-2 border-t border-white/[0.04] pt-2.5">
+                <h1
+                  className={`font-serif-editorial text-lg font-normal shrink-0 ${
+                    isLight ? 'text-zinc-900' : 'text-white'
                   }`}
                 >
-                  화이트 모드
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAdminTheme('dark')}
-                  className={`flex-1 py-1 text-center font-medium transition-all cursor-pointer ${
-                    !isLight
-                      ? 'bg-zinc-800 text-white font-bold'
-                      : 'text-zinc-500 hover:text-zinc-900'
+                  {currentUser?.nickname || '관리자'}
+                </h1>
+                <span
+                  className={`text-sm font-mono text-right truncate ${
+                    isLight ? 'text-zinc-500' : 'text-zinc-400'
                   }`}
                 >
-                  다크 모드
-                </button>
+                  {currentUser?.handle || '@admin'} • 슈퍼 권한
+                </span>
               </div>
 
-              {/* 대분류 전체 접기 / 펼치기 원클릭 도구 */}
-              <div className="flex items-center justify-between pt-2.5 text-[10px] font-mono">
-                <span className={isLight ? 'text-zinc-400' : 'text-zinc-500'}>
-                  대분류 아코디언
+              {/* 3행: 접기 | 펼치기 */}
+              <div className="flex items-center justify-between pt-1.5 border-t border-white/[0.04] text-sm font-mono">
+                <span className="text-sm text-zinc-500">
+                  메뉴
                 </span>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={collapseAllGroups}
@@ -483,7 +542,7 @@ export default function AdminOperationsDashboardPage() {
                       isLight ? 'text-zinc-600' : 'text-zinc-400'
                     }`}
                   >
-                    모두 접기
+                    접기
                   </button>
                   <span className={isLight ? 'text-zinc-300' : 'text-zinc-600'}>
                     |
@@ -495,7 +554,7 @@ export default function AdminOperationsDashboardPage() {
                       isLight ? 'text-zinc-600' : 'text-zinc-400'
                     }`}
                   >
-                    모두 펼치기
+                    펼치기
                   </button>
                 </div>
               </div>
@@ -512,18 +571,18 @@ export default function AdminOperationsDashboardPage() {
                     <button
                       type="button"
                       onClick={() => toggleGroup(group.groupTitle)}
-                      className={`w-full flex items-center justify-between px-2 py-1.5 text-xs font-mono tracking-wider uppercase transition-colors cursor-pointer select-none ${
+                      className={`w-full flex items-center justify-between px-3 py-2.5 text-[15px] font-medium tracking-wide uppercase transition-colors cursor-pointer select-none ${
                         isLight
                           ? hasActiveChild
                             ? 'text-zinc-900 font-bold'
                             : 'text-zinc-600 hover:text-zinc-900'
                           : hasActiveChild
-                          ? 'text-zinc-100 font-semibold'
-                          : 'text-zinc-400 hover:text-white'
+                          ? 'text-white font-bold'
+                          : 'text-zinc-300 hover:text-white font-medium'
                       }`}
                     >
                       <span>{group.groupTitle}</span>
-                      <span className="text-[11px] font-mono opacity-60">
+                      <span className="text-sm font-mono opacity-60">
                         {isOpen ? '▾' : '▸'}
                       </span>
                     </button>
@@ -537,23 +596,23 @@ export default function AdminOperationsDashboardPage() {
                               key={cat.key}
                               type="button"
                               onClick={() => handleSelectTab(cat.key)}
-                              className={`w-full text-left px-3 py-2 transition-all flex items-center justify-between cursor-pointer text-xs font-mono tracking-wide ${
+                              className={`w-full text-left px-3.5 py-2.5 transition-all flex items-center justify-between cursor-pointer text-sm tracking-normal ${
                                 active
                                   ? isLight
-                                    ? 'bg-zinc-100 text-zinc-900 font-semibold border-l-2 border-[#f04f74] pl-2.5'
-                                    : 'bg-white/[0.04] text-white font-medium border-l-2 border-[#f04f74] pl-2.5'
+                                    ? 'bg-zinc-100 text-zinc-900 font-semibold border-l-2 border-[#f04f74] pl-3'
+                                    : 'bg-white/[0.04] text-white font-medium border-l-2 border-[#f04f74] pl-3'
                                   : isLight
-                                  ? 'bg-transparent hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900 border-l-2 border-transparent pl-2.5 font-normal'
-                                  : 'bg-transparent hover:bg-white/[0.02] text-zinc-400 hover:text-white border-l-2 border-transparent pl-2.5 font-normal'
+                                  ? 'bg-transparent hover:bg-zinc-50 text-zinc-600 hover:text-zinc-900 border-l-2 border-transparent pl-3 font-normal'
+                                  : 'bg-transparent hover:bg-white/[0.02] text-zinc-400 hover:text-white border-l-2 border-transparent pl-3 font-normal'
                               }`}
                             >
                               <span>{cat.label}</span>
                               {cat.badge && (
                                 <span
-                                  className={`px-1.5 py-0.2 text-[9px] font-mono border ${
+                                  className={`px-2 py-0.5 text-sm font-mono border ${
                                     isLight
                                       ? 'bg-zinc-100 text-zinc-600 border-zinc-200'
-                                      : 'bg-white/10 text-zinc-400 border-white/10'
+                                      : 'bg-white/10 text-zinc-300 border-white/10'
                                   }`}
                                 >
                                   {cat.badge}
@@ -576,7 +635,7 @@ export default function AdminOperationsDashboardPage() {
             >
               <Link
                 href="/dashboard"
-                className={`block w-full py-2.5 px-3 rounded-none border text-center text-xs font-mono transition-colors ${
+                className={`block w-full py-2.5 px-3 rounded-none border text-center text-sm font-mono transition-colors ${
                   isLight
                     ? 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200 text-zinc-700 hover:text-zinc-900'
                     : 'bg-white/[0.02] hover:bg-white/[0.06] border-white/10 text-zinc-300 hover:text-white'
@@ -586,7 +645,7 @@ export default function AdminOperationsDashboardPage() {
               </Link>
               <Link
                 href="/"
-                className={`block w-full py-2.5 px-3 rounded-none text-center text-xs font-mono transition-colors ${
+                className={`block w-full py-2.5 px-3 rounded-none text-center text-sm font-mono transition-colors ${
                   isLight
                     ? 'text-zinc-500 hover:text-zinc-800'
                     : 'text-zinc-500 hover:text-zinc-300'
@@ -594,136 +653,348 @@ export default function AdminOperationsDashboardPage() {
               >
                 ← 메인 화면
               </Link>
+
+              {/* 화이트 모드 / 다크 모드 뷰어 토글 (메인 화면 아래 배치) */}
+              <div
+                className={`flex items-center gap-1 p-0.5 border text-sm font-mono mt-3 rounded-none ${
+                  isLight
+                    ? 'border-zinc-300 bg-zinc-100'
+                    : 'border-white/15 bg-black/40'
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={() => setAdminTheme('light')}
+                  className={`flex-1 py-1 text-center font-medium transition-all cursor-pointer ${
+                    isLight
+                      ? 'bg-white text-zinc-900 shadow-sm font-bold border border-zinc-200'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  화이트
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAdminTheme('dark')}
+                  className={`flex-1 py-1 text-center font-medium transition-all cursor-pointer ${
+                    !isLight
+                      ? 'bg-zinc-800 text-white font-bold'
+                      : 'text-zinc-500 hover:text-zinc-900'
+                  }`}
+                >
+                  다크
+                </button>
+              </div>
             </div>
           </aside>
 
           {/* ============================================================
               우측 메인 워크스페이스 (최소 높이 확보로 탭 전환 시 화면 점프 방지)
               ============================================================ */}
-          <div className="flex-1 w-full min-w-0 space-y-4 min-h-[85vh]">
-            {/* 상단 탭 헤더 */}
-            <div
-              className={`rounded-none px-5 py-3.5 border flex items-center justify-between gap-4 transition-colors ${
-                isLight
-                  ? 'bg-white border-zinc-200 shadow-sm text-zinc-900'
-                  : 'bg-[#0c0d12] border-white/10 text-white'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
-                <h2
-                  className={`font-serif-editorial text-xl sm:text-2xl font-normal ${
-                    isLight ? 'text-zinc-900' : 'text-white'
-                  }`}
-                >
-                  {ALL_ADMIN_CATEGORIES.find((c) => c.key === activeTab)?.label}
-                </h2>
+          <div ref={mainContentRef} className="flex-1 w-full min-w-0 space-y-3 min-h-[85vh]">
+            {/* 알림 토스트 (필요 시 우측 상단 플로팅) */}
+            {adminToast && (
+              <div className="fixed top-4 right-4 z-50 px-4 py-2 bg-black/90 border border-[#f04f74] text-white text-sm font-mono shadow-2xl flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                <span>{adminToast}</span>
               </div>
+            )}
 
-              {adminToast && (
-                <span
-                  className={`px-3.5 py-1.5 rounded-none border text-xs font-medium ${
-                    isLight
-                      ? 'bg-zinc-100 border-zinc-300 text-zinc-900'
-                      : 'bg-white/10 border-white/15 text-white'
-                  }`}
-                >
-                  {adminToast}
-                </span>
-              )}
-            </div>
+            {/* 신규 접속 기본 화면: 전체 카테고리 목록 (클릭 시 해당 화면 진입) */}
+            {activeTab === null && (
+              <div
+                className={`border divide-y ${
+                  isLight
+                    ? 'bg-white border-zinc-200 divide-zinc-200'
+                    : 'bg-[#0c0d12] border-white/10 divide-white/[0.06]'
+                }`}
+              >
+                {ADMIN_CATEGORY_GROUPS.map((group) => (
+                  <div key={group.groupTitle} className="p-4 flex flex-wrap items-center gap-3">
+                    <span
+                      className={`w-16 shrink-0 text-sm font-mono font-bold ${
+                        isLight ? 'text-zinc-900' : 'text-white'
+                      }`}
+                    >
+                      {group.groupTitle}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {group.items.map((cat) => (
+                        <button
+                          key={cat.key}
+                          type="button"
+                          onClick={() => handleSelectTab(cat.key)}
+                          className={`px-3 py-1.5 border text-sm font-mono transition-colors cursor-pointer ${
+                            isLight
+                              ? 'border-zinc-300 text-zinc-700 hover:border-zinc-900 hover:text-zinc-900'
+                              : 'border-white/15 text-zinc-300 hover:border-[#f04f74] hover:text-white'
+                          }`}
+                        >
+                          {cat.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
           {/* ----------------------------------------------------------
-              1. [프로세스] 서비스 프로세스 모듈 ON/OFF 제어
+              [보고] 프로세스 점검 보고 & 관리자 최종 승인 (계획 / 항목 / 승인)
+              ---------------------------------------------------------- */}
+          {(activeTab === 'REPORT_PLAN' ||
+            activeTab === 'REPORT_CHECKLIST' ||
+            activeTab === 'REPORT_APPROVAL') && (
+            <section className="space-y-4">
+              <AdminAuditReportManager
+                subTab={
+                  activeTab === 'REPORT_PLAN'
+                    ? 'PLAN'
+                    : activeTab === 'REPORT_APPROVAL'
+                    ? 'APPROVAL'
+                    : 'CHECKLIST'
+                }
+                isLight={isLight}
+                onNotify={notify}
+              />
+            </section>
+          )}
+
+          {/* ----------------------------------------------------------
+              1. [프로세스] 서비스 프로세스 모듈 (리스트 우선 조망 ➔ 클릭 시 상세 노출)
               ---------------------------------------------------------- */}
           {activeTab === 'PROCESS' && (
             <section className="space-y-4">
-              <AdminSectionCard
-                title="서비스 프로세스 모듈 (1모듈 1기능 ON/OFF)"
-                categoryTag="SERVICE FLOW CONTROL"
-                desc="이용자 대시보드(/dashboard)에 노출되는 프로세스 단계를 켜거나 끌 수 있습니다."
-                badge={`${processModules.filter((m) => m.enabled).length}/${processModules.length} 사용중`}
-                isOpen={isSectionOpen('SEC_PROCESS_LIST', true)}
-                onToggle={() => toggleSection('SEC_PROCESS_LIST', true)}
-                isLight={isLight}
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {processModules.map((mod) => (
+              <div className={`p-4 border ${isLight ? 'bg-white border-zinc-300' : 'bg-[#0c0d12] border-white/10'} flex items-center justify-between`}>
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className={`font-serif-editorial text-lg font-normal ${textTitleCls}`}>
+                    서비스 프로세스 모듈
+                  </h2>
+                  <span className="text-sm font-mono text-zinc-500">
+                    총 {processModules.length}개 단계 • {processModules.filter((m) => m.enabled).length}개 활성
+                  </span>
+                </div>
+              </div>
+
+              {/* 순수 컴팩트 목록 (2열 컴팩트 그리드로 한 화면 조망) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {processModules.map((mod) => {
+                  const isSelected = selectedProcessId === mod.processId;
+                  return (
                     <div
                       key={mod.processId}
-                      className={`p-4 sm:p-5 rounded-none border flex items-center justify-between gap-4 transition-all ${
-                        mod.enabled
+                      className={`border transition-colors ${
+                        isLight ? 'border-zinc-300 bg-white' : 'border-white/10 bg-[#0c0d12]'
+                      } ${
+                        isSelected
                           ? isLight
-                            ? 'bg-white border-zinc-300 text-zinc-900 shadow-xs'
-                            : 'border-white/20 bg-white/[0.02] text-white'
+                            ? 'col-span-full bg-zinc-50 border-zinc-400'
+                            : 'col-span-full bg-white/[0.03] border-white/20'
                           : isLight
-                          ? 'bg-zinc-100 border-zinc-200 opacity-60 text-zinc-500'
-                          : 'bg-[#0c0d12]/60 border-white/5 opacity-50 text-zinc-500'
+                          ? 'hover:bg-zinc-50 hover:border-zinc-300'
+                          : 'hover:bg-white/[0.02] hover:border-white/20'
                       }`}
                     >
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`px-2 py-0.5 rounded-none text-[10px] font-mono border ${
-                              isLight
-                                ? 'bg-zinc-200 text-zinc-800 border-zinc-300'
-                                : 'bg-black/40 text-[#f04f74] border-white/10'
-                            }`}
-                          >
+                      {/* 컴팩트 목록 행 (클릭 시 토글) */}
+                      <div
+                        onClick={() => setSelectedProcessId(isSelected ? null : mod.processId)}
+                        className="px-4 py-3.5 cursor-pointer flex items-center justify-between gap-3 group"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="px-2 py-0.5 text-sm font-mono bg-white/10 text-white font-semibold border border-white/20 shrink-0">
                             P0{mod.stepOrder}
                           </span>
-                          <span
-                            className={`font-serif-editorial text-base font-normal ${
-                              isLight ? 'text-zinc-900' : 'text-white'
-                            }`}
-                          >
+                          <span className={`font-serif-editorial text-sm ${textTitleCls} group-hover:text-white transition-colors truncate`}>
                             {mod.label}
                           </span>
                           {mod.coreRequired && (
-                            <span
-                              className={`px-2 py-0.5 rounded-none text-[10px] font-mono ${
-                                isLight
-                                  ? 'bg-zinc-200 text-zinc-700'
-                                  : 'bg-white/10 text-zinc-400'
-                              }`}
-                            >
+                            <span className="px-2 py-0.5 text-sm font-mono bg-white/10 text-zinc-300 border border-white/10 shrink-0">
                               필수코어
                             </span>
                           )}
                         </div>
-                        <p
-                          className={`text-xs mt-1.5 font-light leading-relaxed ${textMutedCls}`}
-                        >
-                          {mod.description}
-                        </p>
+
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          <span
+                            className={`px-2.5 py-1 text-sm font-mono border font-semibold ${
+                              mod.enabled
+                                ? 'border-white/30 bg-white/10 text-white'
+                                : 'border-white/10 text-zinc-400 bg-transparent'
+                            }`}
+                          >
+                            {mod.enabled ? 'ON' : 'OFF'}
+                          </span>
+                          <span className="text-sm text-zinc-400 group-hover:text-white transition-transform">
+                            {isSelected ? '▲' : '▼'}
+                          </span>
+                        </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => {
-                          toggleProcessModule(mod.processId);
-                          notify(
-                            `[${mod.label}] 모듈이 ${
-                              !mod.enabled ? '활성화' : '비활성화'
-                            }되었습니다.`
-                          );
-                        }}
-                        className={`px-4 py-2 rounded-none text-xs font-mono tracking-wider cursor-pointer shrink-0 transition-all ${
-                          mod.enabled
-                            ? isLight
-                              ? 'border border-zinc-900 bg-zinc-900 text-white'
-                              : 'border border-[#f04f74]/60 bg-transparent text-[#f04f74] hover:bg-white/[0.04]'
-                            : isLight
-                            ? 'border border-zinc-300 bg-white text-zinc-600 hover:border-zinc-800'
-                            : 'border border-white/10 bg-transparent text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        {mod.enabled ? 'ON (사용중)' : 'OFF (비활성)'}
-                      </button>
+                      {/* 클릭 시에만 펼쳐지는 상세 설명 및 제어 패널 */}
+                      {isSelected && (
+                        <div className={`px-5 py-4 border-t ${isLight ? 'border-zinc-200 bg-zinc-50' : 'border-white/[0.08] bg-white/[0.02]'} space-y-3 animate-in fade-in duration-150`}>
+                          <div className="pl-3.5 border-l-2 border-white/20 ml-1">
+                            <p className={`text-sm font-light leading-relaxed ${textMutedCls}`}>
+                              {mod.description}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
+                            <span className="text-sm font-mono text-zinc-400">
+                              모듈 식별자: {mod.processId}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleProcessModule(mod.processId);
+                                notify(`[${mod.label}] 모듈이 ${!mod.enabled ? '활성화' : '비활성화'}되었습니다.`);
+                              }}
+                              className={`px-4 py-1.5 text-sm font-mono tracking-wider transition-all cursor-pointer font-semibold ${
+                                mod.enabled
+                                  ? 'border border-white/30 bg-white/10 hover:bg-white/20 text-white'
+                                  : 'border border-white/20 bg-transparent text-zinc-400 hover:text-white'
+                              }`}
+                            >
+                              {mod.enabled ? '비활성화' : '활성화'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                  );
+                })}
+              </div>
+
+              {/* 프로세스 단계별 정체·이탈 관제 (4~6단계: 정체 감지 및 재알림) */}
+              <div className={`p-3.5 border ${isLight ? 'bg-white border-zinc-300' : 'bg-[#0c0d12] border-white/10'} flex items-center justify-between mt-6`}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className={`font-serif-editorial text-lg font-normal ${textTitleCls}`}>
+                    정체 관제
+                  </h2>
+                  <span className="text-sm font-mono text-zinc-500">
+                    {SAMPLE_STALLED_USER_CASES.length}건
+                  </span>
                 </div>
-              </AdminSectionCard>
+              </div>
+
+              {/* 순수 컴팩트 목록 (2열 컴팩트 그리드로 한 화면 조망) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {SAMPLE_STALLED_USER_CASES.map((item) => {
+                  const isSelected = selectedStalledUserId === item.userId;
+                  const isSent = notifiedUserIds.includes(item.userId);
+
+                  return (
+                    <div
+                      key={item.userId}
+                      className={`border transition-colors ${
+                        isLight ? 'border-zinc-300 bg-white' : 'border-white/10 bg-[#0c0d12]'
+                      } ${
+                        isSelected
+                          ? isLight
+                            ? 'col-span-full bg-zinc-50 border-zinc-400'
+                            : 'col-span-full bg-white/[0.03] border-white/20'
+                          : isLight
+                          ? 'hover:bg-zinc-50 hover:border-zinc-300'
+                          : 'hover:bg-white/[0.02] hover:border-white/20'
+                      }`}
+                    >
+                      {/* 1단계: 순수 정체 리스트 행 (결과값 배제 & 핵심 항목만 조망) */}
+                      <div
+                        onClick={() => setSelectedStalledUserId(isSelected ? null : item.userId)}
+                        className="px-3.5 py-3 cursor-pointer flex items-center justify-between gap-3 group transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="text-sm font-mono text-zinc-500 w-3 shrink-0">
+                            {isSelected ? '▾' : '▸'}
+                          </span>
+                          <span className="px-2 py-0.5 text-sm font-mono bg-white/10 text-white font-semibold border border-white/20 shrink-0">
+                            {item.stepId}
+                          </span>
+                          <span className={`font-mono text-sm font-medium ${textTitleCls} truncate`}>
+                            {item.handle} ({item.nickname})
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-sm font-mono text-zinc-400 group-hover:text-white transition-colors">
+                            {isSelected ? '닫기' : '상세'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 2단계: 클릭 시 결과값 및 상세 대조 펼침 (Click-to-Reveal) */}
+                      {isSelected && (
+                        <div className={`px-5 py-4 border-t ${isLight ? 'border-zinc-200 bg-zinc-50' : 'border-white/[0.08] bg-white/[0.02]'} space-y-3.5`}>
+                          {/* 결과값 배너 */}
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-sm font-mono p-3 bg-white/[0.03] border border-white/15">
+                            <div>
+                              <span className="text-zinc-400 text-sm block">정체 시간</span>
+                              <span className="text-white font-semibold">{item.durationLabel}</span>
+                            </div>
+                            <div>
+                              <span className="text-zinc-400 text-sm block">심각도</span>
+                              <span className="text-white font-semibold">{item.severity}</span>
+                            </div>
+                            <div>
+                              <span className="text-zinc-400 text-sm block">상태</span>
+                              <span className="text-white font-semibold">{isSent ? '발송 완료' : '대기중'}</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5 pl-3 border-l-2 border-white/20">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-mono text-zinc-400">정체 단계:</span>
+                              <span className="text-sm text-white font-medium">{item.stepName}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-mono text-zinc-400">미충족 항목:</span>
+                              <span className="text-sm text-zinc-200 font-mono">{item.missingField}</span>
+                            </div>
+                            <div className="pt-1">
+                              <span className="text-sm font-mono text-zinc-400 block mb-1">알림 발송 템플릿:</span>
+                              <div className="p-3 bg-black/40 border border-white/10 text-sm text-zinc-200 font-mono">
+                                {item.suggestedMessage}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startAdminImpersonation(item.userId);
+                              }}
+                              className="px-3.5 py-1.5 border border-white/20 bg-white/5 hover:bg-white/10 text-sm font-mono text-zinc-200 transition-colors cursor-pointer"
+                            >
+                              동선 열람
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isSent}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNotifiedUserIds((prev) => [...prev, item.userId]);
+                                notify(`[알림 발송 완료] ${item.handle} 회원에게 재알림이 발송되었습니다.`);
+                              }}
+                              className={`px-4 py-1.5 text-sm font-mono transition-colors cursor-pointer font-semibold ${
+                                isSent
+                                  ? 'border border-white/10 text-zinc-600 bg-transparent'
+                                  : 'border border-white/30 bg-white/15 hover:bg-white/25 text-white'
+                              }`}
+                            >
+                              {isSent ? '발송 완료' : '알림 발송'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </section>
           )}
 
@@ -734,12 +1005,10 @@ export default function AdminOperationsDashboardPage() {
             <section className="space-y-4">
               {/* 상단 전주기 감사 지표 카드 */}
               <AdminSectionCard
-                title="품질 점검 관제 (전주기 감사 대시보드)"
-                categoryTag="FULL-JOURNEY AUDIT DASHBOARD"
-                desc="공간, 식사, 진행 3대 영역의 종합 품질 점수를 모니터링합니다."
-                badge={`${fullJourneyAudit.totalAuditScore100}점 / 100점`}
-                isOpen={isSectionOpen('SEC_AUDIT_TOTAL', true)}
-                onToggle={() => toggleSection('SEC_AUDIT_TOTAL', true)}
+                title="품질 감사"
+                badge={`${fullJourneyAudit.totalAuditScore100}점`}
+                isOpen={isSectionOpen('SEC_AUDIT_TOTAL', false)}
+                onToggle={() => toggleSection('SEC_AUDIT_TOTAL', false)}
                 isLight={isLight}
               >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -756,13 +1025,13 @@ export default function AdminOperationsDashboardPage() {
                       }`}
                     >
                       <span
-                        className={`text-xs font-mono font-medium ${
+                        className={`text-sm font-mono font-medium ${
                           isLight ? 'text-zinc-700' : 'text-zinc-300'
                         }`}
                       >
                         공간
                       </span>
-                      <span className="font-serif-editorial text-lg font-normal text-[#f04f74]">
+                      <span className="font-serif-editorial text-lg font-normal text-white">
                         {fullJourneyAudit.placeReport.totalScore100}점
                       </span>
                     </div>
@@ -770,7 +1039,7 @@ export default function AdminOperationsDashboardPage() {
                       {fullJourneyAudit.placeReport.elementScores.map((el) => (
                         <div
                           key={el.elementId}
-                          className="flex justify-between text-xs font-mono"
+                          className="flex justify-between text-sm font-mono"
                         >
                           <span className={textMutedCls}>#{el.anchorNoun}</span>
                           <span
@@ -798,7 +1067,7 @@ export default function AdminOperationsDashboardPage() {
                       }`}
                     >
                       <span
-                        className={`text-xs font-mono font-medium ${
+                        className={`text-sm font-mono font-medium ${
                           isLight ? 'text-zinc-700' : 'text-zinc-300'
                         }`}
                       >
@@ -812,7 +1081,7 @@ export default function AdminOperationsDashboardPage() {
                       {fullJourneyAudit.mealReport.elementScores.map((el) => (
                         <div
                           key={el.elementId}
-                          className="flex justify-between text-xs font-mono"
+                          className="flex justify-between text-sm font-mono"
                         >
                           <span className={textMutedCls}>#{el.anchorNoun}</span>
                           <span
@@ -840,7 +1109,7 @@ export default function AdminOperationsDashboardPage() {
                       }`}
                     >
                       <span
-                        className={`text-xs font-mono font-medium ${
+                        className={`text-sm font-mono font-medium ${
                           isLight ? 'text-zinc-700' : 'text-zinc-300'
                         }`}
                       >
@@ -854,7 +1123,7 @@ export default function AdminOperationsDashboardPage() {
                       {fullJourneyAudit.flowReport.elementScores.map((el) => (
                         <div
                           key={el.elementId}
-                          className="flex justify-between text-xs font-mono"
+                          className="flex justify-between text-sm font-mono"
                         >
                           <span className={textMutedCls}>#{el.anchorNoun}</span>
                           <span
@@ -873,19 +1142,17 @@ export default function AdminOperationsDashboardPage() {
 
               {/* 하단 6대 핫플러그 등록 모듈 현황 */}
               <AdminSectionCard
-                title="핫플러그 마이크로 모듈 현황"
-                categoryTag="PLUGGABLE MICRO-MODULES"
-                desc="각 모듈은 단일 명사 5대 앵커와 관찰 기준을 자율 패키징하여 핫플러그로 작동합니다."
-                badge={`${EvaluationRegistry.getAllModules().length}개 모듈`}
+                title="모듈 현황"
+                badge={`${EvaluationRegistry.getAllModules().length}건`}
                 isOpen={isSectionOpen('SEC_AUDIT_MODULES', false)}
                 onToggle={() => toggleSection('SEC_AUDIT_MODULES', false)}
                 isLight={isLight}
               >
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {EvaluationRegistry.getAllModules().map((mod) => (
                     <div
                       key={mod.id}
-                      className={`p-5 rounded-none border space-y-3 ${
+                      className={`p-4 rounded-none border space-y-2.5 ${
                         isLight
                           ? 'bg-zinc-50 border-zinc-200 text-zinc-900'
                           : 'bg-white/[0.02] border-white/[0.08] text-white'
@@ -904,7 +1171,7 @@ export default function AdminOperationsDashboardPage() {
                           {mod.name}
                         </span>
                         <span
-                          className={`text-[10px] font-mono px-2 py-0.5 rounded-none border ${
+                          className={`text-sm font-mono px-2 py-0.5 rounded-none border ${
                             isLight
                               ? 'bg-white text-zinc-600 border-zinc-300'
                               : 'bg-white/5 text-zinc-400 border-white/10'
@@ -914,14 +1181,14 @@ export default function AdminOperationsDashboardPage() {
                         </span>
                       </div>
                       <div className="space-y-1">
-                        <span className={`text-[11px] font-mono ${textMutedCls}`}>
-                          단일 명사 5대 앵커:
+                        <span className={`text-sm font-mono ${textMutedCls}`}>
+                          관찰 앵커:
                         </span>
                         <div className="flex flex-wrap gap-1.5 pt-1">
                           {mod.getObservationElements().map((el) => (
                             <span
                               key={el.id}
-                              className={`px-2.5 py-1 rounded-none border text-xs font-mono font-medium ${
+                              className={`px-2.5 py-1 rounded-none border text-sm font-mono font-medium ${
                                 isLight
                                   ? 'bg-white border-zinc-300 text-zinc-800'
                                   : 'bg-white/5 border-white/10 text-zinc-300'
@@ -945,9 +1212,7 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'LAYOUT_CMS' && (
             <section className="space-y-4">
               <AdminSectionCard
-                title="사이트 레이아웃 & 네비게이션 관리"
-                categoryTag="MODULAR BUILDER"
-                desc="메인 화면의 모듈별 블록 순서(위치이동 ▲/▼) 및 노출 여부, 헤더 메뉴와 상단 공지 띠배너, 푸터 법정 정보를 코드 수정 없이 실시간으로 제어합니다."
+                title="화면 배치"
                 isOpen={true}
                 onToggle={() => {}}
                 isLight={isLight}
@@ -967,824 +1232,403 @@ export default function AdminOperationsDashboardPage() {
           )}
 
           {/* ----------------------------------------------------------
-              [회원평가] 5×5×5 개인 마스터 프로파일 심층 검수
+              [회원평가] 리스트 우선 조망 ➔ 클릭 시 상세 노출 (Click-to-Reveal)
               ---------------------------------------------------------- */}
           {(activeTab === 'MEMBER_EVAL' || activeTab === 'MEMBER_DOSSIER') && (
-            <section className="space-y-4">
-              <AdminSectionCard
-                title={`[${selectedUserProfile?.nickname ?? selectedUserId}] 5×5×5 마스터 프로파일`}
-                categoryTag="PERSONAL DOSSIER INSPECTOR"
-                desc="동석자들의 다면 관찰 데이터가 표준 100점으로 정규화된 개인 리포트입니다."
-                badge={`신뢰 ${selectedUserProfile?.trustScore ?? 90}점`}
-                isOpen={isSectionOpen('SEC_MEMBER_EVAL_MAIN', true)}
-                onToggle={() => toggleSection('SEC_MEMBER_EVAL_MAIN', true)}
-                isLight={isLight}
+            <div className="space-y-3">
+              {/* 상단 컴팩트 컨트롤 바 (검색 + 성별 필터 인라인화) */}
+              <div
+                className={`p-3 border ${
+                  isLight ? 'bg-white border-zinc-200' : 'bg-[#0c0d12] border-white/10'
+                } flex flex-wrap items-center justify-between gap-3`}
               >
-                <div className="space-y-5">
-                  {/* 검색 & 성별 필터 */}
-                  <div
-                    className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${
-                      isLight ? 'border-zinc-200' : 'border-white/[0.08]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <input
-                        type="text"
-                        placeholder="회원 검색 (닉네임 / ID)"
-                        value={evalMemberSearch}
-                        onChange={(e) => {
-                          setEvalMemberSearch(e.target.value);
-                          setEvalMemberPage(1);
-                        }}
-                        className={inputCls}
-                      />
-                      <div className="flex gap-1">
-                        {(['ALL', 'F', 'M'] as const).map((g) => (
-                          <button
-                            key={g}
-                            type="button"
-                            onClick={() => {
-                              setEvalMemberGender(g);
-                              setEvalMemberPage(1);
-                            }}
-                            className={`px-2.5 py-1.5 rounded-none text-xs font-mono transition-all cursor-pointer ${
-                              evalMemberGender === g
-                                ? isLight
-                                  ? 'border border-zinc-900 bg-zinc-900 text-white font-medium'
-                                  : 'border border-white/40 bg-white/10 text-white font-medium'
-                                : isLight
-                                ? 'bg-zinc-100 text-zinc-600 border border-zinc-300 hover:text-zinc-900'
-                                : 'bg-black/40 text-zinc-400 border border-white/10 hover:text-white'
-                            }`}
-                          >
-                            {g === 'ALL' ? '전체' : g === 'F' ? '여성' : '남성'}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg font-normal text-white">
+                    회원 평가
+                  </h2>
+                  <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                    {evalFilteredMembers.length}명
+                  </span>
+                </div>
 
-                  {/* 10명 단위 회원 선택 버튼 그리드 */}
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {paginatedEvalMembers.map((p) => {
-                        const isSelected = selectedUserId === p.userId;
-                        return (
-                          <button
-                            key={p.userId}
-                            type="button"
-                            onClick={() => setSelectedUserId(p.userId)}
-                            className={`px-3 py-2 rounded-none text-xs font-mono tracking-wider transition-all cursor-pointer ${
-                              isSelected
-                                ? isLight
-                                  ? 'border border-zinc-900 bg-zinc-900 text-white font-medium'
-                                  : 'border border-white/40 bg-white/10 text-white font-medium'
-                                : isLight
-                                ? 'border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100'
-                                : 'border border-white/[0.08] bg-black/40 text-zinc-400 hover:text-white hover:border-white/20'
-                            }`}
-                          >
-                            {p.nickname} ({p.gender})
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* 10명 단위 페이징 컨트롤 */}
-                    {totalEvalMemberPages > 1 && (
-                      <div
-                        className={`flex items-center justify-between pt-2 text-xs font-mono border-t ${
-                          isLight
-                            ? 'text-zinc-500 border-zinc-200'
-                            : 'text-zinc-500 border-white/[0.04]'
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="회원 검색 (이름 / ID)"
+                    value={evalMemberSearch}
+                    onChange={(e) => setEvalMemberSearch(e.target.value)}
+                    className="px-3 py-1 bg-black/40 border border-white/10 text-sm font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-[#f04f74]/60 w-36 sm:w-44"
+                  />
+                  <div className="flex border border-white/10 divide-x divide-white/10 text-sm font-mono">
+                    {(['ALL', 'F', 'M'] as const).map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => setEvalMemberGender(g)}
+                        className={`px-2.5 py-1 transition-colors cursor-pointer ${
+                          evalMemberGender === g
+                            ? 'bg-white/15 text-white font-semibold'
+                            : 'bg-black/30 text-zinc-400 hover:text-white'
                         }`}
                       >
-                        <span>
-                          회원 {evalFilteredMembers.length}명 중{' '}
-                          {(evalMemberPage - 1) * EVAL_MEMBERS_PER_PAGE + 1} -{' '}
-                          {Math.min(
-                            evalMemberPage * EVAL_MEMBERS_PER_PAGE,
-                            evalFilteredMembers.length
-                          )}
-                          명
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            disabled={evalMemberPage === 1}
-                            onClick={() => setEvalMemberPage((p) => Math.max(1, p - 1))}
-                            className={`px-2.5 py-1 rounded-none border text-xs font-mono disabled:opacity-30 cursor-pointer ${
-                              isLight
-                                ? 'border-zinc-300 bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
-                                : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
-                            }`}
-                          >
-                            이전
-                          </button>
-                          {Array.from(
-                            { length: totalEvalMemberPages },
-                            (_, i) => i + 1
-                          ).map((num) => (
-                            <button
-                              key={num}
-                              type="button"
-                              onClick={() => setEvalMemberPage(num)}
-                              className={`px-2.5 py-1 rounded-none text-xs font-mono cursor-pointer ${
-                                evalMemberPage === num
-                                  ? isLight
-                                    ? 'border border-zinc-900 bg-zinc-900 text-white font-medium'
-                                    : 'border border-white/40 bg-white/10 text-white font-medium'
-                                  : isLight
-                                  ? 'border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100'
-                                  : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
-                              }`}
-                            >
-                              {num}
-                            </button>
-                          ))}
-                          <button
-                            type="button"
-                            disabled={evalMemberPage === totalEvalMemberPages}
-                            onClick={() =>
-                              setEvalMemberPage((p) =>
-                                Math.min(totalEvalMemberPages, p + 1)
-                              )
-                            }
-                            className={`px-2.5 py-1 rounded-none border text-xs font-mono disabled:opacity-30 cursor-pointer ${
-                              isLight
-                                ? 'border-zinc-300 bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
-                                : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
-                            }`}
-                          >
-                            다음
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 종합 100점 / 이성 100점 / 동성 100점 / 신뢰 점수 */}
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2">
-                    <div
-                      className={`p-5 rounded-none border space-y-1 ${
-                        isLight
-                          ? 'bg-zinc-50 border-zinc-200'
-                          : 'bg-white/[0.02] border-white/[0.08]'
-                      }`}
-                    >
-                      <p className="text-[10px] font-mono tracking-widest text-[#f04f74] uppercase font-semibold">
-                        종합 프로파일 점수
-                      </p>
-                      <p
-                        className={`font-serif-editorial text-3xl font-normal mt-1 ${textTitleCls}`}
-                      >
-                        {selectedUserDossier.totalScore100}점
-                      </p>
-                    </div>
-                    <div
-                      className={`p-5 rounded-none border space-y-1 ${
-                        isLight
-                          ? 'bg-zinc-50 border-zinc-200'
-                          : 'bg-white/[0.02] border-white/[0.08]'
-                      }`}
-                    >
-                      <p className={`text-[10px] font-mono tracking-widest uppercase font-medium ${textMutedCls}`}>
-                        이성 관찰자 평가
-                      </p>
-                      <p
-                        className={`font-serif-editorial text-3xl font-normal mt-1 ${textTitleCls}`}
-                      >
-                        {selectedUserDossier.oppositeSexTotal100}점
-                      </p>
-                    </div>
-                    <div
-                      className={`p-5 rounded-none border space-y-1 ${
-                        isLight
-                          ? 'bg-zinc-50 border-zinc-200'
-                          : 'bg-white/[0.02] border-white/[0.08]'
-                      }`}
-                    >
-                      <p className={`text-[10px] font-mono tracking-widest uppercase font-medium ${textMutedCls}`}>
-                        동성 관찰자 평가
-                      </p>
-                      <p
-                        className={`font-serif-editorial text-3xl font-normal mt-1 ${textTitleCls}`}
-                      >
-                        {selectedUserDossier.sameSexTotal100}점
-                      </p>
-                    </div>
-                    <div
-                      className={`p-5 rounded-none border space-y-1 ${
-                        isLight
-                          ? 'bg-zinc-50 border-zinc-200'
-                          : 'bg-white/[0.02] border-white/[0.08]'
-                      }`}
-                    >
-                      <p className={`text-[10px] font-mono tracking-widest uppercase font-medium ${textMutedCls}`}>
-                        신뢰 점수 / 출생연도
-                      </p>
-                      <p
-                        className={`font-serif-editorial text-xl font-normal mt-2 ${textTitleCls}`}
-                      >
-                        {selectedUserProfile?.trustScore ?? 90}점 ·{' '}
-                        {selectedUserProfile?.birthYear ?? 1995}년생
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 5대 대분류 × 5개 중분류 상세 점수표 */}
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3 pt-2">
-                    {selectedUserDossier.domainSummaries.map((dom) => (
-                      <div
-                        key={dom.majorCode}
-                        className={`p-4 rounded-none border space-y-3 ${
-                          isLight
-                            ? 'bg-zinc-50 border-zinc-200'
-                            : 'bg-white/[0.02] border-white/[0.08]'
-                        }`}
-                      >
-                        <div
-                          className={`flex items-center justify-between border-b pb-2 ${
-                            isLight ? 'border-zinc-200' : 'border-white/[0.08]'
-                          }`}
-                        >
-                          <span
-                            className={`font-serif-editorial text-base font-normal ${textTitleCls}`}
-                          >
-                            {dom.label}
-                          </span>
-                          <span className="font-mono text-sm text-[#f04f74] font-medium">
-                            {dom.score100}점
-                          </span>
-                        </div>
-                        <div
-                          className={`space-y-1.5 divide-y ${
-                            isLight
-                              ? 'divide-zinc-200'
-                              : 'divide-white/[0.04]'
-                          }`}
-                        >
-                          {dom.subSummaries.map((sub) => (
-                            <div
-                              key={sub.subElementId}
-                              className="flex items-center justify-between text-xs pt-1.5"
-                            >
-                              <span
-                                className={`font-light font-mono text-[11px] ${textMutedCls}`}
-                              >
-                                {sub.label}
-                              </span>
-                              <span
-                                className={`font-mono text-xs font-medium ${
-                                  isLight ? 'text-zinc-800' : 'text-zinc-200'
-                                }`}
-                              >
-                                {sub.score20} / 20
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                        {g === 'ALL' ? '전체' : g === 'F' ? '여성' : '남성'}
+                      </button>
                     ))}
                   </div>
                 </div>
-              </AdminSectionCard>
-            </section>
+              </div>
+
+              {/* 회원별 평가 요약 2열 그리드 & 클릭 시 세부 도메인 점수 펼침 (Click-to-Reveal) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {evalFilteredMembers.length === 0 ? (
+                  <div className="col-span-full p-8 text-center text-sm font-mono text-zinc-500 border border-white/10 bg-[#0c0d12]">
+                    일치하는 평가 대상 회원이 없습니다.
+                  </div>
+                ) : (
+                  evalFilteredMembers.map((p) => {
+                    const isExpanded = expandedEvalMemberId === p.userId;
+                    const dossier = getPersonalDossierForUser(p.userId);
+                    return (
+                      <div
+                        key={p.userId}
+                        className={`border border-white/10 bg-[#0c0d12] transition-colors ${
+                          isExpanded ? 'col-span-full bg-white/[0.03] border-white/20' : 'hover:bg-white/[0.02] hover:border-white/20'
+                        }`}
+                      >
+                        {/* 1단계: 컴팩트 1줄 행 */}
+                        <div
+                          onClick={() => {
+                            setExpandedEvalMemberId(isExpanded ? null : p.userId);
+                            setSelectedUserId(p.userId);
+                          }}
+                          className="p-3.5 flex items-center justify-between cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="text-sm font-mono text-zinc-500 w-3.5 shrink-0">
+                              {isExpanded ? '▾' : '▸'}
+                            </span>
+                            <span className="text-sm font-mono font-bold text-white shrink-0">
+                              {p.userId}
+                            </span>
+                            <span className="text-sm font-mono text-zinc-300 shrink-0">
+                              {p.userId === 'USER_AA' ? '@aa' : '@bb'}
+                            </span>
+                            <span className="text-sm font-medium text-white truncate">
+                              {p.nickname}
+                            </span>
+                            <span className="text-sm text-zinc-300 shrink-0">
+                              {p.gender === 'F' ? '여성' : '남성'}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2.5 shrink-0 text-sm font-mono">
+                            <span className="text-zinc-400">
+                              종합: <strong className="text-white font-semibold">{dossier.totalScore100}점</strong>
+                            </span>
+                            <span className="text-sm px-2 py-0.5 border border-white/10 text-zinc-300">
+                              신뢰 {p.trustScore}점
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 2단계: 클릭 시 펼쳐지는 다면 평가 상세 (Click-to-Reveal) */}
+                        {isExpanded && (
+                          <div className="px-5 pb-5 pt-2 bg-black/40">
+                            <div className="pl-3.5 border-l border-white/20 ml-1 space-y-4">
+                              {/* 5대 도메인 카드 그리드 */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+                                {dossier.domainSummaries.map((dom) => (
+                                  <div
+                                    key={dom.majorCode}
+                                    className="p-3 bg-white/[0.02] border border-white/[0.06] space-y-2"
+                                  >
+                                    <div className="flex items-center justify-between border-b pb-1.5 border-white/[0.06]">
+                                      <span className="text-sm font-mono text-zinc-300 font-medium">
+                                        {dom.label}
+                                      </span>
+                                      <span className="text-sm font-mono text-white font-semibold">
+                                        {dom.score100}점
+                                      </span>
+                                    </div>
+                                    <div className="space-y-1 divide-y divide-white/[0.04]">
+                                      {dom.subSummaries.map((sub) => (
+                                        <div
+                                          key={sub.subElementId}
+                                          className="flex items-center justify-between text-sm pt-1"
+                                        >
+                                          <span className="text-zinc-500 font-mono">
+                                            {sub.label}
+                                          </span>
+                                          <span className="text-zinc-300 font-mono">
+                                            {sub.score20}/20
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* 하단 단축 컨트롤 및 링크 */}
+                              <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-sm">
+                                <span className="text-zinc-400 font-mono">
+                                  관찰 피드백: 동석자 전원(5/5) 상호 관찰 정규화 완료
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleGoToUserDashboard(p.userId)}
+                                  className="text-white hover:underline font-mono text-sm cursor-pointer"
+                                >
+                                  {p.nickname} 사용자 대시보드로 이동 ➔
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           )}
 
           {/* ----------------------------------------------------------
-              [회원관리] 전체 회원 검색 · 필터 · 페이징(10명 단위) · 관리
+              [회원정보] 리스트 우선 조망 ➔ 클릭 시 상세 노출 (Click-to-Reveal)
               ---------------------------------------------------------- */}
           {activeTab === 'MEMBER_MGMT' && (
-            <section className="space-y-4">
-              {/* 상단 회원 목록 및 검색 아코디언 */}
-              <AdminSectionCard
-                title={`회원 관리 (${filteredMembers.length}명)`}
-                categoryTag="MEMBERSHIP DIRECTORY"
-                desc="플랫폼에 가입된 회원들의 프로필, 신뢰점수, 성별, 권역을 관리하고 검색합니다."
-                badge={`${filteredMembers.length}명`}
-                isOpen={isSectionOpen('SEC_MEMBER_MGMT_LIST', true)}
-                onToggle={() => toggleSection('SEC_MEMBER_MGMT_LIST', true)}
-                isLight={isLight}
+            <div className="space-y-3">
+              {/* 상단 컴팩트 컨트롤 바 (1줄 인라인: 인원수 + 검색 + 성별 필터) */}
+              <div
+                className={`p-3 border ${
+                  isLight ? 'bg-white border-zinc-200' : 'bg-[#0c0d12] border-white/10'
+                } flex flex-wrap items-center justify-between gap-3`}
               >
-                <div className="space-y-5">
-                  {/* 실시간 검색 및 필터 컨트롤 */}
-                  <div
-                    className={`flex flex-wrap items-center justify-between gap-3 border-b pb-4 ${
-                      isLight ? 'border-zinc-200' : 'border-white/[0.08]'
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="회원 검색 (닉네임 / ID)"
-                        value={memberSearchQuery}
-                        onChange={(e) => {
-                          setMemberSearchQuery(e.target.value);
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg font-normal text-white">
+                    회원 정보
+                  </h2>
+                  <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                    {filteredMembers.length}명
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="검색 (이름, ID)"
+                    value={memberSearchQuery}
+                    onChange={(e) => {
+                      setMemberSearchQuery(e.target.value);
+                      setMemberPage(1);
+                    }}
+                    className="px-3 py-1 bg-black/40 border border-white/10 text-sm font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-[#f04f74]/60 w-36 sm:w-44"
+                  />
+                  <div className="flex border border-white/10 divide-x divide-white/10 text-sm font-mono">
+                    {(['ALL', 'F', 'M'] as const).map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => {
+                          setMemberGenderFilter(g);
                           setMemberPage(1);
                         }}
-                        className={inputCls}
-                      />
-
-                      {/* 성별 필터 */}
-                      <div className="flex gap-1">
-                        {(['ALL', 'F', 'M'] as const).map((g) => (
-                          <button
-                            key={g}
-                            type="button"
-                            onClick={() => {
-                              setMemberGenderFilter(g);
-                              setMemberPage(1);
-                            }}
-                            className={`px-3 py-2 rounded-none text-xs font-mono transition-all cursor-pointer ${
-                              memberGenderFilter === g
-                                ? isLight
-                                  ? 'border border-zinc-900 bg-zinc-900 text-white font-medium'
-                                  : 'border border-white/40 bg-white/10 text-white font-medium'
-                                : isLight
-                                ? 'bg-zinc-100 text-zinc-600 border border-zinc-300 hover:text-zinc-900'
-                                : 'bg-black/40 text-zinc-400 border border-white/10 hover:text-white'
-                            }`}
-                          >
-                            {g === 'ALL' ? '전체' : g === 'F' ? '여성' : '남성'}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* 권역 필터 */}
-                      <select
-                        value={memberCityFilter}
-                        onChange={(e) => {
-                          setMemberCityFilter(e.target.value);
-                          setMemberPage(1);
-                        }}
-                        className={selectCls}
-                      >
-                        <option value="ALL">전체 지역</option>
-                        <option value="SEOUL">서울</option>
-                        <option value="BUSAN">부산</option>
-                        <option value="GYEONGGI">경기</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* 10명 단위 회원 테이블 */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr
-                          className={`border-b text-xs font-mono uppercase tracking-wider ${
-                            isLight
-                              ? 'border-zinc-200 text-zinc-500 bg-zinc-50'
-                              : 'border-white/[0.08] text-zinc-500 bg-white/[0.02]'
-                          }`}
-                        >
-                          <th className="py-3 px-3 font-normal">ID</th>
-                          <th className="py-3 px-3 font-normal">닉네임</th>
-                          <th className="py-3 px-3 font-normal">성별</th>
-                          <th className="py-3 px-3 font-normal">출생연도</th>
-                          <th className="py-3 px-3 font-normal">신뢰점수</th>
-                          <th className="py-3 px-3 font-normal text-right">작업</th>
-                        </tr>
-                      </thead>
-                      <tbody
-                        className={`divide-y text-xs font-mono ${
-                          isLight ? 'divide-zinc-200' : 'divide-white/[0.04]'
+                        className={`px-2.5 py-1 transition-colors cursor-pointer ${
+                          memberGenderFilter === g
+                            ? 'bg-white/15 text-white font-semibold'
+                            : 'bg-black/30 text-zinc-400 hover:text-white'
                         }`}
                       >
-                        {paginatedMembers.length === 0 ? (
-                          <tr>
-                            <td
-                              colSpan={6}
-                              className={`py-8 text-center font-light ${textMutedCls}`}
+                        {g === 'ALL' ? '전체' : g === 'F' ? '여성' : '남성'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 회원 2열 컴팩트 목록 & 클릭 시 세부 아코디언 노출 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {filteredMembers.length === 0 ? (
+                  <div className="col-span-full p-8 text-center text-sm font-mono text-zinc-500 border border-white/10 bg-[#0c0d12]">
+                    조건에 일치하는 회원이 없습니다.
+                  </div>
+                ) : (
+                  filteredMembers.map((m) => {
+                    const isExpanded = expandedMemberId === m.userId;
+                    return (
+                      <div
+                        key={m.userId}
+                        className={`border border-white/10 bg-[#0c0d12] transition-colors ${
+                          isExpanded ? 'col-span-full bg-white/[0.04] border-white/20' : 'hover:bg-white/[0.02] hover:border-white/20'
+                        }`}
+                      >
+                        {/* 1단계: 컴팩트 1줄 행 (클릭 시 상세 펼침) */}
+                        <div
+                          onClick={() => setExpandedMemberId(isExpanded ? null : m.userId)}
+                          className="p-3.5 flex items-center justify-between cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className="text-base font-mono text-zinc-400 w-4 shrink-0">
+                              {isExpanded ? '▾' : '▸'}
+                            </span>
+                            <span className="text-sm font-mono font-bold text-white tracking-wide shrink-0">
+                              {m.userId}
+                            </span>
+                            <span className="text-sm font-mono text-zinc-300 font-medium shrink-0">
+                              {m.userId === 'USER_AA' ? '@aa' : m.userId === 'USER_BB' ? '@bb' : `@${m.userId.toLowerCase()}`}
+                            </span>
+                            <span className="text-sm font-semibold text-white truncate">
+                              {m.nickname}
+                            </span>
+                            <span className="text-sm text-zinc-300 shrink-0">
+                              {m.gender === 'F' ? '여성' : '남성'}
+                            </span>
+                            <span className="text-sm font-mono text-zinc-300 shrink-0">
+                              {m.birthYear}년생
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2.5 shrink-0">
+                            <span className="text-sm font-mono text-zinc-300">
+                              신뢰: <strong className="text-white text-sm font-bold">{m.trustScore}점</strong>
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedUserId(m.userId);
+                                setExpandedEvalMemberId(m.userId);
+                                handleSelectTab('MEMBER_EVAL');
+                              }}
+                              className="px-2.5 py-1 border border-white/20 hover:border-white bg-white/[0.04] text-sm font-mono text-zinc-200 hover:text-white transition-colors cursor-pointer"
                             >
-                              조건에 일치하는 회원이 없습니다.
-                            </td>
-                          </tr>
-                        ) : (
-                          paginatedMembers.map((m) => (
-                            <tr
-                              key={m.userId}
-                              className={`transition-colors ${
-                                isLight
-                                  ? 'hover:bg-zinc-50'
-                                  : 'hover:bg-white/[0.015]'
-                              }`}
-                            >
-                              <td className={`py-3.5 px-3 ${textMutedCls}`}>
-                                {m.userId}
-                              </td>
-                              <td
-                                className={`py-3.5 px-3 font-medium ${
-                                  isLight ? 'text-zinc-900' : 'text-white'
-                                }`}
-                              >
-                                {m.nickname}
-                              </td>
-                              <td
-                                className={`py-3.5 px-3 ${
-                                  isLight ? 'text-zinc-700' : 'text-zinc-300'
-                                }`}
-                              >
-                                {m.gender === 'F' ? '여성' : '남성'}
-                              </td>
-                              <td className={`py-3.5 px-3 ${textMutedCls}`}>
-                                {m.birthYear}년생
-                              </td>
-                              <td
-                                className={`py-3.5 px-3 ${
-                                  isLight ? 'text-zinc-800' : 'text-zinc-200'
-                                }`}
-                              >
-                                {m.trustScore}점
-                              </td>
-                              <td className="py-3.5 px-3">
-                                <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedUserId(m.userId);
-                                      setActiveTab('MEMBER_EVAL');
-                                    }}
-                                    className={`px-2.5 py-1 rounded-none border text-[11px] font-mono cursor-pointer transition-colors ${
-                                      isLight
-                                        ? 'border-zinc-300 bg-zinc-100 text-zinc-800 hover:bg-zinc-200'
-                                        : 'border-white/20 bg-white/[0.04] text-white hover:bg-white/[0.08]'
-                                    }`}
-                                  >
-                                    평가 조회
-                                  </button>
+                              평가 ↗
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 2단계: 클릭 시 펼쳐지는 상세 (Click-to-Reveal) */}
+                        {isExpanded && (
+                          <div className="px-6 pb-5 pt-2 bg-black/50">
+                            <div className="pl-4 border-l-2 border-white/20 ml-1 space-y-4 text-sm">
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono">
+                                <div>
+                                  <span className="text-sm text-zinc-400 font-semibold block uppercase mb-1">이메일</span>
+                                  <span className="text-zinc-100 text-sm font-medium">{m.userId === 'USER_AA' ? 'aa@nadosolo.com' : 'bb@nadosolo.com'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-sm text-zinc-400 font-semibold block uppercase mb-1">직무</span>
+                                  <span className="text-zinc-100 text-sm font-medium">{m.userId === 'USER_AA' ? '브랜드 마케터' : 'IT 기획자'}</span>
+                                </div>
+                                <div>
+                                  <span className="text-sm text-zinc-400 font-semibold block uppercase mb-1">식이</span>
+                                  <span className="text-zinc-100 text-sm font-medium">{m.dietary.join(', ')}</span>
+                                </div>
+                                <div>
+                                  <span className="text-sm text-zinc-400 font-semibold block uppercase mb-1">관심사</span>
+                                  <span className="text-zinc-100 text-sm font-medium">{m.interests.join(', ')}</span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between pt-3 border-t border-white/[0.08]">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="text-zinc-400 text-sm font-mono">신뢰점수 조정:</span>
                                   <button
                                     type="button"
                                     onClick={() => {
                                       adjustTrustScore(m.userId, 5);
-                                      notify(`[${m.nickname}] 신뢰점수가 +5점 조정되었습니다.`);
+                                      notify(`[${m.nickname}] 신뢰점수 +5점 조정`);
                                     }}
-                                    className={`px-2 py-1 rounded-none border text-[11px] font-mono cursor-pointer ${
-                                      isLight
-                                        ? 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-100'
-                                        : 'border-white/10 bg-white/[0.02] text-zinc-300 hover:text-white'
-                                    }`}
+                                    className="px-2.5 py-1 border border-white/20 hover:border-white/40 text-sm font-mono text-zinc-200 hover:text-white transition-colors"
                                   >
-                                    +5
+                                    +5점
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => {
                                       adjustTrustScore(m.userId, -5);
-                                      notify(`[${m.nickname}] 신뢰점수가 -5점 조정되었습니다.`);
+                                      notify(`[${m.nickname}] 신뢰점수 -5점 조정`);
                                     }}
-                                    className={`px-2 py-1 rounded-none border text-[11px] font-mono cursor-pointer ${
-                                      isLight
-                                        ? 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-100'
-                                        : 'border-white/10 bg-white/[0.02] text-zinc-400 hover:text-white'
-                                    }`}
+                                    className="px-2.5 py-1 border border-white/20 hover:border-white/40 text-sm font-mono text-zinc-200 hover:text-white transition-colors"
                                   >
-                                    -5
+                                    -5점
+                                  </button>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleGoToUserDashboard(m.userId)}
+                                    className="text-zinc-200 hover:text-white hover:underline font-mono text-sm cursor-pointer"
+                                  >
+                                    대시보드 ↗
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      if (confirm(`정말 [${m.nickname}] 회원을 삭제하시겠습니까?`)) {
-                                        deleteParticipant(m.userId);
-                                        notify(`[${m.nickname}] 회원이 삭제되었습니다.`);
-                                      }
+                                      setSelectedUserId(m.userId);
+                                      setExpandedEvalMemberId(m.userId);
+                                      handleSelectTab('MEMBER_EVAL');
                                     }}
-                                    className={`px-2.5 py-1 rounded-none border text-[11px] font-mono cursor-pointer transition-colors ${
-                                      isLight
-                                        ? 'border-zinc-300 bg-white text-zinc-600 hover:text-red-600 hover:border-red-300'
-                                        : 'border-white/10 bg-white/[0.02] text-zinc-400 hover:text-red-400'
-                                    }`}
+                                    className="text-white hover:underline font-mono text-sm cursor-pointer font-medium"
                                   >
-                                    삭제
+                                    평가 ➔
                                   </button>
                                 </div>
-                              </td>
-                            </tr>
-                          ))
+                              </div>
+                            </div>
+                          </div>
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* 10명 단위 페이징 바 */}
-                  {totalMemberPages > 1 && (
-                    <div
-                      className={`flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t text-xs font-mono ${
-                        isLight
-                          ? 'border-zinc-200 text-zinc-500'
-                          : 'border-white/[0.06] text-zinc-500'
-                      }`}
-                    >
-                      <span>
-                        전체 {filteredMembers.length}명 중 {(memberPage - 1) * MEMBERS_PER_PAGE + 1} -{' '}
-                        {Math.min(memberPage * MEMBERS_PER_PAGE, filteredMembers.length)}명 표시
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          disabled={memberPage === 1}
-                          onClick={() => setMemberPage((p) => Math.max(1, p - 1))}
-                          className={`px-3 py-1.5 rounded-none border text-xs font-mono disabled:opacity-30 cursor-pointer ${
-                            isLight
-                              ? 'border-zinc-300 bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
-                              : 'border-white/10 bg-black/40 text-zinc-400 hover:text-white'
-                          }`}
-                        >
-                          이전
-                        </button>
-                        {Array.from({ length: totalMemberPages }, (_, i) => i + 1).map((pageNum) => (
-                          <button
-                            key={pageNum}
-                            type="button"
-                            onClick={() => setMemberPage(pageNum)}
-                            className={`px-3 py-1.5 rounded-none text-xs font-mono cursor-pointer transition-colors ${
-                              memberPage === pageNum
-                                ? isLight
-                                  ? 'border border-zinc-900 bg-zinc-900 text-white font-medium'
-                                  : 'border border-white/40 bg-white/10 text-white font-medium'
-                                : isLight
-                                ? 'border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100'
-                                : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        ))}
-                        <button
-                          type="button"
-                          disabled={memberPage === totalMemberPages}
-                          onClick={() => setMemberPage((p) => Math.min(totalMemberPages, p + 1))}
-                          className={`px-3 py-1.5 rounded-none border text-xs font-mono disabled:opacity-30 cursor-pointer ${
-                            isLight
-                              ? 'border-zinc-300 bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
-                              : 'border-white/10 bg-black/40 text-zinc-400 hover:text-white'
-                          }`}
-                        >
-                          다음
-                        </button>
                       </div>
-                    </div>
-                  )}
-                </div>
-              </AdminSectionCard>
-
-              {/* 신규 회원 등록 아코디언 */}
-              <AdminSectionCard
-                title="신규 회원 등록"
-                categoryTag="MEMBER REGISTRATION"
-                desc="새로운 회원을 풀에 추가하고 기본 신뢰점수(90점)를 부여합니다."
-                isOpen={isSectionOpen('SEC_MEMBER_MGMT_CREATE', false)}
-                onToggle={() => toggleSection('SEC_MEMBER_MGMT_CREATE', false)}
-                isLight={isLight}
-              >
-                <div className={`flex flex-wrap items-center gap-3 p-4 rounded-none border ${subCardCls}`}>
-                  <span className={`text-xs font-mono font-medium ${textMutedCls}`}>
-                    신규 등록:
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="닉네임"
-                    value={newNick}
-                    onChange={(e) => setNewNick(e.target.value)}
-                    className={inputCls}
-                  />
-                  <select
-                    value={newGender}
-                    onChange={(e) => setNewGender(e.target.value as Gender)}
-                    className={selectCls}
-                  >
-                    <option value="F">여성 (F)</option>
-                    <option value="M">남성 (M)</option>
-                  </select>
-                  <input
-                    type="number"
-                    value={newBirth}
-                    onChange={(e) => setNewBirth(Number(e.target.value))}
-                    className={`w-28 ${inputCls}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!newNick.trim()) return;
-                      const created: ParticipantProfile = {
-                        userId: `U_${Date.now().toString().slice(-4)}`,
-                        nickname: newNick.trim(),
-                        gender: newGender,
-                        birthYear: newBirth,
-                        cityCode: 'SEOUL_SEONGSU',
-                        preferredMode: 'ROMANCE',
-                        preferredTableLanguage: 'ko',
-                        dietary: ['NONE'],
-                        interests: ['WINE', 'TRAVEL'],
-                        selfVector: {
-                          extroversion: 0.7,
-                          talkLead: 0.6,
-                          lifestyleActive: 0.7,
-                          romanceIntent: 0.8,
-                          alcoholPreference: 0.7,
-                        },
-                        trustScore: 90,
-                        languages: { ko: 'NATIVE' },
-                        budgetTier: '$$',
-                        verified: true,
-                      };
-                      addParticipant(created);
-                      setNewNick('');
-                      notify(`[${created.nickname}] 회원이 등록되었습니다.`);
-                    }}
-                    className={btnPrimaryCls}
-                  >
-                    + 회원 추가
-                  </button>
-                </div>
-              </AdminSectionCard>
-            </section>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           )}
 
           {/* ----------------------------------------------------------
-              3. [평가엔진] 5대분류 × 5중분류 × 5평가기준 정규화 매트릭스 제어
+              [시스템/테스트] 프로세스 점검 보고서 & 이용자 동선 검증
+              ---------------------------------------------------------- */}
+          {activeTab === 'PROCESS_TEST_REPORT' && (
+            <AdminProcessTestReportManager />
+          )}
+
+          {/* ----------------------------------------------------------
+              [매칭엔진] 0~6층 파이프라인 매칭 & 다면 관제 엔진 (마스터 리스트 ➔ 클릭 상세 진입 구조)
+              ---------------------------------------------------------- */}
+          {activeTab === 'PIPELINE_ENGINE' && (
+            <AdminPipelineEngineManager
+              isLight={isLight}
+              onNotify={notify}
+            />
+          )}
+
+          {/* ----------------------------------------------------------
+              [1인테스트보고서] 1인 단위 질문 모듈 테스트 & 최종 매칭 검증 보고서
+              ---------------------------------------------------------- */}
+          {activeTab === 'SINGLE_AUDIT_REPORT' && (
+            <AdminSingleAuditReportManager
+              isLight={isLight}
+              onNotify={notify}
+            />
+          )}
+
+          {/* ----------------------------------------------------------
+              3. [평가엔진] 5대분류 × 5중분류 × 5평가기준 정규화 매트릭스 (리스트 ➔ 클릭 상세 진입 구조)
               ---------------------------------------------------------- */}
           {activeTab === 'EVAL_ENGINE' && (
-            <section className="space-y-4">
-              {/* 5대 평가 기준 (정돈·조화·센스·안정·호감) 규격 표 */}
-              <AdminSectionCard
-                title="5대 표준 평가 기준 (전 영역 공통 적용)"
-                categoryTag="NORMALIZED 5 CRITERIA"
-                desc="각 기준당 4점 만점이며, 5개 기준의 합이 20점 만점을 형성합니다."
-                badge="4점 × 5 = 20점"
-                isOpen={isSectionOpen('SEC_EVAL_CRITERIA', true)}
-                onToggle={() => toggleSection('SEC_EVAL_CRITERIA', true)}
-                isLight={isLight}
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
-                  {evaluationCriteria.map((crit) => (
-                    <div
-                      key={crit.code}
-                      className={`p-4 rounded-none border ${subCardCls}`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span
-                          className={`font-serif-editorial text-base font-normal ${textTitleCls}`}
-                        >
-                          {crit.stepOrder}. {crit.label}
-                        </span>
-                        <span
-                          className={`px-2 py-0.5 rounded-none text-xs font-mono border ${
-                            isLight
-                              ? 'bg-zinc-200 border-zinc-300 text-zinc-800'
-                              : 'bg-white/10 border-white/10 text-zinc-300'
-                          }`}
-                        >
-                          {crit.maxPoints}점
-                        </span>
-                      </div>
-                      <p className={`text-xs font-light ${textMutedCls}`}>
-                        {crit.definition}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </AdminSectionCard>
-
-              {/* 5대 대분류 × 5개 중분류 요소 매트릭스 */}
-              <AdminSectionCard
-                title="5대분류 × 5중분류 요소 (각 20점 × 5 = 100점 정규화)"
-                categoryTag="DOMAIN SUB-ELEMENT MATRIX"
-                desc="각 대분류는 정확히 5개의 단일 명사 요소로 구성되며, 모임 프리셋에 따라 활성화할 수 있습니다."
-                badge={`${majorDomains.length}대 영역 • 25개 요소`}
-                isOpen={isSectionOpen('SEC_EVAL_ELEMENTS', true)}
-                onToggle={() => toggleSection('SEC_EVAL_ELEMENTS', true)}
-                isLight={isLight}
-              >
-                <div className="space-y-4">
-                  {/* 도메인 필터 버튼 탭 */}
-                  <div className="flex gap-1.5 flex-wrap pb-3 border-b border-zinc-200 dark:border-white/10">
-                    {majorDomains.map((dom) => (
-                      <button
-                        key={dom.code}
-                        type="button"
-                        onClick={() => setSelectedMajorFilter(dom.code)}
-                        className={`px-3.5 py-1.5 rounded-none text-xs font-mono tracking-wider cursor-pointer transition-all ${
-                          selectedMajorFilter === dom.code
-                            ? isLight
-                              ? 'border border-zinc-900 bg-zinc-900 text-white font-medium'
-                              : 'border border-white/40 bg-white/10 text-white font-medium'
-                            : isLight
-                            ? 'border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100'
-                            : 'border border-white/10 bg-[#08090d] text-zinc-400 hover:text-white'
-                        }`}
-                      >
-                        {dom.label} (100점)
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="space-y-3">
-                    {subElements
-                      .filter((s) => s.majorCode === selectedMajorFilter)
-                      .map((sub) => (
-                        <div
-                          key={sub.id}
-                          className={`p-4 sm:p-5 rounded-none border space-y-3 ${subCardCls}`}
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <span
-                                className={`px-2.5 py-0.5 rounded-none text-xs font-mono border ${
-                                  isLight
-                                    ? 'bg-zinc-200 border-zinc-300 text-zinc-800'
-                                    : 'bg-black/40 border-white/10 text-zinc-300'
-                                }`}
-                              >
-                                슬롯 {sub.slotIndex} (20점)
-                              </span>
-                              <input
-                                type="text"
-                                value={sub.label}
-                                onChange={(e) =>
-                                  updateSubElement({
-                                    ...sub,
-                                    label: e.target.value,
-                                  })
-                                }
-                                className={`w-32 ${inputCls}`}
-                              />
-                              <span
-                                className={`text-xs font-mono ${textMutedCls}`}
-                              >
-                                배타슬롯: {sub.exclusionGroup}
-                              </span>
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                toggleSubElementActive(sub.id);
-                                notify(
-                                  `[${sub.label}] 항목 평가 프로세스 포함 여부가 변경되었습니다.`
-                                );
-                              }}
-                              className={`px-4 py-2 rounded-none text-xs font-mono tracking-wider cursor-pointer transition-all ${
-                                sub.activeInCurrentProcess
-                                  ? isLight
-                                    ? 'border border-zinc-900 bg-zinc-900 text-white'
-                                    : 'border border-[#f04f74]/60 bg-transparent text-[#f04f74] hover:bg-white/[0.04]'
-                                  : isLight
-                                  ? 'border border-zinc-300 bg-white text-zinc-600 hover:border-zinc-800'
-                                  : 'border border-white/10 bg-transparent text-zinc-400 hover:text-white'
-                              }`}
-                            >
-                              {sub.activeInCurrentProcess
-                                ? '현재 모임 평가 ON'
-                                : '현재 모임 평가 OFF'}
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                              <label
-                                className={`block text-xs font-mono mb-1 ${textMutedCls}`}
-                              >
-                                보완 코칭 문구 (저득점 시 자동 처방)
-                              </label>
-                              <input
-                                type="text"
-                                value={sub.coachingHintLow}
-                                onChange={(e) =>
-                                  updateSubElement({
-                                    ...sub,
-                                    coachingHintLow: e.target.value,
-                                  })
-                                }
-                                className={`w-full ${inputCls}`}
-                              />
-                            </div>
-                            <div>
-                              <label
-                                className={`block text-xs font-mono mb-1 ${textMutedCls}`}
-                              >
-                                강점 코칭 문구 (고득점 시 자동 리포트)
-                              </label>
-                              <input
-                                type="text"
-                                value={sub.coachingHintHigh}
-                                onChange={(e) =>
-                                  updateSubElement({
-                                    ...sub,
-                                    coachingHintHigh: e.target.value,
-                                  })
-                                }
-                                className={`w-full ${inputCls}`}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              </AdminSectionCard>
-            </section>
+            <AdminEvalEngineManager
+              majorDomains={majorDomains}
+              evaluationCriteria={evaluationCriteria}
+              subElements={subElements}
+              onToggleSubElementActive={toggleSubElementActive}
+              onUpdateSubElement={updateSubElement}
+              onNotify={notify}
+              isLight={isLight}
+            />
           )}
 
           {/* ----------------------------------------------------------
@@ -1794,12 +1638,10 @@ export default function AdminOperationsDashboardPage() {
             <section className="space-y-4">
               {/* 등록된 뱃지 목록 아코디언 */}
               <AdminSectionCard
-                title={`세분화 뱃지 도감 (${granularBadges.length}종)`}
-                categoryTag="BADGE DIRECTORY"
-                desc="특정 영역·요소 점수가 기준치를 넘을 때 자동 부여되는 뱃지 목록입니다."
-                badge={`${granularBadges.length}종`}
-                isOpen={isSectionOpen('SEC_BADGE_LIST', true)}
-                onToggle={() => toggleSection('SEC_BADGE_LIST', true)}
+                title="뱃지"
+                badge={`${granularBadges.length}건`}
+                isOpen={isSectionOpen('SEC_BADGE_LIST', false)}
+                onToggle={() => toggleSection('SEC_BADGE_LIST', false)}
                 isLight={isLight}
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1811,12 +1653,12 @@ export default function AdminOperationsDashboardPage() {
                       <div>
                         <div className="flex items-center justify-between mb-2">
                           <span
-                            className={`text-xs font-mono ${textMutedCls}`}
+                            className={`text-sm font-mono ${textMutedCls}`}
                           >
                             BADGE
                           </span>
                           <span
-                            className={`px-2.5 py-0.5 rounded-full text-xs font-mono border ${
+                            className={`px-2.5 py-0.5 rounded-full text-sm font-mono border ${
                               isLight
                                 ? 'bg-zinc-200 border-zinc-300 text-zinc-800'
                                 : 'bg-black/40 border-white/10 text-zinc-300'
@@ -1830,9 +1672,6 @@ export default function AdminOperationsDashboardPage() {
                         >
                           {b.name}
                         </h4>
-                        <p className={`text-xs mt-1 ${textMutedCls}`}>
-                          {b.description}
-                        </p>
                       </div>
                       <button
                         type="button"
@@ -1848,9 +1687,7 @@ export default function AdminOperationsDashboardPage() {
 
               {/* 신규 뱃지 생성 폼 아코디언 */}
               <AdminSectionCard
-                title="신규 뱃지 발급 등록"
-                categoryTag="BADGE CREATION"
-                desc="새로운 세분화 뱃지를 등록하고 기준 점수를 설정합니다."
+                title="뱃지 추가"
                 isOpen={isSectionOpen('SEC_BADGE_CREATE', false)}
                 onToggle={() => toggleSection('SEC_BADGE_CREATE', false)}
                 isLight={isLight}
@@ -1911,7 +1748,7 @@ export default function AdminOperationsDashboardPage() {
                     }}
                     className={btnPrimaryCls}
                   >
-                    + 뱃지 추가
+                    + 추가
                   </button>
                 </div>
               </AdminSectionCard>
@@ -1924,12 +1761,10 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'REGION' && (
             <section className="space-y-4">
               <AdminSectionCard
-                title={`지역 · 상권 (${regionDistricts.length}곳)`}
-                categoryTag="DISTRICT DIRECTORY"
-                desc="오프라인 모임이 열리는 권역(서울/경기/부산 등)과 세부 상권을 관리합니다."
-                badge={`${regionDistricts.length}곳`}
-                isOpen={isSectionOpen('SEC_REGION_LIST', true)}
-                onToggle={() => toggleSection('SEC_REGION_LIST', true)}
+                title="지역"
+                badge={`${regionDistricts.length}건`}
+                isOpen={isSectionOpen('SEC_REGION_LIST', false)}
+                onToggle={() => toggleSection('SEC_REGION_LIST', false)}
                 isLight={isLight}
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1940,7 +1775,7 @@ export default function AdminOperationsDashboardPage() {
                     >
                       <div className="flex items-center justify-between">
                         <span
-                          className={`px-2.5 py-0.5 rounded-none text-xs font-mono border ${
+                          className={`px-2.5 py-0.5 rounded-none text-sm font-mono border ${
                             isLight
                               ? 'bg-zinc-200 border-zinc-300 text-zinc-800'
                               : 'bg-black/40 border-white/10 text-zinc-300'
@@ -1956,7 +1791,7 @@ export default function AdminOperationsDashboardPage() {
                               active: !dist.active,
                             })
                           }
-                          className={`px-2.5 py-0.5 rounded-none text-xs font-mono font-medium cursor-pointer border ${
+                          className={`px-2.5 py-0.5 rounded-none text-sm font-mono font-medium cursor-pointer border ${
                             dist.active
                               ? isLight
                                 ? 'bg-zinc-900 border-zinc-900 text-white'
@@ -1974,17 +1809,14 @@ export default function AdminOperationsDashboardPage() {
                       >
                         {dist.districtName}
                       </h4>
-                      <p className={`text-xs font-light ${textMutedCls}`}>
-                        {dist.description}
-                      </p>
                       <div className="flex items-center justify-between pt-2">
-                        <span className={`text-xs font-mono ${textMutedCls}`}>
+                        <span className={`text-sm font-mono ${textMutedCls}`}>
                           {dist.defaultGatherTime}
                         </span>
                         <button
                           type="button"
                           onClick={() => deleteRegionDistrict(dist.districtId)}
-                          className={`text-xs cursor-pointer transition-colors font-mono hover:text-red-500 ${textMutedCls}`}
+                          className={`text-sm cursor-pointer transition-colors font-mono hover:text-red-500 ${textMutedCls}`}
                         >
                           삭제
                         </button>
@@ -1996,9 +1828,7 @@ export default function AdminOperationsDashboardPage() {
 
               {/* 신규 상권 등록 아코디언 */}
               <AdminSectionCard
-                title="신규 권역 및 상권 등록"
-                categoryTag="DISTRICT CREATION"
-                desc="새로운 오프라인 다이닝 거점 상권을 등록합니다."
+                title="지역 추가"
                 isOpen={isSectionOpen('SEC_REGION_CREATE', false)}
                 onToggle={() => toggleSection('SEC_REGION_CREATE', false)}
                 isLight={isLight}
@@ -2051,7 +1881,7 @@ export default function AdminOperationsDashboardPage() {
                     }}
                     className={btnPrimaryCls}
                   >
-                    + 지역 추가
+                    + 추가
                   </button>
                 </div>
               </AdminSectionCard>
@@ -2064,12 +1894,10 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'VENUE' && (
             <section className="space-y-4">
               <AdminSectionCard
-                title={`제휴 매장 (${partnerVenues.length}곳)`}
-                categoryTag="VENUE DIRECTORY"
-                desc="엄선된 프라이빗 룸과 제휴된 파트너 레스토랑 목록입니다."
-                badge={`${partnerVenues.length}곳`}
-                isOpen={isSectionOpen('SEC_VENUE_LIST', true)}
-                onToggle={() => toggleSection('SEC_VENUE_LIST', true)}
+                title="매장"
+                badge={`${partnerVenues.length}건`}
+                isOpen={isSectionOpen('SEC_VENUE_LIST', false)}
+                onToggle={() => toggleSection('SEC_VENUE_LIST', false)}
                 isLight={isLight}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2084,7 +1912,7 @@ export default function AdminOperationsDashboardPage() {
                         >
                           {v.name}
                         </h4>
-                        <p className={`text-xs mt-1 font-light ${textMutedCls}`}>
+                        <p className={`text-sm mt-1 font-light ${textMutedCls}`}>
                           지원 식단: {v.supportedDietary.join(', ')} · 최대{' '}
                           {v.maxTablesPerNight}테이블
                         </p>
@@ -2103,9 +1931,7 @@ export default function AdminOperationsDashboardPage() {
 
               {/* 신규 제휴 매장 등록 아코디언 */}
               <AdminSectionCard
-                title="신규 제휴 레스토랑 등록"
-                categoryTag="VENUE CREATION"
-                desc="새로운 파트너 매장을 등록합니다."
+                title="매장 추가"
                 isOpen={isSectionOpen('SEC_VENUE_CREATE', false)}
                 onToggle={() => toggleSection('SEC_VENUE_CREATE', false)}
                 isLight={isLight}
@@ -2143,7 +1969,7 @@ export default function AdminOperationsDashboardPage() {
                     }}
                     className={btnPrimaryCls}
                   >
-                    + 매장 추가
+                    + 추가
                   </button>
                 </div>
               </AdminSectionCard>
@@ -2155,11 +1981,28 @@ export default function AdminOperationsDashboardPage() {
               ---------------------------------------------------------- */}
           {activeTab === 'EVENT_GATE' && (
             <section className="space-y-4">
-              {/* 상단 섹션 전체 접기 / 펼치기 바 */}
-              <div className="flex items-center justify-between px-1 text-xs font-mono">
-                <span className={isLight ? 'text-zinc-500' : 'text-zinc-400'}>
-                  모임조건 섹터 관제 (총 3개 기능 블록)
-                </span>
+              {/* 상단 컴팩트 컨트롤 바 (표준 테두리 박스 컨테이너) */}
+              <div
+                className={`p-3 border flex items-center justify-between gap-3 ${
+                  isLight
+                    ? 'bg-white border-zinc-200 shadow-sm'
+                    : 'bg-[#0c0d12] border-white/10'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2
+                    className={`font-serif-editorial text-lg font-normal ${
+                      isLight ? 'text-zinc-900' : 'text-white'
+                    }`}
+                  >
+                    모임조건
+                  </h2>
+                  <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                    3건
+                  </span>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -2170,15 +2013,14 @@ export default function AdminOperationsDashboardPage() {
                         'SEC_EVENT_NOSHOW',
                       ])
                     }
-                    className={`hover:underline cursor-pointer ${
-                      isLight ? 'text-zinc-600' : 'text-zinc-400'
+                    className={`px-2.5 py-1 text-sm font-mono border transition-colors cursor-pointer ${
+                      isLight
+                        ? 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
+                        : 'border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white'
                     }`}
                   >
-                    섹션 전체 접기
+                    접기
                   </button>
-                  <span className={isLight ? 'text-zinc-300' : 'text-zinc-600'}>
-                    |
-                  </span>
                   <button
                     type="button"
                     onClick={() =>
@@ -2188,28 +2030,28 @@ export default function AdminOperationsDashboardPage() {
                         'SEC_EVENT_NOSHOW',
                       ])
                     }
-                    className={`hover:underline cursor-pointer ${
-                      isLight ? 'text-zinc-600' : 'text-zinc-400'
+                    className={`px-2.5 py-1 text-sm font-mono border transition-colors cursor-pointer ${
+                      isLight
+                        ? 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
+                        : 'border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white'
                     }`}
                   >
-                    섹션 전체 펼치기
+                    펼치기
                   </button>
                 </div>
               </div>
 
               {/* 1. 조건부 모임 신규 개설 */}
               <AdminSectionCard
-                title="조건부 모임 신규 개설"
-                categoryTag="EVENT CREATION"
-                desc="최소 프로파일 점수(100점 기준) 및 필수 보유 뱃지 조건을 걸어 모임을 개설합니다."
-                isOpen={isSectionOpen('SEC_EVENT_CREATE', true)}
-                onToggle={() => toggleSection('SEC_EVENT_CREATE', true)}
+                title="모임 개설"
+                isOpen={isSectionOpen('SEC_EVENT_CREATE', false)}
+                onToggle={() => toggleSection('SEC_EVENT_CREATE', false)}
                 isLight={isLight}
               >
                 <div className={`grid grid-cols-1 sm:grid-cols-5 gap-3 p-4 rounded-none border ${subCardCls}`}>
                   <input
                     type="text"
-                    placeholder="모임명 (예: 부산 5060 골든 다이닝)"
+                    placeholder="모임명"
                     value={newEventTitle}
                     onChange={(e) => setNewEventTitle(e.target.value)}
                     className={`sm:col-span-2 ${inputCls}`}
@@ -2227,7 +2069,7 @@ export default function AdminOperationsDashboardPage() {
                   </select>
                   <input
                     type="number"
-                    placeholder="최소 점수(0~100)"
+                    placeholder="최소 점수"
                     value={newEventMinScore}
                     onChange={(e) =>
                       setNewEventMinScore(Number(e.target.value))
@@ -2259,27 +2101,25 @@ export default function AdminOperationsDashboardPage() {
                     }}
                     className={btnPrimaryCls}
                   >
-                    + 모임 개설
+                    + 개설
                   </button>
                 </div>
               </AdminSectionCard>
 
               {/* 2. 등록된 조건부 모임 목록 */}
               <AdminSectionCard
-                title="개설된 조건부 모임 목록"
-                categoryTag="EVENT REGISTRY"
-                desc="현재 신청 접수 중인 조건부 모임 리스트 및 참가 자격"
-                badge={`${conditionalEvents.length}개`}
-                isOpen={isSectionOpen('SEC_EVENT_LIST', true)}
-                onToggle={() => toggleSection('SEC_EVENT_LIST', true)}
+                title="모임 목록"
+                badge={`${conditionalEvents.length}건`}
+                isOpen={isSectionOpen('SEC_EVENT_LIST', false)}
+                onToggle={() => toggleSection('SEC_EVENT_LIST', false)}
                 isLight={isLight}
               >
                 {conditionalEvents.length === 0 ? (
-                  <p className={`text-xs py-4 text-center ${textMutedCls}`}>
+                  <p className={`text-sm py-4 text-center ${textMutedCls}`}>
                     개설된 모임이 없습니다. 상단에서 신규 모임을 개설해 주십시오.
                   </p>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {conditionalEvents.map((ev) => (
                       <div
                         key={ev.eventId}
@@ -2297,10 +2137,8 @@ export default function AdminOperationsDashboardPage() {
                           >
                             {ev.title}
                           </h4>
-                          <p className={`text-xs mt-1 font-light ${textMutedCls}`}>
-                            참가비 ₩{ev.priceKrw.toLocaleString()} · 최소 프로파일{' '}
-                            {ev.minTotalScore100}점 이상 · 필수뱃지{' '}
-                            {ev.requiredBadgeIds.length}개
+                          <p className={`text-sm mt-1 font-mono text-zinc-300 font-light`}>
+                            ₩{ev.priceKrw.toLocaleString()} • 최소 {ev.minTotalScore100}점 • 뱃지 {ev.requiredBadgeIds.length}개
                           </p>
                         </div>
                         <button
@@ -2318,18 +2156,14 @@ export default function AdminOperationsDashboardPage() {
 
               {/* 3. 당일 노쇼 및 대기자 자동 대체 */}
               <AdminSectionCard
-                title="테이블 편성 및 노쇼 대기자 자동 대체"
-                categoryTag="NO-SHOW RECOVERY"
-                desc="당일 취소 발생 시 신뢰점수 80점 이상 대기자를 즉시 투입하여 3:3 정원을 유지합니다."
+                title="노쇼 대체"
                 isOpen={isSectionOpen('SEC_EVENT_NOSHOW', false)}
                 onToggle={() => toggleSection('SEC_EVENT_NOSHOW', false)}
                 isLight={isLight}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <p className={`text-xs font-light ${textMutedCls}`}>
-                      스탠바이 큐에서 신뢰 검증 회원을 테이블 빈자리로 즉각 자동 재배치합니다.
-                    </p>
+                  <div className="flex items-center gap-2 text-sm font-mono text-zinc-400">
+                    <span>스탠바이 큐 자동 재배치</span>
                   </div>
                   <div className="flex gap-2">
                     <button
@@ -2337,7 +2171,7 @@ export default function AdminOperationsDashboardPage() {
                       onClick={triggerNoShowAndStandbyRecovery}
                       className={btnPrimaryCls}
                     >
-                      노쇼 대기자 투입
+                      대기자 투입
                     </button>
                     <button
                       type="button"
@@ -2351,7 +2185,7 @@ export default function AdminOperationsDashboardPage() {
 
                 {standbyReplacementLog && (
                   <div
-                    className={`p-4 rounded-none border text-xs font-mono font-medium mt-3 ${
+                    className={`p-4 rounded-none border text-sm font-mono font-medium mt-3 ${
                       isLight
                         ? 'bg-zinc-100 border-zinc-200 text-zinc-800'
                         : 'bg-white/[0.02] border-white/[0.08] text-zinc-300'
@@ -2370,15 +2204,13 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'DECK' && (
             <section className="space-y-4">
               <AdminSectionCard
-                title={`대화카드 (${activeStageCards.length}장)`}
-                categoryTag="PLAYBOOK CARDS"
-                desc="다이닝 현장에서 어색함을 깨고 깊이 있는 대화를 돕는 질문 카드입니다."
-                badge={`${activeStageCards.length}장`}
-                isOpen={isSectionOpen('SEC_DECK_LIST', true)}
-                onToggle={() => toggleSection('SEC_DECK_LIST', true)}
+                title="대화카드"
+                badge={`${activeStageCards.length}건`}
+                isOpen={isSectionOpen('SEC_DECK_LIST', false)}
+                onToggle={() => toggleSection('SEC_DECK_LIST', false)}
                 isLight={isLight}
               >
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {activeStageCards.map((c) => (
                     <div
                       key={c.cardId}
@@ -2411,7 +2243,7 @@ export default function AdminOperationsDashboardPage() {
                         onChange={(e) =>
                           updatePlaybookCard({ ...c, promptText: e.target.value })
                         }
-                        className={`w-full p-2.5 rounded-none border text-xs font-light focus:outline-none ${
+                        className={`w-full p-2.5 rounded-none border text-sm font-light focus:outline-none ${
                           isLight
                             ? 'bg-white border-zinc-300 text-zinc-900 focus:border-zinc-800'
                             : 'bg-black/30 border-white/10 text-zinc-300 focus:border-white/30'
@@ -2424,9 +2256,7 @@ export default function AdminOperationsDashboardPage() {
 
               {/* 신규 대화카드 추가 아코디언 */}
               <AdminSectionCard
-                title="신규 대화카드 등록"
-                categoryTag="CARD CREATION"
-                desc="새로운 질문 카드를 플레이북 덱에 추가합니다."
+                title="대화카드 추가"
                 isOpen={isSectionOpen('SEC_DECK_CREATE', false)}
                 onToggle={() => toggleSection('SEC_DECK_CREATE', false)}
                 isLight={isLight}
@@ -2464,7 +2294,7 @@ export default function AdminOperationsDashboardPage() {
                     }}
                     className={btnPrimaryCls}
                   >
-                    + 대화카드 추가
+                    + 추가
                   </button>
                 </div>
               </AdminSectionCard>
@@ -2477,10 +2307,8 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'PAGE_CMS' && (
             <section className="space-y-4">
               <AdminSectionCard
-                title={`페이지 구성 편집 (${cmsPages.length}개)`}
-                categoryTag="PAGE METADATA CMS"
-                desc="각 페이지의 헤드라인, 서브카피, 상단 배지 문구를 실시간으로 편집합니다."
-                badge={`${cmsPages.length}개 페이지`}
+                title="페이지 편집"
+                badge={`${cmsPages.length}건`}
                 isOpen={true}
                 onToggle={() => {}}
                 isLight={isLight}
@@ -2492,7 +2320,7 @@ export default function AdminOperationsDashboardPage() {
                         key={pg.pageId}
                         type="button"
                         onClick={() => setSelectedPageId(pg.pageId)}
-                        className={`px-3.5 py-2 rounded-none text-xs font-mono cursor-pointer transition-colors border ${
+                        className={`px-3.5 py-2 rounded-none text-sm font-mono cursor-pointer transition-colors border ${
                           selectedPageId === pg.pageId
                             ? isLight
                               ? 'border-zinc-900 bg-zinc-900 text-white font-medium'
@@ -2516,7 +2344,7 @@ export default function AdminOperationsDashboardPage() {
                       <div className={`space-y-4 p-5 rounded-none border ${subCardCls}`}>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
-                            <label className={`block text-xs font-mono mb-1 ${textMutedCls}`}>
+                            <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>
                               페이지명
                             </label>
                             <input
@@ -2529,7 +2357,7 @@ export default function AdminOperationsDashboardPage() {
                             />
                           </div>
                           <div>
-                            <label className={`block text-xs font-mono mb-1 ${textMutedCls}`}>
+                            <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>
                               상단 배지
                             </label>
                             <input
@@ -2546,7 +2374,7 @@ export default function AdminOperationsDashboardPage() {
                           </div>
                         </div>
                         <div>
-                          <label className={`block text-xs font-mono mb-1 ${textMutedCls}`}>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>
                             헤드라인
                           </label>
                           <input
@@ -2559,7 +2387,7 @@ export default function AdminOperationsDashboardPage() {
                           />
                         </div>
                         <div>
-                          <label className={`block text-xs font-mono mb-1 ${textMutedCls}`}>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>
                             서브 헤드라인
                           </label>
                           <input
@@ -2588,10 +2416,8 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'ADMIN_ACCOUNT' && (
             <section className="space-y-4">
               <AdminSectionCard
-                title="관리자 계정 및 보안 설정"
-                categoryTag="SECURITY & ACCESS CONTROL"
-                desc="플랫폼 전체 데이터 및 프로세스 제어 권한을 가진 최고 관리자 계정입니다."
-                badge="Level 5 마스터 권한"
+                title="계정 보안"
+                badge="마스터 권한"
                 isOpen={true}
                 onToggle={() => {}}
                 isLight={isLight}
@@ -2600,32 +2426,32 @@ export default function AdminOperationsDashboardPage() {
                   {/* 관리자 프로필 정보 카드 */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className={`p-5 rounded-none border space-y-3 ${subCardCls}`}>
-                      <div className={`text-xs font-mono ${textMutedCls}`}>
-                        관리자 고유 식별자
+                      <div className={`text-sm font-mono ${textMutedCls}`}>
+                        관리자 계정
                       </div>
                       <div className={`text-base font-medium font-mono flex items-center gap-2 ${textTitleCls}`}>
                         <span>{currentUser?.handle || '@admin'}</span>
-                        <span className={`text-[11px] font-normal ${textMutedCls}`}>
-                          (ID: {currentUser?.userId || 'ADMIN_01'})
+                        <span className={`text-sm font-normal ${textMutedCls}`}>
+                          ({currentUser?.userId || 'ADMIN_01'})
                         </span>
                       </div>
-                      <div className={`text-xs font-mono ${textMutedCls}`}>
-                        등록 이메일: <span className={textTitleCls}>{currentUser?.email || 'admin@nadosolo.com'}</span>
+                      <div className={`text-sm font-mono ${textMutedCls}`}>
+                        이메일: <span className={textTitleCls}>{currentUser?.email || 'admin@nadosolo.com'}</span>
                       </div>
                     </div>
 
                     <div className={`p-5 rounded-none border space-y-3 ${subCardCls}`}>
-                      <div className={`text-xs font-mono ${textMutedCls}`}>
-                        권한 등급 및 세션
+                      <div className={`text-sm font-mono ${textMutedCls}`}>
+                        권한 상태
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-[#f04f74] animate-pulse" />
                         <span className={`text-sm font-mono font-medium ${textTitleCls}`}>
-                          활성 세션 (정상 연결)
+                          정상 연결
                         </span>
                       </div>
-                      <div className={`text-xs font-mono ${textMutedCls}`}>
-                        보안 레벨: <span className={textTitleCls}>Level 5 (마스터 권한)</span>
+                      <div className={`text-sm font-mono ${textMutedCls}`}>
+                        보안 등급: <span className={textTitleCls}>마스터 권한</span>
                       </div>
                     </div>
                   </div>
@@ -2633,9 +2459,9 @@ export default function AdminOperationsDashboardPage() {
                   {/* 비밀번호 관리 & 보안 수칙 안내 */}
                   <div className={`p-5 rounded-none border space-y-4 ${subCardCls}`}>
                     <h3 className={`font-serif-editorial text-sm font-normal ${textTitleCls}`}>
-                      관리자 로그인 인증 정보 관리
+                      인증 정보
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-mono">
                       <div>
                         <label className={`block mb-1 font-normal ${textMutedCls}`}>
                           관리자 로그인 아이디
@@ -2659,7 +2485,7 @@ export default function AdminOperationsDashboardPage() {
                         />
                       </div>
                     </div>
-                    <p className={`text-xs leading-relaxed font-light ${textMutedCls}`}>
+                    <p className={`text-sm leading-relaxed font-light ${textMutedCls}`}>
                       관리자 계정 정보는 소스코드 및 Supabase 환경 변수와 동기화되어 안전하게 보호됩니다. 상용 배포 환경에서는 Supabase Auth의 관리자 전용 2FA(2단계 인증)를 적용하여 보안을 더욱 강화할 수 있습니다.
                     </p>
                   </div>

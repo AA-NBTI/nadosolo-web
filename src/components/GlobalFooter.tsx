@@ -19,6 +19,7 @@ export default function GlobalFooter() {
           <div className="flex flex-col items-center justify-center">
             <Link
               href="/"
+              prefetch={true}
               className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
             >
               <span className="font-serif-editorial text-[26px] sm:text-[30px] font-light text-white tracking-[-0.02em] lowercase leading-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] group-hover:text-zinc-100 transition-colors duration-300">
@@ -46,6 +47,7 @@ export default function GlobalFooter() {
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-normal">
             <Link
               href="/guide"
+              prefetch={true}
               className="text-zinc-400 hover:text-white transition-colors"
             >
               프로그램 이용안내

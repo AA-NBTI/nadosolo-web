@@ -32,6 +32,7 @@ import {
   InterestTag,
   LanguageCode,
   LocalePolicyEngine,
+  LoggedInUser,
   MajorDomainCode,
   MajorDomainDef,
   MatchedTable,
@@ -65,6 +66,11 @@ import {
   PersonalSocialDossier,
   ParticipantObservationRecord,
   FullJourneyAuditReport,
+  evaluateProcessGate,
+  evaluateFullJourney,
+  ProcessStepId,
+  ProcessGateResult,
+  UserContextSnapshot,
 } from './index';
 
 export type CityKey =
@@ -77,21 +83,6 @@ export type CityKey =
   | 'SEOUL_GANGNAM'
   | 'TOKYO_SHIBUYA'
   | 'NYC_SOHO';
-
-export interface LoggedInUser {
-  userId: string;
-  handle: string; // @핸들 고유 ID (예: @jisoo_kim)
-  role?: 'MEMBER' | 'ADMIN';
-  email: string;
-  nickname: string;
-  phone?: string;
-  jobTitle?: string;
-  gender: Gender;
-  birthYear: number;
-  authProvider: 'KAKAO' | 'GOOGLE' | 'APPLE' | 'EMAIL';
-  verifiedBadge: string;
-  sessionCount: number;
-}
 
 export interface CmsPageConfig {
   pageId: string;
@@ -260,6 +251,11 @@ const INITIAL_CMS_MIRROR_QUOTES: CmsMirrorQuoteItem[] = [
 interface NadoSoloEngineContextValue {
   // 인증 및 회원 상태
   currentUser: LoggedInUser | null;
+  adminOriginUser: LoggedInUser | null;
+  isSessionReady: boolean;
+  isImpersonating: boolean;
+  startAdminImpersonation: (targetUserId: string) => void;
+  stopAdminImpersonation: () => void;
   loginAsUser: (user: LoggedInUser) => void;
   updateCurrentUser: (patch: Partial<LoggedInUser>) => void;
   logout: () => void;
@@ -279,6 +275,7 @@ interface NadoSoloEngineContextValue {
   toggleInterest: (tag: InterestTag) => void;
   surveyAnswers: Record<string, string>;
   setSurveyAnswer: (questionId: string, optionId: string) => void;
+  saveSurveyAnswers: (answers: Record<string, string>) => void;
   isSeatReserved: boolean;
   setIsSeatReserved: (v: boolean) => void;
 
@@ -409,12 +406,18 @@ interface NadoSoloEngineContextValue {
   addCmsMirrorQuote: (item: CmsMirrorQuoteItem) => void;
   updateCmsMirrorQuote: (item: CmsMirrorQuoteItem) => void;
   deleteCmsMirrorQuote: (id: string) => void;
+
+  // [동적 프로세스 게이트 엔진] 1~3단계 프로세스 선행 조건 & 진행 상태 추적
+  userJourney: ReturnType<typeof evaluateFullJourney>;
+  evaluateGate: (stepId: ProcessStepId) => ProcessGateResult;
 }
 
 const NadoSoloContext = createContext<NadoSoloEngineContextValue | null>(null);
 
 export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<LoggedInUser | null>(null);
+  const [adminOriginUser, setAdminOriginUser] = useState<LoggedInUser | null>(null);
+  const [isSessionReady, setIsSessionReady] = useState(false);
 
   const [lang, setLang] = useState<'ko' | 'en'>('ko');
   const [selectedCity, setSelectedCity] = useState<CityKey>('BUSAN_JEONPO');
@@ -423,12 +426,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const [dietary, setDietary] = useState<DietaryRestriction>('NONE');
   const [interests, setInterests] = useState<InterestTag[]>(['WINE', 'COOKING']);
 
-  const [surveyAnswers, setSurveyAnswers] = useState<Record<string, string>>({
-    Q1_WEEKEND: 'Q1_A',
-    Q2_TALK_STYLE: 'Q2_B',
-    Q3_ALCOHOL: 'Q3_A',
-    Q4_INTENT: 'Q4_A',
-  });
+  const [surveyAnswers, setSurveyAnswers] = useState<Record<string, string>>({});
   const [isSeatReserved, setIsSeatReserved] = useState<boolean>(false);
 
   // [신규] 프로세스 모듈 상태
@@ -494,7 +492,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const [isSecondHalfRotated, setIsSecondHalfRotated] =
     useState<boolean>(false);
-  const [myVoteTargetId, setMyVoteTargetId] = useState<string>('U04');
+  const [myVoteTargetId, setMyVoteTargetId] = useState<string>('USER_BB');
   const [myVoteCategory, setMyVoteCategory] = useState<VoteCategory>('ROMANCE');
   const [isMidnightPassed, setIsMidnightPassed] = useState<boolean>(true);
 
@@ -536,9 +534,45 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
               console.warn('[LocalStorage] parse error:', e);
             }
           }
+
+          // 관리자 뷰어 모드 백업 세션 복원
+          let adminOrigin: LoggedInUser | null = null;
+          const savedAdmin = localStorage.getItem('nadosolo_admin_origin');
+          if (savedAdmin) {
+            try {
+              adminOrigin = JSON.parse(savedAdmin);
+            } catch (e) {
+              console.warn('[LocalStorage] parse admin error:', e);
+            }
+          }
+
+          if (adminOrigin) {
+            if (localUser?.role === 'ADMIN') {
+              // 이미 관리자 세션이면 남은 열람 백업은 무효 데이터이므로 폐기
+              adminOrigin = null;
+              localStorage.removeItem('nadosolo_admin_origin');
+            } else if (window.location.pathname.startsWith('/admin')) {
+              // /admin 진입 시 회원 열람 세션이 남아 있으면 즉시 관리자 세션으로 복원
+              localUser = adminOrigin;
+              adminOrigin = null;
+              localStorage.setItem('nadosolo_current_user', JSON.stringify(localUser));
+              localStorage.removeItem('nadosolo_admin_origin');
+              if (isMounted) setCurrentUser(localUser);
+            }
+          }
+          if (isMounted) setAdminOriginUser(adminOrigin);
         }
 
-        const targetUserId = localUser?.userId ?? currentUser?.userId ?? 'user_jisoo';
+        // 세션 복원 완료 (이 시점 이전에는 관리자/회원 가드 화면을 그리지 않는다)
+        if (isMounted) setIsSessionReady(true);
+
+        // 로그인 세션이 없는 경우 자동 로그인(기본 사용자 강제 로그인)을 차단하고 비로그인 초기 세팅 유지
+        const activeUser = localUser ?? currentUser;
+        if (!activeUser) {
+          return;
+        }
+
+        const targetUserId = activeUser.userId;
         const [dbProfile, dbEventIds, dbMatrix] = await Promise.all([
           nadoSoloSupabaseService.getProfile(targetUserId),
           nadoSoloSupabaseService.getAppliedEventIds(targetUserId),
@@ -552,10 +586,10 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
             userId: dbProfile.id,
             handle: dbProfile.handle,
             role: dbProfile.handle === '@admin' || dbProfile.id === 'ADMIN_01' ? 'ADMIN' : 'MEMBER',
-            email: dbProfile.email ?? localUser?.email ?? 'jisoo@nadosolo.com',
+            email: dbProfile.email ?? activeUser.email ?? 'member@nadosolo.com',
             nickname: dbProfile.nickname,
-            phone: dbProfile.phone ?? localUser?.phone ?? '010-2948-1029',
-            jobTitle: dbProfile.job_title ?? localUser?.jobTitle ?? 'UX 디자이너',
+            phone: dbProfile.phone ?? activeUser.phone ?? '010-0000-0000',
+            jobTitle: dbProfile.job_title ?? activeUser.jobTitle ?? '일반 회원',
             gender: dbProfile.gender,
             birthYear: dbProfile.birth_year,
             authProvider: 'EMAIL',
@@ -579,6 +613,9 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
               ...(dbProfile.self_domain_scores as Record<MajorDomainCode, number>),
             }));
           }
+          if (dbProfile.survey_answers && Object.keys(dbProfile.survey_answers).length > 0) {
+            setSurveyAnswers(dbProfile.survey_answers);
+          }
         }
 
         if (dbEventIds && dbEventIds.length > 0) {
@@ -595,6 +632,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         console.warn('[Supabase Sync Init] error:', err);
+        if (isMounted) setIsSessionReady(true);
       }
     }
 
@@ -606,8 +644,11 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const loginAsUser = (user: LoggedInUser) => {
     setCurrentUser(user);
+    // 새 로그인은 항상 관리자 열람 상태를 해제한다
+    setAdminOriginUser(null);
     if (typeof window !== 'undefined') {
       localStorage.setItem('nadosolo_current_user', JSON.stringify(user));
+      localStorage.removeItem('nadosolo_admin_origin');
     }
     // Supabase DB 자동 upsert (새 가입자 및 로그인 계정 영구 보존)
     nadoSoloSupabaseService.upsertProfile({
@@ -671,16 +712,144 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const isImpersonating = Boolean(adminOriginUser);
+
+  const startAdminImpersonation = useCallback((targetUserId: string) => {
+    // 1. 현재 관리자 세션을 백업
+    const currentAdmin = currentUser?.role === 'ADMIN' ? currentUser : adminOriginUser;
+    if (currentAdmin) {
+      // React 상태는 건드리지 않고 저장소에만 백업한다 (이동 직전 /admin 재렌더·복원 로직 오발동 방지)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('nadosolo_admin_origin', JSON.stringify(currentAdmin));
+      }
+    }
+
+    // 2. 대상 회원 정보 구성
+    const foundProfile = participantsPool.find((p) => p.userId === targetUserId);
+    const isAA = targetUserId === 'USER_AA';
+    const isBB = targetUserId === 'USER_BB';
+
+    const targetUser: LoggedInUser = {
+      userId: targetUserId,
+      handle: isAA ? '@aa' : isBB ? '@bb' : `@${targetUserId.toLowerCase()}`,
+      role: 'MEMBER',
+      email: isAA ? 'aa@nadosolo.com' : isBB ? 'bb@nadosolo.com' : `${targetUserId.toLowerCase()}@nadosolo.com`,
+      nickname: foundProfile?.nickname || (isAA ? '김에이' : isBB ? '이비비' : '회원'),
+      phone: isAA ? '010-1111-2222' : isBB ? '010-3333-4444' : '010-0000-0000',
+      jobTitle: isAA ? '브랜드 마케터' : isBB ? 'IT 기획자' : '전문직',
+      gender: foundProfile?.gender || (isAA ? 'F' : 'M'),
+      birthYear: foundProfile?.birthYear || (isAA ? 1994 : 1992),
+      authProvider: 'EMAIL',
+      verifiedBadge: '본인인증 완료',
+      sessionCount: isAA ? 3 : isBB ? 2 : 1,
+    };
+
+    // 화면(React 상태)은 바꾸지 않고 저장소만 갱신한 뒤 전체 이동한다.
+    // → 이동 전 /admin 화면이 회원 세션으로 다시 그려지는 중간 화면을 원천 차단
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_current_user', JSON.stringify(targetUser));
+      window.location.assign('/dashboard');
+    }
+  }, [currentUser, adminOriginUser, participantsPool]);
+
+  const stopAdminImpersonation = useCallback(() => {
+    const adminToRestore: LoggedInUser = adminOriginUser || {
+      userId: 'ADMIN_01',
+      handle: '@admin',
+      role: 'ADMIN',
+      email: 'admin@nadosolo.com',
+      nickname: '관리자',
+      phone: '010-0000-0000',
+      jobTitle: '시스템 총괄',
+      gender: 'M',
+      birthYear: 1990,
+      authProvider: 'EMAIL',
+      verifiedBadge: 'ADMIN',
+      sessionCount: 99,
+    };
+
+    setCurrentUser(adminToRestore);
+    setAdminOriginUser(null);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_current_user', JSON.stringify(adminToRestore));
+      localStorage.removeItem('nadosolo_admin_origin');
+    }
+  }, [adminOriginUser]);
+
   const logout = () => {
     setCurrentUser(null);
+    setAdminOriginUser(null);
     setIsSeatReserved(false);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('nadosolo_current_user');
+      localStorage.removeItem('nadosolo_admin_origin');
     }
   };
 
+  // 사용자별 성향 자가진단 답변 동기화
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const uId = currentUser?.userId;
+      if (uId) {
+        const stored = localStorage.getItem(`nadosolo_survey_${uId}`);
+        if (stored) {
+          try {
+            setSurveyAnswers(JSON.parse(stored));
+            return;
+          } catch (e) {
+            console.warn('[LocalStorage] survey parse error:', e);
+          }
+        }
+        if (uId === 'user_jisoo' || uId === 'aa' || uId === 'bb') {
+          setSurveyAnswers({
+            Q1_COMM_PACE: 'Q1_A',
+            Q2_SILENCE_COPING: 'Q2_B',
+            Q3_DINING_VIBE: 'Q3_A',
+            Q4_SOLO_PURPOSE: 'Q4_A',
+            Q5_FEEDBACK_STYLE: 'Q5_B',
+          });
+          return;
+        }
+        setSurveyAnswers({});
+      } else {
+        setSurveyAnswers({});
+      }
+    }
+  }, [currentUser?.userId]);
+
   const setSurveyAnswer = (questionId: string, optionId: string) => {
-    setSurveyAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+    setSurveyAnswers((prev) => {
+      const next = { ...prev, [questionId]: optionId };
+      if (typeof window !== 'undefined') {
+        const uId = currentUser?.userId ?? 'guest';
+        localStorage.setItem(`nadosolo_survey_${uId}`, JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
+  const saveSurveyAnswers = (answers: Record<string, string>) => {
+    setSurveyAnswers(answers);
+    if (typeof window !== 'undefined') {
+      const uId = currentUser?.userId ?? 'guest';
+      localStorage.setItem(`nadosolo_survey_${uId}`, JSON.stringify(answers));
+    }
+    if (currentUser?.userId) {
+      nadoSoloSupabaseService.upsertProfile({
+        id: currentUser.userId,
+        handle: currentUser.handle,
+        nickname: currentUser.nickname,
+        gender: currentUser.gender,
+        birth_year: currentUser.birthYear,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        job_title: currentUser.jobTitle,
+        dietary: dietary,
+        interests: interests,
+        self_domain_scores: selfDomainScores100,
+        survey_answers: answers,
+      });
+    }
   };
 
   const toggleInterest = (tag: InterestTag) => {
@@ -726,8 +895,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     subElementId: string,
     scores: Record<CriterionCode, number>
   ) => {
-    const fromId = currentUser?.userId ?? 'U01';
-    const fromNick = currentUser?.nickname ?? '지수';
+    const fromId = currentUser?.userId ?? 'USER_AA';
+    const fromNick = currentUser?.nickname ?? '김에이';
     const fromGen = currentUser?.gender ?? 'F';
 
     setMatrixEvaluations((prev) => {
@@ -772,8 +941,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     (targetUserId: string): PersonalDossierReport => {
       const targetProfile = participantsPool.find((p) => p.userId === targetUserId);
       const targetGender: Gender =
-        targetUserId === 'U01'
-          ? currentUser?.gender ?? 'F'
+        targetUserId === currentUser?.userId
+          ? currentUser.gender
           : targetProfile?.gender ?? 'M';
 
       return EvaluationMatrixEngine.buildPersonalDossier({
@@ -799,7 +968,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const myPersonalDossier = useMemo(() => {
     return EvaluationMatrixEngine.buildPersonalDossier({
-      userId: 'U01',
+      userId: currentUser?.userId ?? 'USER_AA',
       userGender: currentUser?.gender ?? 'F',
       majorDomains,
       subElements,
@@ -824,8 +993,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       recordId: 'REC_SAMPLE_01',
       sessionId: 'SES_BUSAN_01',
       moduleId: 'MOD_TRACK_3040',
-      fromUserId: 'U02',
-      toUserId: 'U01',
+      fromUserId: 'USER_BB',
+      toUserId: 'USER_AA',
       elementId: 'EL_3040_LISTEN',
       scoreStep: 5,
       createdAt: new Date().toISOString(),
@@ -834,8 +1003,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       recordId: 'REC_SAMPLE_02',
       sessionId: 'SES_BUSAN_01',
       moduleId: 'MOD_TRACK_3040',
-      fromUserId: 'U03',
-      toUserId: 'U01',
+      fromUserId: 'USER_BB',
+      toUserId: 'USER_AA',
       elementId: 'EL_3040_QUESTION',
       scoreStep: 4,
       createdAt: new Date().toISOString(),
@@ -844,8 +1013,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       recordId: 'REC_SAMPLE_03',
       sessionId: 'SES_BUSAN_01',
       moduleId: 'MOD_TRACK_3040',
-      fromUserId: 'U04',
-      toUserId: 'U01',
+      fromUserId: 'USER_BB',
+      toUserId: 'USER_AA',
       elementId: 'EL_3040_SENSE',
       scoreStep: 5,
       createdAt: new Date().toISOString(),
@@ -854,15 +1023,15 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       recordId: 'REC_SAMPLE_04',
       sessionId: 'SES_BUSAN_01',
       moduleId: 'MOD_THEME_DINING',
-      fromUserId: 'U05',
-      toUserId: 'U01',
+      fromUserId: 'USER_BB',
+      toUserId: 'USER_AA',
       elementId: 'EL_DIN_NEAT',
       scoreStep: 5,
       createdAt: new Date().toISOString(),
     },
   ]);
 
-  const [completedEvalUserIds, setCompletedEvalUserIds] = useState<string[]>(['U02', 'U03', 'U04', 'U05', 'U06']);
+  const [completedEvalUserIds, setCompletedEvalUserIds] = useState<string[]>(['USER_BB']);
 
   const submitParticipantObservation = (
     toUserId: string,
@@ -870,7 +1039,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     elementId: string,
     scoreStep: 1 | 2 | 3 | 4 | 5
   ) => {
-    const fromId = currentUser?.userId ?? 'U01';
+    const fromId = currentUser?.userId ?? 'USER_AA';
     const nextRec: ParticipantObservationRecord = {
       recordId: `REC_OBS_${Date.now()}`,
       sessionId: 'SES_BUSAN_01',
@@ -899,7 +1068,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   };
 
   const personalSocialDossier = useMemo(() => {
-    const myId = currentUser?.userId ?? 'U01';
+    const myId = currentUser?.userId ?? 'USER_AA';
     return CoreRunner.generateDossier(
       myId,
       'SES_BUSAN_01',
@@ -1038,7 +1207,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   // ② MirrorEngine
   const mirrorDiagnosis = useMemo(
-    () => MirrorEngine.analyzeMirror('U01', selfVector, peerFeedbacks),
+    () => MirrorEngine.analyzeMirror('USER_AA', selfVector, peerFeedbacks),
     [selfVector, peerFeedbacks]
   );
 
@@ -1068,7 +1237,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const coachingReport = useMemo(
     () =>
       GrowthCoachingEngine.generateCoachingReport(
-        'U01',
+        'USER_AA',
         INITIAL_GROWTH_SNAPSHOTS,
         mirrorDiagnosis
       ),
@@ -1096,7 +1265,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const matchedTables = useMemo(() => {
     const updatedPool = participantsPool.map((p) => {
-      if (p.userId === 'U01') {
+      if (p.userId === 'USER_AA') {
         return {
           ...p,
           nickname: currentUser?.nickname ?? p.nickname,
@@ -1139,8 +1308,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const triggerNoShowAndStandbyRecovery = () => {
     if (!activeTable) return;
     const dropped =
-      activeTable.participants.find((p) => p.userId === 'U03') ??
-      activeTable.participants[2];
+      activeTable.participants.find((p) => p.userId === 'USER_BB') ??
+      activeTable.participants[1];
     if (!dropped) return;
     const replacement = VenueAndYieldEngine.findStandbyReplacement(
       activeTable,
@@ -1193,24 +1362,17 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       const votes: SecretVote[] = [
         {
           sessionId,
-          fromUserId: 'U01',
+          fromUserId: 'USER_AA',
           toUserId: myVoteTargetId,
           category: myVoteCategory,
           submittedAt: '2026-11-06T21:00:00Z',
         },
         {
           sessionId,
-          fromUserId: 'U04',
-          toUserId: 'U01',
+          fromUserId: 'USER_BB',
+          toUserId: 'USER_AA',
           category: 'ROMANCE',
           submittedAt: '2026-11-06T21:01:00Z',
-        },
-        {
-          sessionId,
-          fromUserId: 'U05',
-          toUserId: 'U01',
-          category: 'DINING_FRIEND',
-          submittedAt: '2026-11-06T21:02:00Z',
         },
       ];
 
@@ -1224,7 +1386,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         ? '2026-11-07T00:05:00Z'
         : '2026-11-06T21:15:00Z';
       const visible = MutualMatchEngine.getVisibleMatchesForUser(
-        'U01',
+        'USER_AA',
         all,
         nowIso
       );
@@ -1239,7 +1401,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       return {
         allMutualMatches: all,
         visibleMatchesForMe: visible,
-        isVipUnlockedForMe: vipList.includes('U01'),
+        isVipUnlockedForMe: vipList.includes('USER_AA'),
       };
     }, [
       activeTable,
@@ -1257,7 +1419,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     const newFb: PeerMirrorFeedback = {
       sessionId: `SES_SIM_${peerFeedbacks.length + 1}`,
       fromUserId: `PEER_${peerFeedbacks.length + 1}`,
-      toUserId: 'U01',
+      toUserId: 'USER_AA',
       observedTraitHint: {
         talkLead: observedTalkLead,
         extroversion: 0.8,
@@ -1380,12 +1542,41 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     setCmsMirrorQuotes((prev) => prev.filter((q) => q.id !== id));
   };
 
+  // [동적 프로세스 게이트 엔진] 사용자 진행 상태 및 선행 진입 조건 평가
+  const userSnapshot: UserContextSnapshot = useMemo(
+    () => ({
+      user: currentUser,
+      hasSurveyAnswers: Object.keys(surveyAnswers).length >= 4,
+      isSeatReserved,
+      hasCompletedObservationCount: completedEvalUserIds.length,
+      totalObservationPeersCount: 5,
+    }),
+    [currentUser, surveyAnswers, isSeatReserved, completedEvalUserIds]
+  );
+
+  const userJourney = useMemo(
+    () => evaluateFullJourney(userSnapshot),
+    [userSnapshot]
+  );
+
+  const evaluateGate = useCallback(
+    (stepId: ProcessStepId) => evaluateProcessGate(stepId, userSnapshot),
+    [userSnapshot]
+  );
+
   const contextValue = useMemo<NadoSoloEngineContextValue>(
     () => ({
       currentUser,
+      adminOriginUser,
+      isSessionReady,
+      isImpersonating,
+      startAdminImpersonation,
+      stopAdminImpersonation,
       loginAsUser,
       updateCurrentUser,
       logout,
+      userJourney,
+      evaluateGate,
       lang,
       setLang,
       selectedCity,
@@ -1400,6 +1591,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       toggleInterest,
       surveyAnswers,
       setSurveyAnswer,
+      saveSurveyAnswers,
       isSeatReserved,
       setIsSeatReserved,
       processModules,
@@ -1498,6 +1690,13 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       currentUser,
+      adminOriginUser,
+      isSessionReady,
+      isImpersonating,
+      startAdminImpersonation,
+      stopAdminImpersonation,
+      userJourney,
+      evaluateGate,
       lang,
       selectedCity,
       selectedMode,

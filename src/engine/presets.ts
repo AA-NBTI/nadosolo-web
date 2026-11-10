@@ -2,70 +2,87 @@ import { PartnerVenue, PlaybookTemplate, SurveyQuestion } from './types';
 
 export const DEFAULT_SURVEY_QUESTIONS: SurveyQuestion[] = [
   {
-    id: 'Q1_WEEKEND',
-    category: 'lifestyle',
-    questionText: '혼자 보내는 주말, 가장 이상적인 풍경은?',
+    id: 'Q1_COMM_PACE',
+    category: 'personality',
+    questionText: '처음 만난 6인의 식탁에서 선호하는 나의 대화 템포는?',
     options: [
       {
         id: 'Q1_A',
-        label: '집에서 넷플릭스 보며 밀린 요리나 휴식 즐기기',
-        weights: { lifestyleActive: -0.25, extroversion: -0.15 },
-      },
-      {
-        id: 'Q1_B',
-        label: '성수동 팝업스토어나 동네 핫플 맛집 탐방하기',
-        weights: { lifestyleActive: 0.25, extroversion: 0.2 },
-      },
-    ],
-  },
-  {
-    id: 'Q2_TALK_STYLE',
-    category: 'personality',
-    questionText: '처음 만난 사람들과의 식사 자리에서 나는?',
-    options: [
-      {
-        id: 'Q2_A',
-        label: '질문을 던지고 분위기를 먼저 이끄는 편이다',
+        label: '질문을 먼저 건네며 테이블의 물꼬를 트는 화자형',
         weights: { talkLead: 0.3, extroversion: 0.25 },
       },
       {
-        id: 'Q2_B',
-        label: '상대방의 이야기를 잘 들어주고 리액션하는 편이다',
+        id: 'Q1_B',
+        label: '상대방의 이야기를 깊이 듣고 차분히 호응하는 청자형',
         weights: { talkLead: -0.3, extroversion: -0.1 },
       },
     ],
   },
   {
-    id: 'Q3_ALCOHOL',
+    id: 'Q2_SILENCE_COPING',
+    category: 'personality',
+    questionText: '대화 중 잠시 정적이 흘렀을 때 내가 느끼는 태도는?',
+    options: [
+      {
+        id: 'Q2_A',
+        label: '정적도 식사의 자연스러운 여백으로 편안하게 받아들인다',
+        weights: { talkLead: -0.2, extroversion: -0.15 },
+      },
+      {
+        id: 'Q2_B',
+        label: '새로운 화제나 가벼운 질문을 던져 분위기를 부드럽게 환기한다',
+        weights: { talkLead: 0.25, extroversion: 0.2 },
+      },
+    ],
+  },
+  {
+    id: 'Q3_DINING_VIBE',
     category: 'dining',
-    questionText: '금요일 저녁 식사 자리에서 선호하는 주류 스타일은?',
+    questionText: '금요일 저녁 식사 자리에서 가장 편안한 주류 페어링은?',
     options: [
       {
         id: 'Q3_A',
-        label: '와인이나 하이볼을 곁들이며 기분 좋게 마시는 걸 좋아한다',
+        label: '와인이나 하이볼을 곁들이며 기분 좋은 취기를 즐긴다',
         weights: { alcoholPreference: 0.3 },
       },
       {
         id: 'Q3_B',
-        label: '논알콜 음료나 가볍게 한 잔 정도만 마신다',
+        label: '논알콜 음료나 차를 마시며 맑은 정신으로 대화에 집중한다',
         weights: { alcoholPreference: -0.3 },
       },
     ],
   },
   {
-    id: 'Q4_INTENT',
-    category: 'romance',
-    questionText: '이번 나도솔로 다이닝에서 가장 기대하는 것은?',
+    id: 'Q4_SOLO_PURPOSE',
+    category: 'lifestyle',
+    questionText: '6인의 프라이빗 소셜 다이닝에서 내가 가장 얻고 싶은 것은?',
     options: [
       {
         id: 'Q4_A',
-        label: '설레는 이성과의 자연스러운 만남과 로맨스',
-        weights: { romanceIntent: 0.35 },
+        label: '타인의 시선을 통해 나의 소통 매너와 첫인상을 객관적으로 발견하기',
+        weights: { talkLead: 0.15, extroversion: 0.1, lifestyleActive: 0.1 },
       },
       {
         id: 'Q4_B',
-        label: '성별·나이 무관! 취향과 대화가 통하는 동네 친구/크루',
-        weights: { romanceIntent: -0.25 },
+        label: '일상의 답답함과 역할에서 벗어나 새로운 사람들과 지적 환기하기',
+        weights: { lifestyleActive: 0.25, extroversion: 0.15, romanceIntent: 0.1 },
+      },
+    ],
+  },
+  {
+    id: 'Q5_FEEDBACK_STYLE',
+    category: 'romance',
+    questionText: '모임 종료 후 동석자들에게 기대하는 피드백의 온도는?',
+    options: [
+      {
+        id: 'Q5_A',
+        label: '성장을 위해 솔직하고 날카로운 객관적 관찰 리포트',
+        weights: { talkLead: 0.1, romanceIntent: -0.1 },
+      },
+      {
+        id: 'Q5_B',
+        label: '나의 고유한 매력과 장점을 짚어주는 따뜻한 지지와 공감',
+        weights: { talkLead: -0.1, romanceIntent: 0.25 },
       },
     ],
   },

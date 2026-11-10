@@ -32,10 +32,11 @@ function runSimulationV2() {
   // 주인공 U01(성수요리왕): 스스로는 대화 주도성(talkLead: 0.35)을 낮게 과소평가했으나,
   // 실제 모임 동석자들은 따뜻하게 질문을 잘 던진다고 높게(0.85) 평가한 케이스 + 스타일링 코칭 포인트 보유
   const u01SelfVector = ProfilingEngine.computeSelfVector(DEFAULT_SURVEY_QUESTIONS, [
-    { questionId: 'Q1_WEEKEND', selectedOptionId: 'Q1_A' },
-    { questionId: 'Q2_TALK_STYLE', selectedOptionId: 'Q2_B' }, // 스스로 경청형/소극적이라 응답
-    { questionId: 'Q3_ALCOHOL', selectedOptionId: 'Q3_A' },
-    { questionId: 'Q4_INTENT', selectedOptionId: 'Q4_A' },
+    { questionId: 'Q1_COMM_PACE', selectedOptionId: 'Q1_B' }, // 스스로 경청형/소극적이라 응답
+    { questionId: 'Q2_SILENCE_COPING', selectedOptionId: 'Q2_A' },
+    { questionId: 'Q3_DINING_VIBE', selectedOptionId: 'Q3_A' },
+    { questionId: 'Q4_SOLO_PURPOSE', selectedOptionId: 'Q4_A' },
+    { questionId: 'Q5_FEEDBACK_STYLE', selectedOptionId: 'Q5_B' },
   ]);
 
   const pastFeedbacksForU01: PeerMirrorFeedback[] = [

@@ -46,6 +46,151 @@ export interface PageStructureMap {
 // ============================================================================
 export const SITE_PAGE_STRUCTURES: PageStructureMap[] = [
   // --------------------------------------------------------------------------
+  // 0. 관리자 대시보드 (/admin) - 최고관리자 전용 규격
+  // --------------------------------------------------------------------------
+  {
+    pageId: 'PAGE_ADMIN',
+    pageTitle: '관리자 대시보드',
+    routePath: '/admin',
+    desc: '관리자 캔버스 규격, 폭, 사이드바, 타이포그래피, 모노크롬 테마',
+    sections: [
+      {
+        secId: 'SEC-ADMIN-01',
+        secNumber: '01',
+        categoryName: '화면',
+        title: '영역',
+        desc: '관리자 화면 가로 폭 및 패딩',
+        componentPath: 'src/app/admin/page.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-01-A',
+            officialName: '관리자-컨테이너폭',
+            role: '전체 화면 최대 너비',
+            selector: 'max-w-[1600px] (1,600px)',
+            ruleNote: '지시 예: "폭 100 늘려", "폭 1400으로"',
+            currentText: '1,600px (가용 본문: 약 1,224px)',
+          },
+          {
+            id: 'SEC-ADMIN-01-B',
+            officialName: '관리자-사이드바폭',
+            role: '좌측 네비게이션 너비',
+            selector: 'w-72 (288px)',
+            ruleNote: '지시 예: "사이드바 폭 300으로"',
+            currentText: '288px (18rem)',
+          },
+          {
+            id: 'SEC-ADMIN-01-C',
+            officialName: '관리자-가용본문폭',
+            role: '우측 메인 작업 영역 너비',
+            selector: '약 1,224px (1600px - 여백64px - 사이드바288px - 갭24px)',
+            ruleNote: '컨테이너 및 사이드바 폭에 연동',
+            currentText: '1,224px (실가용 폭)',
+          },
+          {
+            id: 'SEC-ADMIN-01-D',
+            officialName: '관리자-외곽패딩',
+            role: '화면 좌우 여백',
+            selector: 'px-4 sm:px-6 lg:px-8 (좌우 각 32px)',
+            ruleNote: '지시 예: "여백 좁혀", "패딩 16으로"',
+            currentText: '좌우 32px (총 64px)',
+          },
+        ],
+      },
+      {
+        secId: 'SEC-ADMIN-02',
+        secNumber: '02',
+        categoryName: '폰트',
+        title: '타이포',
+        desc: '대시보드 10pt 미만 금지 헌법 준수 규격',
+        componentPath: 'src/app/admin/page.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-02-A',
+            officialName: '관리자-대분류폰트',
+            role: '사이드바 그룹 헤더 폰트',
+            selector: 'text-[15px] font-medium (15px / 약 11.25pt)',
+            ruleNote: '지시 예: "대분류 폰트 1줄여", "대분류 폰트 16으로"',
+            currentText: '15px (Medium 500)',
+          },
+          {
+            id: 'SEC-ADMIN-02-B',
+            officialName: '관리자-중분류폰트',
+            role: '사이드바 세부 메뉴 탭 폰트',
+            selector: 'text-sm font-normal (14px / 약 10.5pt)',
+            ruleNote: '지시 예: "중분류 폰트 1줄여", "중분류 폰트 15로"',
+            currentText: '14px (Normal 400)',
+          },
+          {
+            id: 'SEC-ADMIN-02-C',
+            officialName: '관리자-본문폰트',
+            role: '리포트 및 표 본문 텍스트',
+            selector: 'text-sm font-light (14px / 약 10.5pt)',
+            ruleNote: '지시 예: "본문 폰트 1키워", "본문 폰트 15로"',
+            currentText: '14px (Pretendard)',
+          },
+          {
+            id: 'SEC-ADMIN-02-D',
+            officialName: '관리자-타이틀폰트',
+            role: '섹션 헤더 및 화면 대제목',
+            selector: 'text-2xl font-serif-editorial (24px / 약 18pt)',
+            ruleNote: '지시 예: "타이틀 폰트 20으로"',
+            currentText: '24px (Editorial)',
+          },
+          {
+            id: 'SEC-ADMIN-02-E',
+            officialName: '관리자-최소폰트하한',
+            role: '헌법 제4조 절대 하한선',
+            selector: 'text-sm (14px / 약 10.5pt, 10pt 미만 영구 금지)',
+            ruleNote: '전역 강제 기준 (배지·라벨 포함)',
+            currentText: '14px (10.5pt 준수)',
+          },
+        ],
+      },
+      {
+        secId: 'SEC-ADMIN-03',
+        secNumber: '03',
+        categoryName: '컬러',
+        title: '모노크롬',
+        desc: '헌법 제5조 모노크롬 철칙 준수',
+        componentPath: 'src/app/admin/page.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-03-A',
+            officialName: '관리자-배경컬러',
+            role: '대시보드 메인 캔버스 배경색',
+            selector: 'bg-[#07080a] (다크 흑색)',
+            ruleNote: '무채색 모노크롬',
+            currentText: '#07080a',
+          },
+          {
+            id: 'SEC-ADMIN-03-B',
+            officialName: '관리자-카드컬러',
+            role: '패널 및 박스 표면색',
+            selector: 'bg-[#0c0d12] (Zinc Dark)',
+            ruleNote: '무채색 모노크롬',
+            currentText: '#0c0d12',
+          },
+          {
+            id: 'SEC-ADMIN-03-C',
+            officialName: '관리자-보더컬러',
+            role: '경계선 및 분할선 투명 라인',
+            selector: 'border-white/10 (10% 투명 백색)',
+            ruleNote: '유색 보더 일절 금지',
+            currentText: 'rgba(255,255,255,0.10)',
+          },
+          {
+            id: 'SEC-ADMIN-03-D',
+            officialName: '관리자-포인트컬러',
+            role: '유일 허용 브랜드 액센트',
+            selector: 'text-[#f04f74] / bg-[#f04f74]',
+            ruleNote: '상태 도트 및 활성 탭에만 절제 적용',
+            currentText: '#f04f74 (딥 핑크로즈)',
+          },
+        ],
+      },
+    ],
+  },
+  // --------------------------------------------------------------------------
   // 1. 메인 구매 퍼널 홈 (/)
   // --------------------------------------------------------------------------
   {
@@ -576,7 +721,246 @@ export const SITE_PAGE_STRUCTURES: PageStructureMap[] = [
       },
     ],
   },
+  // --------------------------------------------------------------------------
+  // 5-1. 솔로 소통 성향 자가진단 (/test)
+  // --------------------------------------------------------------------------
+  {
+    pageId: 'PAGE_TEST',
+    pageTitle: '솔로 소통 성향 자가진단',
+    routePath: '/test',
+    desc: '5개 문항 기반 소통 템포, 식탁 취향, 만남 목적 진단 및 아키타입 기준선 측정',
+    sections: [
+      {
+        secId: 'SEC-TEST-01',
+        secNumber: '01',
+        categoryName: '인터랙티브 진단 카드',
+        title: '소통 성향 5문항 카드 컨테이너',
+        desc: '모바일 반응형 1문항 1카드 선택지 및 진행도 프로그레스',
+        componentPath: 'src/app/test/page.tsx',
+        items: [
+          {
+            id: 'SEC-TEST-01-A',
+            officialName: '진단-진행바',
+            role: '문항 진행률 게이지',
+            selector: 'div.h-1.bg-white > div.bg-[#f04f74]',
+            ruleNote: '1문항 응답 시마다 폭 20% 증가',
+            currentText: 'QUESTION 01 / 05',
+          },
+          {
+            id: 'SEC-TEST-01-B',
+            officialName: '진단-선택카드',
+            role: 'A/B 선택지 카드 버튼',
+            selector: 'button.w-full.text-left',
+            ruleNote: '선택 시 #f04f74 테두리 및 180ms 후 다음 문항 자동 전환',
+            currentText: '질문을 먼저 건네며 테이블의 물꼬를 트는 화자형',
+          },
+          {
+            id: 'SEC-TEST-01-C',
+            officialName: '진단-결과아키타입',
+            role: '진단 완료 시 산출된 소통 유형 및 4대 단일명사 앵커 뱃지',
+            selector: 'h3.font-serif-editorial + div.anchors',
+            ruleNote: '단일 명사 헌법 준수 앵커 표출',
+            currentText: '여백을 품은 경청자 (#경청, #여백, #시선, #품격)',
+          },
+        ],
+      },
+    ],
+  },
+  // --------------------------------------------------------------------------
+  // 6. 관리자 파이프라인 관제 대시보드 (/admin)
+  // --------------------------------------------------------------------------
+  {
+    pageId: 'PAGE_ADMIN_PIPELINE',
+    pageTitle: '관리자 파이프라인 관제',
+    routePath: '/admin',
+    desc: '매칭 & 다면 관제 파이프라인 6단계 모듈 제어 및 가상 시뮬레이터',
+    sections: [
+      {
+        secId: 'SEC-ADMIN-PIPE-01',
+        secNumber: '01',
+        categoryName: '파이프라인 모듈 리스트',
+        title: '파이프라인 엔진 마스터 리스트 (Pipeline Engine Master List)',
+        desc: '0~6층 파이프라인 모듈 전체를 한눈에 조망하고 클릭 시 상세 진입하는 마스터 뷰',
+        componentPath: 'src/components/admin/AdminPipelineEngineManager.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-PIPE-01-A',
+            officialName: '어드민-모듈마스터리스트',
+            role: '6개 파이프라인 모듈 카드 리스트 (클릭 시 상세 진입)',
+            selector: 'div.cursor-pointer.group > h4',
+            ruleNote: '모듈별 사용자 노출 ON/OFF 뱃지, 엔진 가동 상태, 규칙 수 표기',
+            currentText: '1~6층 모듈 마스터 리스트 (클릭 시 세부 규칙 설정 화면 진입)',
+          },
+          {
+            id: 'SEC-ADMIN-PIPE-01-B',
+            officialName: '어드민-시뮬레이터실행버튼',
+            role: '가상 120명 합성 데이터 매칭 시뮬레이터 원클릭 실행',
+            selector: 'button (border-[#f04f74] bg-black/60)',
+            ruleNote: '실행 시 제약 위반 수(0건 목표), 결성 테이블 수, 궁합 지수 즉시 산출',
+            currentText: '가상 120명 시뮬레이션 실행',
+          },
+        ],
+      },
+      {
+        secId: 'SEC-ADMIN-PIPE-02',
+        secNumber: '02',
+        categoryName: '모듈 세부 규칙 제어',
+        title: '모듈 상세 드릴다운 뷰 (Module Detail Drill-down Screen)',
+        desc: '마스터 리스트에서 클릭하여 진입한 모듈의 조건 및 평가 노출 여부 독립 설정 패널',
+        componentPath: 'src/components/admin/AdminPipelineEngineManager.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-PIPE-02-A',
+            officialName: '어드민-사용자노출토글',
+            role: '모듈 및 세부 조건의 사용자 화면 노출/비노출 여부 제어',
+            selector: 'button.flex.items-center.gap-1.5 > span',
+            ruleNote: '노출 ON 시 핑크로즈(#f04f74), 비노출 OFF 시 무채색 텍스트',
+            currentText: '사용자 노출 ON / 비노출 OFF',
+          },
+          {
+            id: 'SEC-ADMIN-PIPE-02-B',
+            officialName: '어드민-하드제약스위치',
+            role: '위반 시 즉시 탈락 하드 제약 여부 토글',
+            selector: 'button (하드 제약 / 일반 기준)',
+            ruleNote: '하드 제약 시 위반 0건 강제 검증 대상 등록',
+            currentText: '하드 제약 (위반 즉시 탈락)',
+          },
+        ],
+      },
+      {
+        secId: 'SEC-ADMIN-EVAL-01',
+        secNumber: '03',
+        categoryName: '평가엔진 도메인 리스트',
+        title: '5대 도메인 × 5대 기준 평가엔진 (Eval Engine Manager)',
+        desc: '5대 도메인 및 5대 기준을 컴팩트 목록으로 먼저 조망하고 클릭 시 세부 슬롯 진입',
+        componentPath: 'src/components/admin/AdminEvalEngineManager.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-EVAL-01-A',
+            officialName: '어드민-도메인마스터리스트',
+            role: '5대 도메인 및 5대 기준 컴팩트 행 목록 (클릭 시 5개 슬롯 상세 진입)',
+            selector: 'div.cursor-pointer.group > div > span',
+            ruleNote: '도메인별 활성 슬롯 수(5/5) 및 100점 환산 표기',
+            currentText: '5대 도메인 컴팩트 목록',
+          },
+          {
+            id: 'SEC-ADMIN-EVAL-01-B',
+            officialName: '어드민-슬롯평가토글',
+            role: '도메인 내 세부 단일명사 슬롯 평가 포함/제외 제어',
+            selector: 'button (평가 포함 ON / 평가 제외 OFF)',
+            ruleNote: '단일 명사 1요소 원칙 준수',
+            currentText: '평가 포함 ON / 평가 제외 OFF',
+          },
+        ],
+      },
+      {
+        secId: 'SEC-ADMIN-SINGLE-01',
+        secNumber: '04',
+        categoryName: '시스템 테스트',
+        title: '1인 테스트',
+        desc: '1인 단위 질문 모듈 테스트 및 매칭 검증',
+        componentPath: 'src/components/admin/AdminSingleAuditReportManager.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-SINGLE-01-A',
+            officialName: '어드민-1인테스트리스트',
+            role: '등록된 1인 테스트 케이스 비교 체크 컴팩트 목록',
+            selector: 'div.cursor-pointer.group > div > span',
+            ruleNote: '인적사항, 목적, 8옥탄트 성향(W/D), 추정 궁합 점수 표기',
+            currentText: '1인 테스트 대상자 비교 목록',
+          },
+          {
+            id: 'SEC-ADMIN-SINGLE-01-B',
+            officialName: '어드민-매칭시뮬레이션보고서',
+            role: '1인의 1~6층 모듈별 점수 및 최종 6인 테이블 룸 편성 보고서',
+            selector: 'div.matching-report-panel',
+            ruleNote: '동석자 5인 명단, 1:1 궁합도, 하드 제약 안전성 검증 결과',
+            currentText: '최종 6인 테이블 매칭 및 동석자 궁합 보고서',
+          },
+        ],
+      },
+      {
+        secId: 'SEC-ADMIN-TEST-REPORT-01',
+        secNumber: '05',
+        categoryName: '시스템 점검',
+        title: '프로세스 점검',
+        desc: '회원 자격증명(aa, bb, admin/aa1111) 및 6단계 프로세스 검증',
+        componentPath: 'src/components/admin/AdminProcessTestReportManager.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-TEST-REPORT-01-A',
+            officialName: '어드민-검증계정리스트',
+            role: 'aa, bb, admin 계정 아이디, 핸들, 비밀번호(aa1111) 자격증명 컴팩트 목록',
+            selector: 'div.border.border-white\\/10 > div',
+            ruleNote: '클릭 시 하위 상세(이메일, 직무, 역할, 진입경로) 펼침',
+            currentText: '검증 회원 자격증명 목록',
+          },
+          {
+            id: 'SEC-ADMIN-TEST-REPORT-01-B',
+            officialName: '어드민-프로세스동선보고서',
+            role: 'P01~P10 6개 핵심 프로세스 검증 결과 및 브라우저 재현 가이드',
+            selector: 'div.border.border-white\\/10 > div',
+            ruleNote: '리스트 우선 조망 ➔ 클릭 시 입출력 및 동선 재현 가이드 노출',
+            currentText: '프로세스별 검증 상태 및 동선 단계',
+          },
+          {
+            id: 'SEC-ADMIN-TEST-REPORT-01-C',
+            officialName: '어드민-아키텍처변경대조표',
+            role: 'Before(기존 아키텍처) vs After(개편 아키텍처) 세부 대조 및 헌법 근거/영향도 지표',
+            selector: 'div.border.border-white\\/10 > div.transition-colors',
+            ruleNote: 'Before(기존 문제점) vs After(해결책) 2열 대조 카드 및 헌법 조항 명시',
+            currentText: '아키텍처 변경 비교 (Before vs After) 대조표',
+          },
+        ],
+      },
+      {
+        secId: 'SEC-ADMIN-AUDIT-REPORT-01',
+        secNumber: '06',
+        categoryName: '보고서',
+        title: '프로세스 점검 보고 & 관리자 최종 승인',
+        desc: '6단계 프로세스 검증 항목별 테스트 결과 및 관리자 서명 승인 보드',
+        componentPath: 'src/components/admin/AdminAuditReportManager.tsx',
+        items: [
+          {
+            id: 'SEC-ADMIN-AUDIT-01-A',
+            officialName: '보고-계획로드맵',
+            role: '6단계 프로세스 진행 현황 및 승인율 조망',
+            selector: 'div.grid.grid-cols-1.sm:grid-cols-2.lg:grid-cols-3',
+            ruleNote: '단계별 승인 건수 및 완료 상태 뱃지 렌더링',
+            currentText: '계획 및 단계별 승인율',
+          },
+          {
+            id: 'SEC-ADMIN-AUDIT-01-B',
+            officialName: '보고-체크리스트',
+            role: '1줄 컴팩트 항목 목록 ➔ 클릭 시 검증 시나리오 및 승인 버튼 노출',
+            selector: 'div.border.border-white\\/10 > div',
+            ruleNote: '리스트 우선 조망 철칙 준수, 단일 명사 필터 적용',
+            currentText: '점검 항목 세부 내역',
+          },
+          {
+            id: 'SEC-ADMIN-AUDIT-01-C',
+            officialName: '보고-최종승인보드',
+            role: '관리자 최종 승인 판정 및 서명 현황 보고서',
+            selector: 'div.p-5.border.border-white\\/15',
+            ruleNote: '가동 승인 상태 및 승인일시 자동 기록',
+            currentText: '나도솔로 정식 서비스 가동 승인 보고서',
+          },
+        ],
+      },
+    ],
+  },
 ];
+
+const PAGE_SHORT_TITLES: Record<string, string> = {
+  PAGE_ADMIN: '관리자',
+  PAGE_MAIN: '메인',
+  PAGE_DINING: '다이닝',
+  PAGE_SHOWCASE: '쇼케이스',
+  PAGE_GUIDE: '가이드',
+  PAGE_DASHBOARD: '대시보드',
+  PAGE_TEST: '진단',
+  PAGE_ADMIN_PIPELINE: '파이프라인',
+};
 
 interface AdminDesignSystemInspectorProps {
   theme?: 'light' | 'dark';
@@ -587,16 +971,18 @@ export default function AdminDesignSystemInspector({
 }: AdminDesignSystemInspectorProps) {
   const isDark = theme === 'dark';
 
-  // [페이지 선택기] 기본값: 메인 구매 홈
-  const [selectedPageId, setSelectedPageId] = useState<string>('PAGE_MAIN');
+  // [페이지 선택기] 기본값: 관리자 대시보드
+  const [selectedPageId, setSelectedPageId] = useState<string>('PAGE_ADMIN');
+
+  // 개별 규격 항목 펼침 상태 (기본: 모두 닫힘)
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
 
   // 현재 선택된 페이지 구조 맵
   const currentPage =
     SITE_PAGE_STRUCTURES.find((p) => p.pageId === selectedPageId) ||
     SITE_PAGE_STRUCTURES[0];
 
-  // [사용자 요청 1 핵심] 대분류 섹션 기본 닫힘(Collapsed) 처리!
-  // 초기 상태: 모든 대분류의 secId를 collapsedSections에 넣어 기본 '접힘' 상태로 시작!
+  // 대분류 섹션 기본 닫힘(Collapsed) 처리
   const [collapsedSections, setCollapsedSections] = useState<string[]>(() =>
     currentPage.sections.map((s) => s.secId)
   );
@@ -606,6 +992,7 @@ export default function AdminDesignSystemInspector({
   // 페이지 변경 시 해당 페이지의 모든 섹션을 기본 닫힘으로 초기화
   const handleSelectPage = (pageId: string) => {
     setSelectedPageId(pageId);
+    setExpandedItemId(null);
     const targetPage = SITE_PAGE_STRUCTURES.find((p) => p.pageId === pageId);
     if (targetPage) {
       setCollapsedSections(targetPage.sections.map((s) => s.secId));
@@ -624,6 +1011,7 @@ export default function AdminDesignSystemInspector({
   // 전체 섹션 한 번에 접기
   const collapseAll = () => {
     setCollapsedSections(currentPage.sections.map((s) => s.secId));
+    setExpandedItemId(null);
   };
 
   // 전체 섹션 한 번에 펼치기
@@ -643,108 +1031,83 @@ export default function AdminDesignSystemInspector({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* ==============================================================
           1. 상단 인트로 헤더 & 페이지 선택 탭
           ============================================================== */}
       <div
-        className={`p-6 border ${
+        className={`p-5 border ${
           isDark
             ? 'bg-[#0c0d12] border-white/10'
             : 'bg-white border-zinc-200 shadow-sm'
         }`}
       >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-white/10">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-none text-[10px] font-mono font-bold bg-transparent text-[#f04f74] border border-[#f04f74]/60">
-                PAGE ARCHITECTURE DICTIONARY
-              </span>
-              <span
-                className={`text-[11px] font-mono ${
-                  isDark ? 'text-zinc-400' : 'text-zinc-500'
-                }`}
-              >
-                총 {SITE_PAGE_STRUCTURES.length}개 페이지 •{' '}
-                {currentPage.sections.length}대 분류 • {totalItemsCount}개 공식
-                요소
-              </span>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
             <h2
-              className={`font-serif-editorial text-2xl font-normal mt-1 ${
+              className={`font-mono text-xl font-bold tracking-tight ${
                 isDark ? 'text-white' : 'text-zinc-900'
               }`}
             >
-              사이트 화면 구조 및 공식 소통 명칭 사전
+              디자인
             </h2>
-            <p
-              className={`text-xs mt-1 font-light leading-relaxed ${
-                isDark ? 'text-zinc-400' : 'text-zinc-600'
+            <span
+              className={`text-sm font-mono ${
+                isDark ? 'text-zinc-400' : 'text-zinc-500'
               }`}
             >
-              사용자와 AI 간의 소통 오류를 원천 차단하기 위해 화면 영역을{' '}
-              <strong>[대분류 ➔ 중분류 ➔ 소분류]</strong>로 표준화한 공식
-              사전입니다. 각 대분류를 클릭하면 세부 항목이 펼쳐집니다.
-            </p>
+              {totalItemsCount}건
+            </span>
           </div>
 
-          {/* 전체 접기/펼치기 원클릭 액션 버튼 */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={collapseAll}
-              className={`px-3 py-1.5 border text-xs font-mono transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 border text-sm font-mono transition-colors cursor-pointer ${
                 isDark
                   ? 'border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300'
                   : 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
               }`}
             >
-              전체 접기
+              접기
             </button>
             <button
               type="button"
               onClick={expandAll}
-              className={`px-3 py-1.5 border text-xs font-mono transition-colors cursor-pointer ${
+              className={`px-3 py-1.5 border text-sm font-mono transition-colors cursor-pointer ${
                 isDark
                   ? 'border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300'
                   : 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
               }`}
             >
-              전체 펼치기
+              펼치기
             </button>
           </div>
         </div>
 
-        {/* [페이지 선택 탭 바] 등록된 전 페이지 빠른 전환 */}
-        <div className="pt-4 flex flex-wrap items-center gap-2">
-          <span
-            className={`text-xs font-mono mr-1 ${
-              isDark ? 'text-zinc-400' : 'text-zinc-500'
-            }`}
-          >
-            페이지 선택:
-          </span>
+        {/* [페이지 탭] */}
+        <div className="pt-3.5 flex flex-wrap items-center gap-2">
           {SITE_PAGE_STRUCTURES.map((p) => {
             const isSelected = p.pageId === selectedPageId;
+            const shortTitle = PAGE_SHORT_TITLES[p.pageId] || p.pageTitle;
             return (
               <button
                 key={p.pageId}
                 type="button"
                 onClick={() => handleSelectPage(p.pageId)}
-                className={`px-3 py-1.5 text-xs font-mono transition-all cursor-pointer border ${
+                className={`px-3 py-1.5 text-sm font-mono transition-all cursor-pointer border ${
                   isSelected
                     ? isDark
-                      ? 'border-[#f04f74] bg-[#f04f74]/15 text-[#f04f74] font-bold'
+                      ? 'border-white/40 bg-white/15 text-white font-bold'
                       : 'border-zinc-900 bg-zinc-900 text-white font-bold'
                     : isDark
                     ? 'border-white/10 bg-transparent text-zinc-400 hover:text-white hover:border-white/20'
                     : 'border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-50'
                 }`}
               >
-                <span>{p.pageTitle}</span>
-                <span className="opacity-60 ml-1.5 text-[10px]">
-                  ({p.routePath})
-                </span>
+                {shortTitle}
               </button>
             );
           })}
@@ -752,9 +1115,9 @@ export default function AdminDesignSystemInspector({
       </div>
 
       {/* ==============================================================
-          2. 대분류 아코디언 리스트 (기본 접힘, 클릭 시 펼침)
+          2. 대분류 아코디언 2열 그리드 리스트 (기본 접힘, 클릭 시 펼침)
           ============================================================== */}
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
         {currentPage.sections.map((sec) => {
           const isCollapsed = collapsedSections.includes(sec.secId);
 
@@ -765,48 +1128,38 @@ export default function AdminDesignSystemInspector({
                 isDark
                   ? 'border-white/[0.08] bg-[#0c0d12]'
                   : 'border-zinc-200 bg-white shadow-sm'
-              }`}
+              } ${isCollapsed ? '' : 'col-span-full'}`}
             >
               {/* [대분류 섹션 헤더] 클릭 시 접기/펼치기 */}
               <div
                 onClick={() => toggleSection(sec.secId)}
-                className={`p-4 sm:p-5 flex items-center justify-between cursor-pointer select-none border-b transition-colors ${
+                className={`p-3.5 flex items-center justify-between cursor-pointer select-none transition-colors ${
                   isDark
                     ? isCollapsed
-                      ? 'border-transparent bg-transparent hover:bg-white/[0.02]'
-                      : 'border-white/10 bg-white/[0.03]'
+                      ? 'bg-transparent hover:bg-white/[0.02]'
+                      : 'border-b border-white/10 bg-white/[0.03]'
                     : isCollapsed
-                    ? 'border-transparent bg-white hover:bg-zinc-50'
-                    : 'border-zinc-200 bg-zinc-50'
+                    ? 'bg-white hover:bg-zinc-50'
+                    : 'border-b border-zinc-200 bg-zinc-50'
                 }`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <span
-                    className={`font-mono text-xs sm:text-sm px-2.5 py-1 font-bold border ${
+                    className={`font-mono text-sm px-2 py-0.5 font-bold border shrink-0 ${
                       isDark
-                        ? 'bg-[#f04f74]/15 border-[#f04f74]/40 text-[#f04f74]'
+                        ? 'bg-white/10 border-white/30 text-white'
                         : 'bg-zinc-900 border-zinc-900 text-white'
                     }`}
                   >
                     {sec.secId}
                   </span>
 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono text-[#f04f74] font-semibold uppercase tracking-wider">
-                        {sec.categoryName}
-                      </span>
-                      <span className="text-zinc-500">•</span>
-                      <span
-                        className={`text-[10px] font-mono ${
-                          isDark ? 'text-zinc-400' : 'text-zinc-500'
-                        }`}
-                      >
-                        {sec.componentPath}
-                      </span>
-                    </div>
+                  <div className="flex items-baseline gap-1.5 truncate">
+                    <span className="text-sm font-mono text-zinc-300 font-semibold uppercase shrink-0">
+                      [{sec.categoryName}]
+                    </span>
                     <h3
-                      className={`text-base sm:text-lg font-bold font-mono mt-0.5 ${
+                      className={`text-sm font-bold font-mono truncate ${
                         isDark ? 'text-white' : 'text-zinc-900'
                       }`}
                     >
@@ -815,7 +1168,7 @@ export default function AdminDesignSystemInspector({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 text-xs font-mono">
+                <div className="flex items-center gap-2.5 text-sm font-mono shrink-0">
                   <span
                     className={`px-2 py-0.5 border ${
                       isDark
@@ -823,148 +1176,179 @@ export default function AdminDesignSystemInspector({
                         : 'bg-zinc-100 border-zinc-200 text-zinc-700'
                     }`}
                   >
-                    {sec.items.length}개 요소
+                    {sec.items.length}건
                   </span>
                   <span
-                    className={`p-1 rounded-none border ${
+                    className={`p-1 border ${
                       isDark
                         ? 'border-white/10 text-zinc-400'
                         : 'border-zinc-200 text-zinc-600'
                     }`}
                   >
                     {isCollapsed ? (
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-3.5 h-3.5" />
                     ) : (
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className="w-3.5 h-3.5" />
                     )}
                   </span>
                 </div>
               </div>
 
-              {/* [중분류/소분류 요소 테이블 리스트] - 펼쳤을 때만 렌더링 */}
+              {/* [하위 요소 리스트] 2열 그리드로 한눈에 조망 ➔ 클릭 시 상세 확장 (Click-to-Reveal) */}
               {!isCollapsed && (
                 <div
-                  className={`divide-y ${
-                    isDark ? 'divide-white/5' : 'divide-zinc-200'
+                  className={`p-2.5 grid grid-cols-1 md:grid-cols-2 gap-2 ${
+                    isDark ? 'bg-black/30' : 'bg-zinc-50'
                   }`}
                 >
-                  {sec.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start transition-colors ${
-                        isDark
-                          ? 'hover:bg-white/[0.015]'
-                          : 'hover:bg-zinc-50/80'
-                      }`}
-                    >
-                      {/* 1열: 소통용 공식 명칭 및 복사 버튼 (3열) */}
-                      <div className="lg:col-span-3 space-y-1.5">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`text-[10px] font-mono px-1.5 py-0.5 border ${
-                              isDark
-                                ? 'bg-zinc-800 text-zinc-300 border-zinc-700'
-                                : 'bg-zinc-200 text-zinc-800 border-zinc-300'
-                            }`}
-                          >
-                            {item.id}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              copyToClipboard(item.officialName, item.id)
-                            }
-                            className={`inline-flex items-center gap-1 text-[11px] font-mono cursor-pointer transition-colors ${
-                              isDark
-                                ? 'text-zinc-400 hover:text-white'
-                                : 'text-zinc-600 hover:text-zinc-900'
-                            }`}
-                            title="공식 명칭 복사하기"
-                          >
-                            {copiedId === item.id ? (
-                              <Check className="w-3 h-3 text-[#f04f74]" />
-                            ) : (
-                              <Copy className="w-3 h-3" />
-                            )}
-                            <span className="text-[10px]">
-                              {copiedId === item.id ? '복사됨' : '복사'}
+                  {sec.items.map((item) => {
+                    const isItemExpanded = expandedItemId === item.id;
+                    return (
+                      <div
+                        key={item.id}
+                        className={`border transition-colors ${
+                          isDark
+                            ? 'border-white/10 bg-[#0c0d12]'
+                            : 'border-zinc-200 bg-white'
+                        } ${
+                          isItemExpanded
+                            ? isDark
+                              ? 'col-span-full border-white/30 bg-white/[0.04]'
+                              : 'col-span-full border-zinc-400 bg-zinc-100'
+                            : isDark
+                            ? 'hover:border-white/20 hover:bg-white/[0.02]'
+                            : 'hover:border-zinc-300 hover:bg-zinc-50'
+                        }`}
+                      >
+                        {/* 1단계: 초간결 1줄 직관 조망 행 */}
+                        <div
+                          onClick={() =>
+                            setExpandedItemId(isItemExpanded ? null : item.id)
+                          }
+                          className="px-3.5 py-2.5 flex items-center justify-between gap-2.5 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm font-mono text-zinc-500 w-3 shrink-0">
+                              {isItemExpanded ? '▾' : '▸'}
                             </span>
-                          </button>
+                            <span
+                              className={`px-1.5 py-0.5 text-sm font-mono border shrink-0 ${
+                                isDark
+                                  ? 'bg-white/10 text-white font-semibold border-white/20'
+                                  : 'bg-zinc-200 text-zinc-800 border-zinc-300'
+                              }`}
+                            >
+                              {item.id}
+                            </span>
+                            <span
+                              className={`text-sm font-bold font-mono truncate ${
+                                isDark ? 'text-white' : 'text-zinc-900'
+                              }`}
+                            >
+                              {item.officialName}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span
+                              className={`text-sm font-mono px-2 py-0.5 border ${
+                                isDark
+                                  ? 'bg-white/5 border-white/10 text-zinc-300'
+                                  : 'bg-zinc-100 border-zinc-200 text-zinc-700'
+                              }`}
+                            >
+                              {item.subCategory}
+                            </span>
+                            <ChevronRight
+                              className={`w-3.5 h-3.5 text-zinc-500 transition-transform ${
+                                isItemExpanded ? 'rotate-90 text-white' : ''
+                              }`}
+                            />
+                          </div>
                         </div>
 
-                        {/* 공식 호출 명칭 (강조) */}
-                        <div
-                          className={`font-mono text-sm sm:text-base font-bold tracking-tight ${
-                            isDark ? 'text-white' : 'text-zinc-900'
-                          }`}
-                        >
-                          {item.officialName}
-                        </div>
-
-                        <p
-                          className={`text-xs font-light leading-relaxed ${
-                            isDark ? 'text-zinc-400' : 'text-zinc-600'
-                          }`}
-                        >
-                          {item.role}
-                        </p>
-                      </div>
-
-                      {/* 2열: 현재 세팅 상태 및 디자인 규칙 (5열) */}
-                      <div className="lg:col-span-5 space-y-1 text-xs">
-                        <div
-                          className={`text-[10px] font-mono uppercase font-semibold flex items-center gap-1 ${
-                            isDark ? 'text-zinc-500' : 'text-zinc-500'
-                          }`}
-                        >
-                          <Code2 className="w-3 h-3 text-[#f04f74]" />
-                          <span>태그 및 세팅 규격</span>
-                        </div>
-                        <div
-                          className={`p-2 font-mono text-[11px] border leading-relaxed ${
-                            isDark
-                              ? 'bg-[#07080a] border-white/10 text-zinc-300'
-                              : 'bg-zinc-100 border-zinc-200 text-zinc-800'
-                          }`}
-                        >
-                          {item.selector}
-                        </div>
-                        <p
-                          className={`text-xs font-light leading-relaxed pt-0.5 ${
-                            isDark ? 'text-zinc-400' : 'text-zinc-600'
-                          }`}
-                        >
-                          <strong
-                            className={isDark ? 'text-zinc-200' : 'text-zinc-900'}
+                        {/* 2단계: 클릭 시 상세 키-값 카드 펼침 (Click-to-Reveal) */}
+                        {isItemExpanded && (
+                          <div
+                            className={`px-6 py-4 border-t grid grid-cols-1 md:grid-cols-3 gap-3 text-sm ${
+                              isDark
+                                ? 'bg-black/40 border-white/[0.06]'
+                                : 'bg-zinc-50 border-zinc-200'
+                            }`}
                           >
-                            세팅 규칙:
-                          </strong>{' '}
-                          {item.ruleNote}
-                        </p>
-                      </div>
+                            <div
+                              className={`p-3 border space-y-1 ${
+                                isDark
+                                  ? 'bg-white/[0.02] border-white/10'
+                                  : 'bg-white border-zinc-200'
+                              }`}
+                            >
+                              <span className="text-sm font-mono text-zinc-400 block font-semibold">
+                                [호출 명칭]
+                              </span>
+                              <div className="flex items-center justify-between">
+                                <span
+                                  className={`font-mono font-bold ${
+                                    isDark ? 'text-white' : 'text-zinc-900'
+                                  }`}
+                                >
+                                  {item.officialName}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    copyToClipboard(item.officialName, item.id);
+                                  }}
+                                  className="text-sm text-white hover:underline cursor-pointer"
+                                >
+                                  {copiedId === item.id ? '복사됨' : '복사'}
+                                </button>
+                              </div>
+                            </div>
 
-                      {/* 3열: 실제 화면에 찍혀 있는 텍스트 (4열) */}
-                      <div className="lg:col-span-4 space-y-1 text-xs">
-                        <div
-                          className={`text-[10px] font-mono uppercase font-semibold flex items-center gap-1 ${
-                            isDark ? 'text-zinc-500' : 'text-zinc-500'
-                          }`}
-                        >
-                          <FileText className="w-3 h-3 text-[#f04f74]" />
-                          <span>현재 화면 문구</span>
-                        </div>
-                        <div
-                          className={`p-2.5 border text-xs leading-relaxed font-sans ${
-                            isDark
-                              ? 'bg-black/50 border-white/10 text-zinc-200'
-                              : 'bg-zinc-50 border-zinc-200 text-zinc-800'
-                          }`}
-                        >
-                          {item.currentText || '-'}
-                        </div>
+                            <div
+                              className={`p-3 border space-y-1 ${
+                                isDark
+                                  ? 'bg-white/[0.02] border-white/10'
+                                  : 'bg-white border-zinc-200'
+                              }`}
+                            >
+                              <span className="text-sm font-mono text-zinc-400 block font-semibold">
+                                [설정 규칙 및 지시어]
+                              </span>
+                              <p
+                                className={`font-mono ${
+                                  isDark ? 'text-white' : 'text-zinc-800'
+                                }`}
+                              >
+                                {item.ruleNote}
+                              </p>
+                            </div>
+
+                            <div
+                              className={`p-3 border space-y-1 ${
+                                isDark
+                                  ? 'bg-white/[0.02] border-white/10'
+                                  : 'bg-white border-zinc-200'
+                              }`}
+                            >
+                              <span className="text-sm font-mono text-zinc-400 block font-semibold">
+                                [현재 설정값 / 화면 문구]
+                              </span>
+                              <p
+                                className={
+                                  isDark ? 'text-zinc-200' : 'text-zinc-700'
+                                }
+                              >
+                                {item.currentText || item.selector}
+                              </p>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -973,38 +1357,20 @@ export default function AdminDesignSystemInspector({
       </div>
 
       {/* ==============================================================
-          3. 소통 가이드 바
+          3. 하단 바 (단일 액션 및 간결화)
           ============================================================== */}
       <div
-        className={`p-5 border flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-mono ${
+        className={`p-3.5 border flex items-center justify-between gap-3 text-sm font-mono ${
           isDark
             ? 'border-white/10 bg-[#0c0d12]'
             : 'border-zinc-200 bg-white shadow-sm'
         }`}
       >
-        <div className="space-y-1">
-          <div
-            className={`font-bold flex items-center gap-2 ${
-              isDark ? 'text-white' : 'text-zinc-900'
-            }`}
-          >
-            <Bookmark className="w-4 h-4 text-[#f04f74]" />
-            <span>AI 어시스턴트와의 원클릭 소통 가이드</span>
-          </div>
-          <p
-            className={`font-light leading-relaxed ${
-              isDark ? 'text-zinc-400' : 'text-zinc-600'
-            }`}
-          >
-            화면의 특정 요소를 수정하고 싶을 때 위 사전의{' '}
-            <strong className={isDark ? 'text-zinc-200' : 'text-zinc-900'}>
-              [공식 호출 명칭]
-            </strong>
-            을 그대로 말씀해 주시면 즉시 정확하게 반영됩니다.
-            <br />
-            예시: <em>&ldquo;SEC-MAIN-01의 헤로-설명문 글자 줄간격 조정해줘&rdquo;</em>,{' '}
-            <em>&ldquo;SEC-DINING-02의 챕터-전포와인디너 버튼 색상 바꿔줘&rdquo;</em>
-          </p>
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+          <span className={isDark ? 'text-zinc-400' : 'text-zinc-600'}>
+            호출명칭
+          </span>
         </div>
 
         <button
@@ -1012,20 +1378,18 @@ export default function AdminDesignSystemInspector({
           onClick={() => {
             const allNames = currentPage.sections
               .flatMap((s) =>
-                s.items.map((i) => `[${i.id}] ${i.officialName} : ${i.role}`)
+                s.items.map((i) => `[${i.id}] ${i.officialName} : ${i.selector}`)
               )
               .join('\n');
             copyToClipboard(allNames, 'ALL');
           }}
-          className={`px-4 py-2 border font-mono text-xs uppercase font-semibold transition-all cursor-pointer shrink-0 ${
+          className={`px-3 py-1 border text-sm font-mono transition-all cursor-pointer shrink-0 ${
             isDark
               ? 'bg-white/5 border-white/20 hover:border-white text-zinc-200 hover:text-white'
               : 'bg-zinc-900 border-zinc-900 hover:bg-zinc-800 text-white'
           }`}
         >
-          {copiedId === 'ALL'
-            ? '전체 용어 복사 완료'
-            : `${currentPage.pageTitle} 전체 용어 복사`}
+          {copiedId === 'ALL' ? '완료' : '복사'}
         </button>
       </div>
     </div>

@@ -4,9 +4,8 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ArrowRight, CheckCircle2, Sparkles, MapPin, Calendar, Clock } from 'lucide-react';
-import GlobalHeader from '@/components/GlobalHeader';
-import GlobalFooter from '@/components/GlobalFooter';
 import CheckoutModal from '@/components/CheckoutModal';
+import GlobalHeader from '@/components/GlobalHeader';
 
 interface QuizAnswer {
   q1: string;
@@ -301,6 +300,7 @@ export default function StoryLandingPage() {
               <div className="text-center pt-4">
                 <Link
                   href="/"
+                  prefetch={true}
                   className="text-xs font-mono text-zinc-500 hover:text-zinc-300 transition-colors"
                 >
                   ← 다른 테이블 둘러보기
@@ -328,8 +328,6 @@ export default function StoryLandingPage() {
           router.push('/dashboard');
         }}
       />
-
-      <GlobalFooter />
     </div>
   );
 }

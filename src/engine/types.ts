@@ -23,6 +23,21 @@ export type InterestTag =
   | 'MOVIE_MUSIC'
   | 'LANGUAGE';
 
+export interface LoggedInUser {
+  userId: string;
+  handle: string; // @핸들 고유 ID (예: @jisoo_kim)
+  role?: 'MEMBER' | 'ADMIN';
+  email: string;
+  nickname: string;
+  phone?: string;
+  jobTitle?: string;
+  gender: Gender;
+  birthYear: number;
+  authProvider: 'KAKAO' | 'GOOGLE' | 'APPLE' | 'EMAIL';
+  verifiedBadge: string;
+  sessionCount: number;
+}
+
 // ============================================================================
 // DOMAIN A. 자아 & 성장 (Identity & Growth: ① Profiling / ② Mirror / ③ Growth)
 // ============================================================================

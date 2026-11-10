@@ -829,14 +829,13 @@ export const INITIAL_SERVICE_PROCESS_MODULES: ServiceProcessModuleConfig[] = [
 // 8. 초기 동석자 5인(이성 3 · 동성 2) 정밀 평가 샘플 데이터 (대상: U01)
 // ============================================================================
 export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
-  // 이성 동석자 1 (F/M 구분용) - 눈, 상의, 속도, 질문, 식사 등 정밀 평가
   {
     recordId: 'REC_01',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U04',
-    fromNickname: '현우',
+    fromUserId: 'USER_BB',
+    fromNickname: '이비비',
     fromGender: 'M',
-    toUserId: 'U01',
+    toUserId: 'USER_AA',
     subElementId: 'SUB_APP_1', // 외모 > 눈
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
     createdAt: '2026-11-03T21:10:00Z',
@@ -844,10 +843,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_02',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U04',
-    fromNickname: '현우',
+    fromUserId: 'USER_BB',
+    fromNickname: '이비비',
     fromGender: 'M',
-    toUserId: 'U01',
+    toUserId: 'USER_AA',
     subElementId: 'SUB_APP_3', // 외모 > 입
     scores: { C1_NEAT: 5, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
     createdAt: '2026-11-03T21:10:00Z',
@@ -855,10 +854,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_03',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U04',
-    fromNickname: '현우',
+    fromUserId: 'USER_BB',
+    fromNickname: '이비비',
     fromGender: 'M',
-    toUserId: 'U01',
+    toUserId: 'USER_AA',
     subElementId: 'SUB_APP_4', // 외모 > 피부
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 4 },
     createdAt: '2026-11-03T21:10:00Z',
@@ -866,123 +865,79 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_04',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U04',
-    fromNickname: '현우',
+    fromUserId: 'USER_BB',
+    fromNickname: '이비비',
     fromGender: 'M',
-    toUserId: 'U01',
+    toUserId: 'USER_AA',
     subElementId: 'SUB_STY_1', // 스타일 > 헤어
-    scores: { C1_NEAT: 4, C2_HARMONY: 3, C3_SENSE: 2, C4_STABILITY: 4, C5_APPEAL: 3 },
+    scores: { C1_NEAT: 4, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 4, C5_APPEAL: 4 },
     createdAt: '2026-11-03T21:11:00Z',
   },
   {
     recordId: 'REC_05',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U04',
-    fromNickname: '현우',
+    fromUserId: 'USER_BB',
+    fromNickname: '이비비',
     fromGender: 'M',
-    toUserId: 'U01',
+    toUserId: 'USER_AA',
     subElementId: 'SUB_STY_2', // 스타일 > 상의
-    scores: { C1_NEAT: 5, C2_HARMONY: 3, C3_SENSE: 2, C4_STABILITY: 4, C5_APPEAL: 3 },
+    scores: { C1_NEAT: 5, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 4, C5_APPEAL: 4 },
     createdAt: '2026-11-03T21:11:00Z',
   },
   {
     recordId: 'REC_06',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U05',
-    fromNickname: '도윤',
+    fromUserId: 'USER_BB',
+    fromNickname: '이비비',
     fromGender: 'M',
-    toUserId: 'U01',
+    toUserId: 'USER_AA',
     subElementId: 'SUB_STY_5', // 스타일 > 소품
-    scores: { C1_NEAT: 4, C2_HARMONY: 4, C3_SENSE: 3, C4_STABILITY: 4, C5_APPEAL: 4 },
+    scores: { C1_NEAT: 4, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 4, C5_APPEAL: 4 },
     createdAt: '2026-11-03T21:12:00Z',
   },
   {
     recordId: 'REC_07',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U05',
-    fromNickname: '도윤',
+    fromUserId: 'USER_BB',
+    fromNickname: '이비비',
     fromGender: 'M',
-    toUserId: 'U01',
-    subElementId: 'SUB_VOI_1', // 음성 > 음색
-    scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
-    createdAt: '2026-11-03T21:12:00Z',
+    toUserId: 'USER_AA',
+    subElementId: 'SUB_DIA_1', // 대화 > 질문
+    scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 5, C4_STABILITY: 5, C5_APPEAL: 5 },
+    createdAt: '2026-11-03T21:15:00Z',
   },
   {
     recordId: 'REC_08',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U06',
-    fromNickname: '준호',
+    fromUserId: 'USER_BB',
+    fromNickname: '이비비',
     fromGender: 'M',
-    toUserId: 'U01',
-    subElementId: 'SUB_VOI_3', // 음성 > 속도 (살짝 빠름 -> 안정/조화 낮음)
-    scores: { C1_NEAT: 4, C2_HARMONY: 2, C3_SENSE: 3, C4_STABILITY: 2, C5_APPEAL: 3 },
-    createdAt: '2026-11-03T21:13:00Z',
+    toUserId: 'USER_AA',
+    subElementId: 'SUB_DIA_2', // 대화 > 경청
+    scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 5, C4_STABILITY: 5, C5_APPEAL: 5 },
+    createdAt: '2026-11-03T21:15:00Z',
   },
   {
     recordId: 'REC_09',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U06',
-    fromNickname: '준호',
-    fromGender: 'M',
-    toUserId: 'U01',
-    subElementId: 'SUB_CON_2', // 대화 > 질문
-    scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 5, C4_STABILITY: 4, C5_APPEAL: 5 },
-    createdAt: '2026-11-03T21:13:00Z',
+    fromUserId: 'USER_AA',
+    fromNickname: '김에이',
+    fromGender: 'F',
+    toUserId: 'USER_BB',
+    subElementId: 'SUB_DIA_1', // 대화 > 질문
+    scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
+    createdAt: '2026-11-03T21:16:00Z',
   },
   {
     recordId: 'REC_10',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U02',
-    fromNickname: '서연',
+    fromUserId: 'USER_AA',
+    fromNickname: '김에이',
     fromGender: 'F',
-    toUserId: 'U01',
-    subElementId: 'SUB_CON_3', // 대화 > 유머
-    scores: { C1_NEAT: 4, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 4, C5_APPEAL: 4 },
-    createdAt: '2026-11-03T21:14:00Z',
-  },
-  {
-    recordId: 'REC_11',
-    sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U02',
-    fromNickname: '서연',
-    fromGender: 'F',
-    toUserId: 'U01',
-    subElementId: 'SUB_CON_4', // 대화 > 공감
-    scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 5, C4_STABILITY: 5, C5_APPEAL: 5 },
-    createdAt: '2026-11-03T21:14:00Z',
-  },
-  {
-    recordId: 'REC_12',
-    sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U03',
-    fromNickname: '민지',
-    fromGender: 'F',
-    toUserId: 'U01',
-    subElementId: 'SUB_MAN_1', // 매너 > 표정
+    toUserId: 'USER_BB',
+    subElementId: 'SUB_DIA_2', // 대화 > 경청
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
-    createdAt: '2026-11-03T21:15:00Z',
-  },
-  {
-    recordId: 'REC_13',
-    sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U04',
-    fromNickname: '현우',
-    fromGender: 'M',
-    toUserId: 'U01',
-    subElementId: 'SUB_MAN_3', // 매너 > 식사
-    scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 5, C4_STABILITY: 5, C5_APPEAL: 5 },
-    createdAt: '2026-11-03T21:15:00Z',
-  },
-  {
-    recordId: 'REC_14',
-    sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'U03',
-    fromNickname: '민지',
-    fromGender: 'F',
-    toUserId: 'U01',
-    subElementId: 'SUB_MAN_5', // 매너 > 규칙
-    scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 5, C4_STABILITY: 5, C5_APPEAL: 5 },
-    createdAt: '2026-11-03T21:15:00Z',
+    createdAt: '2026-11-03T21:16:00Z',
   },
 ];
 

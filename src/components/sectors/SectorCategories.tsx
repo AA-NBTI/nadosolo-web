@@ -62,6 +62,7 @@ export default function SectorCategories({ config }: SectorCategoriesProps) {
             <Link
               key={cat.id}
               href={cat.href || '/dining'}
+              prefetch={true}
               className="group relative flex flex-col rounded-2xl bg-white/[0.02] border border-white/10 hover:border-white/30 overflow-hidden transition-all duration-300"
             >
               {/* 상단 이미지 */}

@@ -37,6 +37,7 @@ export default function GlobalHeader() {
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <Link
             href="/"
+            prefetch={true}
             className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
           >
             {/* 상단: 영문 nadosolo */}
@@ -83,6 +84,7 @@ export default function GlobalHeader() {
               <Link
                 key={item.id || item.href}
                 href={item.href}
+                prefetch={true}
                 className={`text-xs font-mono tracking-[0.2em] uppercase transition-colors py-1 ${
                   isActive
                     ? 'text-white font-semibold'
@@ -107,6 +109,7 @@ export default function GlobalHeader() {
             <div className="flex items-center gap-2">
               <Link
                 href="/dashboard"
+                prefetch={true}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-none border border-white/15 bg-white/[0.03] hover:bg-white/[0.08] text-xs font-mono text-zinc-200 hover:text-white transition-all"
                 title="마이페이지 / 대시보드"
               >
@@ -128,6 +131,7 @@ export default function GlobalHeader() {
               {isAdmin && (
                 <Link
                   href="/admin"
+                  prefetch={true}
                   className="w-8 h-8 rounded-none bg-transparent hover:bg-white/[0.05] border border-white/20 hover:border-[#f04f74] text-zinc-300 hover:text-[#f04f74] flex items-center justify-center transition-all ml-1"
                   title="최고 관리자 대시보드"
                 >
@@ -138,6 +142,7 @@ export default function GlobalHeader() {
           ) : (
             <Link
               href="/auth"
+              prefetch={true}
               className="px-4 py-1.5 border border-white/20 hover:border-[#f04f74] bg-transparent text-white text-xs font-mono tracking-wider uppercase transition-colors"
             >
               SIGN IN

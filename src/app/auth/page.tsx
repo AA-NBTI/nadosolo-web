@@ -21,7 +21,9 @@ function AuthPageContent() {
   // 1단계 회원가입 상태 (휴대폰 번호 제거, 비밀번호 확인 추가)
   const [signupStep, setSignupStep] = useState<1 | 2>(1);
   const [handleInput, setHandleInput] = useState('');
-  const [isHandleChecked, setIsHandleChecked] = useState(false);
+  const [handleCheckStatus, setHandleCheckStatus] = useState<
+    'IDLE' | 'AVAILABLE' | 'DUPLICATE'
+  >('IDLE');
   const [emailInput, setEmailInput] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,74 +39,23 @@ function AuthPageContent() {
     ? handleInput.toLowerCase()
     : `@${(handleInput || 'new_member').toLowerCase()}`;
 
-  const REAL_MEMBERS = [
-    { id: 'user_junho', handle: '@junho_choi', name: '최준호', gender: 'M' as const, job: 'IT 스타트업 대표', birth: 1991 },
-    { id: 'user_minseok', handle: '@minseok_kang', name: '강민석', gender: 'M' as const, job: '정형외과 전문의', birth: 1989 },
-    { id: 'user_donghyun', handle: '@donghyun_yoon', name: '윤동현', gender: 'M' as const, job: '금융 자산운용역', birth: 1993 },
-    { id: 'user_soyeon', handle: '@soyeon_park', name: '박소연', gender: 'F' as const, job: '브랜드 디렉터', birth: 1994 },
-    { id: 'user_yujin', handle: '@yujin_han', name: '한유진', gender: 'F' as const, job: '공간 인테리어 디자이너', birth: 1992 },
-    { id: 'user_chaewon', handle: '@chaewon_lim', name: '임채원', gender: 'F' as const, job: '글로벌 테크 세일즈', birth: 1995 },
-  ];
-
-  const handleLoginAsRealMember = (member: typeof REAL_MEMBERS[0]) => {
-    loginAsUser({
-      userId: member.id,
-      handle: member.handle,
-      role: 'MEMBER',
-      email: `${member.id}@nadosolo.com`,
-      nickname: member.name,
-      phone: '010-0000-0000',
-      jobTitle: member.job,
-      gender: member.gender,
-      birthYear: member.birth,
-      authProvider: 'EMAIL',
-      verifiedBadge: '인증 완료',
-      sessionCount: 2,
-    });
-    router.push(nextUrl);
-  };
-
-  const handlePresetFillAndLogin = (preset: 'USER1' | 'USER2') => {
+  const checkHandleDuplicate = () => {
+    const raw = handleInput.trim().replace(/^@/, '').toLowerCase();
+    if (!raw) {
+      setErrorMsg('아이디를 입력해 주세요.');
+      setHandleCheckStatus('IDLE');
+      return;
+    }
     setErrorMsg(null);
-    if (preset === 'USER1') {
-      setLoginId('user1');
-      setPassword('1234');
-      loginAsUser({
-        userId: 'U01',
-        handle: '@user1',
-        role: 'MEMBER',
-        email: 'user1@nadosolo.com',
-        nickname: '지수',
-        phone: '010-2948-1029',
-        jobTitle: '프로덕트 디자이너',
-        gender: 'F',
-        birthYear: 1995,
-        authProvider: 'EMAIL',
-        verifiedBadge: '본인인증 완료',
-        sessionCount: 3,
-      });
-      router.push(nextUrl);
+    const reservedIds = ['admin', 'aa', 'bb'];
+    if (reservedIds.includes(raw)) {
+      setHandleCheckStatus('DUPLICATE');
     } else {
-      setLoginId('user2');
-      setPassword('1234');
-      loginAsUser({
-        userId: 'U04',
-        handle: '@user2',
-        role: 'MEMBER',
-        email: 'user2@nadosolo.com',
-        nickname: '현우',
-        phone: '010-8421-3390',
-        jobTitle: '건축가',
-        gender: 'M',
-        birthYear: 1992,
-        authProvider: 'EMAIL',
-        verifiedBadge: '본인인증 완료',
-        sessionCount: 2,
-      });
-      router.push(nextUrl);
+      setHandleCheckStatus('AVAILABLE');
     }
   };
 
+  // 인증 및 로그인 처리
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -116,12 +67,14 @@ function AuthPageContent() {
       return;
     }
 
-    // 관리자 로그인 검증 (id: admin / pass: aa1111)
+    // 전 계정 비밀번호 규격: aa1111
+    if (password !== 'aa1111') {
+      setErrorMsg('비밀번호가 올바르지 않습니다.');
+      return;
+    }
+
+    // 1. 관리자 계정 (id: admin / pass: aa1111)
     if (trimmedId.toLowerCase() === 'admin') {
-      if (password !== 'aa1111') {
-        setErrorMsg('관리자 비밀번호가 올바르지 않습니다.');
-        return;
-      }
       loginAsUser({
         userId: 'ADMIN_01',
         handle: '@admin',
@@ -140,21 +93,60 @@ function AuthPageContent() {
       return;
     }
 
-    // 일반 회원 로그인 처리
-    const isMale = trimmedId.toLowerCase() === 'user2';
+    // 2. 검증 회원 aa (여성 / 1994년생 / 브랜드 마케터)
+    if (trimmedId.toLowerCase() === 'aa') {
+      loginAsUser({
+        userId: 'USER_AA',
+        handle: '@aa',
+        role: 'MEMBER',
+        email: 'aa@nadosolo.com',
+        nickname: '김에이',
+        phone: '010-1111-2222',
+        jobTitle: '브랜드 마케터',
+        gender: 'F',
+        birthYear: 1994,
+        authProvider: 'EMAIL',
+        verifiedBadge: '본인인증 완료',
+        sessionCount: 3,
+      });
+      router.push(nextUrl);
+      return;
+    }
+
+    // 3. 검증 회원 bb (남성 / 1992년생 / IT 기획자)
+    if (trimmedId.toLowerCase() === 'bb') {
+      loginAsUser({
+        userId: 'USER_BB',
+        handle: '@bb',
+        role: 'MEMBER',
+        email: 'bb@nadosolo.com',
+        nickname: '이비비',
+        phone: '010-3333-4444',
+        jobTitle: 'IT 기획자',
+        gender: 'M',
+        birthYear: 1992,
+        authProvider: 'EMAIL',
+        verifiedBadge: '본인인증 완료',
+        sessionCount: 2,
+      });
+      router.push(nextUrl);
+      return;
+    }
+
+    // 4. 기타 회원 (아이디 자유 로그인)
     loginAsUser({
-      userId: isMale ? 'U04' : 'U01',
+      userId: `U_${trimmedId}`,
       handle: `@${trimmedId}`,
       role: 'MEMBER',
       email: `${trimmedId}@nadosolo.com`,
-      nickname: isMale ? '현우' : trimmedId === 'user1' ? '지수' : trimmedId,
-      phone: '010-2948-1029',
-      jobTitle: isMale ? '건축가' : '프로덕트 디자이너',
-      gender: isMale ? 'M' : 'F',
-      birthYear: isMale ? 1992 : 1995,
+      nickname: trimmedId,
+      phone: '010-0000-0000',
+      jobTitle: '일반 회원',
+      gender: 'F',
+      birthYear: 1995,
       authProvider: 'EMAIL',
       verifiedBadge: '본인인증 완료',
-      sessionCount: 3,
+      sessionCount: 1,
     });
     router.push(nextUrl);
   };
@@ -163,26 +155,34 @@ function AuthPageContent() {
     e.preventDefault();
     setErrorMsg(null);
 
+    if (!emailInput.trim()) {
+      setErrorMsg('이메일을 입력해 주세요.');
+      return;
+    }
     if (!handleInput.trim()) {
-      setErrorMsg('사용할 아이디(@핸들)를 입력해 주세요.');
+      setErrorMsg('아이디를 입력해 주세요.');
+      return;
+    }
+    if (handleCheckStatus !== 'AVAILABLE') {
+      setErrorMsg('아이디 중복확인을 진행해 주세요.');
+      return;
+    }
+    if (!signupPassword) {
+      setErrorMsg('비밀번호를 입력해 주세요.');
       return;
     }
     if (signupPassword !== confirmPassword) {
-      setErrorMsg('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
-      return;
-    }
-    if (signupPassword.length < 4) {
-      setErrorMsg('비밀번호는 최소 4자리 이상 입력해 주세요.');
+      setErrorMsg('비밀번호가 일치하지 않습니다.');
       return;
     }
 
-    // 회원가입 완료 즉시 첫 로그인 처리 (계정 생성)
+    // 회원가입 완료 즉시 첫 로그인 처리 (아이디와 이메일로 1차 가입)
     loginAsUser({
       userId: `U_${Date.now().toString().slice(-4)}`,
       handle: normalizedHandle,
       role: 'MEMBER',
-      email: emailInput || `${handleInput}@nadosolo.com`,
-      nickname: nickname || handleInput,
+      email: emailInput,
+      nickname: handleInput,
       phone: '미등록',
       jobTitle: '미입력',
       gender: 'F',
@@ -192,7 +192,8 @@ function AuthPageContent() {
       sessionCount: 1,
     });
 
-    // 첫 로그인 후 프로필 추가 입력 온보딩 단계로 진입
+    // 첫 로그인 후 프로필 추가 정보(닉네임 포함) 입력 단계로 진입
+    setNickname(handleInput);
     setSignupStep(2);
   };
 
@@ -203,7 +204,7 @@ function AuthPageContent() {
         handle: normalizedHandle,
         role: 'MEMBER',
         email: emailInput || `${handleInput}@nadosolo.com`,
-        nickname: nickname || handleInput,
+        nickname: nickname.trim() || handleInput,
         phone: extraPhone || '010-0000-0000',
         jobTitle: extraJob || '미입력',
         gender: extraGender,
@@ -245,7 +246,7 @@ function AuthPageContent() {
                 ? '계정에 로그인하고 배정된 프라이빗 테이블을 확인하세요.'
                 : signupStep === 1
                 ? '신원과 에티켓이 검증된 분들을 위한 프라이빗 살롱입니다.'
-                : '3:3 맞춤형 테이블 편성을 위한 기본 프로필입니다.'}
+                : '맞춤형 테이블 편성을 위한 기본 프로필입니다.'}
             </p>
           </div>
         </div>
@@ -321,34 +322,6 @@ function AuthPageContent() {
               />
             </div>
 
-            {/* 빠른 테스트 계정 박스: 6인 실계정 원클릭 전환 */}
-            <div className="p-4 border border-white/[0.08] bg-white/[0.015] space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-xs font-mono tracking-wider text-zinc-300 uppercase">
-                  체험용 계정 원클릭 로그인
-                </p>
-                <span className="text-[10px] text-[#f04f74] font-mono">DB 연동 완료</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {REAL_MEMBERS.map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => handleLoginAsRealMember(m)}
-                    className="p-2 border border-white/[0.06] hover:border-[#f04f74]/40 bg-black/40 text-left transition-colors cursor-pointer group"
-                  >
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-zinc-200 group-hover:text-white font-medium">
-                        {m.name}
-                      </span>
-                      <span className="text-[10px] text-[#f04f74] font-mono">{m.gender}</span>
-                    </div>
-                    <div className="text-[11px] text-zinc-400 truncate mt-0.5 font-light">{m.job}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* 메인 로그인 CTA 버튼 */}
             <button
               type="submit"
@@ -381,7 +354,20 @@ function AuthPageContent() {
           <form onSubmit={handleStep1Submit} className="space-y-4">
             <div>
               <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
-                아이디 (@핸들)
+                이메일 <span className="text-[#f04f74]">*</span>
+              </label>
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-light focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
+                아이디 <span className="text-[#f04f74]">*</span>
               </label>
               <div className="flex gap-2">
                 <input
@@ -391,81 +377,55 @@ function AuthPageContent() {
                     setHandleInput(
                       e.target.value.replace(/[^a-zA-Z0-9_]/g, '')
                     );
-                    setIsHandleChecked(false);
+                    setHandleCheckStatus('IDLE');
                   }}
-                  placeholder="아이디 입력"
                   required
-                  className="flex-1 px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
+                  className="flex-1 px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-light focus:outline-none transition-colors"
                 />
                 <button
                   type="button"
-                  onClick={() => setIsHandleChecked(true)}
-                  className="px-4 py-3 border border-white/20 hover:border-white/40 bg-black/40 text-xs font-mono text-zinc-300 hover:text-white uppercase transition-colors shrink-0"
+                  onClick={checkHandleDuplicate}
+                  className="px-4 py-3 border border-white/20 hover:border-white/40 bg-black/40 text-xs font-mono text-zinc-300 hover:text-white uppercase transition-colors shrink-0 cursor-pointer"
                 >
                   중복확인
                 </button>
               </div>
-              {isHandleChecked && (
-                <p className="text-[11px] text-[#f04f74] font-mono mt-1">
-                  ✓ 사용 가능한 아이디입니다 ({normalizedHandle})
+              {handleCheckStatus === 'AVAILABLE' && (
+                <p className="text-[11px] text-zinc-300 font-mono mt-1.5">
+                  ✓ 사용 가능한 아이디입니다.
                 </p>
               )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
-                이름 (활동 닉네임)
-              </label>
-              <input
-                type="text"
-                value={nickname}
-                onChange={(e) => setNickname(e.target.value)}
-                placeholder="지수"
-                required
-                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
-                이메일
-              </label>
-              <input
-                type="email"
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="user@nadosolo.com"
-                required
-                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
-              />
+              {handleCheckStatus === 'DUPLICATE' && (
+                <p className="text-[11px] text-[#f04f74] font-mono mt-1.5">
+                  ✕ 이미 사용 중인 아이디입니다.
+                </p>
+              )}
             </div>
 
             {/* 비밀번호 & 비밀번호 확인 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
-                  비밀번호
+                  비밀번호 <span className="text-[#f04f74]">*</span>
                 </label>
                 <input
                   type="password"
                   value={signupPassword}
                   onChange={(e) => setSignupPassword(e.target.value)}
-                  placeholder="4자리 이상"
                   required
-                  className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-light focus:outline-none transition-colors"
                 />
               </div>
               <div>
                 <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
-                  비밀번호 확인
+                  비밀번호 확인 <span className="text-[#f04f74]">*</span>
                 </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="비밀번호 재입력"
                   required
-                  className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-light focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -514,26 +474,37 @@ function AuthPageContent() {
              ------------------------------------------------------------- */
           <div className="space-y-4">
             <div className="p-4 border border-white/[0.08] bg-white/[0.015] text-xs text-zinc-300 font-light leading-relaxed">
-              <span className="font-semibold text-white">1단계 가입 완료.</span> 3:3 밸런스 테이블 편성을 위해 추가 정보를 입력해 주세요. (추후 수정 가능)
+              <span className="font-semibold text-white">1단계 가입 완료.</span> 프로필 추가 정보를 입력해 주세요.
             </div>
 
             <div>
               <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
-                휴대폰 번호 (모임 안내 수신)
+                활동 닉네임
+              </label>
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-light focus:outline-none transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
+                휴대폰 번호
               </label>
               <input
                 type="tel"
                 value={extraPhone}
                 onChange={(e) => setExtraPhone(e.target.value)}
-                placeholder="010-0000-0000"
-                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-light focus:outline-none transition-colors"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
-                  성별 (3:3 성비 매칭)
+                  성별
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
@@ -576,14 +547,13 @@ function AuthPageContent() {
 
             <div>
               <label className="block text-xs font-mono tracking-wider text-zinc-400 mb-1.5 uppercase">
-                직업 / 전문 분야
+                직무
               </label>
               <input
                 type="text"
                 value={extraJob}
                 onChange={(e) => setExtraJob(e.target.value)}
-                placeholder="예: 프로덕트 디자이너, 건축가, 연구원"
-                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
+                className="w-full px-4 py-3 bg-black/40 border border-white/[0.08] focus:border-[#f04f74]/60 text-sm text-[#f5f2eb] font-light focus:outline-none transition-colors"
               />
             </div>
 
@@ -593,7 +563,7 @@ function AuthPageContent() {
                 onClick={() => handleStep2Complete(false)}
                 className="w-full py-3.5 border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs font-mono tracking-[0.25em] uppercase font-semibold transition-all duration-300 cursor-pointer"
               >
-                저장 완료
+                저장
               </button>
               <button
                 type="button"

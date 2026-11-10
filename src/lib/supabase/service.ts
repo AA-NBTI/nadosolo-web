@@ -13,6 +13,7 @@ export interface DbProfile {
   dietary?: string;
   interests?: string[];
   self_domain_scores?: Record<string, number>;
+  survey_answers?: Record<string, string>;
   verified_badge?: string;
   session_count?: number;
 }
@@ -62,6 +63,7 @@ export const nadoSoloSupabaseService = {
             dietary: profile.dietary,
             interests: profile.interests,
             self_domain_scores: profile.self_domain_scores,
+            survey_answers: profile.survey_answers,
             updated_at: new Date().toISOString(),
           },
           { onConflict: 'id' }

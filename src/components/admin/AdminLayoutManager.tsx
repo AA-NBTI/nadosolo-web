@@ -248,7 +248,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             onClick={() => setSubTab('SECTORS')}
             className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'SECTORS'
-                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                ? 'border border-white/40 bg-white/10 text-white font-bold'
                 : 'border border-transparent bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
@@ -261,7 +261,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             onClick={() => setSubTab('BUTTON_STYLE')}
             className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'BUTTON_STYLE'
-                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                ? 'border border-white/40 bg-white/10 text-white font-bold'
                 : 'border border-transparent bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
@@ -274,7 +274,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             onClick={() => setSubTab('HEADER')}
             className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'HEADER'
-                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                ? 'border border-white/40 bg-white/10 text-white font-bold'
                 : 'border border-transparent bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
@@ -287,7 +287,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
             onClick={() => setSubTab('FOOTER')}
             className={`px-3.5 py-2 rounded-none text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 ${
               subTab === 'FOOTER'
-                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                ? 'border border-white/40 bg-white/10 text-white font-bold'
                 : 'border border-transparent bg-white/5 text-zinc-400 hover:text-white'
             }`}
           >
@@ -310,7 +310,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <button
             type="button"
             onClick={handleSaveAll}
-            className="px-5 py-2 rounded-none border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-xs sm:text-sm font-mono tracking-wider uppercase font-semibold transition-all cursor-pointer flex items-center gap-2"
+            className="px-5 py-2 rounded-none border border-white/30 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-mono tracking-wider uppercase font-bold transition-all cursor-pointer flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
             <span>저장</span>
@@ -339,7 +339,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 rounded-none bg-white/5 border border-white/10 flex items-center justify-center font-mono font-bold text-xs text-[#f04f74] shrink-0">
+                    <span className="w-8 h-8 rounded-none bg-white/5 border border-white/10 flex items-center justify-center font-mono font-bold text-xs text-white shrink-0">
                       #{index + 1}
                     </span>
                     <div>
@@ -380,7 +380,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       onClick={() => handleToggleSectorVisibility(sector.id)}
                       className={`px-3 py-1.5 rounded-none border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
                         sector.visible
-                          ? 'bg-transparent text-[#f04f74] border-[#f04f74]'
+                          ? 'bg-white/10 text-white border-white/30'
                           : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                       }`}
                     >
@@ -403,7 +403,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 {(sector.type === 'video-banner' || sector.type === 'rolling-hero' || sector.type === 'hero') && (
                   <div className="pt-2 border-t border-white/5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                     <span className="text-[11px] font-semibold text-zinc-400 shrink-0 flex items-center gap-1.5">
-                      <Video className="w-3.5 h-3.5 text-[#f04f74]" />
+                      <Video className="w-3.5 h-3.5 text-zinc-300" />
                       <span>미디어 URL (MP4 / 사진):</span>
                     </span>
                     <input
@@ -411,7 +411,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       value={sector.mediaUrl || ''}
                       placeholder="https://... (동영상 MP4 파일 또는 이미지 링크)"
                       onChange={(e) => handleUpdateSectorMedia(sector.id, e.target.value)}
-                      className="flex-1 px-3 py-1.5 rounded-none bg-black/40 border border-white/10 text-white text-xs placeholder-zinc-600 focus:outline-none focus:border-[#f04f74]"
+                      className="flex-1 px-3 py-1.5 rounded-none bg-black/40 border border-white/10 text-white text-xs placeholder-zinc-600 focus:outline-none focus:border-white/40"
                     />
                   </div>
                 )}
@@ -421,7 +421,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   <div className="pt-3 border-t border-white/5 space-y-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-1">
                       <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-[#f04f74]" />
+                        <Sparkles className="w-3.5 h-3.5 text-zinc-300" />
                         <span>개별 프로그램 운영/중지 제어 (동적 CMS)</span>
                       </span>
                       <span className="text-[11px] text-zinc-400">
@@ -460,7 +460,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                             onClick={() => handleToggleCategoryItemVisibility(sector.id, cat.id)}
                             className={`px-3 py-1.5 rounded-none text-xs font-bold cursor-pointer shrink-0 transition-all ${
                               cat.visible
-                                ? 'border border-[#f04f74] bg-transparent text-[#f04f74]'
+                                ? 'border border-white/30 bg-white/10 text-white'
                                 : 'border border-white/10 bg-white/5 text-zinc-400 hover:text-white'
                             }`}
                           >
@@ -497,7 +497,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           {/* 1. 테마 프리셋 */}
           <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-3">
             <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[#f04f74]" />
+              <Sparkles className="w-4 h-4 text-zinc-300" />
               <span>컬러 &amp; 테마 프리셋</span>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -510,7 +510,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     onClick={() => handleUpdateButtonStyle({ theme: t.key })}
                     className={`p-3.5 rounded-none border text-left flex items-center justify-between transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-white/[0.08] border-[#f04f74] shadow-md ring-1 ring-rose-500/50'
+                        ? 'bg-white/[0.08] border-white/40 shadow-md ring-1 ring-white/20'
                         : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.05]'
                     }`}
                   >
@@ -540,7 +540,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       onClick={() => handleUpdateButtonStyle({ roundness: r.key })}
                       className={`p-2.5 rounded-none border text-xs font-bold text-center transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-transparent border-[#f04f74] text-[#f04f74]'
+                          ? 'bg-white/15 border-white/40 text-white'
                           : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -563,7 +563,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                       onClick={() => handleUpdateButtonStyle({ fontSize: s.key })}
                       className={`p-2.5 rounded-none border text-xs font-bold text-center transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-transparent border-[#f04f74] text-[#f04f74]'
+                          ? 'bg-white/15 border-white/40 text-white'
                           : 'bg-white/5 border-white/10 text-zinc-400 hover:text-white'
                       }`}
                     >
@@ -586,7 +586,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
           <div className="p-5 rounded-none bg-[#0c0d12] border border-white/10 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Megaphone className="w-4 h-4 text-[#f04f74]" />
+                <Megaphone className="w-4 h-4 text-zinc-300" />
                 <h4 className="text-sm font-bold text-white">상단 공지 띠배너</h4>
               </div>
               <button
@@ -605,7 +605,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 }
                 className={`px-3 py-1 rounded-none text-xs font-semibold border transition-all cursor-pointer ${
                   draftConfig?.header?.announcement?.visible
-                    ? 'bg-transparent text-[#f04f74] border-[#f04f74]'
+                    ? 'bg-white/10 text-white border-white/30'
                     : 'bg-white/5 text-zinc-400 border-white/10'
                 }`}
               >
@@ -706,7 +706,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                 className="p-3.5 rounded-none bg-[#0c0d12] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
               >
                 <div className="flex items-center gap-2.5 flex-1">
-                  <span className="font-mono text-xs text-[#f04f74] font-bold w-6">#{index + 1}</span>
+                  <span className="font-mono text-xs text-white font-bold w-6">#{index + 1}</span>
                   <input
                     type="text"
                     value={item.label || ''}
@@ -718,7 +718,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     value={item.badge || ''}
                     onChange={(e) => handleUpdateNavBadge(item.id, e.target.value)}
                     placeholder="뱃지"
-                    className="px-2.5 py-1.5 rounded-none bg-black/40 border border-white/10 text-[#f04f74] text-[11px] w-24"
+                    className="px-2.5 py-1.5 rounded-none bg-black/40 border border-white/10 text-zinc-300 text-[11px] w-24"
                   />
                   <span className="text-[11px] font-mono text-zinc-500 hidden sm:inline">
                     {item.href}
@@ -747,7 +747,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                     onClick={() => handleToggleNavVisibility(item.id)}
                     className={`px-2.5 py-1 rounded-none text-xs font-semibold border cursor-pointer ${
                       item.visible
-                        ? 'bg-transparent text-[#f04f74] border-[#f04f74]'
+                        ? 'bg-white/10 text-white border-white/30'
                         : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                     }`}
                   >
@@ -970,7 +970,7 @@ export default function AdminLayoutManager({ onNotify }: AdminLayoutManagerProps
                   }}
                   className={`px-3 py-1.5 rounded-none border text-xs font-semibold cursor-pointer ${
                     social.visible
-                      ? 'bg-transparent text-[#f04f74] border-[#f04f74]'
+                      ? 'bg-white/10 text-white border-white/30'
                       : 'bg-zinc-800 text-zinc-400 border-zinc-700'
                   }`}
                 >

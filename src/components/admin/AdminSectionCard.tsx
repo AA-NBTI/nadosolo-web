@@ -51,7 +51,7 @@ export default function AdminSectionCard({
         <div className="flex items-center gap-3 min-w-0">
           <div className="space-y-0.5 min-w-0">
             {categoryTag && (
-              <span className="text-[10px] font-mono tracking-wider uppercase text-[#f04f74] font-semibold block">
+              <span className="text-sm font-mono tracking-wider uppercase text-zinc-300 font-semibold block">
                 {categoryTag}
               </span>
             )}
@@ -65,25 +65,16 @@ export default function AdminSectionCard({
               </h3>
               {badge !== undefined && (
                 <span
-                  className={`px-2 py-0.5 text-[10px] font-mono border ${
+                  className={`px-2 py-0.5 text-sm font-mono border font-semibold ${
                     isLight
                       ? 'bg-zinc-100 border-zinc-300 text-zinc-700'
-                      : 'bg-white/5 border-white/10 text-zinc-400'
+                      : 'bg-white/10 border-white/20 text-white'
                   }`}
                 >
                   {badge}
                 </span>
               )}
             </div>
-            {desc && (
-              <p
-                className={`text-xs font-light leading-relaxed truncate max-w-xl ${
-                  isLight ? 'text-zinc-500' : 'text-zinc-400'
-                }`}
-              >
-                {desc}
-              </p>
-            )}
           </div>
         </div>
 
@@ -112,9 +103,20 @@ export default function AdminSectionCard({
         </div>
       </div>
 
-      {/* 펼쳐진 본문 영역 */}
+      {/* 펼쳐진 본문 영역 (설명문은 클릭하여 펼쳤을 때만 상단 노출) */}
       {isOpen && (
-        <div className={`p-5 sm:p-6 ${isLight ? 'text-zinc-900' : 'text-[#f5f2eb]'}`}>
+        <div className={`p-5 sm:p-6 space-y-4 ${isLight ? 'text-zinc-900' : 'text-[#f5f2eb]'}`}>
+          {desc && (
+            <div className="pl-3.5 border-l-2 border-white/20 mb-3">
+              <p
+                className={`text-sm font-light leading-relaxed ${
+                  isLight ? 'text-zinc-600' : 'text-zinc-300'
+                }`}
+              >
+                {desc}
+              </p>
+            </div>
+          )}
           {children}
         </div>
       )}

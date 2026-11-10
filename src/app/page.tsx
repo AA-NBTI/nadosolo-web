@@ -196,6 +196,7 @@ export default function PurchaseMainPage() {
                 <span className="text-zinc-500">더 알아보기:</span>
                 <Link
                   href="/showcase"
+                  prefetch={true}
                   className="inline-flex items-center gap-1.5 text-zinc-300 hover:text-[#f04f74] transition-colors underline underline-offset-4"
                 >
                   <span>브랜드 쇼케이스</span>
@@ -204,6 +205,7 @@ export default function PurchaseMainPage() {
                 <span className="text-zinc-600">•</span>
                 <Link
                   href="/guide"
+                  prefetch={true}
                   className="inline-flex items-center gap-1.5 text-zinc-300 hover:text-[#f04f74] transition-colors underline underline-offset-4"
                 >
                   <span>프로세스 가이드</span>
@@ -611,6 +613,7 @@ export default function PurchaseMainPage() {
             <div className="flex flex-wrap items-center gap-4 shrink-0">
               <Link
                 href="/showcase"
+                prefetch={true}
                 className="px-6 py-3 border border-white/30 hover:border-white bg-white text-black hover:bg-zinc-100 text-xs font-mono tracking-[0.2em] uppercase font-semibold transition-all duration-300 flex items-center gap-2"
               >
                 <span>쇼케이스 둘러보기</span>
@@ -618,6 +621,7 @@ export default function PurchaseMainPage() {
               </Link>
               <Link
                 href="/guide"
+                prefetch={true}
                 className="px-6 py-3 border border-white/20 hover:border-white/40 bg-black/40 text-xs font-mono tracking-[0.2em] text-zinc-300 hover:text-white uppercase transition-all duration-300"
               >
                 <span>프로세스 가이드</span>

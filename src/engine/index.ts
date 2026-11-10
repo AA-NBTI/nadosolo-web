@@ -13,3 +13,5 @@ export * from './mockData';
 export * from './NadoSoloContext';
 export * from './siteConfigEngine';
 export * from './evaluation';
+export * from './processGateEngine';
+export * from './architectureAuditRegistry';
