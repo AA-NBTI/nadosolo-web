@@ -108,18 +108,18 @@ const INITIAL_AUDIT_ITEMS: AuditItem[] = [
     id: 'CHK-02-01',
     stageNo: '02',
     stageName: '프로필',
-    title: '식단',
+    title: '음식',
     targetAccount: 'aa, bb',
     testRoute: '/dashboard',
-    criteria: '알레르기, 비건, 논알콜 등 음식 섭취 제약 조건이 1층 안전 필터에 단일 변수로 정확히 연동되는지 검증',
+    criteria: '알레르기, 비건, 논알콜 등 못 먹는 음식 조건이 1층 안전 필터에 단일 변수로 정확히 연동되는지 검증',
     inputs: {
-      '식단 제약': '비건 / 논알콜 / 제약 없음',
+      '못 먹는 음식': '비건 / 논알콜 / 없음',
     },
     expectedOutputs: {
-      '안전 필터': '식단 비호환 매장 및 메뉴 배제 단일 판정 통과',
+      '안전 필터': '못 먹는 음식 비호환 매장 및 메뉴 배제 단일 판정 통과',
     },
     reproductionSteps: [
-      '1. /dashboard 접속 후 프로필 내 식단(알레르기/주류) 설정 확인',
+      '1. /dashboard 접속 후 프로필 내 못 먹는 음식(식단/알레르기) 설정 확인',
       '2. 비건 또는 알레르기 설정 변경 후 1층 필터 정상 반영 확인',
     ],
     status: 'TESTED',

@@ -12,7 +12,7 @@ import { LoggedInUser } from './types';
 export type ProcessStepId =
   | 'P01_IDENTITY'     // 계정 자격 증명 (회원가입/로그인)
   | 'P02_PROFILE'      // 기본 프로필 (닉네임, 성별, 연도, 연락처)
-  | 'P03_PREFERENCE'   // 식이 제약 및 관심사 태그
+  | 'P03_PREFERENCE'   // 못 먹는 음식 및 관심사 태그
   | 'P04_SELF_ASSESS'  // 성향 자기진단 baseline
   | 'P05_EVENT_APPLY'  // 모임 신청 및 테이블 편성
   | 'P06_SEAT_CONFIRM' // 좌석 배정 및 제휴 공간 안내
@@ -128,18 +128,18 @@ export function evaluateProcessGate(
     }
 
     case 'P03_PREFERENCE': {
-      // 식이 및 취향 설정
+      // 못 먹는 음식 및 취향 설정
       return {
         stepId,
-        stepName: '식이 제약 및 관심사',
+        stepName: '못 먹는 음식 및 관심사',
         status: 'COMPLETED',
         allowed: true,
         missingRequirements: [],
         requirements: [
-          { fieldKey: 'dietary', label: '식이 제한', description: '안전한 식사 준비', satisfied: true },
+          { fieldKey: 'dietary', label: '못 먹는 음식', description: '안전한 식사 준비', satisfied: true },
           { fieldKey: 'interests', label: '관심사', description: '공통 화제 매칭', satisfied: true },
         ],
-        guideMessage: '식이 제약 및 취향 태그가 설정되었습니다.',
+        guideMessage: '못 먹는 음식 및 취향 태그가 설정되었습니다.',
       };
     }
 
@@ -458,7 +458,7 @@ function getStepName(stepId: ProcessStepId): string {
   switch (stepId) {
     case 'P01_IDENTITY': return '계정 자격 증명';
     case 'P02_PROFILE': return '기본 프로필';
-    case 'P03_PREFERENCE': return '식이 제약 및 관심사';
+    case 'P03_PREFERENCE': return '못 먹는 음식 및 관심사';
     case 'P04_SELF_ASSESS': return '성향 자기진단';
     case 'P05_EVENT_APPLY': return '모임 신청';
     case 'P06_SEAT_CONFIRM': return '좌석 배정';

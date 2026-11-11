@@ -17,11 +17,11 @@ import ProcessGateLockedCard from '@/components/dashboard/ProcessGateLockedCard'
 import { KeyRound, UserX, AlertCircle, CheckCircle2, ShieldAlert, Phone, Mail } from 'lucide-react';
 
 const DIETARY_LABELS: Record<DietaryRestriction, string> = {
-  NONE: '일반식',
-  VEGAN: '비건',
+  NONE: '없음 (다 잘 먹어요)',
+  VEGAN: '비건 (채식)',
   HALAL: '할랄',
   NO_PORK: '돼지고기 제외',
-  ALCOHOL_FREE: '논알콜',
+  ALCOHOL_FREE: '술 안 마심 (논알콜)',
 };
 
 const INTEREST_LABELS: Record<InterestTag, string> = {
@@ -1127,7 +1127,7 @@ function MemberDashboardContent() {
 
               <div>
                 <label className="block text-sm font-mono text-zinc-400 mb-2.5">
-                  식단 제한
+                  못 먹는 음식 (알레르기 / 비건 / 논알콜)
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {(Object.keys(DIETARY_LABELS) as DietaryRestriction[]).map(

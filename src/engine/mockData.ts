@@ -23,11 +23,11 @@ export const INTEREST_LABELS: Record<InterestTag, string> = {
 };
 
 export const DIETARY_LABELS: Record<DietaryRestriction, string> = {
-  NONE: '제약 없음',
-  VEGAN: '🥗 비건(Vegan)',
-  HALAL: '🕌 할랄(Halal)',
+  NONE: '없음 (다 잘 먹어요)',
+  VEGAN: '🥗 비건(채식)',
+  HALAL: '🕌 할랄',
   NO_PORK: '🐷 돼지고기 제외',
-  ALCOHOL_FREE: '🥤 논알콜 선호',
+  ALCOHOL_FREE: '🥤 술 안 마심(논알콜)',
 };
 
 export const CHARM_TAG_LABELS: Record<PositiveCharmTag, string> = {

@@ -1773,8 +1773,8 @@ export default function AdminOperationsDashboardPage() {
                                 </span>
                               </div>
                               <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">식이 제약</span>
-                                <span className="text-white font-medium">{m.dietary || 'NONE'}</span>
+                                <span className="text-zinc-500 block mb-1">못 먹는 음식</span>
+                                <span className="text-white font-medium">{m.dietary && m.dietary !== 'NONE' ? m.dietary : '없음'}</span>
                               </div>
                               <div className="p-2.5 border border-white/10 bg-white/[0.02]">
                                 <span className="text-zinc-500 block mb-1">관심사</span>

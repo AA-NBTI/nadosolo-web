@@ -99,8 +99,8 @@ export const DEFAULT_PIPELINE_MODULES: PipelineModule[] = [
       },
       {
         id: 'R_DIETARY_RESTRICTION',
-        label: '식이 제한 & 알레르기',
-        description: '갑각류, 견과류, 채식 등 셰프 코스 요리 준비를 위한 사전 체크',
+        label: '못 먹는 음식 & 알레르기',
+        description: '채식, 특정 식재료 제외 등 셰프 코스 요리 준비를 위한 사전 체크',
         hardConstraint: false,
         exposeToUser: true,
         active: true,
