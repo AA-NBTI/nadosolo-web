@@ -13,10 +13,12 @@ export default function GlobalHeader() {
   const { currentUser, logout } = useNadoSoloEngine();
   const { config } = useSiteConfig();
 
-  // 전역 설정에서 네비게이션 메뉴 가져오기 ('프로그램 이용안내' 제외)
-  const navItems = [...(config?.header?.navItems || [])]
-    .filter((item) => item.visible && item.id !== 'guide' && item.href !== '/guide')
-    .sort((a, b) => a.order - b.order);
+  // 타임레프트 표준 단일 퍼널 네비게이션 (일정 예약 · 성향 퀴즈 · 이용 안내)
+  const navItems = [
+    { id: 'meetup', label: '일정 예약', href: '/meetup' },
+    { id: 'test', label: '성향 퀴즈', href: '/test' },
+    { id: 'guide', label: '이용 안내', href: '/guide' },
+  ];
 
   const handleLogout = () => {
     logout();
@@ -88,20 +90,6 @@ export default function GlobalHeader() {
               </Link>
             );
           })}
-          {isAdmin && (
-            <Link
-              href="/admin/pre-match"
-              prefetch={true}
-              className={`text-xs font-mono tracking-[0.2em] uppercase transition-colors py-1 flex items-center gap-1.5 ${
-                pathname === '/admin/pre-match'
-                  ? 'text-blue-300 font-semibold'
-                  : 'text-blue-300/80 hover:text-blue-200 font-medium'
-              }`}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
-              <span>가매칭</span>
-            </Link>
-          )}
         </nav>
 
         {/* [우측] 프로필/로그인 */}

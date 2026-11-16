@@ -9,70 +9,70 @@ import { ArrowRight, CheckCircle2, ShieldCheck, Clock, HelpCircle, ChevronDown, 
 
 const PROTOCOL_STEPS = [
   {
-    step: 'PHASE 01',
-    title: '성향 기반 3:3 테이블 큐레이션',
-    desc: '참가자의 연령대(5060 골든 트랙), 관심사, 대화 성향 데이터를 다면 분석하여 최상의 대화 밸런스를 갖춘 3:3 프라이빗 테이블을 사전 편성합니다.',
-    tag: 'ANALYTICS & CURATION',
+    step: 'STEP 01',
+    title: '성향 퀴즈 & 도시·슬롯 예약',
+    desc: '성향·식단·예산 퀴즈를 완료하고, 방 제목이나 식당을 고르지 않고 [도시 × 날짜/요일] 블라인드 슬롯만 예약합니다.',
+    tag: 'QUIZ & BLIND SLOT',
   },
   {
-    step: 'PHASE 02',
-    title: '소음 없는 프라이빗 살롱 다이닝',
-    desc: '엄선된 프라이빗 룸에서 셰프의 시그니처 코스 요리와 소믈리에 와인 페어링을 즐기며, 대화 플레이북 카드를 통해 자연스럽고 지적인 교류를 이어갑니다.',
-    tag: 'PRIVATE DINING',
+    step: 'STEP 02',
+    title: 'D-1 19:00 식당 공개 (Reveal)',
+    desc: '예약 시점부터 모임 전까지 1:1 DM과 프로필이 100% 차단되며, D-1 19:00에 배정된 제휴 식당·위치·동석자 힌트가 공개됩니다.',
+    tag: 'D-1 REVEAL',
   },
   {
-    step: 'PHASE 03',
-    title: '단일 명사 1:1 상호 관찰 평가',
-    desc: '다이닝 종료 후 참가자 전원이 동석자들의 소통 품격을 단일 명사 5대 지표(품격, 미소, 경청, 배려, 시선)로 인지적 왜곡 없이 직관적으로 관찰합니다.',
-    tag: 'MUTUAL OBSERVATION',
+    step: 'STEP 03',
+    title: '현장 6인 다이닝 & 대화 카드',
+    desc: '검증된 공공 제휴 식당에서 디지털 대화 카드로 어색함 없이 교류합니다. 식음료는 현장에서 1/N 실비로 직접 결제합니다.',
+    tag: 'ICEBREAKER & 1/N',
   },
   {
-    step: 'PHASE 04',
-    title: '상호주의 해금 소셜 리포트 발행',
-    desc: '본인이 동석자 전원 평가를 100% 완료하는 즉시, 타인의 시선으로 집계된 100점 만점 표준화 메타인지 소셜 리포트가 안전하게 언락(Unlock)됩니다.',
+    step: 'STEP 04',
+    title: '상호 평가 · 차단 & 리포트 해금',
+    desc: '모임 후 노쇼·불편 상대 영구 차단 및 동석자 전원 관찰을 완료하면, 내 소셜 메타인지 리포트가 자동 잠금 해제됩니다.',
     tag: 'RECIPROCAL UNLOCK',
   },
 ];
 
 const TIMELINE = [
   {
-    time: '19:30',
-    title: '리셉션 및 웰컴 드링크',
-    desc: '프라이빗 룸 개별 입장 후 웰컴 샴페인 또는 탄산수와 함께 테이블 시팅을 안내받습니다.',
+    time: 'D-1 19:00',
+    title: '배정 식당 및 동석자 힌트 공개 (Reveal)',
+    desc: '대시보드와 알림함으로 배정된 제휴 식당 이름·위치·테이블 직군/연령대 힌트가 비공개 공개됩니다.',
   },
   {
-    time: '19:45',
-    title: '셰프 시그니처 코스 & 와인 페어링',
-    desc: '엄선된 제철 식자재 요리가 서빙되며, 자연스러운 아이스브레이킹 대화가 시작됩니다.',
+    time: '당일 19:30',
+    title: '제휴 식당 개별 도착 및 착석',
+    desc: '나도솔로 예약 테이블로 안내받아 6인이 모이며, 사전 1:1 연락 없이 현장에서 처음 인사합니다.',
   },
   {
-    time: '20:30',
-    title: '지적 교류와 대화 플레이북',
-    desc: '테이블에 비치된 나도솔로 감성 플레이북 카드를 통해 삶의 궤적과 깊이 있는 가치관을 공유합니다.',
+    time: '당일 20:00',
+    title: '디지털 대화 카드 & 식사 교류',
+    desc: '대시보드 현장 대화 카드(아이스브레이커)를 활용해 가벼운 화제부터 깊은 가치관까지 대화를 나눕니다.',
   },
   {
-    time: '21:30',
-    title: '테이블 1/N 실비 정산 & 상호 관찰',
-    desc: '식음료 대금은 테이블에서 직접 1/N 카드 결제하며, 귀가 길에 모바일로 동석자 상호 관찰을 진행합니다.',
+    time: '종료 후',
+    title: '1/N 현장 정산 · 사후 평가 · 리포트 해금',
+    desc: '식음료는 매장에서 1/N 결제하고, 모임 후 관찰 평가 및 노쇼/차단 신고 완료 시 소셜 리포트가 열립니다.',
   },
 ];
 
 const FAQS = [
   {
-    q: '온라인 참가비 ₩30,000과 현장 식사비는 어떻게 다른가요?',
-    a: '온라인 결제 ₩30,000은 식사비나 만남 주선비가 아니며, 나도솔로 다면 관찰 엔진 라이선스 및 상호주의 소셜 리포트 발행비입니다. 현장 음식과 주류 비용은 당일 식당에서 참가자들 간 1/N 실비로 직접 카드 결제하며, 나도솔로는 식음료 대금을 일절 수취하거나 관여하지 않습니다.',
+    q: '온라인 참가비와 현장 식사비는 어떻게 다른가요?',
+    a: '온라인 참가비는 식사비나 만남 주선비가 아니며, 매칭·제휴 식당 예약 및 다면 관찰 소셜 리포트 발행비입니다. 음식과 주류 비용은 당일 식당에서 참가자들 간 1/N 실비로 직접 결제합니다.',
   },
   {
-    q: '소셜 리포트는 언제 열람할 수 있나요?',
-    a: '나도솔로 헌법인 [상호주의 해금 원칙]에 따라, 이용자 본인이 동석자 전원에 대한 1단어 관찰 평가를 100% 완료하는 즉시 내 소셜 리포트가 잠금 해제되어 대시보드에서 열람하실 수 있습니다.',
+    q: '왜 예약할 때 식당이나 동석자를 미리 볼 수 없나요?',
+    a: '타임레프트 표준 블라인드 원칙에 따라 사전 선입견과 1:1 연락(DM)을 원천 차단하고, 동일 지역·일정 풀에 모수를 100% 집중해 성사율과 안전을 높이기 위함입니다. 식당과 힌트는 D-1 19:00에 공개됩니다.',
   },
   {
-    q: '누가 나에게 어떤 평가를 주었는지 상대방이 알 수 있나요?',
-    a: '절대 알 수 없습니다. 나도솔로는 [절대 익명성 원칙]을 준수하여 1:1 개별 점수를 비공개 처리하며, 동석자 전체의 관찰 결과가 집계된 표준화 가중 지표로만 제공됩니다. 주관적 비하 텍스트 입력 역시 기술적으로 원천 차단되어 있습니다.',
+    q: '취소 · 일정 변경(이월) · 인원 미달 시 어떻게 되나요?',
+    a: '모임 시작 48시간 전까지는 대시보드에서 무료 취소 또는 다음 회차 이월(참가권 1매 보존)이 가능합니다. 24시간 이내 취소 및 노쇼 시에는 참가권이 보존되지 않으며, 인원 미달 시 다음 회차로 자동 이월됩니다.',
   },
   {
-    q: '혼자 참석해도 어색하지 않은가요?',
-    a: '참석자의 95% 이상이 동반자 없이 단독으로 참석하십니다. 소음과 외부 시선이 차단된 단독 룸에서 전문 대화 플레이북 카드가 비치되어 있어 어색함 없이 자연스럽고 깊이 있는 대화가 이어집니다.',
+    q: '소셜 리포트와 영구 재매칭 차단은 어떻게 작동하나요?',
+    a: '동석자 전원에 대한 단일 명사 관찰 평가를 완료하면 익명 집계된 내 소셜 리포트가 즉시 열립니다. 또한 모임 후 노쇼나 불편한 상대를 차단 신고하면 향후 모든 회차에서 영구적으로 재매칭에서 제외됩니다.',
   },
 ];
 
@@ -84,22 +84,7 @@ export default function GuidePage() {
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
 
   const handleApplyClick = () => {
-    if (!currentUser) {
-      router.push('/auth?next=/guide');
-      return;
-    }
-    const targetEv = conditionalEvents[0];
-    if (targetEv) {
-      setCheckoutEvent({
-        eventId: targetEv.eventId,
-        title: targetEv.title,
-        dateText: targetEv.dateText,
-        priceKrw: 30000,
-        districtName: '부산',
-        mealNote: targetEv.mealNote,
-      });
-      setIsCheckoutOpen(true);
-    }
+    router.push('/test');
   };
 
   const handlePaymentSuccess = (eventId: string) => {
@@ -132,15 +117,15 @@ export default function GuidePage() {
 
           <div className="max-w-4xl space-y-4">
             <h1 className="font-serif-editorial text-4xl sm:text-6xl lg:text-[70px] font-normal text-white tracking-tight leading-[1.12]">
-              <span className="block whitespace-nowrap">소셜 다이닝에서 완성되는</span>
+              <span className="block whitespace-nowrap">퀴즈부터 D-1 공개까지</span>
               <span className="block whitespace-nowrap font-light italic text-[#f5f2eb]/90 mt-1">
-                다면 관찰 및 메타인지 피드백 시스템
+                타임레프트 표준 이용 안내
               </span>
             </h1>
 
             <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed max-w-2xl tracking-wide pt-2">
-              신원과 에티켓이 검증된 분들이 프라이빗 룸에서 식사와 지적 대화를 나누고,<br className="hidden sm:inline" />
-              동석자 상호 관찰을 통해 나의 소통 품격을 표준화 리포트로 발견하는 4단계 프로세스입니다.
+              성향 퀴즈로 시작해 도시와 요일 슬롯만 예약하면, D-1 19:00에 제휴 식당이 비공개 공개되고<br className="hidden sm:inline" />
+              현장 대화 카드와 상호 관찰을 거쳐 나만의 소셜 메타인지 리포트까지 이어지는 4단계 여정입니다.
             </p>
           </div>
 
@@ -230,13 +215,13 @@ export default function GuidePage() {
               
               <div className="space-y-4 md:pr-8">
                 <div className="inline-block px-3 py-1 bg-transparent border border-[#f04f74]/60 text-[#f04f74] text-xs font-mono font-semibold">
-                  온라인 사전 결제: ₩30,000
+                  온라인 사전 결제: 참가비 (리포트 라이선스)
                 </div>
                 <h3 className="font-serif-editorial text-xl text-white">
                   다면 관찰 엔진 라이선스 및 소셜 리포트 발행비
                 </h3>
                 <p className="text-xs sm:text-sm text-zinc-300 font-light leading-relaxed">
-                  나도솔로는 식음료 판매업자가 아닙니다. ₩30,000은 3:3 성향 밸런스 큐레이션, 단일 명사 관찰 알고리즘 구동, 그리고 참가자 전원의 상호 관찰 데이터가 집계된 표준화 메타인지 소셜 리포트를 생성·발행하는 기술 라이선스 비용입니다.
+                  나도솔로는 식음료 판매업자가 아닙니다. 참가비는 3:3 성향 밸런스 큐레이션, 단일 명사 관찰 알고리즘 구동, 그리고 참가자 전원의 상호 관찰 데이터가 집계된 표준화 메타인지 소셜 리포트를 생성·발행하는 기술 라이선스 비용입니다.
                 </p>
               </div>
 

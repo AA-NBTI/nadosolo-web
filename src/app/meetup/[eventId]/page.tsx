@@ -94,7 +94,7 @@ export default function MeetupDetailPage({
             prefetch={true}
             className="text-sm font-mono text-zinc-300 hover:text-white transition-colors"
           >
-            ← 모임 일정 목록
+            ← 밋업 목록
           </Link>
           <span className="px-3 py-1 text-sm font-mono border border-white/25 bg-white/10 text-white font-semibold">
             {statusLabel}

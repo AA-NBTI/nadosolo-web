@@ -271,6 +271,128 @@ export const nadoSoloSupabaseService = {
   },
 
   /**
+   * 보유 참가권(이월 티켓) 수량 조회
+   */
+  async getTicketCredits(userId: string): Promise<number> {
+    const existing = await this.getProfile(userId);
+    const raw = (existing?.self_domain_scores as Record<string, any> | undefined)?._ticket_credits;
+    return typeof raw === 'number' && raw > 0 ? raw : 0;
+  },
+
+  /**
+   * 보유 참가권(이월 티켓) 증감
+   */
+  async adjustTicketCredits(userId: string, delta: number): Promise<number> {
+    const existing = await this.getProfile(userId);
+    if (!existing) return 0;
+    const prevScores = (existing.self_domain_scores || {}) as Record<string, any>;
+    const current = typeof prevScores._ticket_credits === 'number' ? prevScores._ticket_credits : 0;
+    const next = Math.max(0, current + delta);
+    await this.upsertProfile({
+      ...existing,
+      self_domain_scores: {
+        ...prevScores,
+        _ticket_credits: next,
+      },
+    });
+    return next;
+  },
+
+  /**
+   * 보유 참가권(1매) 차감 후 즉시 슬롯 예약 확정
+   */
+  async redeemTicketForEvent(
+    userId: string,
+    eventId: string,
+    eventTitle: string
+  ): Promise<{ ok: boolean; remainingCredits: number }> {
+    const credits = await this.getTicketCredits(userId);
+    if (credits <= 0) return { ok: false, remainingCredits: 0 };
+
+    const applied = await this.applyForEvent(userId, eventId);
+    if (!applied) return { ok: false, remainingCredits: credits };
+
+    const remainingCredits = await this.adjustTicketCredits(userId, -1);
+    await this.createNotification({
+      userId,
+      eventId,
+      type: 'ROOM_CONFIRMED',
+      title: '보유 참가권으로 슬롯 예약 완료',
+      message: `[${eventTitle}] 예약이 완료되었습니다. (잔여 참가권 ${remainingCredits}매)`,
+    });
+    return { ok: true, remainingCredits };
+  },
+
+  /**
+   * 모임 예약 취소 또는 다음 회차 이월 (48h/24h 정책 판별 + 상태 복구 + 이월 티켓 적립 + 알림 기록)
+   */
+  async cancelOrRolloverApplication(
+    userId: string,
+    eventId: string,
+    eventTitle: string,
+    action: 'CANCEL' | 'ROLLOVER',
+    eventDateStr?: string
+  ): Promise<{ ok: boolean; policyNote: string; ticketCredits?: number }> {
+    let policyNote = action === 'ROLLOVER' ? '다음 회차 이월(참가권 1매 보존)' : '무료 취소(참가권 1매 보존)';
+    let grantCredit = true;
+    if (eventDateStr) {
+      const targetMs = new Date(eventDateStr).getTime();
+      if (!Number.isNaN(targetMs)) {
+        const hoursLeft = (targetMs - Date.now()) / (1000 * 60 * 60);
+        if (hoursLeft < 24) {
+          policyNote = '24시간 이내 임박 취소(참가권 미보존)';
+          grantCredit = false;
+        } else if (hoursLeft < 48) {
+          policyNote = action === 'ROLLOVER' ? '48시간 이내 이월(참가권 1매 보존)' : '48시간 이내 취소';
+          grantCredit = action === 'ROLLOVER';
+        }
+      }
+    }
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('event_applications')
+        .update({ status: 'CANCELLED' })
+        .eq('user_id', userId)
+        .eq('event_id', eventId);
+
+      if (error) {
+        return { ok: false, policyNote: error.message };
+      }
+
+      const existing = await this.getProfile(userId);
+      let nextCredits = 0;
+      if (existing) {
+        const prevScores = (existing.self_domain_scores || {}) as Record<string, any>;
+        const curCredits = typeof prevScores._ticket_credits === 'number' ? prevScores._ticket_credits : 0;
+        nextCredits = grantCredit ? curCredits + 1 : curCredits;
+        await this.upsertProfile({
+          ...existing,
+          matching_stage: 'READY',
+          confirmed_event_id: undefined,
+          self_domain_scores: {
+            ...prevScores,
+            _ticket_credits: nextCredits,
+          },
+        });
+      }
+
+      await this.createNotification({
+        userId,
+        eventId,
+        type: action === 'ROLLOVER' ? 'WAITLIST_ROLLOVER' : 'CANCELLED',
+        title: action === 'ROLLOVER' ? '모임 일정 이월 완료' : '모임 예약 취소 완료',
+        message: `[${eventTitle}] ${policyNote} 처리되었습니다.`,
+      });
+
+      return { ok: true, policyNote, ticketCredits: nextCredits };
+    } catch (e: any) {
+      return { ok: false, policyNote: e?.message || '처리 실패' };
+    }
+  },
+
+  /**
    * 5×5×5 매트릭스 평가 데이터 조회
    */
   async getMatrixEvaluations(sessionId: string): Promise<MatrixEvaluationRecord[]> {
@@ -423,6 +545,264 @@ export const nadoSoloSupabaseService = {
       console.warn('[Supabase] getParticipantObservations error:', e);
       return [];
     }
+  },
+
+  /**
+   * 개인 리포트 상태 및 점수 캐시 조회
+   */
+  async getPersonalReport(
+    sessionId: string,
+    userId: string
+  ): Promise<{
+    unlocked: boolean;
+    completedCount: number;
+    totalScore100: number;
+    topStrengths: string[];
+  } | null> {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('personal_reports')
+        .select('unlocked, completed_count, total_score100, top_strengths')
+        .eq('session_id', sessionId)
+        .eq('user_id', userId)
+        .single();
+      if (error || !data) return null;
+      return {
+        unlocked: Boolean(data.unlocked),
+        completedCount: Number(data.completed_count ?? 0),
+        totalScore100: Number(data.total_score100 ?? 0),
+        topStrengths: Array.isArray(data.top_strengths) ? data.top_strengths : [],
+      };
+    } catch (e) {
+      console.warn('[Supabase] getPersonalReport error:', e);
+      return null;
+    }
+  },
+
+  /**
+   * 상호주의 해금 및 100점 표준 점수 자동 집계 (평가 저장 직후 호출)
+   * - 본인이 평가한 동석자 수가 requiredPeerCount 이상이면 unlocked = true
+   * - 타인이 나를 평가한 단일 명사 관찰 점수를 100점 만점으로 정규화·상위 강점 3개 산출
+   */
+  async syncReciprocalReportUnlock(
+    sessionId: string,
+    evaluatorUserId: string,
+    requiredPeerCount: number = 5
+  ): Promise<{
+    unlocked: boolean;
+    completedPeers: number;
+    totalScore100: number;
+    topStrengths: string[];
+  }> {
+    const observations = await this.getParticipantObservations(sessionId);
+    const outgoingPeers = new Set(
+      observations
+        .filter((o) => o.from_user_id === evaluatorUserId)
+        .map((o) => String(o.to_user_id))
+    );
+    const completedPeers = outgoingPeers.size;
+    const unlocked = completedPeers >= requiredPeerCount;
+
+    const incoming = observations.filter((o) => o.to_user_id === evaluatorUserId);
+    let totalScore100 = 0;
+    let topStrengths: string[] = [];
+
+    if (incoming.length > 0) {
+      const sumSteps = incoming.reduce((acc, o) => acc + Number(o.score_step ?? 0), 0);
+      totalScore100 = Math.round(((sumSteps / incoming.length) / 5) * 100);
+
+      const nounBuckets = new Map<string, { sum: number; count: number }>();
+      for (const obs of incoming) {
+        const noun = String(obs.anchor_noun || '').trim();
+        if (!noun) continue;
+        const cur = nounBuckets.get(noun) ?? { sum: 0, count: 0 };
+        cur.sum += Number(obs.score_step ?? 0);
+        cur.count += 1;
+        nounBuckets.set(noun, cur);
+      }
+      topStrengths = Array.from(nounBuckets.entries())
+        .map(([noun, v]) => ({ noun, avg: v.sum / v.count }))
+        .sort((a, b) => b.avg - a.avg)
+        .slice(0, 3)
+        .map((x) => x.noun);
+    }
+
+    await this.upsertPersonalReport({
+      sessionId,
+      userId: evaluatorUserId,
+      unlocked,
+      completedCount: completedPeers,
+      totalScore100,
+      topStrengths,
+    });
+
+    if (unlocked) {
+      await this.createNotification({
+        userId: evaluatorUserId,
+        eventId: sessionId,
+        type: 'REPORT_UNLOCKED',
+        title: '소셜 리포트 잠금 해제',
+        message: `동석자 ${completedPeers}명 관찰 평가를 완료해 내 리포트(${totalScore100}점)가 열렸습니다.`,
+      });
+    }
+
+    return { unlocked, completedPeers, totalScore100, topStrengths };
+  },
+
+  /**
+   * 이용자 알림 생성 (인앱 + 외부 알림톡/SMS 발송 큐 기록)
+   */
+  async createNotification(input: {
+    userId: string;
+    eventId?: string;
+    type: 'ROOM_CONFIRMED' | 'VENUE_REVEAL' | 'WAITLIST_ROLLOVER' | 'EVAL_REQUEST' | 'REPORT_UNLOCKED' | 'CANCELLED';
+    title: string;
+    message: string;
+    channel?: 'IN_APP' | 'KAKAO_ALIMTALK' | 'SMS';
+    deliveryStatus?: 'PENDING' | 'SENT' | 'FAILED';
+  }): Promise<boolean> {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('notifications').insert({
+        user_id: input.userId,
+        event_id: input.eventId || null,
+        type: input.type,
+        title: input.title,
+        message: input.message,
+        channel: input.channel || 'IN_APP',
+        delivery_status: input.deliveryStatus || 'SENT',
+        is_read: false,
+      });
+      if (error) {
+        console.warn('[Supabase] createNotification warning:', error.message);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('[Supabase] createNotification error:', e);
+      return false;
+    }
+  },
+
+  /**
+   * 이용자 알림 목록 조회
+   */
+  async getUserNotifications(userId: string): Promise<
+    Array<{
+      id: string;
+      user_id: string;
+      event_id?: string;
+      type: string;
+      title: string;
+      message: string;
+      channel: string;
+      delivery_status: string;
+      is_read: boolean;
+      created_at: string;
+    }>
+  > {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (error || !data) return [];
+      return data as any[];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * 알림 읽음 처리
+   */
+  async markNotificationRead(notificationId: string): Promise<boolean> {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+      return !error;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * 영구 재매칭 차단 / 노쇼 신고 등록
+   */
+  async blockUserPair(
+    fromUserId: string,
+    blockedUserId: string,
+    sessionId?: string,
+    reason: 'UNCOMFORTABLE' | 'NO_SHOW' | 'SAFETY' = 'UNCOMFORTABLE'
+  ): Promise<boolean> {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.from('user_blocks').upsert(
+        {
+          from_user_id: fromUserId,
+          blocked_user_id: blockedUserId,
+          session_id: sessionId || null,
+          reason,
+        },
+        { onConflict: 'from_user_id,blocked_user_id' }
+      );
+      return !error;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * 전체 재매칭 차단 쌍 조회
+   */
+  async getBlockedPairs(): Promise<Array<{ fromUserId: string; blockedUserId: string }>> {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('user_blocks')
+        .select('from_user_id, blocked_user_id');
+      if (error || !data) return [];
+      return data.map((row: any) => ({
+        fromUserId: String(row.from_user_id),
+        blockedUserId: String(row.blocked_user_id),
+      }));
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * 편성 확정 방을 DB(meetups + profiles 매칭단계 + personal_reports 초기화)에 일괄 영속화
+   */
+  async commitMatchedRoomSession(
+    event: ConditionalEventItem,
+    memberProfileIds: string[]
+  ): Promise<{ ok: boolean; updatedMembers: number }> {
+    const eventSaved = await this.upsertEvent(event);
+    let updatedMembers = 0;
+
+    for (const userId of memberProfileIds) {
+      if (!userId) continue;
+      const stageOk = await this.updateMemberMatchingStage(userId, 'CONFIRMED', event.eventId);
+      const reportOk = await this.upsertPersonalReport({
+        sessionId: event.eventId,
+        userId,
+        unlocked: false,
+        completedCount: 0,
+        totalScore100: 0,
+        topStrengths: [],
+      });
+      if (stageOk && reportOk) updatedMembers += 1;
+    }
+
+    return { ok: eventSaved, updatedMembers };
   },
 
   /**

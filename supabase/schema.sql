@@ -116,22 +116,34 @@ ALTER TABLE public.journey_audit_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.personal_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.secret_votes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Public read profiles" ON public.profiles;
 CREATE POLICY "Public read profiles" ON public.profiles FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update profiles" ON public.profiles;
 CREATE POLICY "Public insert/update profiles" ON public.profiles FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Public read event_applications" ON public.event_applications;
 CREATE POLICY "Public read event_applications" ON public.event_applications FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update event_applications" ON public.event_applications;
 CREATE POLICY "Public insert/update event_applications" ON public.event_applications FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Public read participant_observations" ON public.participant_observations;
 CREATE POLICY "Public read participant_observations" ON public.participant_observations FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update participant_observations" ON public.participant_observations;
 CREATE POLICY "Public insert/update participant_observations" ON public.participant_observations FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Public read journey_audit_records" ON public.journey_audit_records;
 CREATE POLICY "Public read journey_audit_records" ON public.journey_audit_records FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update journey_audit_records" ON public.journey_audit_records;
 CREATE POLICY "Public insert/update journey_audit_records" ON public.journey_audit_records FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Public read personal_reports" ON public.personal_reports;
 CREATE POLICY "Public read personal_reports" ON public.personal_reports FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update personal_reports" ON public.personal_reports;
 CREATE POLICY "Public insert/update personal_reports" ON public.personal_reports FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Public read secret_votes" ON public.secret_votes;
 CREATE POLICY "Public read secret_votes" ON public.secret_votes FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update secret_votes" ON public.secret_votes;
 CREATE POLICY "Public insert/update secret_votes" ON public.secret_votes FOR ALL USING (true);
 
 -- ============================================================================
@@ -173,8 +185,53 @@ CREATE TABLE IF NOT EXISTS public.meetups (
 );
 
 ALTER TABLE public.meetups ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read meetups" ON public.meetups;
 CREATE POLICY "Public read meetups" ON public.meetups FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update/delete meetups" ON public.meetups;
 CREATE POLICY "Public insert/update/delete meetups" ON public.meetups FOR ALL USING (true);
+
+-- ============================================================================
+-- 12. 이용자 알림 원장 & 발송 큐 (Notifications)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  event_id TEXT,
+  type TEXT NOT NULL DEFAULT 'ROOM_CONFIRMED',
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  channel TEXT NOT NULL DEFAULT 'IN_APP',
+  delivery_status TEXT NOT NULL DEFAULT 'SENT',
+  is_read BOOLEAN DEFAULT false NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications (user_id, created_at DESC);
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read notifications" ON public.notifications;
+CREATE POLICY "Public read notifications" ON public.notifications FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update notifications" ON public.notifications;
+CREATE POLICY "Public insert/update notifications" ON public.notifications FOR ALL USING (true);
+
+-- ============================================================================
+-- 13. 영구 재매칭 차단 및 노쇼 신고 기록 (User Blocks)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.user_blocks (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  from_user_id TEXT NOT NULL,
+  blocked_user_id TEXT NOT NULL,
+  session_id TEXT,
+  reason TEXT DEFAULT 'UNCOMFORTABLE',
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  UNIQUE(from_user_id, blocked_user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_blocks_lookup ON public.user_blocks (from_user_id, blocked_user_id);
+ALTER TABLE public.user_blocks ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read user_blocks" ON public.user_blocks;
+CREATE POLICY "Public read user_blocks" ON public.user_blocks FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public insert/update user_blocks" ON public.user_blocks;
+CREATE POLICY "Public insert/update user_blocks" ON public.user_blocks FOR ALL USING (true);
 
 -- ============================================================================
 -- 10. 시드 데이터 (Seed Data)

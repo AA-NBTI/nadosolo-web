@@ -43,38 +43,62 @@ export default function GlobalFooter() {
             </Link>
           </div>
 
-          {/* 상단 1열: 이용약관, 개인정보처리방침, 환불규정, 프로그램 안내, SNS 링크 */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm font-normal">
+          {/* 상단 1열: 이용약관, 개인정보처리방침, 안전가이드, 어필리에이트, 제휴식당, 프로그램 안내 */}
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs sm:text-sm font-normal">
             <Link
               href="/guide"
               prefetch={true}
               className="text-zinc-400 hover:text-white transition-colors"
             >
-              프로그램 이용안내
+              이용안내
             </Link>
             <span className="text-zinc-600">|</span>
-            <button
-              type="button"
-              onClick={() => setActiveModal('TERMS')}
-              className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            <Link
+              href="/safety"
+              prefetch={true}
+              className="text-zinc-400 hover:text-white transition-colors"
+            >
+              안전가이드
+            </Link>
+            <span className="text-zinc-600">|</span>
+            <Link
+              href="/affiliate"
+              prefetch={true}
+              className="text-zinc-400 hover:text-white transition-colors"
+            >
+              어필리에이트
+            </Link>
+            <span className="text-zinc-600">|</span>
+            <Link
+              href="/partners"
+              prefetch={true}
+              className="text-zinc-400 hover:text-white transition-colors"
+            >
+              제휴식당 입점
+            </Link>
+            <span className="text-zinc-600">|</span>
+            <Link
+              href="/terms"
+              prefetch={true}
+              className="text-zinc-400 hover:text-white transition-colors"
             >
               이용약관
-            </button>
+            </Link>
             <span className="text-zinc-600">|</span>
-            <button
-              type="button"
-              onClick={() => setActiveModal('PRIVACY')}
-              className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            <Link
+              href="/privacy"
+              prefetch={true}
+              className="text-zinc-400 hover:text-white transition-colors"
             >
               개인정보처리방침
-            </button>
+            </Link>
             <span className="text-zinc-600">|</span>
             <button
               type="button"
               onClick={() => setActiveModal('REFUND')}
               className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
-              취소 및 환불규정
+              환불규정
             </button>
 
             {/* SNS 외부 채널 링크 (관리자 설정) */}

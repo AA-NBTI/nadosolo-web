@@ -268,20 +268,22 @@ export const DEFAULT_CATEGORY_ITEMS: SectorCategoryItem[] = [
 ];
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 11,
+  version: 16,
   header: {
     announcement: {
-      text: '부산 5060 골든 소셜 다이닝 참가 신청 안내',
-      link: '/dining',
+      text: '이번 주 프라이빗 6인 디너 슬롯 예약 오픈',
+      link: '/meetup',
       visible: false,
       tag: 'NOTICE',
     },
     navItems: [
-      { id: 'meetup', label: '모임 일정', href: '/meetup', visible: true, order: 1 },
-      { id: 'dining', label: '소셜 다이닝', href: '/dining', visible: true, order: 2 },
-      { id: 'showcase', label: '쇼케이스', href: '/showcase', visible: true, order: 3 },
-      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 4 },
-      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 5 },
+      { id: 'meetup', label: '일정 예약', href: '/meetup', visible: true, order: 1 },
+      { id: 'test', label: '성향 퀴즈', href: '/test', visible: true, order: 2 },
+      { id: 'guide', label: '이용 안내', href: '/guide', visible: true, order: 3 },
+      { id: 'dining', label: '소셜 다이닝', href: '/dining', visible: false, order: 4 },
+      { id: 'showcase', label: '쇼케이스', href: '/showcase', visible: false, order: 5 },
+      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 6 },
+      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 7 },
     ],
     activeCityLabel: '부산',
   },
@@ -292,8 +294,8 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       type: 'hero',
       title: '에디토리얼 소셜 다이닝 히어로',
       subtitle: '5060 프라이빗 소셜 다이닝',
-      headlineTitle: '좋은 대화가 머무는 저녁,',
-      headlineHighlight: '삶의 결이 통하는 사람들과 마주합니다',
+      headlineTitle: '나도솔로 — 이유있는 만남,',
+      headlineHighlight: '직진은 NO!\n같은 방향을 바라보다',
       description: '엄선된 프라이빗 룸과 셰프의 코스 요리, 그리고 와인 한 잔. 신원과 에티켓이 검증된 분들이 마주 앉아 서로의 품격과 온도를 나누는 5060 소셜 다이닝입니다.',
       ctaText: '테이블 신청하기',
       visible: true,

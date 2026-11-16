@@ -1,12 +1,13 @@
 {
   "name": "nn-nadosolo",
-  "version": "2.2.2",
+  "version": "2.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "simulate": "npx tsx src/engine/simulate.ts"
+    "simulate": "npx tsx src/engine/simulate.ts",
+    "pipeline:status": "node scripts/check-pipeline.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -26,6 +26,7 @@ import AdminProcessTestReportManager from '@/components/admin/AdminProcessTestRe
 import AdminAuditReportManager from '@/components/admin/AdminAuditReportManager';
 import AdminGovernanceManager from '@/components/admin/AdminGovernanceManager';
 import AdminAdaptiveMatchingManager from '@/components/admin/AdminAdaptiveMatchingManager';
+import AdminPreMatchPage from './pre-match/page';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import { buildMeetupSeoSlug } from '@/lib/seoSlug';
@@ -37,6 +38,8 @@ import {
   computeUserAxisProfile,
   matchDynamicTables,
   AdaptiveAnswer,
+  DEFAULT_AB_EXPERIMENTS,
+  AbExperimentSpec,
 } from '@/engine/dynamicMatchingEngine';
 
 type AdminTabKey =
@@ -220,6 +223,35 @@ export default function AdminOperationsDashboardPage() {
     cmsSteps,
     updateCmsStep,
   } = useNadoSoloEngine();
+
+  const [abExperiments, setAbExperiments] = useState<AbExperimentSpec[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('nadosolo_ab_experiments_v1');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return DEFAULT_AB_EXPERIMENTS;
+  });
+
+  const handleUpdateAbMode = (
+    experimentId: string,
+    mode: 'A_ONLY' | 'AB_SPLIT' | 'B_ONLY'
+  ) => {
+    setAbExperiments((prev) => {
+      const next = prev.map((e) =>
+        e.experimentId === experimentId ? { ...e, activeMode: mode } : e
+      );
+      try {
+        localStorage.setItem('nadosolo_ab_experiments_v1', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    notify(`A/B 실험 모드 변경: ${mode}`);
+  };
 
   // 신규 접속 기본값: 선택된 탭 없음 → 우측에 전체 카테고리 목록이 먼저 노출
   const [activeTab, setActiveTab] = useState<AdminTabKey | null>(null);
@@ -1096,7 +1128,7 @@ export default function AdminOperationsDashboardPage() {
                     </div>
                   </div>
                   <span className="px-2 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white shrink-0">
-                    v2.2.2
+                    v2.3.0
                   </span>
                 </div>
               </button>
@@ -1676,42 +1708,6 @@ export default function AdminOperationsDashboardPage() {
                   );
                 })()}
 
-                {/* 2. 전체 관리자 기능 바로가기 */}
-                <div
-                  className={`border divide-y ${
-                    isLight
-                      ? 'bg-white border-zinc-200 divide-zinc-200'
-                      : 'bg-[#0c0d12] border-white/10 divide-white/[0.06]'
-                  }`}
-                >
-                  {ADMIN_CATEGORY_GROUPS.map((group) => (
-                    <div key={group.groupTitle} className="p-4 flex flex-wrap items-center gap-3">
-                      <span
-                        className={`w-16 shrink-0 text-sm font-mono font-bold ${
-                          isLight ? 'text-zinc-900' : 'text-white'
-                        }`}
-                      >
-                        {group.groupTitle}
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {group.items.map((cat) => (
-                          <button
-                            key={cat.key}
-                            type="button"
-                            onClick={() => handleSelectTab(cat.key)}
-                            className={`px-3 py-1.5 border text-sm font-mono transition-colors cursor-pointer ${
-                              isLight
-                                ? 'border-zinc-300 text-zinc-700 hover:border-zinc-900 hover:text-zinc-900'
-                                : 'border-white/15 text-zinc-300 hover:border-[#f04f74] hover:text-white'
-                            }`}
-                          >
-                            {cat.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 
@@ -2610,6 +2606,126 @@ export default function AdminOperationsDashboardPage() {
                 </div>
               </div>
 
+              {/* 한눈에 확인하는 4열 회원 현황 다이어그램 (전체/성비 · 지역비율 · 목적비율 · 평균총점) */}
+              {(() => {
+                const total = Math.max(1, liveDbProfiles.length);
+                const fCount = liveDbProfiles.filter((p) => p.gender === 'F').length;
+                const mCount = liveDbProfiles.filter((p) => p.gender === 'M').length;
+                const fPct = Math.round((fCount / total) * 100);
+                const mPct = 100 - fPct;
+
+                const regMap = new Map<string, number>();
+                for (const p of liveDbProfiles) {
+                  const c = normalizeCityName(p.residence_city);
+                  regMap.set(c, (regMap.get(c) ?? 0) + 1);
+                }
+                const topRegions = Array.from(regMap.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+                const purpMap = [
+                  { key: 'RESET' as const, label: '변화' },
+                  { key: 'FRIEND' as const, label: '교류' },
+                  { key: 'TASTE' as const, label: '취향' },
+                  { key: 'ROMANCE' as const, label: '인연' },
+                ];
+
+                const scoredMembers = liveDbProfiles.map((p) => getMemberTotalScore(p)).filter((s) => s > 0);
+                const avgScore =
+                  scoredMembers.length > 0
+                    ? Math.round(scoredMembers.reduce((a, b) => a + b, 0) / scoredMembers.length)
+                    : 0;
+                const diagPct = Math.round((scoredMembers.length / total) * 100);
+
+                return (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 font-mono">
+                    {/* 1. 전체회원 & 성비 */}
+                    <div className="p-3 border border-white/10 bg-[#0c0d12] space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zinc-400">전체 · 성비</span>
+                        <span className="text-white font-bold">{liveDbProfiles.length}명</span>
+                      </div>
+                      <div className="h-2.5 bg-white/5 flex overflow-hidden border border-white/10">
+                        <div className="bg-[#f04f74]" style={{ width: `${fPct}%` }} />
+                        <div className="bg-[#3b82f6]" style={{ width: `${mPct}%` }} />
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zinc-200">여 {fCount} ({fPct}%)</span>
+                        <span className="text-blue-300">남 {mCount} ({mPct}%)</span>
+                      </div>
+                    </div>
+
+                    {/* 2. 지역별 비율 */}
+                    <div className="p-3 border border-white/10 bg-[#0c0d12] space-y-1.5">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zinc-400">지역 비율</span>
+                        <span className="text-blue-300">{regMap.size}개 권역</span>
+                      </div>
+                      {topRegions.map(([city, cnt]) => {
+                        const pct = Math.round((cnt / total) * 100);
+                        return (
+                          <button
+                            key={city}
+                            type="button"
+                            onClick={() => {
+                              setMemberRegionFilter(city === '미지정' ? 'ALL' : city);
+                              setMemberPage(1);
+                            }}
+                            className="w-full text-left space-y-0.5 cursor-pointer group"
+                          >
+                            <div className="flex justify-between text-sm">
+                              <span className="text-zinc-200 group-hover:text-white">{city}</span>
+                              <span className="text-white font-bold">{cnt}명 ({pct}%)</span>
+                            </div>
+                            <div className="h-1.5 bg-white/5 overflow-hidden">
+                              <div className="h-full bg-[#3b82f6]" style={{ width: `${pct}%` }} />
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* 3. 목적별 비율 */}
+                    <div className="p-3 border border-white/10 bg-[#0c0d12] space-y-1.5">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zinc-400">목적 비율</span>
+                        <span className="text-zinc-300">4대 축</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {purpMap.map((pm) => {
+                          const cnt = liveDbProfiles.filter((p) => (p.preferred_purpose || 'RESET') === pm.key).length;
+                          const pct = Math.round((cnt / total) * 100);
+                          return (
+                            <button
+                              key={pm.key}
+                              type="button"
+                              onClick={() => {
+                                setMemberPurposeFilter(pm.key);
+                                setMemberPage(1);
+                              }}
+                              className="px-2 py-1 border border-white/10 bg-[#08090d] hover:border-[#3b82f6]/50 flex items-center justify-between text-sm cursor-pointer"
+                            >
+                              <span className="text-zinc-300">{pm.label}</span>
+                              <span className="text-white font-bold">{pct}%</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 4. 평균 총점 & 진단율 */}
+                    <div className="p-3 border border-white/10 bg-[#0c0d12] space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-zinc-400">평균 총점</span>
+                        <span className="text-blue-300 font-bold">진단율 {diagPct}%</span>
+                      </div>
+                      <div className="text-2xl font-bold text-white">{avgScore}점</div>
+                      <div className="h-1.5 bg-white/5 overflow-hidden">
+                        <div className="h-full bg-[#f04f74]" style={{ width: `${avgScore}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* 5단계 동적 분류 바 (실서버 조건 충족 기반 퍼널 분류) */}
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
                 {(
@@ -2653,8 +2769,15 @@ export default function AdminOperationsDashboardPage() {
                 return (
                   <div className="space-y-2.5">
                     <div className="border border-white/10 bg-[#0c0d12] divide-y divide-white/[0.06]">
-                      {/* 테이블 컬럼 헤더 (1기능 1컬럼 · 재클릭 시 오름/내림차순 토글) */}
+                      {/* 테이블 컬럼 헤더 (맨 앞 가입일자 기준 · 재클릭 시 오름/내림차순 토글) */}
                       <div className="hidden md:grid md:grid-cols-12 gap-2 px-3.5 py-2 bg-white/[0.03] text-sm font-mono text-zinc-400">
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('RECENT')}
+                          className={`col-span-1 text-left cursor-pointer hover:text-white ${memberSortBy === 'RECENT' ? 'text-blue-300 font-bold' : ''}`}
+                        >
+                          가입 {memberSortBy === 'RECENT' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
                         <span className="col-span-1">구분</span>
                         <span className="col-span-2">아이디</span>
                         <button
@@ -2702,16 +2825,9 @@ export default function AdminOperationsDashboardPage() {
                         <button
                           type="button"
                           onClick={() => handleSortColumn('STAGE')}
-                          className={`col-span-1 text-left cursor-pointer hover:text-white ${memberSortBy === 'STAGE' ? 'text-blue-300 font-bold' : ''}`}
+                          className={`col-span-1 text-right cursor-pointer hover:text-white ${memberSortBy === 'STAGE' ? 'text-blue-300 font-bold' : ''}`}
                         >
                           단계 {memberSortBy === 'STAGE' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleSortColumn('RECENT')}
-                          className={`col-span-1 text-right cursor-pointer hover:text-white ${memberSortBy === 'RECENT' ? 'text-blue-300 font-bold' : ''}`}
-                        >
-                          가입 {memberSortBy === 'RECENT' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
                         </button>
                       </div>
 
@@ -2776,8 +2892,11 @@ export default function AdminOperationsDashboardPage() {
                                 onClick={() => setExpandedMemberId(isExpanded ? null : m.id)}
                                 className="grid grid-cols-2 md:grid-cols-12 items-center gap-2 px-3.5 py-2.5 cursor-pointer text-sm font-mono"
                               >
-                                <div className="col-span-1 flex items-center gap-1.5">
+                                <div className="col-span-1 flex items-center gap-1.5 text-zinc-300">
                                   <span className="text-zinc-400">{isExpanded ? '▾' : '▸'}</span>
+                                  <span>{createdStr}</span>
+                                </div>
+                                <div className="col-span-1">
                                   <span
                                     className={`px-1.5 py-0.5 border ${
                                       m.id === 'ADMIN_01'
@@ -2809,7 +2928,7 @@ export default function AdminOperationsDashboardPage() {
                                 <div className="col-span-1 text-white font-bold">
                                   {totalScore > 0 ? `${totalScore}점` : '-'}
                                 </div>
-                                <div className="col-span-1">
+                                <div className="col-span-1 text-right">
                                   <button
                                     type="button"
                                     onClick={(e) => {
@@ -2828,9 +2947,6 @@ export default function AdminOperationsDashboardPage() {
                                     )}
                                     {STAGE_LABELS[memberStage]}
                                   </button>
-                                </div>
-                                <div className="col-span-1 text-right text-zinc-400 hidden md:block">
-                                  {createdStr}
                                 </div>
                               </div>
 
@@ -2944,27 +3060,8 @@ export default function AdminOperationsDashboardPage() {
               [가매칭] 관리자 전용 가매칭 방 관제 페이지
               ---------------------------------------------------------- */}
           {activeTab === 'PRE_MATCH' && (
-            <div className="space-y-4">
-              <div className="p-3 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                  <h2 className="font-serif-editorial text-lg font-normal text-white">가매칭 관제</h2>
-                  <span className="text-sm font-mono px-2 py-0.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10 text-white font-bold">
-                    관리자 전용
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleSelectTab('EVENT_LIST')}
-                  className="px-2.5 py-1 border border-white/15 bg-white/5 hover:bg-white/10 text-sm font-mono text-white cursor-pointer"
-                >
-                  개설 목록
-                </button>
-              </div>
-              <AdminAdaptiveMatchingManager
-                isLight={isLight}
-                onNotify={notify}
-              />
+            <div className="-mx-4 sm:-mx-6 lg:-mx-8 -my-6">
+              <AdminPreMatchPage />
             </div>
           )}
 
@@ -2972,10 +3069,59 @@ export default function AdminOperationsDashboardPage() {
               [적응매칭] 12+4 질문지 · 동적 축 · 방 부합도 · 사후 평가 비교 관제
               ---------------------------------------------------------- */}
           {activeTab === 'ADAPTIVE_QA' && (
-            <AdminAdaptiveMatchingManager
-              isLight={isLight}
-              onNotify={notify}
-            />
+            <div className="space-y-4">
+              <div className="p-3 border border-white/10 bg-[#0c0d12] space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                    <h2 className="font-serif-editorial text-lg font-normal text-white">A/B 실험</h2>
+                    <span className="text-sm font-mono px-2 py-0.5 border border-white/15 text-zinc-300">
+                      {abExperiments.length}건
+                    </span>
+                  </div>
+                  <span className="text-sm font-mono text-zinc-400">A안 원형 보존 · B안 비교</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {abExperiments.map((exp) => (
+                    <div
+                      key={exp.experimentId}
+                      className="p-3 border border-white/10 bg-[#08090d] flex flex-wrap items-center justify-between gap-2 text-sm font-mono"
+                    >
+                      <div className="min-w-0">
+                        <span className="text-white font-bold block truncate">{exp.name}</span>
+                        <span className="text-zinc-400 block truncate">
+                          {exp.activeMode === 'A_ONLY'
+                            ? exp.controlLabel
+                            : exp.activeMode === 'B_ONLY'
+                            ? exp.variantLabel
+                            : '50:50 A/B 분할'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {(['A_ONLY', 'AB_SPLIT', 'B_ONLY'] as const).map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => handleUpdateAbMode(exp.experimentId, m)}
+                            className={`px-2.5 py-1 border cursor-pointer ${
+                              exp.activeMode === m
+                                ? 'border-white/40 bg-white/15 text-white font-bold'
+                                : 'border-white/10 text-zinc-400 hover:text-white'
+                            }`}
+                          >
+                            {m === 'A_ONLY' ? 'A안' : m === 'AB_SPLIT' ? 'A/B' : 'B안'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <AdminAdaptiveMatchingManager
+                isLight={isLight}
+                onNotify={notify}
+              />
+            </div>
           )}
 
           {/* ----------------------------------------------------------
@@ -4154,16 +4300,20 @@ export default function AdminOperationsDashboardPage() {
                   </p>
                 ) : (
                   (() => {
-                    const totalEventPages = Math.max(1, Math.ceil(conditionalEvents.length / LIST_PAGE_SIZE));
+                    const sortedEvents = [...conditionalEvents].sort((a, b) =>
+                      (a.dateText || '').localeCompare(b.dateText || '')
+                    );
+                    const totalEventPages = Math.max(1, Math.ceil(sortedEvents.length / LIST_PAGE_SIZE));
                     const safeEventPage = Math.min(eventPage, totalEventPages);
-                    const pagedEvents = conditionalEvents.slice(
+                    const pagedEvents = sortedEvents.slice(
                       (safeEventPage - 1) * LIST_PAGE_SIZE,
                       safeEventPage * LIST_PAGE_SIZE
                     );
                     return (
                       <div className="space-y-2.5">
                         <div className="border border-white/10 bg-[#0c0d12] divide-y divide-white/[0.06]">
-                          {pagedEvents.map((ev) => {
+                          {pagedEvents.map((ev, evIdx) => {
+                            const rowNum = (safeEventPage - 1) * LIST_PAGE_SIZE + evIdx + 1;
                             const statusLabel =
                               ev.status === 'CONFIRMED'
                                 ? '확정'
@@ -4185,7 +4335,13 @@ export default function AdminOperationsDashboardPage() {
                               >
                           <div className="flex items-start justify-between gap-3">
                             <div className="space-y-1 min-w-0">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="px-2 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white shrink-0">
+                                  {rowNum}
+                                </span>
+                                <span className="text-sm font-mono text-blue-300 shrink-0">
+                                  {ev.dateText}
+                                </span>
                                 <span className="px-2 py-0.5 text-sm font-mono border border-white/20 bg-white/10 text-white shrink-0">
                                   {statusLabel}
                                 </span>

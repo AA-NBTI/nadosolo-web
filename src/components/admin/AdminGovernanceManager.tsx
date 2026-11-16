@@ -124,7 +124,7 @@ export const PERSONA_TESTER_DEFECTS: PersonaTesterDefect[] = [
     title: "'식단'으로 비건·논알콜 선택 시 실제 배정될 다이닝 식당이 안전한지 사전 확신 부족",
     problemDetail:
       '프로필 설정에서 식단 취향으로 "비건·논알콜"을 신중히 선택했으나, 나중에 자동 배정될 다이닝 식당에서 비건 단품/코스가 엄격히 보장되는지, 무알콜 음료 페어링이 완비되어 있는지 사전 보증 정보가 부족하여 실제 모임 참석 확신 결여.',
-    impact: '식이 제한을 가진 고관여 고객층의 신청 전 이탈 및 소셜 다이닝 신뢰도 저하.',
+    impact: '못 먹는 음식(식단) 제한을 가진 고관여 고객층의 신청 전 이탈 및 소셜 다이닝 신뢰도 저하.',
     actionPro: '바프로(공간) · 사프로(수익)',
     status: '보정완료',
     fixDetail:
@@ -176,7 +176,7 @@ export const PERSONA_TESTER_VOCS: PersonaTesterVoc[] = [
     id: 'VOC-BBB-01',
     testerId: 'bbb',
     testerName: '가상 2호 (bbb)',
-    topic: '식이안심',
+    topic: '식단안심',
     title: '비건/논알콜 지원 매장 보장 배지 시각화',
     requestDetail:
       '비건 및 논알콜 선택 회원이 안심하고 모임에 참가할 수 있도록, 식당 배정 시 비건/논알콜 검증 완료 배지를 시각적으로 확실하게 표기해 달라.',

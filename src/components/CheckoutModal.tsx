@@ -37,6 +37,9 @@ export default function CheckoutModal({
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [promoCode, setPromoCode] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountKrw: number } | null>(null);
+  const [promoNotice, setPromoNotice] = useState<string | null>(null);
 
   // 신청 직전 필수 매칭 조건 로컬 보완 상태
   const [gateCity, setGateCity] = useState(currentUser?.residenceCity || '서울');
@@ -80,6 +83,29 @@ export default function CheckoutModal({
 
   const isFormValid = agreeRefund && agreePrivacy && !needsPreCheck;
 
+  const basePrice = event.priceKrw;
+  const finalAmount = Math.max(1000, basePrice - (appliedPromo?.discountKrw ?? 0));
+
+  const handleApplyPromo = () => {
+    const code = promoCode.trim().toUpperCase();
+    if (!code) return;
+    if (code === 'NADOSOLO10') {
+      const disc = Math.round(basePrice * 0.1);
+      setAppliedPromo({ code, discountKrw: disc });
+      setPromoNotice(`10% 할인 (-₩${disc.toLocaleString()}) 적용`);
+    } else if (code === 'FRIEND20') {
+      const disc = Math.round(basePrice * 0.2);
+      setAppliedPromo({ code, discountKrw: disc });
+      setPromoNotice(`20% 할인 (-₩${disc.toLocaleString()}) 적용`);
+    } else if (code === 'WELCOME5000') {
+      setAppliedPromo({ code, discountKrw: 5000 });
+      setPromoNotice('₩5,000 할인 적용');
+    } else {
+      setAppliedPromo(null);
+      setPromoNotice('유효하지 않은 프로모션 코드입니다.');
+    }
+  };
+
   const handleSavePreCheck = () => {
     if (!gateCity.trim() || !gateDistrict.trim() || !gateDong.trim() || !gatePhone.trim()) {
       setGateSavedNotice('시/도, 시/군/구, 읍/면/동 및 연락처를 모두 입력해 주세요.');
@@ -110,13 +136,13 @@ export default function CheckoutModal({
 
       const orderId = `order_${event.eventId}_${Date.now()}`;
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(event.title)}`;
+      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(event.title)}${appliedPromo ? `&promo=${encodeURIComponent(appliedPromo.code)}` : ''}`;
       const failUrl = `${origin}/payment/fail`;
 
       // 선택된 결제수단에 맞춰 토스페이먼츠 결제창 호출
       if (payMethod === 'CARD') {
         await tossPayments.requestPayment('카드', {
-          amount: event.priceKrw,
+          amount: finalAmount,
           orderId,
           orderName: event.title,
           customerName: '나도솔로 참가자',
@@ -125,7 +151,7 @@ export default function CheckoutModal({
         });
       } else if (payMethod === 'TOSS_PAY') {
         await tossPayments.requestPayment('카드', {
-          amount: event.priceKrw,
+          amount: finalAmount,
           orderId,
           orderName: event.title,
           customerName: '나도솔로 참가자',
@@ -136,7 +162,7 @@ export default function CheckoutModal({
         });
       } else if (payMethod === 'KAKAO_PAY') {
         await tossPayments.requestPayment('카드', {
-          amount: event.priceKrw,
+          amount: finalAmount,
           orderId,
           orderName: event.title,
           customerName: '나도솔로 참가자',
@@ -147,7 +173,7 @@ export default function CheckoutModal({
         });
       } else if (payMethod === 'NAVER_PAY') {
         await tossPayments.requestPayment('카드', {
-          amount: event.priceKrw,
+          amount: finalAmount,
           orderId,
           orderName: event.title,
           customerName: '나도솔로 참가자',
@@ -300,6 +326,37 @@ export default function CheckoutModal({
                 )}
               </div>
             )}
+
+            {/* 프로모션 / 어필리에이트 코드 */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-zinc-300">
+                프로모션 · 추천 코드 (선택)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="예: NADOSOLO10"
+                  className="flex-1 px-3 py-2 bg-[#10131c] border border-white/10 text-xs font-mono text-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyPromo}
+                  className="px-3 py-2 border border-white/20 bg-white/5 hover:bg-white/10 text-xs font-mono text-white cursor-pointer"
+                >
+                  적용
+                </button>
+              </div>
+              {promoNotice && (
+                <p className="text-xs font-mono text-zinc-300">{promoNotice}</p>
+              )}
+              {appliedPromo && (
+                <p className="text-xs font-mono text-white font-semibold">
+                  최종 결제 금액: ₩{finalAmount.toLocaleString()}
+                </p>
+              )}
+            </div>
 
             {/* 2. 결제 수단 선택 (토스페이먼츠 연동) */}
             <div className="space-y-2.5">

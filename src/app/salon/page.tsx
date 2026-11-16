@@ -77,7 +77,7 @@ export default function SocialSalonPage() {
       dateText: '매주 금요일 19:30',
       priceKrw: 30000,
       districtName: '부산',
-      mealNote: '참가권 ₩30,000 (웰컴 음료 및 공간 예약 운영비 포함 / 추가 식음료는 현장 1/N)',
+      mealNote: '참가비 (웰컴 음료 및 공간 예약 운영비 포함 / 추가 식음료는 현장 1/N)',
     });
     setIsCheckoutOpen(true);
   };

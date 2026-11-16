@@ -13,7 +13,8 @@ import {
 } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import ProcessGateLockedCard from '@/components/dashboard/ProcessGateLockedCard';
-import { KeyRound, UserX, AlertCircle, CheckCircle2, ShieldAlert, Phone, Mail } from 'lucide-react';
+import { nadoSoloSupabaseService } from '@/lib/supabase/service';
+import { KeyRound, UserX, AlertCircle, CheckCircle2, ShieldAlert, Phone, Mail, Bell } from 'lucide-react';
 
 const DIETARY_LABELS: Record<DietaryRestriction, string> = {
   NONE: '없음 (다 잘 먹어요)',
@@ -159,9 +160,14 @@ function MemberDashboardContent() {
     enabledModules.find((m) => m.processId === activeProcessId) ??
     serviceModules[0];
 
+  const [cancelledEventIds, setCancelledEventIds] = useState<string[]>([]);
+
   const myAppliedEvents = useMemo(
-    () => conditionalEvents.filter((ev) => appliedEventIds.includes(ev.eventId)),
-    [conditionalEvents, appliedEventIds]
+    () =>
+      conditionalEvents.filter(
+        (ev) => appliedEventIds.includes(ev.eventId) && !cancelledEventIds.includes(ev.eventId)
+      ),
+    [conditionalEvents, appliedEventIds, cancelledEventIds]
   );
 
   // [P01 계정정보 & P02 기본프로필] 로컬 폼 상태
@@ -350,6 +356,82 @@ function MemberDashboardContent() {
   ];
 
   const [evalSavedMsg, setEvalSavedMsg] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<
+    Array<{
+      id: string;
+      type: string;
+      title: string;
+      message: string;
+      is_read: boolean;
+      created_at: string;
+    }>
+  >([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [blockedPeerIds, setBlockedPeerIds] = useState<string[]>([]);
+  const [ticketCredits, setTicketCredits] = useState<number>(0);
+
+  useEffect(() => {
+    if (!currentUser?.userId) return;
+    nadoSoloSupabaseService
+      .getUserNotifications(currentUser.userId)
+      .then((rows) => setNotifications(rows))
+      .catch(() => {});
+    nadoSoloSupabaseService
+      .getTicketCredits(currentUser.userId)
+      .then((credits) => setTicketCredits(credits))
+      .catch(() => {});
+  }, [currentUser?.userId]);
+
+  const handleCancelOrRollover = async (
+    ev: (typeof conditionalEvents)[number],
+    action: 'CANCEL' | 'ROLLOVER'
+  ) => {
+    if (!currentUser?.userId) return;
+    const res = await nadoSoloSupabaseService.cancelOrRolloverApplication(
+      currentUser.userId,
+      ev.eventId,
+      ev.title,
+      action,
+      ev.eventDate
+    );
+    if (res.ok) {
+      setCancelledEventIds((prev) => [...prev, ev.eventId]);
+      if (typeof res.ticketCredits === 'number') {
+        setTicketCredits(res.ticketCredits);
+      }
+      const rows = await nadoSoloSupabaseService.getUserNotifications(currentUser.userId);
+      setNotifications(rows);
+      showToast(`${action === 'ROLLOVER' ? '이월' : '취소'} 완료 (${res.policyNote})`);
+    } else {
+      showToast('처리 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleReportPeer = async (
+    peerUserId: string,
+    reason: 'NO_SHOW' | 'UNCOMFORTABLE'
+  ) => {
+    if (!currentUser?.userId) return;
+    const ok = await nadoSoloSupabaseService.blockUserPair(
+      currentUser.userId,
+      peerUserId,
+      'SES_BUSAN_01',
+      reason
+    );
+    if (ok) {
+      setBlockedPeerIds((prev) => (prev.includes(peerUserId) ? prev : [...prev, peerUserId]));
+      showToast(reason === 'NO_SHOW' ? '노쇼 신고 완료' : '영구 재매칭 차단 완료');
+    }
+  };
+
+  const unreadNotifCount = notifications.filter((n) => !n.is_read).length;
+
+  const handleMarkNotifRead = async (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+    );
+    await nadoSoloSupabaseService.markNotificationRead(id);
+  };
 
   const dashConfig = cmsPages.find((p) => p.pageId === 'PAGE_DASHBOARD');
 
@@ -419,7 +501,8 @@ function MemberDashboardContent() {
                 </h1>
                 <span className="text-sm font-mono text-zinc-400">
                   종합 <strong className="text-zinc-200">{myPersonalDossier.totalScore100}점</strong> · 뱃지{' '}
-                  {myPersonalDossier.earnedBadgeIds.length}개
+                  {myPersonalDossier.earnedBadgeIds.length}개 · 참가권{' '}
+                  <strong className="text-white">{ticketCredits}매</strong>
                 </span>
               </div>
             </div>
@@ -430,6 +513,14 @@ function MemberDashboardContent() {
                   {saveNotice}
                 </span>
               )}
+              <button
+                type="button"
+                onClick={() => setShowNotifications((v) => !v)}
+                className="px-3 py-2 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono flex items-center gap-1.5 cursor-pointer"
+              >
+                <Bell className="w-3.5 h-3.5 text-[#f04f74]" />
+                <span>알림 {unreadNotifCount > 0 ? unreadNotifCount : notifications.length}</span>
+              </button>
               <Link
                 href="/meetup"
                 prefetch={true}
@@ -439,6 +530,46 @@ function MemberDashboardContent() {
               </Link>
             </div>
           </div>
+
+          {showNotifications && (
+            <div className="p-3 border border-white/15 bg-[#08090d] space-y-2 text-sm font-mono">
+              <div className="flex items-center justify-between">
+                <span className="text-white font-bold">알림함 ({notifications.length}건)</span>
+                <button
+                  type="button"
+                  onClick={() => setShowNotifications(false)}
+                  className="px-2 py-0.5 border border-white/20 text-white cursor-pointer"
+                >
+                  닫기
+                </button>
+              </div>
+              {notifications.length === 0 ? (
+                <p className="text-zinc-400">수신된 알림이 없습니다.</p>
+              ) : (
+                <div className="divide-y divide-white/[0.06]">
+                  {notifications.map((n) => (
+                    <div key={n.id} className="py-2 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <span className={`font-bold ${n.is_read ? 'text-zinc-400' : 'text-white'}`}>
+                          {n.title}
+                        </span>
+                        <p className="text-zinc-400 truncate">{n.message}</p>
+                      </div>
+                      {!n.is_read && (
+                        <button
+                          type="button"
+                          onClick={() => handleMarkNotifRead(n.id)}
+                          className="px-2 py-0.5 border border-white/20 text-white shrink-0 cursor-pointer"
+                        >
+                          읽음
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <nav className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-white/[0.08]">
             {USER_DASHBOARD_MENUS.map((menu) => {
@@ -594,6 +725,32 @@ function MemberDashboardContent() {
                             >
                               대화카드
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const origin = typeof window !== 'undefined' ? window.location.origin : '';
+                                const inviteUrl = `${origin}/meetup?invite=${encodeURIComponent(currentUser?.userId || '')}&event=${encodeURIComponent(ev.eventId)}`;
+                                navigator.clipboard?.writeText(inviteUrl).catch(() => {});
+                                showToast('+1 친구 초대 링크 복사됨');
+                              }}
+                              className="px-3 py-1.5 border border-[#f04f74]/50 bg-[#f04f74]/10 hover:bg-[#f04f74]/20 text-white text-sm font-mono transition-colors cursor-pointer"
+                            >
+                              +1 초대
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelOrRollover(ev, 'ROLLOVER')}
+                              className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors cursor-pointer"
+                            >
+                              이월
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleCancelOrRollover(ev, 'CANCEL')}
+                              className="px-3 py-1.5 border border-white/20 bg-transparent hover:bg-white/10 text-zinc-300 hover:text-white text-sm font-mono transition-colors cursor-pointer"
+                            >
+                              취소
+                            </button>
                           </div>
                         </div>
                       ))}
@@ -615,14 +772,60 @@ function MemberDashboardContent() {
                 </section>
               )}
 
-              {/* [단계 2] D-1 식당 및 좌석 안내 */}
-              {meetupPhase === 'VENUE_SEAT' && (
+              {/* [단계 2] D-1 식당 및 좌석 안내 (타임레프트 Reveal 상태 머신) */}
+              {meetupPhase === 'VENUE_SEAT' && (() => {
+                const primaryEv = myAppliedEvents[0];
+                const assignedVenue = primaryEv
+                  ? partnerVenues.find((v) => v.venueId === primaryEv.venueId)
+                  : undefined;
+                const hoursUntilEvent = primaryEv?.eventDate
+                  ? (new Date(primaryEv.eventDate).getTime() - Date.now()) / (1000 * 60 * 60)
+                  : Number.POSITIVE_INFINITY;
+                const isRevealed =
+                  primaryEv?.status === 'CONFIRMED' ||
+                  (!Number.isNaN(hoursUntilEvent) && hoursUntilEvent <= 24);
+
+                if (!isRevealed) {
+                  return (
+                    <section className="bg-[#0c0d12] border border-white/10 p-8 space-y-5">
+                      <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                          <h3 className="font-serif-editorial text-xl font-normal text-white">
+                            D-1 19:00 공개 대기 (Reveal 잠금)
+                          </h3>
+                        </div>
+                        <span className="px-2.5 py-1 border border-white/20 text-sm font-mono text-white">
+                          비공개 보호중
+                        </span>
+                      </div>
+                      <p className="text-sm text-zinc-300 font-light leading-relaxed">
+                        {primaryEv
+                          ? `[${primaryEv.title}] 일정의 6인 테이블과 제휴 식당을 배정하고 있습니다.`
+                          : '예약하신 일정의 6인 테이블과 제휴 식당을 배정하고 있습니다.'}{' '}
+                        식당 이름·위치 및 동석자 힌트(직군·연령대)는 모임 전날(D-1) 19:00에 공개되며, 사전 1:1 연락은 원천 차단됩니다.
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm font-mono">
+                        <div className="p-4 border border-white/10 bg-[#08090d]">
+                          <span className="text-zinc-400 block mb-1">배정 식당</span>
+                          <span className="text-white font-bold">D-1 19:00 공개 예정</span>
+                        </div>
+                        <div className="p-4 border border-white/10 bg-[#08090d]">
+                          <span className="text-zinc-400 block mb-1">동석자 정보</span>
+                          <span className="text-white font-bold">직군·연령대 힌트만 D-1 공개</span>
+                        </div>
+                      </div>
+                    </section>
+                  );
+                }
+
+                return (
                 <section className="bg-[#0c0d12] border border-white/[0.08] p-8 border border-white/10 shadow-sm space-y-6">
                   <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-4">
                     <div>
-                      <h3 className="font-serif-editorial text-xl font-normal text-white">D-1 식당 및 좌석 배정</h3>
+                      <h3 className="font-serif-editorial text-xl font-normal text-white">D-1 식당 및 좌석 배정 (Reveal)</h3>
                       <p className="text-sm text-zinc-400 mt-1 font-light">
-                        전포 시크릿 비스트로 예약 정보와 1부/2부 좌석 배치도입니다.
+                        확정된 제휴 식당 정보와 동석자 힌트 · 1부/2부 좌석 배치입니다.
                       </p>
                     </div>
                     <button
@@ -638,11 +841,15 @@ function MemberDashboardContent() {
                   <div className="p-6 rounded-none bg-white/[0.015] border border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-sm text-[#f04f74] font-mono">제휴 식당 확정</span>
-                      <h4 className="font-serif-editorial text-lg font-normal text-white">시크릿 비스트로 (룸 예약)</h4>
-                      <p className="text-sm text-zinc-400 font-light">부산 시크릿 프라이빗 다이닝</p>
+                      <h4 className="font-serif-editorial text-lg font-normal text-white">
+                        {primaryEv?.venueNameOverride || assignedVenue?.name || '제휴 프라이빗 다이닝'}
+                      </h4>
+                      <p className="text-sm text-zinc-400 font-light">
+                        {primaryEv?.regionName || '서울'} · {primaryEv?.dateText || '확정 일정'}
+                      </p>
                     </div>
                     <span className="text-sm text-zinc-300 font-mono bg-white/5 px-3 py-1.5 rounded-none border border-white/10">
-                      예약자명: 나도솔로 (금요일 19:30)
+                      예약자명: 나도솔로
                     </span>
                   </div>
 
@@ -697,7 +904,8 @@ function MemberDashboardContent() {
                     </div>
                   </div>
                 </section>
-              )}
+                );
+              })()}
 
               {/* [단계 3] 현장 대화카드 */}
               {meetupPhase === 'LIVE_DECK' && (
@@ -824,6 +1032,51 @@ function MemberDashboardContent() {
                       </p>
                     )}
                   </div>
+
+                  {/* 노쇼 신고 & 영구 재매칭 차단 */}
+                  <div className="p-6 rounded-none bg-white/[0.015] border border-white/[0.08] space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-serif-editorial text-base font-normal text-white">
+                        결석(노쇼) 신고 · 재매칭 차단
+                      </h4>
+                      <span className="text-sm font-mono text-zinc-400">차단 시 향후 영구 미배정</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {tablePeers.map((peer) => {
+                        const isBlocked = blockedPeerIds.includes(peer.userId);
+                        return (
+                          <div
+                            key={`blk-${peer.userId}`}
+                            className="p-3 border border-white/10 bg-[#08090d] flex items-center justify-between gap-2 text-sm font-mono"
+                          >
+                            <span className="text-white truncate">{peer.nickname}</span>
+                            {isBlocked ? (
+                              <span className="px-2 py-0.5 border border-white/20 text-zinc-400">
+                                차단됨
+                              </span>
+                            ) : (
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => handleReportPeer(peer.userId, 'NO_SHOW')}
+                                  className="px-2.5 py-1 border border-white/20 hover:bg-white/10 text-white cursor-pointer"
+                                >
+                                  노쇼
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleReportPeer(peer.userId, 'UNCOMFORTABLE')}
+                                  className="px-2.5 py-1 border border-white/20 hover:bg-white/10 text-white cursor-pointer"
+                                >
+                                  차단
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </section>
               )}
             </div>
@@ -939,25 +1192,31 @@ function MemberDashboardContent() {
 
               <div>
                 <label className="block text-sm font-mono text-zinc-400 mb-2.5">
-                  못 먹는 음식 (알레르기 / 비건 / 논알콜)
+                  음식 · 주류 취향 (해당 시 선택)
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {(Object.keys(DIETARY_LABELS) as DietaryRestriction[]).map(
-                    (dKey) => (
+                  {(
+                    [
+                      { key: 'VEGAN' as const, label: '비건' },
+                      { key: 'ALCOHOL_FREE' as const, label: '논알콜' },
+                    ]
+                  ).map((item) => {
+                    const active = dietary === item.key;
+                    return (
                       <button
-                        key={dKey}
+                        key={item.key}
                         type="button"
-                        onClick={() => setDietary(dKey)}
-                        className={`px-3.5 py-2 rounded-none text-sm font-mono tracking-wider border transition-all cursor-pointer ${
-                          dietary === dKey
-                            ? 'border-white/40 bg-white/10 text-white font-medium'
+                        onClick={() => setDietary(active ? 'NONE' : item.key)}
+                        className={`px-4 py-2 rounded-none text-sm font-mono tracking-wider border transition-all cursor-pointer ${
+                          active
+                            ? 'border-white/40 bg-white/15 text-white font-bold'
                             : 'bg-[#08090d] text-zinc-400 border-white/10 hover:border-white/25 hover:text-white'
                         }`}
                       >
-                        {DIETARY_LABELS[dKey]}
+                        {item.label}
                       </button>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               </div>
 

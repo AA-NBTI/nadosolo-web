@@ -20,6 +20,10 @@ export default function SoloTestPage() {
     () => DEFAULT_ADAPTIVE_QUESTIONS.filter((q) => q.isActive),
     []
   );
+  const baseQuestions = useMemo(
+    () => activeQuestions.filter((q) => q.layer === 'BASE'),
+    [activeQuestions]
+  );
   const pulseQuestions = useMemo(
     () => activeQuestions.filter((q) => q.layer === 'PULSE'),
     [activeQuestions]
@@ -27,27 +31,42 @@ export default function SoloTestPage() {
 
   // 기존 BASE 응답이 이미 충분하면 기본으로 '오늘의 컨디션(PULSE)' 모드 제안 가능
   const hasExistingBase = useMemo(() => {
-    const baseCount = activeQuestions.filter(
-      (q) => q.layer === 'BASE' && surveyAnswers[q.id] !== undefined
-    ).length;
-    return baseCount >= 8;
-  }, [activeQuestions, surveyAnswers]);
+    const baseCount = baseQuestions.filter((q) => surveyAnswers[q.id] !== undefined).length;
+    return baseCount >= 10;
+  }, [baseQuestions, surveyAnswers]);
 
-  const [quizMode, setQuizMode] = useState<'FULL' | 'PULSE'>(() =>
-    hasExistingBase ? 'PULSE' : 'FULL'
-  );
+  const [quizMode, setQuizMode] = useState<'TIMELEFT_A' | 'B_EXTENDED' | 'PULSE'>(() => {
+    if (hasExistingBase) return 'PULSE';
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('nadosolo_ab_experiments_v1');
+        if (raw) {
+          const parsed = JSON.parse(raw) as Array<{ experimentId: string; activeMode: string }>;
+          const exp = parsed.find((e) => e.experimentId === 'EXP_QUIZ_ONBOARDING');
+          if (exp?.activeMode === 'B_ONLY') return 'B_EXTENDED';
+          if (exp?.activeMode === 'AB_SPLIT') return Math.random() < 0.5 ? 'TIMELEFT_A' : 'B_EXTENDED';
+        }
+      } catch {}
+    }
+    return 'TIMELEFT_A';
+  });
   const [currentIdx, setCurrentIdx] = useState(0);
   const [localAnswers, setLocalAnswers] = useState<Record<string, string>>(() => ({
     ...surveyAnswers,
   }));
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const questions = quizMode === 'PULSE' ? pulseQuestions : activeQuestions;
+  const questions =
+    quizMode === 'PULSE'
+      ? pulseQuestions
+      : quizMode === 'B_EXTENDED'
+      ? activeQuestions
+      : baseQuestions;
   const currentQ = questions[currentIdx];
   const totalQuestions = questions.length;
   const currentAnswer = currentQ ? localAnswers[currentQ.id] : undefined;
 
-  const handleModeSwitch = (mode: 'FULL' | 'PULSE') => {
+  const handleModeSwitch = (mode: 'TIMELEFT_A' | 'B_EXTENDED' | 'PULSE') => {
     setQuizMode(mode);
     setCurrentIdx(0);
     setIsCompleted(false);
@@ -94,9 +113,9 @@ export default function SoloTestPage() {
   const handleFinishAndProceed = () => {
     saveSurveyAnswers(localAnswers);
     if (currentUser) {
-      router.push('/dashboard?step=P05_EVENT_APPLY');
+      router.push('/meetup');
     } else {
-      router.push('/auth');
+      router.push('/auth?next=/meetup');
     }
   };
 
@@ -115,14 +134,25 @@ export default function SoloTestPage() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => handleModeSwitch('FULL')}
+            onClick={() => handleModeSwitch('TIMELEFT_A')}
             className={`px-3 py-1 text-sm font-mono border transition-colors cursor-pointer ${
-              quizMode === 'FULL'
+              quizMode === 'TIMELEFT_A'
                 ? 'border-white/40 bg-white/15 text-white font-semibold'
                 : 'border-white/10 bg-[#0c0d12] text-zinc-400 hover:text-white'
             }`}
           >
-            전체 ({activeQuestions.length})
+            A안 표준 ({baseQuestions.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeSwitch('B_EXTENDED')}
+            className={`px-3 py-1 text-sm font-mono border transition-colors cursor-pointer ${
+              quizMode === 'B_EXTENDED'
+                ? 'border-white/40 bg-white/15 text-white font-semibold'
+                : 'border-white/10 bg-[#0c0d12] text-zinc-400 hover:text-white'
+            }`}
+          >
+            B안 확장 ({activeQuestions.length})
           </button>
           <button
             type="button"
@@ -307,7 +337,7 @@ export default function SoloTestPage() {
                 onClick={handleFinishAndProceed}
                 className="w-full py-3.5 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-mono font-semibold text-sm transition-all cursor-pointer text-center"
               >
-                {currentUser ? '신청' : '저장'}
+                {currentUser ? '일정 예약' : '저장 후 일정 예약'}
               </button>
             </div>
           </div>

@@ -690,7 +690,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
                   refundPolicy: '모임 24시간 전까지 100% 환불',
                   deadlineText: `${dateStr} 18:00 마감`,
                   status: allConfirmed ? 'CONFIRMED' : 'RECRUITING',
-                  mealNote: '참가비 ₩30,000 (다면 관찰 엔진 라이선스 및 리포트 포함 / 식음료 매장 현장 1/N)',
+                  mealNote: '참가비 (다면 관찰 엔진 라이선스 및 리포트 포함 / 식음료 매장 현장 1/N)',
                   requiredBadgeIds: [],
                   minTotalScore100: 75,
                   activePresetSubIds: ['SUB_APP_1', 'SUB_STY_2', 'SUB_CON_2'],
@@ -1215,7 +1215,11 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       elementId,
       anchorNoun,
       scoreStep,
-    }).catch((err) => console.warn('[Supabase Sync]', err));
+    })
+      .then(() =>
+        nadoSoloSupabaseService.syncReciprocalReportUnlock('SES_BUSAN_01', fromId, 5)
+      )
+      .catch((err) => console.warn('[Supabase Sync]', err));
   };
 
   const personalSocialDossier = useMemo(() => {

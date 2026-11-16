@@ -268,11 +268,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.3.0',
+    releaseTitle: '타임레프트 100% 구조 이식 · 전주기 자동화 파이프라인 · 어필리에이트/B2B/정책 페이지 완결',
+    releaseDate: '2026-11-16',
+    summary: '헌법 제0조(타임레프트 구조·UX 완전 이식 및 A/B 테스트 원칙) 명문화, 블라인드 슬롯 예약(/meetup, /), 성향 퀴즈 15문항(/test) 및 A/B 관제(/admin), 제휴 식당 자동 배정 & 7대 예외 감사(EDGE-01~07 PASS), D-1 Reveal · 취소/이월 참가권 · +1 초대 · 노쇼/영구 재매칭 차단(user_blocks) · 알림함(notifications) · Vercel Cron(daily-match) · /affiliate · /partners · /terms · /privacy · /safety 구축 및 최상단 3슬라이드 배너 적용',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2301',
+        category: 'CONSTITUTION',
+        categoryLabel: '타임레프트이식',
+        title: '헌법 제0조 명문화 · 블라인드 슬롯 예약 · D-1 Reveal · 티켓 이월 & 재매칭 차단 통합',
+        beforeSummary: '개별 방 카드 노출, 식당 풀 미연결, 알림·차단·이월 티켓·법적/그로스 페이지 부재',
+        afterSummary: '타임레프트 전주기(퀴즈→블라인드 슬롯→D-1 Reveal→알림→이월/+1초대→노쇼/차단→리포트 해금) + 어필리에이트/B2B/정책 페이지 완결',
+        impactLabel: 'PG 심사/연동 직전까지 전체 서비스·그로스 파이프라인 100% 연결 및 7/7 감사 PASS',
+        affectedRoutes: ['/', '/meetup', '/test', '/dashboard', '/admin', '/affiliate', '/partners', '/guide', '/terms', '/privacy', '/safety'],
+        status: 'VERIFIED',
+      },
+    ],
+  },
+  {
     version: 'v2.2.2',
     releaseTitle: '실DB SSOT 적응매칭 · 관리자 테이블 리스트 · GNB 전용 가매칭 페이지 구축',
     releaseDate: '2026-11-16',
     summary: '적응매칭 더미 제거 및 Supabase 실회원 19명 연동 검증, 관리자 방패 로고·가로 탭·테이블형 회원 리스트(성별/출생 분리·컬럼 토글 정렬·10줄 페이지네이션)·부산 지역명 통일, 상단 GNB 관리자 전용 가매칭(/admin/pre-match) 페이지 신설',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2221',
