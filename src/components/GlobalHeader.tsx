@@ -13,9 +13,10 @@ export default function GlobalHeader() {
   const { currentUser, logout } = useNadoSoloEngine();
   const { config } = useSiteConfig();
 
-  // 타임레프트 표준 단일 퍼널 네비게이션 (일정 예약 · 성향 퀴즈 · 이용 안내)
+  // 타임레프트 표준 단일 퍼널 네비게이션 (밋업 · 도시 · 성향 퀴즈 · 이용 안내)
   const navItems = [
-    { id: 'meetup', label: '일정 예약', href: '/meetup' },
+    { id: 'meetup', label: '밋업', href: '/meetup' },
+    { id: 'locations', label: '도시', href: '/locations' },
     { id: 'test', label: '성향 퀴즈', href: '/test' },
     { id: 'guide', label: '이용 안내', href: '/guide' },
   ];

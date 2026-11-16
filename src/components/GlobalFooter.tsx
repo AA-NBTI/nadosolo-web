@@ -43,89 +43,77 @@ export default function GlobalFooter() {
             </Link>
           </div>
 
-          {/* 상단 1열: 이용약관, 개인정보처리방침, 안전가이드, 어필리에이트, 제휴식당, 프로그램 안내 */}
-          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5 text-xs sm:text-sm font-normal">
-            <Link
-              href="/guide"
-              prefetch={true}
-              className="text-zinc-400 hover:text-white transition-colors"
-            >
-              이용안내
-            </Link>
-            <span className="text-zinc-600">|</span>
-            <Link
-              href="/safety"
-              prefetch={true}
-              className="text-zinc-400 hover:text-white transition-colors"
-            >
-              안전가이드
-            </Link>
-            <span className="text-zinc-600">|</span>
-            <Link
-              href="/affiliate"
-              prefetch={true}
-              className="text-zinc-400 hover:text-white transition-colors"
-            >
-              어필리에이트
-            </Link>
-            <span className="text-zinc-600">|</span>
-            <Link
-              href="/partners"
-              prefetch={true}
-              className="text-zinc-400 hover:text-white transition-colors"
-            >
-              제휴식당 입점
-            </Link>
-            <span className="text-zinc-600">|</span>
-            <Link
-              href="/terms"
-              prefetch={true}
-              className="text-zinc-400 hover:text-white transition-colors"
-            >
-              이용약관
-            </Link>
-            <span className="text-zinc-600">|</span>
-            <Link
-              href="/privacy"
-              prefetch={true}
-              className="text-zinc-400 hover:text-white transition-colors"
-            >
-              개인정보처리방침
-            </Link>
-            <span className="text-zinc-600">|</span>
-            <button
-              type="button"
-              onClick={() => setActiveModal('REFUND')}
-              className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
-            >
-              환불규정
-            </button>
+          {/* 타임레프트 표준 다중 컬럼 사이트맵 (신규 페이지 + 기존 나도솔로 아카이브 전원 유지) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 py-4 border-y border-white/10 text-xs sm:text-sm max-w-4xl mx-auto">
+            <div className="space-y-2">
+              <span className="text-white font-mono font-semibold block">서비스</span>
+              <div className="flex flex-col gap-1.5">
+                <Link href="/meetup" prefetch={true} className="hover:text-white transition-colors">밋업</Link>
+                <Link href="/locations" prefetch={true} className="hover:text-white transition-colors">운영 도시</Link>
+                <Link href="/pricing" prefetch={true} className="hover:text-white transition-colors">참가권 안내</Link>
+                <Link href="/test" prefetch={true} className="hover:text-white transition-colors">성향 퀴즈</Link>
+                <Link href="/guide" prefetch={true} className="hover:text-white transition-colors">이용 안내</Link>
+              </div>
+            </div>
 
-            {/* SNS 외부 채널 링크 (관리자 설정) */}
-            {f?.socialLinks && f.socialLinks.filter((s) => s.visible).length > 0 && (
-              <>
-                <span className="text-zinc-600 hidden sm:inline">|</span>
-                <div className="flex items-center gap-3">
-                  {f.socialLinks
-                    .filter((s) => s.visible)
-                    .map((s) => (
-                      <a
-                        key={s.id}
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-zinc-400 hover:text-rose-400 text-xs transition-colors flex items-center gap-1"
-                      >
-                        {s.platform === 'instagram' && <Instagram className="w-3.5 h-3.5" />}
-                        {s.platform === 'kakao' && <MessageCircle className="w-3.5 h-3.5" />}
-                        {s.platform === 'website' && <Globe className="w-3.5 h-3.5" />}
-                        <span>{s.label}</span>
-                      </a>
-                    ))}
-                </div>
-              </>
-            )}
+            <div className="space-y-2">
+              <span className="text-white font-mono font-semibold block">파트너 · 성장</span>
+              <div className="flex flex-col gap-1.5">
+                <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
+                <Link href="/partners" prefetch={true} className="hover:text-white transition-colors">제휴식당 입점</Link>
+                <Link href="/about" prefetch={true} className="hover:text-white transition-colors">브랜드 소개</Link>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-white font-mono font-semibold block">트랙 · 아카이브</span>
+              <div className="flex flex-col gap-1.5">
+                <Link href="/busan" prefetch={true} className="hover:text-white transition-colors">부산 다이닝</Link>
+                <Link href="/dining" prefetch={true} className="hover:text-white transition-colors">소셜 다이닝</Link>
+                <Link href="/salon" prefetch={true} className="hover:text-white transition-colors">소셜 살롱</Link>
+                <Link href="/club" prefetch={true} className="hover:text-white transition-colors">소셜 클럽</Link>
+                <Link href="/showcase" prefetch={true} className="hover:text-white transition-colors">쇼케이스</Link>
+                <Link href="/story" prefetch={true} className="hover:text-white transition-colors">스토리</Link>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <span className="text-white font-mono font-semibold block">안전 · 약관</span>
+              <div className="flex flex-col gap-1.5">
+                <Link href="/safety" prefetch={true} className="hover:text-white transition-colors">안전 가이드</Link>
+                <Link href="/terms" prefetch={true} className="hover:text-white transition-colors">이용약관</Link>
+                <Link href="/privacy" prefetch={true} className="hover:text-white transition-colors">개인정보처리방침</Link>
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('REFUND')}
+                  className="text-left hover:text-white transition-colors cursor-pointer"
+                >
+                  취소 및 환불규정
+                </button>
+              </div>
+            </div>
           </div>
+
+          {f?.socialLinks && f.socialLinks.filter((s) => s.visible).length > 0 && (
+            <div className="flex items-center justify-center gap-4">
+              {f.socialLinks
+                .filter((s) => s.visible)
+                .map((s) => (
+                  <a
+                    key={s.id}
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-zinc-400 hover:text-rose-400 text-xs transition-colors flex items-center gap-1"
+                  >
+                    {s.platform === 'instagram' && <Instagram className="w-3.5 h-3.5" />}
+                    {s.platform === 'kakao' && <MessageCircle className="w-3.5 h-3.5" />}
+                    {s.platform === 'website' && <Globe className="w-3.5 h-3.5" />}
+                    <span>{s.label}</span>
+                  </a>
+                ))}
+            </div>
+          )}
 
           {/* 중간 2열: 정식 법정 사업자 정보 (관리자 설정 동적 연동) */}
           <div className="flex flex-col gap-2 font-sans text-xs text-zinc-400 text-center max-w-4xl mx-auto leading-relaxed font-normal">

@@ -1128,7 +1128,7 @@ export default function AdminOperationsDashboardPage() {
                     </div>
                   </div>
                   <span className="px-2 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white shrink-0">
-                    v2.3.0
+                    v2.4.0
                   </span>
                 </div>
               </button>

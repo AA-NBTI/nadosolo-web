@@ -2,8 +2,12 @@ const baseUrl = process.env.NADOSOLO_BASE_URL || 'http://localhost:3000';
 
 const ROUTES_TO_CHECK = [
   '/',
+  '/busan',
   '/test',
   '/meetup',
+  '/locations',
+  '/pricing',
+  '/about',
   '/dashboard',
   '/admin',
   '/affiliate',

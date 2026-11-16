@@ -268,11 +268,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.4.0',
+    releaseTitle: '타임레프트 일러스트·웜 크림 메인 전면 개편 · /busan 분리 · 전체 사이트맵 이식',
+    releaseDate: '2026-11-16',
+    summary: '기존 다크 메인을 /busan으로 분리 보존하고, 메인(/)을 타임레프트 특유의 웜 크림(#FAF6F0)·코랄(#FF5A36)·파스텔 카드·에디토리얼 일러스트 2종(tl-illus-dinner, tl-illus-city)·3슬라이드 실사 배너 구조로 전면 개편. /locations, /pricing, /about 페이지 추가 및 4열 사이트맵 푸터·상단 밋업 메뉴 복원',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2401',
+        category: 'PAGE',
+        categoryLabel: '타임레프트UI',
+        title: '메인(/) 일러스트·웜 크림 타임레프트 디자인 개편 및 /busan · /locations · /pricing · /about 완결',
+        beforeSummary: '어두운 직각 콘솔 톤 메인(/)과 부산 데이터 혼재',
+        afterSummary: '밝은 웜 크림·파스텔 카드·맞춤 일러스트 기반 타임레프트 메인(/) + 기존 부산(/busan) 분리 + 15개 라우트 통합 점검 OK',
+        impactLabel: '타임레프트 UX 및 시각적 감성까지 완전 이식 및 기존 부산 페이지 보존',
+        affectedRoutes: ['/', '/busan', '/locations', '/pricing', '/about', '/meetup', '/test', '/guide', '/affiliate', '/partners'],
+        status: 'VERIFIED',
+      },
+    ],
+  },
+  {
     version: 'v2.3.0',
     releaseTitle: '타임레프트 100% 구조 이식 · 전주기 자동화 파이프라인 · 어필리에이트/B2B/정책 페이지 완결',
     releaseDate: '2026-11-16',
     summary: '헌법 제0조(타임레프트 구조·UX 완전 이식 및 A/B 테스트 원칙) 명문화, 블라인드 슬롯 예약(/meetup, /), 성향 퀴즈 15문항(/test) 및 A/B 관제(/admin), 제휴 식당 자동 배정 & 7대 예외 감사(EDGE-01~07 PASS), D-1 Reveal · 취소/이월 참가권 · +1 초대 · 노쇼/영구 재매칭 차단(user_blocks) · 알림함(notifications) · Vercel Cron(daily-match) · /affiliate · /partners · /terms · /privacy · /safety 구축 및 최상단 3슬라이드 배너 적용',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2301',
