@@ -24,6 +24,7 @@ import AdminSingleAuditReportManager from '@/components/admin/AdminSingleAuditRe
 import AdminProcessTestReportManager from '@/components/admin/AdminProcessTestReportManager';
 import AdminAuditReportManager from '@/components/admin/AdminAuditReportManager';
 import AdminGovernanceManager from '@/components/admin/AdminGovernanceManager';
+import AdminAdaptiveMatchingManager from '@/components/admin/AdminAdaptiveMatchingManager';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import { buildMeetupSeoSlug } from '@/lib/seoSlug';
@@ -46,6 +47,7 @@ type AdminTabKey =
   | 'PROCESS_TEST_REPORT'
   | 'SINGLE_AUDIT_REPORT'
   | 'PIPELINE_ENGINE'
+  | 'ADAPTIVE_QA'
   | 'EVAL_ENGINE'
   | 'REPORT_PLAN'
   | 'REPORT_CHECKLIST'
@@ -92,6 +94,7 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
     items: [
       { key: 'EVAL_ENGINE', label: '엔진' },
       { key: 'PIPELINE_ENGINE', label: '매칭' },
+      { key: 'ADAPTIVE_QA', label: '적응매칭' },
       { key: 'PROCESS_TEST_REPORT', label: '점검' },
       { key: 'SINGLE_AUDIT_REPORT', label: '테스트' },
       { key: 'PROCESS', label: '프로세스' },
@@ -1009,14 +1012,14 @@ export default function AdminOperationsDashboardPage() {
                 isLight ? 'border-zinc-200' : 'border-white/[0.08]'
               }`}
             >
-              {/* 1행: 관리 콘솔 & v2.2.0 */}
+              {/* 1행: 관리 콘솔 & v2.2.1 */}
               <div className="flex items-center justify-between">
                 <p className="text-sm font-mono tracking-wider text-white font-semibold flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
                   관리자
                 </p>
                 <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-sm font-mono font-bold text-white">
-                  v2.2.0
+                  v2.2.1
                 </span>
               </div>
 
@@ -2574,6 +2577,16 @@ export default function AdminOperationsDashboardPage() {
               ---------------------------------------------------------- */}
           {activeTab === 'PIPELINE_ENGINE' && (
             <AdminPipelineEngineManager
+              isLight={isLight}
+              onNotify={notify}
+            />
+          )}
+
+          {/* ----------------------------------------------------------
+              [적응매칭] 12+4 질문지 · 동적 축 · 방 부합도 · 사후 평가 비교 관제
+              ---------------------------------------------------------- */}
+          {activeTab === 'ADAPTIVE_QA' && (
+            <AdminAdaptiveMatchingManager
               isLight={isLight}
               onNotify={notify}
             />

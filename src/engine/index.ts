@@ -15,3 +15,4 @@ export * from './siteConfigEngine';
 export * from './evaluation';
 export * from './processGateEngine';
 export * from './architectureAuditRegistry';
+export * from './dynamicMatchingEngine';

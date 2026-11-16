@@ -268,11 +268,53 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.2.1',
+    releaseTitle: '12+4 적응형 질문지 · 동적 축 매칭 엔진 · 관리자 4각도 관제 구축',
+    releaseDate: '2026-11-16',
+    summary: '고정 기질(12)과 오늘의 컨디션(4) 이원화 질문지, 플러그인형 동적 축 레지스트리 및 모수별 방 자동 분화 엔진(dynamicMatchingEngine), /test 적응형 UI, 관리자 다각도 매칭·사후비교 관제(AdminAdaptiveMatchingManager) 구현',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2211',
+        category: 'EVALUATION',
+        categoryLabel: '동적매칭엔진',
+        title: '플러그인형 동적 축 레지스트리 및 모수별(6/12/18명) 자동 방 분화 엔진 구축',
+        beforeSummary: '단일 5문항 2지선다 및 고정 클러스터 키로만 테이블 편성',
+        afterSummary: '목적·깊이·테마·에너지 동적 축 100점 정규화 및 모수 증가 시 60점대 성사 -> 80~90점대 자동 분화 구현',
+        impactLabel: '소규모 모수 성사율 보전 및 대규모 모수 매칭 정밀도 동시 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/test', '/admin'],
+      },
+      {
+        id: 'CHG-2212',
+        category: 'PAGE',
+        categoryLabel: '적응형진단',
+        title: '/test 페이지 12(고정) + 4(오늘의 컨디션) 적응형 UI 및 스펙트럼 척도 도입',
+        beforeSummary: '매번 동일한 5문항 2지선다만 제공되어 컨디션 변화 반영 불가',
+        afterSummary: '전체(16문항) / 컨디션(4문항) 1클릭 전환, 1~5 스펙트럼 척도 및 4대 축 좌표 리포트 제공',
+        impactLabel: '재방문 진단 피로도 단축(15초) 및 컨디션 기반 맞춤형 테이블 추천',
+        status: 'VERIFIED',
+        affectedRoutes: ['/test'],
+      },
+      {
+        id: 'CHG-2213',
+        category: 'ADMIN',
+        categoryLabel: '적응매칭관제',
+        title: 'AdminAdaptiveMatchingManager 신설 (부합도·사후비교·축설정·질문지 4각도 관제)',
+        beforeSummary: '방 성사 적합도와 사후 평가 편차를 다각도로 대조할 전용 관제 화면 부재',
+        afterSummary: '모수 시뮬레이션, 참여자별 100점 부합도, 사전 예측 vs 사후 평가 캘리브레이션 및 축/질문지 ON/OFF 제어 구축',
+        impactLabel: '매칭 가중치 튜닝 및 엔진 성능 고도화 가시성 100% 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin'],
+      },
+    ],
+  },
+  {
     version: 'v2.2.0',
     releaseTitle: '거버넌스 관제·합성 시뮬레이션 엔진·동적 SEO 라우팅 고도화',
     releaseDate: '2026-11-16',
     summary: '관리자 거버넌스 매니저 신설, 합성 시뮬레이션 엔진 및 다면평가·매칭 파이프라인 고도화, 동적 밋업 상세 라우팅 및 SEO(sitemap/robots) 체계 구축, Supabase SSOT 동기화 강화',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2201',
