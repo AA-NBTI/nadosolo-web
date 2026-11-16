@@ -268,11 +268,53 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.2.2',
+    releaseTitle: '실DB SSOT 적응매칭 · 관리자 테이블 리스트 · GNB 전용 가매칭 페이지 구축',
+    releaseDate: '2026-11-16',
+    summary: '적응매칭 더미 제거 및 Supabase 실회원 19명 연동 검증, 관리자 방패 로고·가로 탭·테이블형 회원 리스트(성별/출생 분리·컬럼 토글 정렬·10줄 페이지네이션)·부산 지역명 통일, 상단 GNB 관리자 전용 가매칭(/admin/pre-match) 페이지 신설',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2221',
+        category: 'DATABASE',
+        categoryLabel: '실DB연동',
+        title: '적응매칭 더미 데이터 완전 제거 및 Supabase 실DB 회원 12명 생성·매칭 실증',
+        beforeSummary: 'AdminAdaptiveMatchingManager 내 가상 시드(SIM-01~18) 및 임의 편차 노출',
+        afterSummary: 'nadoSoloSupabaseService.getAllProfiles() 직결 및 실회원 19명 기준 2개 방(94점/85점) 편성 검증 완료',
+        impactLabel: 'SSOT 단일 진실 공급원 100% 준수 및 실데이터 매칭 무결성 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin', '/admin/pre-match'],
+      },
+      {
+        id: 'CHG-2222',
+        category: 'ADMIN',
+        categoryLabel: '관리자UI개편',
+        title: '방패 로고·가로 탭 메인·테이블형 회원 리스트(컬럼 정렬·10줄 페이지네이션) 및 부산 통일',
+        beforeSummary: '글로벌 헤더 불필요 배지, 회원 필터 2줄 분산, 성별·출생 결합 및 부산/부산광역시 혼용',
+        afterSummary: 'Private Salon·INVITATION ONLY 제거, 통합 필터·1기능 1컬럼 정렬·페이지 번호 버튼·부산 통일 완료',
+        impactLabel: '관리자 탐색 속도 및 리스트 가독성 대폭 향상',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin'],
+      },
+      {
+        id: 'CHG-2223',
+        category: 'PAGE',
+        categoryLabel: '가매칭전용',
+        title: '상단 GNB 관리자 전용 가매칭 메뉴 및 /admin/pre-match -> /meetup 개설 파이프라인 연결',
+        beforeSummary: '관리자만 별도로 가매칭 방을 조망하고 /meetup으로 즉시 개설할 전용 상단 진입점 부재',
+        afterSummary: 'isAdmin 전용 GNB 가매칭 링크 및 /admin/pre-match 페이지 신설(밋업 방 개설 직결)',
+        impactLabel: '일반 유저 격리 유지 및 가매칭 -> 밋업 개설 전환 효율 극대화',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin/pre-match', '/meetup'],
+      },
+    ],
+  },
+  {
     version: 'v2.2.1',
     releaseTitle: '12+4 적응형 질문지 · 동적 축 매칭 엔진 · 관리자 4각도 관제 구축',
     releaseDate: '2026-11-16',
     summary: '고정 기질(12)과 오늘의 컨디션(4) 이원화 질문지, 플러그인형 동적 축 레지스트리 및 모수별 방 자동 분화 엔진(dynamicMatchingEngine), /test 적응형 UI, 관리자 다각도 매칭·사후비교 관제(AdminAdaptiveMatchingManager) 구현',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2211',

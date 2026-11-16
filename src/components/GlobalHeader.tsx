@@ -64,13 +64,6 @@ export default function GlobalHeader() {
               </div>
             </div>
           </Link>
-
-          {/* 로고 옆 세련된 보조 문구 디자인 */}
-          <div className="hidden sm:inline-flex items-center gap-2 pl-3.5 border-l border-white/15 text-[11px] font-mono tracking-[0.2em] text-zinc-400 font-light uppercase">
-            <span>Private Salon</span>
-            <span className="w-1 h-1 rounded-full bg-[#f04f74]" />
-            <span>Busan</span>
-          </div>
         </div>
 
         {/* [중앙] 네비게이션 */}
@@ -95,14 +88,24 @@ export default function GlobalHeader() {
               </Link>
             );
           })}
+          {isAdmin && (
+            <Link
+              href="/admin/pre-match"
+              prefetch={true}
+              className={`text-xs font-mono tracking-[0.2em] uppercase transition-colors py-1 flex items-center gap-1.5 ${
+                pathname === '/admin/pre-match'
+                  ? 'text-blue-300 font-semibold'
+                  : 'text-blue-300/80 hover:text-blue-200 font-medium'
+              }`}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+              <span>가매칭</span>
+            </Link>
+          )}
         </nav>
 
-        {/* [우측] 뱃지 & 프로필/로그인 */}
+        {/* [우측] 프로필/로그인 */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-          
-          <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.08] text-[10px] font-mono tracking-[0.2em] text-zinc-400 uppercase font-light">
-            INVITATION ONLY
-          </span>
 
           {/* 로그인 / 프로필 / 관리자 버튼 */}
           {currentUser ? (

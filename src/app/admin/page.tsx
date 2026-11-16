@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Shield } from 'lucide-react';
 import {
   DietaryRestriction,
   Gender,
@@ -32,6 +33,11 @@ import {
   EXECUTIVE_GOVERNANCE_TEAM,
   GovernanceRole,
 } from '@/engine/architectureAuditRegistry';
+import {
+  computeUserAxisProfile,
+  matchDynamicTables,
+  AdaptiveAnswer,
+} from '@/engine/dynamicMatchingEngine';
 
 type AdminTabKey =
   | 'GOVERNANCE'
@@ -40,6 +46,7 @@ type AdminTabKey =
   | 'AUDIT'
   | 'EVENT_CREATE'
   | 'EVENT_LIST'
+  | 'PRE_MATCH'
   | 'EVENT_GATE'
   | 'MEMBER_EVAL'
   | 'MEMBER_MGMT'
@@ -61,6 +68,26 @@ type AdminTabKey =
   | 'DESIGN_SYSTEM'
   | 'ADMIN_ACCOUNT';
 
+const normalizeCityName = (city?: string): string => {
+  if (!city) return '미지정';
+  const trimmed = city.trim();
+  if (!trimmed) return '미지정';
+  return trimmed
+    .replace(/(특별시|광역시|특별자치시|특별자치도)$/g, '')
+    .replace(/^(부산|서울|대구|인천|광주|대전|울산)시$/g, '$1') || trimmed;
+};
+
+const getMemberTotalScore = (p: DbProfile): number => {
+  const scores = p.self_domain_scores;
+  if (!scores) return 0;
+  const domainKeys = ['APPEARANCE', 'STYLE', 'VOICE', 'TALK', 'MANNER'];
+  const vals = domainKeys
+    .map((k) => scores[k])
+    .filter((v): v is number => typeof v === 'number' && !Number.isNaN(v));
+  if (vals.length === 0) return 0;
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+};
+
 interface AdminCategoryItem {
   key: AdminTabKey;
   label: string;
@@ -78,15 +105,16 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
     items: [
       { key: 'EVENT_CREATE', label: '개설' },
       { key: 'EVENT_LIST', label: '목록' },
+      { key: 'PRE_MATCH', label: '가매칭' },
       { key: 'EVENT_GATE', label: '관제' },
     ],
   },
   {
-    groupTitle: '보고서',
+    groupTitle: '회원',
     items: [
-      { key: 'REPORT_PLAN', label: '계획' },
-      { key: 'REPORT_CHECKLIST', label: '항목' },
-      { key: 'REPORT_APPROVAL', label: '승인' },
+      { key: 'MEMBER_MGMT', label: '정보' },
+      { key: 'MEMBER_EVAL', label: '평가' },
+      { key: 'BADGE', label: '뱃지' },
     ],
   },
   {
@@ -99,14 +127,6 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'SINGLE_AUDIT_REPORT', label: '테스트' },
       { key: 'PROCESS', label: '프로세스' },
       { key: 'AUDIT', label: '품질감사' },
-    ],
-  },
-  {
-    groupTitle: '회원',
-    items: [
-      { key: 'MEMBER_MGMT', label: '정보' },
-      { key: 'MEMBER_EVAL', label: '평가' },
-      { key: 'BADGE', label: '뱃지' },
     ],
   },
   {
@@ -131,6 +151,14 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
     items: [
       { key: 'GOVERNANCE', label: '사단' },
       { key: 'TESTER_USER', label: '가상' },
+    ],
+  },
+  {
+    groupTitle: '보고서',
+    items: [
+      { key: 'REPORT_PLAN', label: '계획' },
+      { key: 'REPORT_CHECKLIST', label: '항목' },
+      { key: 'REPORT_APPROVAL', label: '승인' },
     ],
   },
 ];
@@ -423,6 +451,11 @@ export default function AdminOperationsDashboardPage() {
 
   // [대분류 아코디언] 열린 그룹 타이틀 목록 (기본값: 전 메뉴 닫힌 컴팩트 목록 구조)
   const [openGroupTitles, setOpenGroupTitles] = useState<string[]>([]);
+  // [관리자 메인화면] 가로 탭 구성 (요약 / 회원·퍼널 / 지역·방현황)
+  const [overviewTab, setOverviewTab] = useState<'SUMMARY' | 'FUNNEL' | 'ROOMS'>('SUMMARY');
+  // [리스트 페이지네이션] 10줄 초과 시 다음/이전 버튼 제공
+  const [eventPage, setEventPage] = useState<number>(1);
+  const LIST_PAGE_SIZE = 10;
 
   const toggleGroup = useCallback((groupTitle: string) => {
     setOpenGroupTitles((prev) =>
@@ -500,7 +533,19 @@ export default function AdminOperationsDashboardPage() {
   const [memberAgeFilter, setMemberAgeFilter] = useState<'ALL' | '2030' | '3040' | '4050' | '5060'>('ALL');
   const [memberDiagFilter, setMemberDiagFilter] = useState<'ALL' | 'DONE' | 'NONE'>('ALL');
   const [memberMissingFilter, setMemberMissingFilter] = useState<'ALL' | 'NO_ZONE' | 'NO_PHONE' | 'NO_PURPOSE'>('ALL');
-  const [memberSortBy, setMemberSortBy] = useState<'RECENT' | 'STAGE' | 'AGE'>('RECENT');
+  const [memberSortBy, setMemberSortBy] = useState<'RECENT' | 'STAGE' | 'AGE' | 'SCORE' | 'NAME' | 'REGION' | 'GENDER' | 'PURPOSE'>('RECENT');
+  const [memberSortDir, setMemberSortDir] = useState<'asc' | 'desc'>('desc');
+  const handleSortColumn = useCallback((col: 'RECENT' | 'STAGE' | 'AGE' | 'SCORE' | 'NAME' | 'REGION' | 'GENDER' | 'PURPOSE') => {
+    setMemberSortBy((prev) => {
+      if (prev === col) {
+        setMemberSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+        return prev;
+      }
+      setMemberSortDir(col === 'SCORE' || col === 'RECENT' ? 'desc' : 'asc');
+      return col;
+    });
+    setMemberPage(1);
+  }, []);
 
   // [모임 관제] 가매칭(Soft-Lock) & 확정 알림(Locked) & 재최적화 결과 상태
   const [preMatchedMemberIds, setPreMatchedMemberIds] = useState<Record<string, string>>({});
@@ -804,7 +849,7 @@ export default function AdminOperationsDashboardPage() {
       const matchPurpose =
         memberPurposeFilter === 'ALL' || (p.preferred_purpose || 'RESET') === memberPurposeFilter;
       const matchRegion =
-        memberRegionFilter === 'ALL' || (p.residence_city || '미지정') === memberRegionFilter;
+        memberRegionFilter === 'ALL' || normalizeCityName(p.residence_city) === memberRegionFilter;
       const matchDistrict =
         memberDistrictFilter === 'ALL' || (p.residence_district || '미지정') === memberDistrictFilter;
 
@@ -845,13 +890,29 @@ export default function AdminOperationsDashboardPage() {
     });
 
     return [...filtered].sort((a, b) => {
+      const dir = memberSortDir === 'asc' ? 1 : -1;
       if (memberSortBy === 'STAGE') {
-        return (STAGE_ORDER[getMemberStage(a)] ?? 9) - (STAGE_ORDER[getMemberStage(b)] ?? 9);
+        return ((STAGE_ORDER[getMemberStage(a)] ?? 9) - (STAGE_ORDER[getMemberStage(b)] ?? 9)) * dir;
       }
       if (memberSortBy === 'AGE') {
-        return (a.birth_year || 1990) - (b.birth_year || 1990);
+        return ((a.birth_year || 1990) - (b.birth_year || 1990)) * dir;
       }
-      return (b.created_at || '').localeCompare(a.created_at || '');
+      if (memberSortBy === 'SCORE') {
+        return (getMemberTotalScore(a) - getMemberTotalScore(b)) * dir;
+      }
+      if (memberSortBy === 'NAME') {
+        return (a.nickname || '').localeCompare(b.nickname || '', 'ko') * dir;
+      }
+      if (memberSortBy === 'REGION') {
+        return normalizeCityName(a.residence_city).localeCompare(normalizeCityName(b.residence_city), 'ko') * dir;
+      }
+      if (memberSortBy === 'GENDER') {
+        return (a.gender || '').localeCompare(b.gender || '') * dir;
+      }
+      if (memberSortBy === 'PURPOSE') {
+        return (a.preferred_purpose || 'RESET').localeCompare(b.preferred_purpose || 'RESET') * dir;
+      }
+      return (a.created_at || '').localeCompare(b.created_at || '') * dir;
     });
   }, [
     liveDbProfiles,
@@ -865,6 +926,7 @@ export default function AdminOperationsDashboardPage() {
     memberDiagFilter,
     memberMissingFilter,
     memberSortBy,
+    memberSortDir,
     getMemberStage,
   ]);
 
@@ -1008,68 +1070,58 @@ export default function AdminOperationsDashboardPage() {
             style={{ scrollbarWidth: 'thin' }}
           >
             <div
-              className={`px-2 pb-4 border-b space-y-3 ${
+              className={`pb-3 border-b space-y-2.5 ${
                 isLight ? 'border-zinc-200' : 'border-white/[0.08]'
               }`}
             >
-              {/* 1행: 관리 콘솔 & v2.2.1 */}
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-mono tracking-wider text-white font-semibold flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
-                  관리자
-                </p>
-                <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-sm font-mono font-bold text-white">
-                  v2.2.1
-                </span>
-              </div>
-
-              {/* 2행: 관리자 / @admin • 슈퍼 권한 */}
-              <div className="flex items-baseline justify-between gap-2 border-t border-white/[0.04] pt-2.5">
-                <h1
-                  className={`font-serif-editorial text-lg font-normal shrink-0 ${
-                    isLight ? 'text-zinc-900' : 'text-white'
-                  }`}
-                >
-                  {currentUser?.nickname || '관리자'}
-                </h1>
-                <span
-                  className={`text-sm font-mono text-right truncate ${
-                    isLight ? 'text-zinc-500' : 'text-zinc-400'
-                  }`}
-                >
-                  {currentUser?.handle || '@admin'} • 슈퍼 권한
-                </span>
-              </div>
-
-              {/* 3행: 접기 | 펼치기 */}
-              <div className="flex items-center justify-between pt-1.5 border-t border-white/[0.04] text-sm font-mono">
-                <span className="text-sm text-zinc-500">
-                  메뉴
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={collapseAllGroups}
-                    className={`hover:underline cursor-pointer ${
-                      isLight ? 'text-zinc-600' : 'text-zinc-400'
-                    }`}
-                  >
-                    접기
-                  </button>
-                  <span className={isLight ? 'text-zinc-300' : 'text-zinc-600'}>
-                    |
+              {/* 1행: 방패 관리자 영역 (상단/하단 폭 일치, 클릭 시 메인화면 복귀) */}
+              <button
+                type="button"
+                onClick={() => setActiveTab(null)}
+                className="w-full text-left p-2 border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] transition-colors cursor-pointer group"
+                title="관리자 메인화면으로 이동"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5 select-none min-w-0">
+                    <div className="w-8 h-8 border border-[#3b82f6]/50 bg-[#3b82f6]/15 flex items-center justify-center shrink-0">
+                      <Shield className="w-4 h-4 text-blue-300" />
+                    </div>
+                    <div className="leading-tight min-w-0">
+                      <span className="text-base font-serif-editorial text-white font-normal block group-hover:text-blue-300 transition-colors">
+                        관리자
+                      </span>
+                      <span className="text-sm font-mono text-zinc-400 truncate block">
+                        {currentUser?.handle || '@admin'}
+                      </span>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white shrink-0">
+                    v2.2.2
                   </span>
-                  <button
-                    type="button"
-                    onClick={expandAllGroups}
-                    className={`hover:underline cursor-pointer ${
-                      isLight ? 'text-zinc-600' : 'text-zinc-400'
-                    }`}
-                  >
-                    펼치기
-                  </button>
                 </div>
-              </div>
+              </button>
+
+              {/* 2행: 단일 메뉴 펼침/닫힘 토글 버튼 (상단 박스와 동일한 좌우 폭) */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (openGroupTitles.length === ADMIN_CATEGORY_GROUPS.length) {
+                    collapseAllGroups();
+                  } else {
+                    expandAllGroups();
+                  }
+                }}
+                className={`w-full px-2.5 py-1.5 border text-sm font-mono flex items-center justify-between cursor-pointer transition-colors ${
+                  isLight
+                    ? 'border-zinc-300 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'
+                    : 'border-white/10 bg-white/[0.02] text-zinc-300 hover:text-white hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>메뉴</span>
+                <span className="text-blue-300 font-bold">
+                  {openGroupTitles.length === ADMIN_CATEGORY_GROUPS.length ? '전체 닫힘 ▴' : '전체 펼침 ▾'}
+                </span>
+              </button>
             </div>
 
             <nav className="space-y-3">
@@ -1233,7 +1285,7 @@ export default function AdminOperationsDashboardPage() {
                   ];
                   const regionMap = new Map<string, { city: string; total: number; readyOrMore: number }>();
                   for (const p of liveDbProfiles) {
-                    const city = p.residence_city?.trim() || '미지정';
+                    const city = normalizeCityName(p.residence_city);
                     const cur = regionMap.get(city) || { city, total: 0, readyOrMore: 0 };
                     cur.total += 1;
                     if (getMemberStage(p) !== 'UNQUALIFIED') cur.readyOrMore += 1;
@@ -1244,182 +1296,382 @@ export default function AdminOperationsDashboardPage() {
                     (ev) => ev.status !== 'COMPLETED' && ev.status !== 'CANCELLED_MIN'
                   );
                   const confirmedEvents = activeEvents.filter((ev) => ev.status === 'CONFIRMED');
-                  const recruitingEvents = activeEvents.filter((ev) => ev.status !== 'CONFIRMED');
+                  const adaptiveParticipants = liveDbProfiles
+                    .filter((p) => p.id !== 'ADMIN_01' && p.handle !== '@admin')
+                    .map((p) => {
+                      const rawSurvey = p.survey_answers ?? {};
+                      const answers: AdaptiveAnswer[] = Object.entries(rawSurvey).map(
+                        ([qId, val]) => ({ questionId: qId, version: 1, value: val })
+                      );
+                      return computeUserAxisProfile(
+                        {
+                          userId: `${p.nickname || p.handle} (${p.id})`,
+                          gender: p.gender === 'M' ? 'M' : 'F',
+                          birthYear: p.birth_year || 1994,
+                          cityCode: p.residence_city || 'SEOUL',
+                          dietary: p.dietary || 'NONE',
+                          purpose: p.preferred_purpose,
+                        },
+                        answers
+                      );
+                    });
+                  const adaptiveGrouping = matchDynamicTables(adaptiveParticipants);
+
+                  const readyTotal = memberStageCounts.READY + memberStageCounts.APPLIED + memberStageCounts.PRE_MATCHED + memberStageCounts.CONFIRMED;
+                  const femaleTotal = liveDbProfiles.filter((p) => p.gender === 'F').length;
+                  const maleTotal = liveDbProfiles.filter((p) => p.gender === 'M').length;
 
                   return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {/* 다이어그램 1: 회원 단계별 퍼널 전환 현황 */}
-                      <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                            <h3 className="font-serif-editorial text-lg text-white font-normal">회원 퍼널</h3>
-                          </div>
-                          <span className="text-sm font-mono text-zinc-300">총 {liveDbProfiles.length}명</span>
-                        </div>
-                        <div className="space-y-2">
-                          {STAGE_META.map((st) => {
-                            const pct = Math.round((st.count / totalMembers) * 100);
+                    <div className="space-y-3">
+                      {/* 가로 탭 전환 바 */}
+                      <div className="p-2.5 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {(
+                            [
+                              { key: 'SUMMARY', label: '전체요약' },
+                              { key: 'FUNNEL', label: '회원·퍼널' },
+                              { key: 'ROOMS', label: '지역·방현황' },
+                            ] as const
+                          ).map((t) => {
+                            const active = overviewTab === t.key;
                             return (
                               <button
-                                key={st.key}
+                                key={t.key}
                                 type="button"
-                                onClick={() => {
-                                  setMemberStageFilter(st.key);
-                                  handleSelectTab('MEMBER_MGMT');
-                                }}
-                                className="w-full text-left space-y-1 group cursor-pointer"
+                                onClick={() => setOverviewTab(t.key)}
+                                className={`px-3.5 py-1.5 text-sm font-mono border cursor-pointer transition-colors ${
+                                  active
+                                    ? 'border-[#3b82f6]/60 bg-[#3b82f6]/20 text-white font-bold'
+                                    : 'border-white/10 bg-white/[0.03] text-zinc-300 hover:text-white hover:bg-white/5'
+                                }`}
                               >
-                                <div className="flex items-center justify-between text-sm font-mono">
-                                  <span className="text-zinc-200 group-hover:text-white">{st.label}</span>
-                                  <span className="text-white font-bold">{st.count}명 ({pct}%)</span>
-                                </div>
-                                <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
-                                  <div
-                                    className="h-full bg-white/60 group-hover:bg-white transition-all"
-                                    style={{ width: `${Math.max(pct, st.count > 0 ? 4 : 0)}%` }}
-                                  />
-                                </div>
+                                {t.label}
                               </button>
                             );
                           })}
                         </div>
-                      </div>
-
-                      {/* 다이어그램 2: 목적 × 성비 구성 분포 */}
-                      <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                            <h3 className="font-serif-editorial text-lg text-white font-normal">목적 · 성비</h3>
-                          </div>
-                          <span className="text-sm font-mono text-zinc-300">
-                            여 {liveDbProfiles.filter((p) => p.gender === 'F').length} / 남 {liveDbProfiles.filter((p) => p.gender === 'M').length}
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          {PURPOSE_META.map((pm) => {
-                            const matched = liveDbProfiles.filter((p) => p.preferred_purpose === pm.key);
-                            const fCnt = matched.filter((p) => p.gender === 'F').length;
-                            const mCnt = matched.filter((p) => p.gender === 'M').length;
-                            const pct = Math.round((matched.length / totalMembers) * 100);
-                            return (
-                              <button
-                                key={pm.key}
-                                type="button"
-                                onClick={() => {
-                                  setMemberPurposeFilter(pm.key);
-                                  handleSelectTab('MEMBER_MGMT');
-                                }}
-                                className="w-full text-left space-y-1 group cursor-pointer"
-                              >
-                                <div className="flex items-center justify-between text-sm font-mono">
-                                  <span className="text-zinc-200 group-hover:text-white">{pm.label}</span>
-                                  <span className="text-white">
-                                    <strong>{matched.length}명</strong> (여{fCnt}/남{mCnt})
-                                  </span>
-                                </div>
-                                <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
-                                  <div
-                                    className="h-full bg-white/50 group-hover:bg-white transition-all"
-                                    style={{ width: `${Math.max(pct, matched.length > 0 ? 4 : 0)}%` }}
-                                  />
-                                </div>
-                              </button>
-                            );
-                          })}
+                        <div className="flex items-center gap-2 text-sm font-mono text-zinc-300">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                          <span>실서버 SSOT</span>
+                          <span className="text-zinc-600">|</span>
+                          <span>여 {femaleTotal} · 남 {maleTotal}</span>
                         </div>
                       </div>
 
-                      {/* 다이어그램 3: 지역별 수요 밀집도 & 방 개설 임계치 */}
-                      <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                            <h3 className="font-serif-editorial text-lg text-white font-normal">지역 밀집도</h3>
-                          </div>
-                          <span className="text-sm font-mono text-zinc-300">기준 3명 개설 / 6명 정원</span>
-                        </div>
-                        <div className="space-y-2">
-                          {regionList.map((r) => {
-                            const pct6 = Math.min(100, Math.round((r.readyOrMore / 6) * 100));
-                            return (
-                              <button
-                                key={r.city}
-                                type="button"
-                                onClick={() => {
-                                  setMemberRegionFilter(r.city);
-                                  handleSelectTab('MEMBER_MGMT');
-                                }}
-                                className="w-full text-left space-y-1 group cursor-pointer"
-                              >
-                                <div className="flex items-center justify-between text-sm font-mono">
-                                  <span className="text-zinc-200 group-hover:text-white">{r.city}</span>
-                                  <span className="text-white">
-                                    충족 <strong>{r.readyOrMore}</strong>/6명 (전체 {r.total}명)
-                                  </span>
-                                </div>
-                                <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
-                                  <div
-                                    className="h-full bg-white/60 group-hover:bg-white transition-all"
-                                    style={{ width: `${Math.max(pct6, r.readyOrMore > 0 ? 6 : 0)}%` }}
-                                  />
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                      {/* 탭 1: 전체요약 (4열 핵심 지표 + 적응매칭/회원 바로가기) */}
+                      {overviewTab === 'SUMMARY' && (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 font-mono">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectTab('MEMBER_MGMT')}
+                              className="p-4 border border-white/10 bg-[#0c0d12] hover:border-[#3b82f6]/50 text-left space-y-1 cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between text-sm text-zinc-400">
+                                <span>총 실회원</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                              </div>
+                              <div className="text-2xl font-bold text-white">{liveDbProfiles.length}명</div>
+                              <div className="text-sm text-blue-300">여 {femaleTotal} · 남 {maleTotal}</div>
+                            </button>
 
-                      {/* 다이어그램 4: 모임방 개설 & 확정 현황 */}
-                      <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
-                          <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                            <h3 className="font-serif-editorial text-lg text-white font-normal">방 개설 현황</h3>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMemberStageFilter('READY');
+                                setMemberPage(1);
+                                handleSelectTab('MEMBER_MGMT');
+                              }}
+                              className="p-4 border border-white/10 bg-[#0c0d12] hover:border-[#3b82f6]/50 text-left space-y-1 cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between text-sm text-zinc-400">
+                                <span>매칭 가능</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                              </div>
+                              <div className="text-2xl font-bold text-white">{readyTotal}명</div>
+                              <div className="text-sm text-zinc-300">조건 충족 이상</div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleSelectTab('EVENT_LIST')}
+                              className="p-4 border border-white/10 bg-[#0c0d12] hover:border-[#f04f74]/50 text-left space-y-1 cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between text-sm text-zinc-400">
+                                <span>개설 모임방</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                              </div>
+                              <div className="text-2xl font-bold text-white">{activeEvents.length}방</div>
+                              <div className="text-sm text-zinc-300">확정 {confirmedEvents.length}방</div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleSelectTab('PRE_MATCH')}
+                              className="p-4 border border-white/10 bg-[#0c0d12] hover:border-[#f04f74]/50 text-left space-y-1 cursor-pointer"
+                            >
+                              <div className="flex items-center justify-between text-sm text-zinc-400">
+                                <span>가매칭 방</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                              </div>
+                              <div className="text-2xl font-bold text-white">{adaptiveGrouping.rooms.length}방</div>
+                              <div className="text-sm text-zinc-300">대기 {adaptiveGrouping.unassigned.length}명</div>
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleSelectTab('EVENT_GATE')}
-                            className="text-sm font-mono px-2.5 py-0.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white cursor-pointer"
-                          >
-                            관제 이동
-                          </button>
+
+                          {/* 연령대별 분포 (클릭 시 해당 연령대 회원 목록 즉시 이동) */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
+                            {(
+                              [
+                                { key: '2030' as const, label: '20대', check: (y: number) => 2026 - y >= 20 && 2026 - y < 30 },
+                                { key: '3040' as const, label: '30대', check: (y: number) => 2026 - y >= 30 && 2026 - y < 40 },
+                                { key: '4050' as const, label: '40대', check: (y: number) => 2026 - y >= 40 && 2026 - y < 50 },
+                                { key: '5060' as const, label: '50대+', check: (y: number) => 2026 - y >= 50 },
+                              ]
+                            ).map((ag) => {
+                              const cnt = liveDbProfiles.filter((p) => ag.check(p.birth_year || 1990)).length;
+                              return (
+                                <button
+                                  key={ag.key}
+                                  type="button"
+                                  onClick={() => {
+                                    setMemberAgeFilter(ag.key);
+                                    setMemberPage(1);
+                                    handleSelectTab('MEMBER_MGMT');
+                                  }}
+                                  className="px-3.5 py-2.5 border border-white/10 bg-[#0c0d12] hover:border-[#3b82f6]/50 flex items-center justify-between text-sm cursor-pointer"
+                                >
+                                  <span className="text-zinc-300">{ag.label}</span>
+                                  <span className="text-white font-bold">{cnt}명</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                            <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-2">
+                              <div className="flex items-center justify-between border-b border-white/10 pb-2 text-sm font-mono">
+                                <span className="text-white font-bold">적응매칭 실시간 편성</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSelectTab('ADAPTIVE_QA')}
+                                  className="text-blue-300 hover:underline cursor-pointer"
+                                >
+                                  전체보기
+                                </button>
+                              </div>
+                              {adaptiveGrouping.rooms.length === 0 ? (
+                                <p className="text-sm font-mono text-zinc-400">편성된 방이 없습니다.</p>
+                              ) : (
+                                adaptiveGrouping.rooms.map((room) => (
+                                  <button
+                                    key={room.roomId}
+                                    type="button"
+                                    onClick={() => handleSelectTab('ADAPTIVE_QA')}
+                                    className="w-full px-3 py-2 border border-white/10 bg-[#08090d] hover:bg-white/5 flex items-center justify-between gap-2 text-sm font-mono cursor-pointer"
+                                  >
+                                    <span className="text-white truncate">{room.spec.title}</span>
+                                    <span className="px-2 py-0.5 border border-[#f04f74]/50 text-white shrink-0">
+                                      {room.expectedScore100}점
+                                    </span>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+
+                            <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-2">
+                              <div className="flex items-center justify-between border-b border-white/10 pb-2 text-sm font-mono">
+                                <span className="text-white font-bold">개설 모임방</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSelectTab('EVENT_LIST')}
+                                  className="text-blue-300 hover:underline cursor-pointer"
+                                >
+                                  목록이동
+                                </button>
+                              </div>
+                              {activeEvents.length === 0 ? (
+                                <p className="text-sm font-mono text-zinc-400">현재 개설된 모임방이 없습니다.</p>
+                              ) : (
+                                activeEvents.slice(0, 4).map((ev) => (
+                                  <button
+                                    key={ev.eventId}
+                                    type="button"
+                                    onClick={() => handleSelectTab('EVENT_LIST')}
+                                    className="w-full px-3 py-2 border border-white/10 bg-[#08090d] hover:bg-white/5 flex items-center justify-between gap-2 text-sm font-mono cursor-pointer"
+                                  >
+                                    <span className="text-white truncate">{ev.title}</span>
+                                    <span className="px-2 py-0.5 border border-[#3b82f6]/50 text-blue-200 shrink-0">
+                                      {ev.status === 'CONFIRMED' ? '확정' : '모집중'}
+                                    </span>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="grid grid-cols-3 gap-2 text-center font-mono">
-                          <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                            <div className="text-sm text-zinc-400">개설 방</div>
-                            <div className="text-lg font-bold text-white">{activeEvents.length}</div>
+                      )}
+
+                      {/* 탭 2: 회원·퍼널 (2열 나란히 비교) */}
+                      {overviewTab === 'FUNNEL' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                                <h3 className="font-serif-editorial text-lg text-white font-normal">회원 퍼널</h3>
+                              </div>
+                              <span className="text-sm font-mono text-blue-300 font-bold">총 {liveDbProfiles.length}명</span>
+                            </div>
+                            <div className="space-y-2">
+                              {STAGE_META.map((st) => {
+                                const pct = Math.round((st.count / totalMembers) * 100);
+                                return (
+                                  <button
+                                    key={st.key}
+                                    type="button"
+                                    onClick={() => {
+                                      setMemberStageFilter(st.key);
+                                      setMemberPage(1);
+                                      handleSelectTab('MEMBER_MGMT');
+                                    }}
+                                    className="w-full text-left space-y-1 group cursor-pointer"
+                                  >
+                                    <div className="flex items-center justify-between text-sm font-mono">
+                                      <span className="text-zinc-200 group-hover:text-white">{st.label}</span>
+                                      <span className="text-white font-bold">{st.count}명 ({pct}%)</span>
+                                    </div>
+                                    <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
+                                      <div
+                                        className="h-full bg-[#3b82f6] group-hover:bg-blue-400 transition-all"
+                                        style={{ width: `${Math.max(pct, st.count > 0 ? 4 : 0)}%` }}
+                                      />
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
-                          <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                            <div className="text-sm text-zinc-400">모집중</div>
-                            <div className="text-lg font-bold text-white">{recruitingEvents.length}</div>
-                          </div>
-                          <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                            <div className="text-sm text-zinc-400">확정</div>
-                            <div className="text-lg font-bold text-white">{confirmedEvents.length}</div>
+
+                          <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                                <h3 className="font-serif-editorial text-lg text-white font-normal">목적 · 성비</h3>
+                              </div>
+                              <span className="text-sm font-mono text-zinc-300">여 {femaleTotal} / 남 {maleTotal}</span>
+                            </div>
+                            <div className="space-y-2">
+                              {PURPOSE_META.map((pm) => {
+                                const matched = liveDbProfiles.filter((p) => p.preferred_purpose === pm.key);
+                                const fCnt = matched.filter((p) => p.gender === 'F').length;
+                                const mCnt = matched.filter((p) => p.gender === 'M').length;
+                                const pct = Math.round((matched.length / totalMembers) * 100);
+                                return (
+                                  <button
+                                    key={pm.key}
+                                    type="button"
+                                    onClick={() => {
+                                      setMemberPurposeFilter(pm.key);
+                                      setMemberPage(1);
+                                      handleSelectTab('MEMBER_MGMT');
+                                    }}
+                                    className="w-full text-left space-y-1 group cursor-pointer"
+                                  >
+                                    <div className="flex items-center justify-between text-sm font-mono">
+                                      <span className="text-zinc-200 group-hover:text-white">{pm.label}</span>
+                                      <span className="text-white">
+                                        <strong>{matched.length}명</strong> (여{fCnt}/남{mCnt})
+                                      </span>
+                                    </div>
+                                    <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
+                                      <div
+                                        className="h-full bg-[#f04f74] group-hover:opacity-90 transition-all"
+                                        style={{ width: `${Math.max(pct, matched.length > 0 ? 4 : 0)}%` }}
+                                      />
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
-                        <div className="space-y-1.5 pt-1">
-                          {activeEvents.length === 0 ? (
-                            <p className="text-sm font-mono text-zinc-400">현재 개설된 활성 모임방이 없습니다.</p>
-                          ) : (
-                            activeEvents.slice(0, 3).map((ev) => (
+                      )}
+
+                      {/* 탭 3: 지역·방현황 (2열 나란히 비교) */}
+                      {overviewTab === 'ROOMS' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                                <h3 className="font-serif-editorial text-lg text-white font-normal">지역 밀집도</h3>
+                              </div>
+                              <span className="text-sm font-mono text-blue-300">{regionList.length}개 권역</span>
+                            </div>
+                            <div className="space-y-2">
+                              {regionList.map((r) => {
+                                const pct6 = Math.min(100, Math.round((r.readyOrMore / 6) * 100));
+                                return (
+                                  <button
+                                    key={r.city}
+                                    type="button"
+                                    onClick={() => {
+                                      setMemberRegionFilter(r.city);
+                                      setMemberPage(1);
+                                      handleSelectTab('MEMBER_MGMT');
+                                    }}
+                                    className="w-full text-left space-y-1 group cursor-pointer"
+                                  >
+                                    <div className="flex items-center justify-between text-sm font-mono">
+                                      <span className="text-zinc-200 group-hover:text-white">{r.city}</span>
+                                      <span className="text-white">
+                                        충족 <strong>{r.readyOrMore}</strong>/6명 (전체 {r.total}명)
+                                      </span>
+                                    </div>
+                                    <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
+                                      <div
+                                        className="h-full bg-[#3b82f6] group-hover:bg-blue-400 transition-all"
+                                        style={{ width: `${Math.max(pct6, r.readyOrMore > 0 ? 6 : 0)}%` }}
+                                      />
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                                <h3 className="font-serif-editorial text-lg text-white font-normal">방 개설 현황</h3>
+                              </div>
                               <button
-                                key={ev.eventId}
                                 type="button"
-                                onClick={() => handleSelectTab('EVENT_LIST')}
-                                className="w-full px-3 py-2 border border-white/10 bg-white/[0.02] hover:bg-white/5 flex items-center justify-between gap-2 text-sm font-mono cursor-pointer"
+                                onClick={() => handleSelectTab('ADAPTIVE_QA')}
+                                className="text-sm font-mono px-2.5 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-white cursor-pointer"
                               >
-                                <span className="text-white truncate">{ev.title}</span>
-                                <span className="px-1.5 py-0.5 border border-white/20 text-white shrink-0">
-                                  {ev.status === 'CONFIRMED' ? '확정' : '모집중'}
-                                </span>
+                                적응매칭 이동
                               </button>
-                            ))
-                          )}
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 text-center font-mono">
+                              <div className="p-2.5 border border-white/10 bg-[#08090d]">
+                                <div className="text-sm text-zinc-400">개설 방</div>
+                                <div className="text-lg font-bold text-white">{activeEvents.length}</div>
+                              </div>
+                              <div className="p-2.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10">
+                                <div className="text-sm text-blue-200">적응 편성</div>
+                                <div className="text-lg font-bold text-white">{adaptiveGrouping.rooms.length}</div>
+                              </div>
+                              <div className="p-2.5 border border-white/10 bg-[#08090d]">
+                                <div className="text-sm text-zinc-400">확정</div>
+                                <div className="text-lg font-bold text-white">{confirmedEvents.length}</div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                   );
                 })()}
@@ -2153,95 +2405,146 @@ export default function AdminOperationsDashboardPage() {
               ---------------------------------------------------------- */}
           {activeTab === 'MEMBER_MGMT' && (
             <div className="space-y-3 animate-in fade-in duration-150">
-              {/* 상단 컴팩트 컨트롤 바 (1줄 인라인: 실서버 카운트 + 새로고침 + 검색 + 필터) */}
-              <div
-                className={`p-3 border ${cardCls} flex flex-wrap items-center justify-between gap-3`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                  <h2 className="font-serif-editorial text-lg font-normal text-white">
-                    회원 정보
-                  </h2>
-                  <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
-                    실서버 DB {filteredLiveMembers.length}명 • SSOT
-                  </span>
-                  {lastRefreshedAt && (
-                    <span className="text-sm font-mono text-zinc-500">
-                      ({lastRefreshedAt} 갱신)
+              {/* 상단 단일 통합 컨트롤 바 (제목 · 검색 · 전체 필터 · 정렬 · 새로고침/초기화 통합) */}
+              <div className={`p-3 border ${cardCls} space-y-2.5`}>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                    <h2 className="font-serif-editorial text-lg font-normal text-white">
+                      회원 정보
+                    </h2>
+                    <span className="text-sm font-mono px-2 py-0.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10 text-white font-bold">
+                      {filteredLiveMembers.length}명
                     </span>
-                  )}
+                    {lastRefreshedAt && (
+                      <span className="text-sm font-mono text-zinc-400">
+                        ({lastRefreshedAt})
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="검색 (이름, 핸들, 이메일)"
+                      value={memberSearchQuery}
+                      onChange={(e) => {
+                        setMemberSearchQuery(e.target.value);
+                        setMemberPage(1);
+                      }}
+                      className="px-3 py-1 bg-black/40 border border-white/15 text-sm font-mono text-white placeholder-zinc-500 focus:outline-none focus:border-[#3b82f6] w-44"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        fetchLiveDbProfiles();
+                        notify('회원 목록을 새로고침했습니다.');
+                      }}
+                      disabled={isDbLoading}
+                      className="px-2.5 py-1 border border-white/15 hover:border-white/30 text-sm font-mono text-zinc-200 hover:text-white cursor-pointer disabled:opacity-50"
+                    >
+                      {isDbLoading ? '조회중' : '새로고침'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMemberSearchQuery('');
+                        setMemberGenderFilter('ALL');
+                        setMemberStageFilter('ALL');
+                        setMemberPurposeFilter('ALL');
+                        setMemberRegionFilter('ALL');
+                        setMemberDistrictFilter('ALL');
+                        setMemberAgeFilter('ALL');
+                        setMemberDiagFilter('ALL');
+                        setMemberMissingFilter('ALL');
+                        setMemberSortBy('RECENT');
+                        setMemberPage(1);
+                      }}
+                      className={btnSubCls}
+                    >
+                      초기화
+                    </button>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      fetchLiveDbProfiles();
-                      notify('Supabase 실서버 회원 목록을 새로고침했습니다.');
-                    }}
-                    disabled={isDbLoading}
-                    className="px-2.5 py-1 border border-white/10 hover:border-white/30 text-sm font-mono text-zinc-300 hover:text-white transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {isDbLoading ? '조회중...' : '새로고침'}
-                  </button>
-                  <input
-                    type="text"
-                    placeholder="검색 (이름, 핸들, 이메일)"
-                    value={memberSearchQuery}
-                    onChange={(e) => setMemberSearchQuery(e.target.value)}
-                    className="px-3 py-1 bg-black/40 border border-white/10 text-sm font-mono text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-[#f04f74]/60 w-36 sm:w-48"
-                  />
-                  <div className="flex border border-white/10 divide-x divide-white/10 text-sm font-mono">
+                {/* 통합 필터 & 정렬 행 */}
+                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
+                  <div className="flex border border-white/15 divide-x divide-white/15 text-sm font-mono">
                     {(['ALL', 'F', 'M'] as const).map((g) => (
                       <button
                         key={g}
                         type="button"
-                        onClick={() => setMemberGenderFilter(g)}
-                        className={`px-2.5 py-1 transition-colors cursor-pointer ${
+                        onClick={() => {
+                          setMemberGenderFilter(g);
+                          setMemberPage(1);
+                        }}
+                        className={`px-2.5 py-1 cursor-pointer ${
                           memberGenderFilter === g
-                            ? 'bg-white/15 text-white font-semibold'
+                            ? 'bg-white/15 text-white font-bold'
                             : 'bg-black/30 text-zinc-400 hover:text-white'
                         }`}
                       >
-                        {g === 'ALL' ? '전체' : g === 'F' ? '여성' : '남성'}
+                        {g === 'ALL' ? '성별전체' : g === 'F' ? '여성' : '남성'}
                       </button>
                     ))}
                   </div>
-                  <select
-                    value={memberPurposeFilter}
-                    onChange={(e) => setMemberPurposeFilter(e.target.value as 'ALL' | 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE')}
-                    className={`${selectCls} w-auto py-1.5 text-sm`}
-                    title="목적 필터"
-                  >
-                    <option value="ALL">목적 전체</option>
-                    <option value="FRIEND">FRIEND</option>
-                    <option value="RESET">RESET</option>
-                    <option value="TASTE">TASTE</option>
-                    <option value="ROMANCE">ROMANCE</option>
-                  </select>
+
+                  <div className="flex border border-white/15 divide-x divide-white/15 text-sm font-mono">
+                    {(
+                      [
+                        { key: 'ALL', label: '목적전체' },
+                        { key: 'RESET', label: '변화' },
+                        { key: 'FRIEND', label: '교류' },
+                        { key: 'TASTE', label: '취향' },
+                        { key: 'ROMANCE', label: '인연' },
+                      ] as const
+                    ).map((p) => (
+                      <button
+                        key={p.key}
+                        type="button"
+                        onClick={() => {
+                          setMemberPurposeFilter(p.key);
+                          setMemberPage(1);
+                        }}
+                        className={`px-2.5 py-1 cursor-pointer ${
+                          memberPurposeFilter === p.key
+                            ? 'bg-[#3b82f6]/25 text-white font-bold'
+                            : 'bg-black/30 text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+
                   <select
                     value={memberRegionFilter}
                     onChange={(e) => {
                       setMemberRegionFilter(e.target.value);
                       setMemberDistrictFilter('ALL');
+                      setMemberPage(1);
                     }}
-                    className={`${selectCls} w-auto py-1.5 text-sm`}
-                    title="지역(시/도) 필터"
+                    className={`${selectCls} w-auto py-1 text-sm`}
+                    title="시/도 필터"
                   >
                     <option value="ALL">시/도 전체</option>
-                    {Array.from(new Set(liveDbProfiles.map((p) => p.residence_city).filter((c): c is string => Boolean(c)))).map((city) => (
+                    {Array.from(
+                      new Set(
+                        liveDbProfiles
+                          .map((p) => normalizeCityName(p.residence_city))
+                          .filter((c) => c !== '미지정')
+                      )
+                    ).map((city) => (
                       <option key={city} value={city}>{city}</option>
                     ))}
                   </select>
-                </div>
-              </div>
 
-              {/* 다차원 세부 조건 필터 & 정렬 바 */}
-              <div className="p-2.5 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-2">
                   <select
                     value={memberDistrictFilter}
-                    onChange={(e) => setMemberDistrictFilter(e.target.value)}
+                    onChange={(e) => {
+                      setMemberDistrictFilter(e.target.value);
+                      setMemberPage(1);
+                    }}
                     className={`${selectCls} w-auto py-1 text-sm`}
                     title="구/군 필터"
                   >
@@ -2249,7 +2552,7 @@ export default function AdminOperationsDashboardPage() {
                     {Array.from(
                       new Set(
                         liveDbProfiles
-                          .filter((p) => memberRegionFilter === 'ALL' || (p.residence_city || '미지정') === memberRegionFilter)
+                          .filter((p) => memberRegionFilter === 'ALL' || normalizeCityName(p.residence_city) === memberRegionFilter)
                           .map((p) => p.residence_district)
                           .filter((d): d is string => Boolean(d))
                       )
@@ -2257,69 +2560,53 @@ export default function AdminOperationsDashboardPage() {
                       <option key={dist} value={dist}>{dist}</option>
                     ))}
                   </select>
+
                   <select
                     value={memberAgeFilter}
-                    onChange={(e) => setMemberAgeFilter(e.target.value as 'ALL' | '2030' | '3040' | '4050' | '5060')}
+                    onChange={(e) => {
+                      setMemberAgeFilter(e.target.value as 'ALL' | '2030' | '3040' | '4050' | '5060');
+                      setMemberPage(1);
+                    }}
                     className={`${selectCls} w-auto py-1 text-sm`}
                     title="연령대 필터"
                   >
-                    <option value="ALL">연령대 전체</option>
+                    <option value="ALL">연령 전체</option>
                     <option value="2030">20대</option>
                     <option value="3040">30대</option>
                     <option value="4050">40대</option>
-                    <option value="5060">50대 이상</option>
+                    <option value="5060">50대+</option>
                   </select>
+
                   <select
                     value={memberDiagFilter}
-                    onChange={(e) => setMemberDiagFilter(e.target.value as 'ALL' | 'DONE' | 'NONE')}
+                    onChange={(e) => {
+                      setMemberDiagFilter(e.target.value as 'ALL' | 'DONE' | 'NONE');
+                      setMemberPage(1);
+                    }}
                     className={`${selectCls} w-auto py-1 text-sm`}
-                    title="성향진단 필터"
+                    title="진단 필터"
                   >
-                    <option value="ALL">성향진단 전체</option>
-                    <option value="DONE">진단 완료</option>
+                    <option value="ALL">진단 전체</option>
+                    <option value="DONE">진단완료</option>
                     <option value="NONE">미진단</option>
                   </select>
-                  <select
-                    value={memberMissingFilter}
-                    onChange={(e) => setMemberMissingFilter(e.target.value as 'ALL' | 'NO_ZONE' | 'NO_PHONE' | 'NO_PURPOSE')}
-                    className={`${selectCls} w-auto py-1 text-sm`}
-                    title="누락조건 필터"
-                  >
-                    <option value="ALL">누락조건 전체</option>
-                    <option value="NO_ZONE">생활권 미입력</option>
-                    <option value="NO_PHONE">연락처 미입력</option>
-                    <option value="NO_PURPOSE">목적 미선택</option>
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
+
                   <select
                     value={memberSortBy}
-                    onChange={(e) => setMemberSortBy(e.target.value as 'RECENT' | 'STAGE' | 'AGE')}
+                    onChange={(e) => {
+                      setMemberSortBy(e.target.value as 'RECENT' | 'STAGE' | 'AGE' | 'SCORE' | 'NAME' | 'REGION');
+                      setMemberPage(1);
+                    }}
                     className={`${selectCls} w-auto py-1 text-sm`}
                     title="정렬 기준"
                   >
                     <option value="RECENT">최근 가입순</option>
+                    <option value="SCORE">총점 높은순</option>
                     <option value="STAGE">진행 단계순</option>
+                    <option value="NAME">이름순</option>
+                    <option value="REGION">지역순</option>
                     <option value="AGE">연령순</option>
                   </select>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMemberSearchQuery('');
-                      setMemberGenderFilter('ALL');
-                      setMemberStageFilter('ALL');
-                      setMemberPurposeFilter('ALL');
-                      setMemberRegionFilter('ALL');
-                      setMemberDistrictFilter('ALL');
-                      setMemberAgeFilter('ALL');
-                      setMemberDiagFilter('ALL');
-                      setMemberMissingFilter('ALL');
-                      setMemberSortBy('RECENT');
-                    }}
-                    className={btnSubCls}
-                  >
-                    초기화
-                  </button>
                 </div>
               </div>
 
@@ -2354,214 +2641,285 @@ export default function AdminOperationsDashboardPage() {
                 })}
               </div>
 
-              {/* 2열 컴팩트 그리드 (실서버 레코드 직결 ➔ 클릭 시 상세 확장) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                {filteredLiveMembers.length === 0 ? (
-                  <div className="col-span-full p-8 text-center text-sm font-mono text-zinc-500 border border-white/10 bg-[#0c0d12]">
-                    실서버 DB에 등록된 회원이 없습니다.
-                  </div>
-                ) : (
-                  filteredLiveMembers.map((m) => {
-                    const isExpanded = expandedMemberId === m.id;
-                    const isVirtual = m.id === 'aaa' || m.id === 'bbb' || m.handle === '@aaa' || m.handle === '@bbb';
-                    const createdStr = m.created_at
-                      ? new Date(m.created_at).toLocaleDateString('ko-KR', {
-                          month: '2-digit',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })
-                      : '일시미상';
+              {/* 한 줄 리스트 구조 (10줄 초과 시 이전/다음 페이지네이션, 클릭 시 상세 확장) */}
+              {(() => {
+                const totalMemberPages = Math.max(1, Math.ceil(filteredLiveMembers.length / LIST_PAGE_SIZE));
+                const safeMemberPage = Math.min(memberPage, totalMemberPages);
+                const pagedMembers = filteredLiveMembers.slice(
+                  (safeMemberPage - 1) * LIST_PAGE_SIZE,
+                  safeMemberPage * LIST_PAGE_SIZE
+                );
 
-                    // 본질 1: 소통 성향 (NBTI)
-                    const nbtiText = isVirtual
-                      ? m.id === 'aaa' || m.handle === '@aaa'
-                        ? '경청형 (NBTI 88점)'
-                        : '공감형 (NBTI 94점)'
-                      : m.self_domain_scores && Object.keys(m.self_domain_scores).length > 0
-                      ? '성향진단 완료'
-                      : '성향 미진단';
-
-                    // 본질 2: 참여 목적 (지적환기 / 인연)
-                    const purposeText = isVirtual
-                      ? m.id === 'aaa' || m.handle === '@aaa'
-                        ? '지적환기'
-                        : '새로운인연'
-                      : m.survey_answers?.purpose || (m.interests && m.interests.includes('인연') ? '새로운인연' : '지적환기');
-
-                    // 본질 3: 신뢰도 & 단계 분류
-                    const trustText = isVirtual
-                      ? m.id === 'aaa' || m.handle === '@aaa'
-                        ? '신뢰 98점'
-                        : '신뢰 99점'
-                      : m.verified_badge
-                      ? '신뢰 95점 (인증)'
-                      : '신뢰 90점';
-                    const memberStage = getMemberStage(m);
-                    const STAGE_LABELS: Record<typeof memberStage, string> = {
-                      UNQUALIFIED: '조건미입력',
-                      READY: '조건완료',
-                      APPLIED: '결제·신청',
-                      PRE_MATCHED: '가매칭',
-                      CONFIRMED: '확정',
-                    };
-
-                    return (
-                      <div
-                        key={m.id}
-                        className={`border border-white/10 bg-[#0c0d12] transition-colors ${
-                          isExpanded
-                            ? 'col-span-full bg-white/[0.04] border-white/20'
-                            : 'hover:bg-white/[0.02] hover:border-white/20'
-                        }`}
-                      >
-                        {/* 1단계: 2줄 컴팩트 요약 카드 (2열 그리드 내 겹침 원천 차단) */}
-                        <div
-                          onClick={() => setExpandedMemberId(isExpanded ? null : m.id)}
-                          className="p-3.5 flex flex-col gap-2 cursor-pointer transition-colors"
+                return (
+                  <div className="space-y-2.5">
+                    <div className="border border-white/10 bg-[#0c0d12] divide-y divide-white/[0.06]">
+                      {/* 테이블 컬럼 헤더 (1기능 1컬럼 · 재클릭 시 오름/내림차순 토글) */}
+                      <div className="hidden md:grid md:grid-cols-12 gap-2 px-3.5 py-2 bg-white/[0.03] text-sm font-mono text-zinc-400">
+                        <span className="col-span-1">구분</span>
+                        <span className="col-span-2">아이디</span>
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('NAME')}
+                          className={`col-span-1 text-left cursor-pointer hover:text-white ${memberSortBy === 'NAME' ? 'text-blue-300 font-bold' : ''}`}
                         >
-                          {/* 1줄(상단): 식별자 + 닉네임 + 단계 상태 배지 */}
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-base font-mono text-zinc-400 w-4 shrink-0">
-                                {isExpanded ? '▾' : '▸'}
-                              </span>
-                              <span
-                                className={`text-sm font-mono px-2 py-0.5 border shrink-0 ${
-                                  m.id === 'ADMIN_01'
-                                    ? 'border-white/20 bg-white/5 text-zinc-300'
-                                    : isVirtual
-                                    ? 'border-white/40 bg-white/20 text-white font-bold'
-                                    : 'border-white/20 bg-white/5 text-zinc-200 font-medium'
-                                }`}
-                              >
-                                {m.id === 'ADMIN_01' ? '관리자' : isVirtual ? '가상' : '실회원'}
-                              </span>
-                              <span className="text-sm font-mono font-bold text-white tracking-wide shrink-0">
-                                {m.handle}
-                              </span>
-                              <span className="text-sm font-semibold text-zinc-200 truncate">
-                                {m.nickname}
-                              </span>
-                            </div>
+                          이름 {memberSortBy === 'NAME' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('GENDER')}
+                          className={`col-span-1 text-left cursor-pointer hover:text-white ${memberSortBy === 'GENDER' ? 'text-blue-300 font-bold' : ''}`}
+                        >
+                          성별 {memberSortBy === 'GENDER' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('AGE')}
+                          className={`col-span-1 text-left cursor-pointer hover:text-white ${memberSortBy === 'AGE' ? 'text-blue-300 font-bold' : ''}`}
+                        >
+                          출생 {memberSortBy === 'AGE' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('REGION')}
+                          className={`col-span-2 text-left cursor-pointer hover:text-white ${memberSortBy === 'REGION' ? 'text-blue-300 font-bold' : ''}`}
+                        >
+                          지역 {memberSortBy === 'REGION' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('PURPOSE')}
+                          className={`col-span-1 text-left cursor-pointer hover:text-white ${memberSortBy === 'PURPOSE' ? 'text-blue-300 font-bold' : ''}`}
+                        >
+                          목적 {memberSortBy === 'PURPOSE' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('SCORE')}
+                          className={`col-span-1 text-left cursor-pointer hover:text-white ${memberSortBy === 'SCORE' ? 'text-blue-300 font-bold' : ''}`}
+                        >
+                          총점 {memberSortBy === 'SCORE' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('STAGE')}
+                          className={`col-span-1 text-left cursor-pointer hover:text-white ${memberSortBy === 'STAGE' ? 'text-blue-300 font-bold' : ''}`}
+                        >
+                          단계 {memberSortBy === 'STAGE' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSortColumn('RECENT')}
+                          className={`col-span-1 text-right cursor-pointer hover:text-white ${memberSortBy === 'RECENT' ? 'text-blue-300 font-bold' : ''}`}
+                        >
+                          가입 {memberSortBy === 'RECENT' ? (memberSortDir === 'asc' ? '↑' : '↓') : ''}
+                        </button>
+                      </div>
 
-                            <span className="text-sm font-mono px-2 py-0.5 border border-white/30 bg-white/10 text-white font-bold flex items-center gap-1.5 shrink-0">
-                              {(memberStage === 'PRE_MATCHED' || memberStage === 'CONFIRMED') && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                              )}
-                              {STAGE_LABELS[memberStage]}
-                            </span>
-                          </div>
-
-                          {/* 2줄(하단): 성별·연령 · 생활권 · 목적 · 성향 · 신뢰도 · 가입일 (자동 줄바꿈) */}
-                          <div className="flex flex-wrap items-center justify-between gap-1.5 pl-6">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="text-sm font-mono text-zinc-300">
-                                {m.gender === 'F' ? '여성' : '남성'} · {m.birth_year}
-                              </span>
-                              <span className="text-sm font-mono text-zinc-300 border border-white/10 px-1.5 py-0.5">
-                                {m.residence_district ? `${m.residence_city || ''} ${m.residence_district}`.trim() : (m.residence_city || '지역미등록')}
-                              </span>
-                              <span className="text-sm font-mono px-1.5 py-0.5 border border-white/10 text-zinc-200">
-                                {m.preferred_purpose || purposeText}
-                              </span>
-                              <span className="text-sm font-mono px-1.5 py-0.5 border border-white/20 bg-white/5 text-white font-medium">
-                                {nbtiText}
-                              </span>
-                              <span className="text-sm font-mono px-1.5 py-0.5 border border-white/10 text-zinc-300">
-                                {trustText}
-                              </span>
-                            </div>
-                            <span className="text-sm font-mono text-zinc-500 shrink-0">
-                              {createdStr}
-                            </span>
-                          </div>
+                      {filteredLiveMembers.length === 0 ? (
+                        <div className="p-8 text-center text-sm font-mono text-zinc-500">
+                          실서버 DB에 등록된 회원이 없습니다.
                         </div>
+                      ) : (
+                        pagedMembers.map((m) => {
+                          const isExpanded = expandedMemberId === m.id;
+                          const isVirtual = m.id === 'aaa' || m.id === 'bbb' || m.handle === '@aaa' || m.handle === '@bbb';
+                          const createdStr = m.created_at
+                            ? new Date(m.created_at).toLocaleDateString('ko-KR', {
+                                month: '2-digit',
+                                day: '2-digit',
+                              })
+                            : '-';
+                          const totalScore = getMemberTotalScore(m);
+                          const cityNorm = normalizeCityName(m.residence_city);
+                          const regionDisplay = m.residence_district
+                            ? `${cityNorm !== '미지정' ? cityNorm : ''} ${m.residence_district}`.trim()
+                            : cityNorm;
 
-                        {/* 2단계: 클릭 시 펼쳐지는 실서버 DB 전체 상세 (Click-to-Reveal) */}
-                        {isExpanded && (
-                          <div className="p-4 border-t border-white/10 bg-black/40 space-y-3 animate-in fade-in duration-100">
-                            {/* 상단: 본질 3대 요소 전진 배치 카드 */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-sm font-mono">
-                              <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
-                                <span className="text-zinc-400 block text-sm">소통 성향 (NBTI)</span>
-                                <span className="text-white font-bold text-base">{nbtiText}</span>
-                              </div>
-                              <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
-                                <span className="text-zinc-400 block text-sm">참여 목적 (만남의 명분)</span>
-                                <span className="text-white font-bold text-base">{purposeText}</span>
-                              </div>
-                              <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
-                                <span className="text-zinc-400 block text-sm">신뢰도 및 매너</span>
-                                <span className="text-white font-bold text-base">{trustText}</span>
-                              </div>
-                            </div>
+                          const nbtiText = isVirtual
+                            ? m.id === 'aaa' || m.handle === '@aaa'
+                              ? '경청형 (88점)'
+                              : '공감형 (94점)'
+                            : totalScore > 0
+                            ? `진단완료 (${totalScore}점)`
+                            : '미진단';
 
-                            {/* 기본 인적 및 시스템 세부 메타데이터 그리드 */}
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-mono">
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">고유 DB ID</span>
-                                <span className="text-white font-medium">{m.id}</span>
-                              </div>
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">이메일</span>
-                                <span className="text-white font-medium truncate block">{m.email || '미등록'}</span>
-                              </div>
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">휴대폰</span>
-                                <span className="text-white font-medium">{m.phone || '미등록'}</span>
-                              </div>
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">직업</span>
-                                <span className="text-white font-medium">{m.job_title || '미입력'}</span>
-                              </div>
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">활동 거주지역</span>
-                                <span className="text-white font-medium truncate block">
-                                  {m.residence_city ? `${m.residence_city} ${m.residence_district || ''}`.trim() : '미등록'}
-                                </span>
-                              </div>
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">식단</span>
-                                <span className="text-white font-medium">{m.dietary && m.dietary !== 'NONE' ? m.dietary : '일반(제한없음)'}</span>
-                              </div>
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">관심사</span>
-                                <span className="text-white font-medium truncate block">
-                                  {(m.interests && m.interests.length > 0) ? m.interests.join(', ') : '미설정'}
-                                </span>
-                              </div>
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">인증 뱃지</span>
-                                <span className="text-white font-medium">{m.verified_badge || 'VERIFIED_MEMBER'}</span>
-                              </div>
-                              <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">참여 세션 수</span>
-                                <span className="text-white font-medium">{m.session_count ?? 1}회</span>
-                              </div>
-                            </div>
+                          const purposeLabelMap: Record<string, string> = {
+                            RESET: '변화',
+                            FRIEND: '교류',
+                            TASTE: '취향',
+                            ROMANCE: '인연',
+                          };
+                          const rawPurpose = m.preferred_purpose || m.survey_answers?.purpose || 'RESET';
+                          const purposeText = purposeLabelMap[rawPurpose] || rawPurpose;
 
-                            {/* 성향 자가진단 점수 */}
-                            {m.self_domain_scores && (
-                              <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5 text-sm font-mono">
-                                <span className="text-zinc-500 block">성향 자가진단 5대 영역 (NBTI 상세 점수)</span>
-                                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                                  {Object.entries(m.self_domain_scores).map(([k, v]) => (
-                                    <div key={k} className="p-1.5 border border-white/10 text-center">
-                                      <span className="text-zinc-400 block text-sm">{k}</span>
-                                      <span className="text-white font-bold text-sm">{v}점</span>
-                                    </div>
-                                  ))}
+                          const trustText = isVirtual
+                            ? '신뢰 98점'
+                            : m.verified_badge
+                            ? '신뢰 95점'
+                            : '신뢰 90점';
+
+                          const memberStage = getMemberStage(m);
+                          const STAGE_LABELS: Record<typeof memberStage, string> = {
+                            UNQUALIFIED: '조건미입력',
+                            READY: '조건완료',
+                            APPLIED: '결제·신청',
+                            PRE_MATCHED: '가매칭',
+                            CONFIRMED: '확정',
+                          };
+
+                          return (
+                            <div
+                              key={m.id}
+                              className={isExpanded ? 'bg-white/[0.03]' : 'hover:bg-white/[0.02]'}
+                            >
+                              <div
+                                onClick={() => setExpandedMemberId(isExpanded ? null : m.id)}
+                                className="grid grid-cols-2 md:grid-cols-12 items-center gap-2 px-3.5 py-2.5 cursor-pointer text-sm font-mono"
+                              >
+                                <div className="col-span-1 flex items-center gap-1.5">
+                                  <span className="text-zinc-400">{isExpanded ? '▾' : '▸'}</span>
+                                  <span
+                                    className={`px-1.5 py-0.5 border ${
+                                      m.id === 'ADMIN_01'
+                                        ? 'border-[#3b82f6]/50 bg-[#3b82f6]/15 text-blue-200'
+                                        : 'border-white/20 bg-white/5 text-white'
+                                    }`}
+                                  >
+                                    {m.id === 'ADMIN_01' ? '관리' : isVirtual ? '가상' : '회원'}
+                                  </span>
+                                </div>
+                                <div className="col-span-1 md:col-span-2 font-bold text-white truncate">
+                                  {m.handle}
+                                </div>
+                                <div className="col-span-1 text-zinc-100 truncate">
+                                  {m.nickname}
+                                </div>
+                                <div className="col-span-1 text-zinc-300">
+                                  {m.gender === 'F' ? '여' : '남'}
+                                </div>
+                                <div className="col-span-1 text-zinc-300">
+                                  {m.birth_year}
+                                </div>
+                                <div className="col-span-1 md:col-span-2 text-zinc-200 truncate">
+                                  {regionDisplay}
+                                </div>
+                                <div className="col-span-1 text-blue-300 font-medium">
+                                  {purposeText}
+                                </div>
+                                <div className="col-span-1 text-white font-bold">
+                                  {totalScore > 0 ? `${totalScore}점` : '-'}
+                                </div>
+                                <div className="col-span-1">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSelectTab(
+                                        memberStage === 'PRE_MATCHED' || memberStage === 'READY'
+                                          ? 'PRE_MATCH'
+                                          : 'EVENT_GATE'
+                                      );
+                                    }}
+                                    title="매칭·관제 화면으로 이동"
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10 hover:bg-[#3b82f6]/25 text-white font-bold cursor-pointer"
+                                  >
+                                    {(memberStage === 'PRE_MATCHED' || memberStage === 'CONFIRMED') && (
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                                    )}
+                                    {STAGE_LABELS[memberStage]}
+                                  </button>
+                                </div>
+                                <div className="col-span-1 text-right text-zinc-400 hidden md:block">
+                                  {createdStr}
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        )}
+
+                              {isExpanded && (
+                                <div className="p-4 border-t border-white/10 bg-black/40 space-y-3">
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-sm font-mono">
+                                    <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
+                                      <span className="text-zinc-400 block">소통 성향 (NBTI)</span>
+                                      <span className="text-white font-bold text-base">{nbtiText}</span>
+                                    </div>
+                                    <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
+                                      <span className="text-zinc-400 block">참여 목적</span>
+                                      <span className="text-white font-bold text-base">{purposeText}</span>
+                                    </div>
+                                    <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
+                                      <span className="text-zinc-400 block">신뢰도</span>
+                                      <span className="text-white font-bold text-base">{trustText}</span>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-mono">
+                                    <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                      <span className="text-zinc-500 block mb-1">DB ID</span>
+                                      <span className="text-white font-medium">{m.id}</span>
+                                    </div>
+                                    <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                      <span className="text-zinc-500 block mb-1">이메일</span>
+                                      <span className="text-white font-medium truncate block">{m.email || '미등록'}</span>
+                                    </div>
+                                    <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                      <span className="text-zinc-500 block mb-1">직업</span>
+                                      <span className="text-white font-medium">{m.job_title || '미입력'}</span>
+                                    </div>
+                                    <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                                      <span className="text-zinc-500 block mb-1">거주지역</span>
+                                      <span className="text-white font-medium truncate block">
+                                        {regionDisplay}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {filteredLiveMembers.length > LIST_PAGE_SIZE && (
+                      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border border-white/10 bg-[#0c0d12] text-sm font-mono">
+                        <span className="text-zinc-400">
+                          총 {filteredLiveMembers.length}명 · {safeMemberPage} / {totalMemberPages} 페이지
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            disabled={safeMemberPage <= 1}
+                            onClick={() => setMemberPage((p) => Math.max(1, p - 1))}
+                            className="px-3 py-1 border border-white/20 bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 cursor-pointer"
+                          >
+                            이전
+                          </button>
+                          {Array.from({ length: totalMemberPages }, (_, idx) => idx + 1).map((pg) => (
+                            <button
+                              key={pg}
+                              type="button"
+                              onClick={() => setMemberPage(pg)}
+                              className={`px-2.5 py-1 border cursor-pointer ${
+                                pg === safeMemberPage
+                                  ? 'border-[#3b82f6] bg-[#3b82f6]/25 text-white font-bold'
+                                  : 'border-white/15 bg-white/5 text-zinc-300 hover:text-white'
+                              }`}
+                            >
+                              {pg}
+                            </button>
+                          ))}
+                          <button
+                            type="button"
+                            disabled={safeMemberPage >= totalMemberPages}
+                            onClick={() => setMemberPage((p) => Math.min(totalMemberPages, p + 1))}
+                            className="px-3 py-1 border border-[#3b82f6]/50 bg-[#3b82f6]/15 hover:bg-[#3b82f6]/25 text-white font-bold disabled:opacity-30 cursor-pointer"
+                          >
+                            다음
+                          </button>
+                        </div>
                       </div>
-                    );
-                  })
-                )}
-              </div>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -2580,6 +2938,34 @@ export default function AdminOperationsDashboardPage() {
               isLight={isLight}
               onNotify={notify}
             />
+          )}
+
+          {/* ----------------------------------------------------------
+              [가매칭] 관리자 전용 가매칭 방 관제 페이지
+              ---------------------------------------------------------- */}
+          {activeTab === 'PRE_MATCH' && (
+            <div className="space-y-4">
+              <div className="p-3 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg font-normal text-white">가매칭 관제</h2>
+                  <span className="text-sm font-mono px-2 py-0.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10 text-white font-bold">
+                    관리자 전용
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('EVENT_LIST')}
+                  className="px-2.5 py-1 border border-white/15 bg-white/5 hover:bg-white/10 text-sm font-mono text-white cursor-pointer"
+                >
+                  개설 목록
+                </button>
+              </div>
+              <AdminAdaptiveMatchingManager
+                isLight={isLight}
+                onNotify={notify}
+              />
+            </div>
           )}
 
           {/* ----------------------------------------------------------
@@ -3767,27 +4153,36 @@ export default function AdminOperationsDashboardPage() {
                     개설된 모임이 없습니다. 상단에서 신규 모임을 개설해 주십시오.
                   </p>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {conditionalEvents.map((ev) => {
-                      const statusLabel =
-                        ev.status === 'CONFIRMED'
-                          ? '확정'
-                          : ev.status === 'CLOSING_SOON'
-                          ? '마감임박'
-                          : ev.status === 'CANCELLED_MIN'
-                          ? '미달취소'
-                          : ev.status === 'COMPLETED'
-                          ? '종료'
-                          : '모집중';
-                      return (
-                        <div
-                          key={ev.eventId}
-                          className={`p-4 sm:p-5 rounded-none border flex flex-col justify-between gap-3 transition-colors ${
-                            isLight
-                              ? 'bg-zinc-50 border-zinc-200 text-zinc-900'
-                              : 'bg-white/[0.015] border-white/[0.08] text-white'
-                          }`}
-                        >
+                  (() => {
+                    const totalEventPages = Math.max(1, Math.ceil(conditionalEvents.length / LIST_PAGE_SIZE));
+                    const safeEventPage = Math.min(eventPage, totalEventPages);
+                    const pagedEvents = conditionalEvents.slice(
+                      (safeEventPage - 1) * LIST_PAGE_SIZE,
+                      safeEventPage * LIST_PAGE_SIZE
+                    );
+                    return (
+                      <div className="space-y-2.5">
+                        <div className="border border-white/10 bg-[#0c0d12] divide-y divide-white/[0.06]">
+                          {pagedEvents.map((ev) => {
+                            const statusLabel =
+                              ev.status === 'CONFIRMED'
+                                ? '확정'
+                                : ev.status === 'CLOSING_SOON'
+                                ? '마감임박'
+                                : ev.status === 'CANCELLED_MIN'
+                                ? '미달취소'
+                                : ev.status === 'COMPLETED'
+                                ? '종료'
+                                : '모집중';
+                            return (
+                              <div
+                                key={ev.eventId}
+                                className={`px-3.5 py-2.5 flex flex-col gap-2 transition-colors ${
+                                  isLight
+                                    ? 'bg-zinc-50 text-zinc-900'
+                                    : 'hover:bg-white/[0.02] text-white'
+                                }`}
+                              >
                           <div className="flex items-start justify-between gap-3">
                             <div className="space-y-1 min-w-0">
                               <div className="flex items-center gap-2">
@@ -3932,10 +4327,52 @@ export default function AdminOperationsDashboardPage() {
                               })}
                             </div>
                           </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                      );
-                    })}
-                  </div>
+                        {conditionalEvents.length > LIST_PAGE_SIZE && (
+                          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 border border-white/10 bg-[#0c0d12] text-sm font-mono">
+                            <span className="text-zinc-400">
+                              총 {conditionalEvents.length}건 · {safeEventPage} / {totalEventPages} 페이지
+                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                disabled={safeEventPage <= 1}
+                                onClick={() => setEventPage((p) => Math.max(1, p - 1))}
+                                className="px-3 py-1 border border-white/20 bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 cursor-pointer"
+                              >
+                                이전
+                              </button>
+                              {Array.from({ length: totalEventPages }, (_, idx) => idx + 1).map((pg) => (
+                                <button
+                                  key={pg}
+                                  type="button"
+                                  onClick={() => setEventPage(pg)}
+                                  className={`px-2.5 py-1 border cursor-pointer ${
+                                    pg === safeEventPage
+                                      ? 'border-[#3b82f6] bg-[#3b82f6]/25 text-white font-bold'
+                                      : 'border-white/15 bg-white/5 text-zinc-300 hover:text-white'
+                                  }`}
+                                >
+                                  {pg}
+                                </button>
+                              ))}
+                              <button
+                                type="button"
+                                disabled={safeEventPage >= totalEventPages}
+                                onClick={() => setEventPage((p) => Math.min(totalEventPages, p + 1))}
+                                className="px-3 py-1 border border-[#3b82f6]/50 bg-[#3b82f6]/15 hover:bg-[#3b82f6]/25 text-white font-bold disabled:opacity-30 cursor-pointer"
+                              >
+                                다음
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()
                 )}
               </AdminSectionCard>
               )}

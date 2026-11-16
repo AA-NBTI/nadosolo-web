@@ -1,17 +1,20 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   DEFAULT_MATCHING_AXES,
   DEFAULT_ADAPTIVE_QUESTIONS,
   MatchingAxisSpec,
   AdaptiveQuestionSpec,
+  AdaptiveAnswer,
   computeUserAxisProfile,
   matchDynamicTables,
   scoreUserAgainstRoom,
-  PurposeCode,
+  UserAxisProfile,
 } from '@/engine/dynamicMatchingEngine';
-import { ChevronDown, ChevronUp, Sliders, Users, Activity, Layers } from 'lucide-react';
+import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
+import { useNadoSoloEngine, ConditionalEventItem } from '@/engine';
+import { ChevronDown, ChevronUp, Sliders, Users, Activity, Layers, RefreshCw } from 'lucide-react';
 
 interface AdminAdaptiveMatchingManagerProps {
   isLight?: boolean;
@@ -20,24 +23,15 @@ interface AdminAdaptiveMatchingManagerProps {
 
 type ViewPerspective = 'ROOMS' | 'CALIBRATION' | 'AXES' | 'QUESTIONS';
 
-interface PostEvaluationAudit {
-  roomId: string;
-  roomTitle: string;
-  predictedScore100: number;
-  actualSatisfaction100: number;
-  rematchRate: number;
-  metaGapAvg: number;
-  status: 'CALIBRATED' | 'OVERESTIMATED' | 'UNDERESTIMATED';
-  insight: string;
-  recommendedAction: string;
-}
-
 export default function AdminAdaptiveMatchingManager({
   isLight = false,
   onNotify,
 }: AdminAdaptiveMatchingManagerProps) {
+  const { conditionalEvents, addConditionalEvent } = useNadoSoloEngine();
   const [perspective, setPerspective] = useState<ViewPerspective>('ROOMS');
-  const [poolSize, setPoolSize] = useState<6 | 12 | 18>(12);
+  const [dbProfiles, setDbProfiles] = useState<DbProfile[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
   const [axes, setAxes] = useState<MatchingAxisSpec[]>(() =>
     DEFAULT_MATCHING_AXES.map((a) => ({ ...a }))
   );
@@ -51,103 +45,105 @@ export default function AdminAdaptiveMatchingManager({
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [expandedCalId, setExpandedCalId] = useState<string | null>(null);
 
-  // 시뮬레이션용 가상 지원자 풀 생성 (6명 / 12명 / 18명)
-  const simulatedParticipants = useMemo(() => {
-    const seeds: Array<{
-      g: 'M' | 'F';
-      p: PurposeCode;
-      depth: number;
-      theme: number;
-      energy: number;
-      budget: '$' | '$$' | '$$$';
-    }> = [
-      { g: 'M', p: 'RESET', depth: 1, theme: 1, energy: 5, budget: '$$' },
-      { g: 'F', p: 'RESET', depth: 1, theme: 2, energy: 4, budget: '$$' },
-      { g: 'M', p: 'FRIEND', depth: 3, theme: 3, energy: 3, budget: '$$' },
-      { g: 'F', p: 'FRIEND', depth: 3, theme: 3, energy: 2, budget: '$$' },
-      { g: 'M', p: 'TASTE', depth: 5, theme: 5, energy: 2, budget: '$$$' },
-      { g: 'F', p: 'TASTE', depth: 5, theme: 4, energy: 1, budget: '$$$' },
-      { g: 'M', p: 'RESET', depth: 2, theme: 1, energy: 4, budget: '$$' },
-      { g: 'F', p: 'RESET', depth: 1, theme: 1, energy: 3, budget: '$$' },
-      { g: 'M', p: 'TASTE', depth: 4, theme: 5, energy: 2, budget: '$$$' },
-      { g: 'F', p: 'TASTE', depth: 5, theme: 5, energy: 2, budget: '$$$' },
-      { g: 'M', p: 'FRIEND', depth: 2, theme: 2, energy: 5, budget: '$' },
-      { g: 'F', p: 'FRIEND', depth: 3, theme: 2, energy: 1, budget: '$' },
-      { g: 'M', p: 'ROMANCE', depth: 4, theme: 3, energy: 4, budget: '$$' },
-      { g: 'F', p: 'ROMANCE', depth: 4, theme: 3, energy: 3, budget: '$$' },
-      { g: 'M', p: 'ROMANCE', depth: 3, theme: 4, energy: 2, budget: '$$' },
-      { g: 'F', p: 'ROMANCE', depth: 5, theme: 4, energy: 4, budget: '$$' },
-      { g: 'M', p: 'ROMANCE', depth: 4, theme: 2, energy: 5, budget: '$$' },
-      { g: 'F', p: 'ROMANCE', depth: 3, theme: 3, energy: 1, budget: '$$' },
-    ];
+  const loadLiveProfiles = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const profiles = await nadoSoloSupabaseService.getAllProfiles();
+      // 관리자 계정 제외, 실회원만 필터링
+      const membersOnly = profiles.filter(
+        (p) => p.id !== 'ADMIN_01' && p.handle !== '@admin'
+      );
+      setDbProfiles(membersOnly);
+    } catch (e) {
+      console.error('실DB 회원 로드 실패:', e);
+      onNotify?.('DB 조회 실패');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onNotify]);
 
-    return seeds.slice(0, poolSize).map((s, idx) =>
-      computeUserAxisProfile(
+  useEffect(() => {
+    loadLiveProfiles();
+  }, [loadLiveProfiles]);
+
+  // 실DB 회원의 survey_answers -> 표준 UserAxisProfile 변환 (더미 데이터 0건)
+  const realParticipants = useMemo<UserAxisProfile[]>(() => {
+    return dbProfiles.map((p) => {
+      const rawSurvey = p.survey_answers ?? {};
+      const answers: AdaptiveAnswer[] = Object.entries(rawSurvey).map(([qId, val]) => ({
+        questionId: qId,
+        version: 1,
+        value: val,
+      }));
+
+      return computeUserAxisProfile(
         {
-          userId: `SIM-${String(idx + 1).padStart(2, '0')}`,
-          gender: s.g,
-          birthYear: 1988 + (idx % 9),
-          purpose: s.p,
-          budgetTier: s.budget,
+          userId: `${p.nickname || p.handle} (${p.id})`,
+          gender: p.gender === 'M' ? 'M' : 'F',
+          birthYear: p.birth_year || 1994,
+          cityCode: p.residence_city || 'SEOUL',
+          dietary: p.dietary || 'NONE',
+          purpose: p.preferred_purpose,
         },
-        [
-          { questionId: 'P01_TODAY_ENERGY', version: 1, value: s.energy },
-          { questionId: 'P02_TODAY_DEPTH', version: 1, value: s.depth },
-          { questionId: 'P03_TODAY_WORK_OFF', version: 1, value: s.theme },
-        ],
+        answers,
         questions,
         axes
-      )
-    );
-  }, [poolSize, questions, axes]);
+      );
+    });
+  }, [dbProfiles, questions, axes]);
 
   const groupingResult = useMemo(
-    () => matchDynamicTables(simulatedParticipants, axes),
-    [simulatedParticipants, axes]
+    () => matchDynamicTables(realParticipants, axes),
+    [realParticipants, axes]
   );
 
-  // 사전 예측 vs 사후 실제 평가 비교 데이터 (엔진 고도화 캘리브레이션)
-  const calibrationAudits = useMemo<PostEvaluationAudit[]>(() => {
-    return groupingResult.rooms.map((room, idx) => {
-      // 시뮬레이션 편차 패턴: 1번 방(적중), 2번 방(과대예측), 3번 방(과소예측)
-      const delta = idx % 3 === 0 ? 3 : idx % 3 === 1 ? -14 : 11;
-      const actual = Math.max(40, Math.min(99, room.expectedScore100 + delta));
-      const status: PostEvaluationAudit['status'] =
-        Math.abs(delta) <= 5
-          ? 'CALIBRATED'
-          : delta < 0
-          ? 'OVERESTIMATED'
-          : 'UNDERESTIMATED';
+  const isRoomPublished = useCallback(
+    (roomTitle: string) =>
+      conditionalEvents.some((ev) => ev.title.includes(roomTitle)),
+    [conditionalEvents]
+  );
 
-      return {
-        roomId: room.roomId,
-        roomTitle: room.spec.title,
-        predictedScore100: room.expectedScore100,
-        actualSatisfaction100: actual,
-        rematchRate: actual >= 80 ? 83 : actual >= 70 ? 67 : 50,
-        metaGapAvg: Math.abs(delta) + 4,
-        status,
-        insight:
-          status === 'CALIBRATED'
-            ? '예측 적합도와 사후 동석자 체감 점수가 오차 5점 이내로 일치'
-            : status === 'OVERESTIMATED'
-            ? '사전 적합도는 높았으나 일 얘기 비중 및 대화 깊이 체감 차이 발생'
-            : '목적 병합(변화+교류) 테이블이나 에너지 2:2:2 밸런스로 높은 시너지 기록',
-        recommendedAction:
-          status === 'CALIBRATED'
-            ? '현재 축 가중치 유지'
-            : status === 'OVERESTIMATED'
-            ? '깊이(DEPTH) 또는 테마(THEME) 가중치 +5 상향 테스트 권고'
-            : '변화↔교류 호환 계수(0.55→0.65) 상향 검토',
-      };
-    });
-  }, [groupingResult.rooms]);
+  const handlePublishRoom = (
+    room: (typeof groupingResult.rooms)[number],
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+    if (isRoomPublished(room.spec.title)) {
+      onNotify?.('이미 개설된 방입니다.');
+      return;
+    }
+    const newEvent: ConditionalEventItem = {
+      eventId: `EVT-${room.roomId}-${Date.now().toString().slice(-4)}`,
+      title: `[적응매칭] ${room.spec.title}`,
+      districtId: 'SEOUL_GANGNAM',
+      regionName: '서울',
+      districtName: '강남구',
+      venueId: 'VEN_SEOUL_GANGNAM_01',
+      dateText: '2026-11-20 (금) 19:30',
+      eventDate: '2026-11-20',
+      eventTime: '19:30',
+      mode: '3:3 소셜 다이닝',
+      purpose: room.spec.purpose,
+      compositionMode: '3:3 성비균형',
+      enforceGenderRatio: true,
+      priceKrw: 30000,
+      maxCapacity: 6,
+      minConfirmCount: 4,
+      status: 'CONFIRMED',
+      requiredBadgeIds: [],
+      minTotalScore100: 0,
+      activePresetSubIds: [],
+      reason: `적합도 ${room.expectedScore100}점 (${room.members.length}명 편성)`,
+    };
+    addConditionalEvent(newEvent);
+    onNotify?.(`[${room.spec.title}] 방 개설 완료`);
+  };
 
   const toggleAxisActive = (axisId: string) => {
     setAxes((prev) =>
       prev.map((a) => (a.axisId === axisId ? { ...a, isActive: !a.isActive } : a))
     );
-    onNotify?.(`${axisId} 상태 변경`);
+    onNotify?.(`${axisId} 변경`);
   };
 
   const adjustAxisWeight = (axisId: string, delta: number) => {
@@ -164,12 +160,15 @@ export default function AdminAdaptiveMatchingManager({
     setQuestions((prev) =>
       prev.map((q) => (q.id === qId ? { ...q, isActive: !q.isActive } : q))
     );
-    onNotify?.(`${qId} 상태 변경`);
+    onNotify?.(`${qId} 변경`);
   };
 
   const activeAxisWeightSum = axes
     .filter((a) => a.isActive)
     .reduce((acc, a) => acc + a.weight, 0);
+
+  const maleCount = realParticipants.filter((p) => p.gender === 'M').length;
+  const femaleCount = realParticipants.filter((p) => p.gender === 'F').length;
 
   return (
     <div className="space-y-4">
@@ -188,14 +187,21 @@ export default function AdminAdaptiveMatchingManager({
           >
             적응매칭
           </h2>
-          <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
-            {groupingResult.rooms.length}방 · {axes.filter((a) => a.isActive).length}축 ·{' '}
-            {questions.filter((q) => q.isActive).length}문항
+          <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-300">
+            실회원 {realParticipants.length}명 (남{maleCount}·여{femaleCount}) · {groupingResult.rooms.length}방
           </span>
         </div>
 
-        {/* 4대 관제 각도 전환 + 모수 시뮬레이터 */}
         <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={loadLiveProfiles}
+            className="px-2.5 py-1 text-sm font-mono border border-white/15 bg-white/5 hover:bg-white/10 text-white flex items-center gap-1.5 cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>새로고침</span>
+          </button>
+
           {(
             [
               { key: 'ROOMS', label: '부합도', icon: Users },
@@ -225,41 +231,173 @@ export default function AdminAdaptiveMatchingManager({
         </div>
       </div>
 
-      {/* 1. 모임방 부합도 관제 (모수별 분화 & 참여자별 점수) */}
+      {/* 1. 실DB 회원 기반 모임방 부합도 관제 */}
       {perspective === 'ROOMS' && (
         <div className="space-y-3">
-          <div className="p-3 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-3">
+          <div className="p-3 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-3 text-sm font-mono">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-              <span className="text-sm font-mono text-white font-medium">모수 시뮬레이션</span>
-              <span className="text-sm font-mono text-zinc-400">
+              <span className="text-white font-medium">실서버 SSOT 매칭</span>
+              <span className="text-zinc-400">
                 가중치 합 {activeAxisWeightSum} → 100점 정규화
               </span>
             </div>
-            <div className="flex items-center gap-1.5">
-              {([6, 12, 18] as const).map((cnt) => (
-                <button
-                  key={cnt}
-                  type="button"
-                  onClick={() => {
-                    setPoolSize(cnt);
-                    setExpandedRoomId(null);
-                  }}
-                  className={`px-3 py-1 text-sm font-mono border cursor-pointer ${
-                    poolSize === cnt
-                      ? 'border-white/40 bg-white/15 text-white font-bold'
-                      : 'border-white/10 bg-white/5 text-zinc-300 hover:text-white'
-                  }`}
-                >
-                  {cnt}명
-                </button>
-              ))}
-            </div>
+            <span className="text-zinc-300">
+              배정 {realParticipants.length - groupingResult.unassigned.length}명 · 대기{' '}
+              {groupingResult.unassigned.length}명
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-            {groupingResult.rooms.map((room) => {
-              const isExpanded = expandedRoomId === room.roomId;
+          {groupingResult.rooms.length === 0 ? (
+            <div className="p-6 border border-white/10 bg-[#0c0d12] text-sm font-mono text-zinc-300">
+              {isLoading
+                ? '실DB 회원 데이터를 불러오는 중...'
+                : `현재 실DB 회원(${realParticipants.length}명: 남 ${maleCount}명, 여 ${femaleCount}명)으로 3:3 성비 6인 테이블을 편성할 수 없습니다.`}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              {groupingResult.rooms.map((room) => {
+                const isExpanded = expandedRoomId === room.roomId;
+                return (
+                  <div
+                    key={room.roomId}
+                    className={`border border-white/10 bg-[#0c0d12] ${
+                      isExpanded ? 'col-span-full border-white/25' : ''
+                    }`}
+                  >
+                    <div className="w-full p-3.5 flex items-center justify-between gap-3 hover:bg-white/[0.02]">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedRoomId(isExpanded ? null : room.roomId)
+                        }
+                        className="flex-1 text-left space-y-1 cursor-pointer min-w-0"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                          <span className="text-sm font-mono font-bold text-white">
+                            {room.spec.title}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-sm font-mono text-zinc-400">
+                          <span>{room.roomId}</span>
+                          <span>·</span>
+                          <span>{room.members.length}명</span>
+                          {room.relaxedConditions.length > 0 && (
+                            <>
+                              <span>·</span>
+                              <span className="text-zinc-200">
+                                완화: {room.relaxedConditions.join(', ')}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </button>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => handlePublishRoom(room, e)}
+                          className={`px-2.5 py-1 border text-sm font-mono cursor-pointer ${
+                            isRoomPublished(room.spec.title)
+                              ? 'border-white/20 bg-white/5 text-zinc-300'
+                              : 'border-white/40 bg-white/15 hover:bg-white/25 text-white font-bold'
+                          }`}
+                        >
+                          {isRoomPublished(room.spec.title) ? '개설됨' : '개설'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedRoomId(isExpanded ? null : room.roomId)
+                          }
+                          className="flex items-center gap-2 text-right cursor-pointer"
+                        >
+                          <div>
+                            <span className="text-base font-mono font-bold text-white">
+                              {room.expectedScore100}점
+                            </span>
+                            <span className="block text-sm font-mono text-zinc-400">
+                              {room.qualityGrade === 'OPTIMAL'
+                                ? '최적'
+                                : room.qualityGrade === 'BALANCED'
+                                ? '균형'
+                                : '성사'}
+                            </span>
+                          </div>
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-zinc-400" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-zinc-400" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="p-4 border-t border-white/10 bg-[#08090d] space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-mono">
+                          <span className="text-white font-medium">
+                            방 목표 좌표 ·{' '}
+                            {Object.entries(room.spec.targetLabels)
+                              .map(([k, v]) => `${k}:${v}`)
+                              .join(' / ')}
+                          </span>
+                          <span className="text-zinc-400">
+                            실DB 참여자별 방 적합도 (100점 기준)
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          {room.members.map((member) => {
+                            const { score100 } = scoreUserAgainstRoom(
+                              member,
+                              room.spec,
+                              room.members,
+                              axes
+                            );
+                            return (
+                              <div
+                                key={member.userId}
+                                className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between gap-2"
+                              >
+                                <div className="text-sm font-mono">
+                                  <span className="text-white font-bold">
+                                    {member.userId}
+                                  </span>
+                                  <span className="text-zinc-400 ml-2">
+                                    ({member.gender} · {member.budgetTier} · {member.hasPulseUpdate ? '컨디션반영' : '기본'})
+                                  </span>
+                                  <div className="text-sm text-zinc-400 mt-0.5">
+                                    {Object.values(member.axisLabels).join(' · ')}
+                                  </div>
+                                </div>
+                                <span className="px-2.5 py-1 border border-white/20 bg-white/5 text-sm font-mono font-bold text-white">
+                                  {score100}점
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 2. 사전 예측 vs 사후 평가 비교 (실데이터 기반) */}
+      {perspective === 'CALIBRATION' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {groupingResult.rooms.length === 0 ? (
+            <div className="col-span-full p-6 border border-white/10 bg-[#0c0d12] text-sm font-mono text-zinc-300">
+              편성된 방이 없어 사후 평가 대조 대상이 없습니다.
+            </div>
+          ) : (
+            groupingResult.rooms.map((room) => {
+              const isExpanded = expandedCalId === room.roomId;
               return (
                 <div
                   key={room.roomId}
@@ -270,7 +408,7 @@ export default function AdminAdaptiveMatchingManager({
                   <button
                     type="button"
                     onClick={() =>
-                      setExpandedRoomId(isExpanded ? null : room.roomId)
+                      setExpandedCalId(isExpanded ? null : room.roomId)
                     }
                     className="w-full p-3.5 text-left flex items-center justify-between gap-3 cursor-pointer hover:bg-white/[0.02]"
                   >
@@ -281,34 +419,14 @@ export default function AdminAdaptiveMatchingManager({
                           {room.spec.title}
                         </span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-sm font-mono text-zinc-400">
-                        <span>{room.roomId}</span>
-                        <span>·</span>
-                        <span>{room.members.length}명</span>
-                        {room.relaxedConditions.length > 0 && (
-                          <>
-                            <span>·</span>
-                            <span className="text-zinc-200">
-                              완화: {room.relaxedConditions.join(', ')}
-                            </span>
-                          </>
-                        )}
+                      <div className="text-sm font-mono text-zinc-400">
+                        사전 예측 {room.expectedScore100}점 ↔ 사후 평가 대기
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-3 shrink-0">
-                      <div className="text-right">
-                        <span className="text-base font-mono font-bold text-white">
-                          {room.expectedScore100}점
-                        </span>
-                        <span className="block text-sm font-mono text-zinc-400">
-                          {room.qualityGrade === 'OPTIMAL'
-                            ? '최적'
-                            : room.qualityGrade === 'BALANCED'
-                            ? '균형'
-                            : '성사'}
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-sm font-mono text-white">
+                        대기
+                      </span>
                       {isExpanded ? (
                         <ChevronUp className="w-4 h-4 text-zinc-400" />
                       ) : (
@@ -318,136 +436,22 @@ export default function AdminAdaptiveMatchingManager({
                   </button>
 
                   {isExpanded && (
-                    <div className="p-4 border-t border-white/10 bg-[#08090d] space-y-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-mono">
-                        <span className="text-white font-medium">
-                          방 목표 좌표 ·{' '}
-                          {Object.entries(room.spec.targetLabels)
-                            .map(([k, v]) => `${k}:${v}`)
-                            .join(' / ')}
-                        </span>
-                        <span className="text-zinc-400">
-                          참여자별 방 적합도 (100점 기준)
-                        </span>
+                    <div className="p-4 border-t border-white/10 bg-[#08090d] space-y-2 text-sm font-mono text-zinc-300">
+                      <div>
+                        사전 적합도: {room.expectedScore100}점 ({room.members.length}명)
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {room.members.map((member) => {
-                          const { score100 } = scoreUserAgainstRoom(
-                            member,
-                            room.spec,
-                            room.members,
-                            axes
-                          );
-                          return (
-                            <div
-                              key={member.userId}
-                              className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between gap-2"
-                            >
-                              <div className="text-sm font-mono">
-                                <span className="text-white font-bold">
-                                  {member.userId}
-                                </span>
-                                <span className="text-zinc-400 ml-2">
-                                  ({member.gender} · {member.budgetTier})
-                                </span>
-                                <div className="text-sm text-zinc-400 mt-0.5">
-                                  {Object.values(member.axisLabels).join(' · ')}
-                                </div>
-                              </div>
-                              <span className="px-2.5 py-1 border border-white/20 bg-white/5 text-sm font-mono font-bold text-white">
-                                {score100}점
-                              </span>
-                            </div>
-                          );
-                        })}
+                      <div>
+                        완화 조건: {room.relaxedConditions.length > 0 ? room.relaxedConditions.join(', ') : '없음'}
+                      </div>
+                      <div>
+                        상태: 모임 종료 후 동석자 다면 평가가 집계되면 예측 편차(Delta)가 자동 산출됩니다.
                       </div>
                     </div>
                   )}
                 </div>
               );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 2. 사전 예측 vs 사후 평가 비교 (엔진 성능 고도화 캘리브레이션) */}
-      {perspective === 'CALIBRATION' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-          {calibrationAudits.map((item) => {
-            const isExpanded = expandedCalId === item.roomId;
-            const delta = item.actualSatisfaction100 - item.predictedScore100;
-            return (
-              <div
-                key={item.roomId}
-                className={`border border-white/10 bg-[#0c0d12] ${
-                  isExpanded ? 'col-span-full border-white/25' : ''
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    setExpandedCalId(isExpanded ? null : item.roomId)
-                  }
-                  className="w-full p-3.5 text-left flex items-center justify-between gap-3 cursor-pointer hover:bg-white/[0.02]"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                      <span className="text-sm font-mono font-bold text-white">
-                        {item.roomTitle}
-                      </span>
-                    </div>
-                    <div className="text-sm font-mono text-zinc-400">
-                      예측 {item.predictedScore100}점 ↔ 사후 {item.actualSatisfaction100}점 (편차{' '}
-                      {delta >= 0 ? `+${delta}` : delta})
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2.5 shrink-0">
-                    <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-sm font-mono text-white">
-                      {item.status === 'CALIBRATED'
-                        ? '적중'
-                        : item.status === 'OVERESTIMATED'
-                        ? '과대'
-                        : '과소'}
-                    </span>
-                    {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-zinc-400" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-zinc-400" />
-                    )}
-                  </div>
-                </button>
-
-                {isExpanded && (
-                  <div className="p-4 border-t border-white/10 bg-[#08090d] space-y-3 text-sm font-mono">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <div className="p-3 border border-white/10 bg-[#0c0d12]">
-                        <span className="text-zinc-400 block">재만남 희망률</span>
-                        <span className="text-white font-bold text-base">
-                          {item.rematchRate}%
-                        </span>
-                      </div>
-                      <div className="p-3 border border-white/10 bg-[#0c0d12]">
-                        <span className="text-zinc-400 block">메타인지 평균 격차</span>
-                        <span className="text-white font-bold text-base">
-                          {item.metaGapAvg}점
-                        </span>
-                      </div>
-                      <div className="p-3 border border-white/10 bg-[#0c0d12]">
-                        <span className="text-zinc-400 block">튜닝 권고</span>
-                        <span className="text-white font-medium">
-                          {item.recommendedAction}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-3 border border-white/10 bg-[#0c0d12] text-zinc-300">
-                      진단: {item.insight}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+            })
+          )}
         </div>
       )}
 
