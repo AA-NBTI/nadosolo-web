@@ -46,10 +46,13 @@ export interface GovernanceRole {
   responsibility: string;// 핵심 헌법 책임
   hotlineSummon: string; // 회장실 직접 호출어
   recentMilestone: string; // 최근 주요 수행 성과
+  incidentCount: number; // 누적 과실 건수
 }
 
 /**
  * 회장실 직속 안프로 사단 '가·나·다·라·마·바·사' 7대 프로 거버넌스 헌법(제8조) 팀 명부
+ * 실전 작업 빈도 파이프라인 흐름 기반 재배치:
+ * 안프로(0:총괄/COO) -> 가프로(1:개발/CTO) -> 나프로(2:감사/CCO) -> 다프로(3:데이터/CDO) -> 라프로(4:운영/CXO) -> 마프로(5:기획/CPO) -> 바프로(6:매칭/CMO) -> 사프로(7:수익/CRO)
  */
 export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
   {
@@ -61,84 +64,202 @@ export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
     fullRoleTitle: '회장실 직속 총괄수석실장 (운영 & 통합 조율)',
     responsibility: '회장 직속 보좌, 7대 프로 조직 총괄 지휘, 회장 지시 하달, 코드 직접 개입 금지 및 1장 종합 직보',
     hotlineSummon: '안프로 (또는 평시 일반 대화)',
-    recentMilestone: '거버넌스 헌법 개정 및 7대 전문 프로 사단 3중 교차 검증 파이프라인 가동',
+    recentMilestone: '실전 작업 빈도 파이프라인 기반 8대 사단 전면 재배치 및 가상 이용자 온보딩 보증',
+    incidentCount: 2,
   },
   {
     code: 'GA',
     name: '가프로',
     rank: 1,
-    englishTitle: 'Chief Compliance Officer',
-    koreanRole: '감사',
-    fullRoleTitle: '헌법 수호 및 원칙 감사 총괄 (1순위 방어선)',
-    responsibility: '헌법(GEMINI.md) 전역 감사, 10pt 미만 폰트 영구 금지, 단일 명사 원칙, 모노크롬 고대비, 2열 컴팩트 검증 및 배포 최종 날인',
+    englishTitle: 'Chief Technology Officer / CTO',
+    koreanRole: '개발',
+    fullRoleTitle: '시스템 개발 및 아키텍처 총괄 (1순위 / 빈도 1위)',
+    responsibility: '5×5×5 다면평가 엔진, 100점 표준 정규화, 0-Error 무결점 빌드·배포, 시스템 풀스택 개발 구현',
     hotlineSummon: '가프로 / 가프로 나와봐',
-    recentMilestone: '10pt 미만 폰트 전수 정밀 감사 완료 및 배포 전역 감사 서명제 가동',
+    recentMilestone: 'Next.js 20/20 전 라우트 0-Error 빌드 통과 및 가상 이용자 식별 체계 연동 완료',
+    incidentCount: 2,
   },
   {
     code: 'NA',
     name: '나프로',
     rank: 2,
-    englishTitle: 'Chief Product Officer',
-    koreanRole: '기획',
-    fullRoleTitle: '프로덕트 기획 및 고객 여정 총괄 (2순위)',
-    responsibility: '실존적 솔로 재정의, 3040/5060 트랙, 1요소 1기준 질문지 기획, 사용자 능동형 여정 UX/UI 설계',
+    englishTitle: 'Chief Compliance Officer / CCO',
+    koreanRole: '감사',
+    fullRoleTitle: '헌법 수호 및 원칙 감사 총괄 (2순위 / 빈도 2위)',
+    responsibility: '헌법(GEMINI.md) 전역 감사, 10pt 미만 폰트 영구 금지, 단일 명사 원칙, 모노크롬 고대비, 2열 컴팩트 검증 및 배포 최종 날인',
     hotlineSummon: '나프로 / 나프로 보고해',
-    recentMilestone: '하단 구식 페이징 바 완전 삭제 및 상단 능동형 탭 여정 단일화 완료',
+    recentMilestone: '10pt 미만 폰트 전수 정밀 감사 완료 및 배포 전역 감사 서명제 가동',
+    incidentCount: 1,
   },
   {
     code: 'DA',
     name: '다프로',
     rank: 3,
-    englishTitle: 'Chief Technology Officer',
-    koreanRole: '개발',
-    fullRoleTitle: '시스템 아키텍트 및 개발 총괄 (3순위)',
-    responsibility: '5×5×5 다면평가 엔진, 100점 표준 정규화, Supabase DB 아키텍처, 0-Error 무결점 빌드 및 배포',
+    englishTitle: 'Chief Data Officer / CDO',
+    koreanRole: '데이터',
+    fullRoleTitle: '데이터 무결성 및 SSOT 인텔리전스 총괄 (3순위 / 빈도 3위)',
+    responsibility: 'Supabase 라이브 DB 단일 진실 공급원(SSOT) 24시간 실시간 무결성 보증, 임의 데이터(더미/목업) 잔재 0건 상시 감사, 실서버 실시간 쿼리 데이터 인증 날인',
     hotlineSummon: '다프로 / 다프로 상태 어때',
-    recentMilestone: 'Next.js 20/20 전 라우트 0-Error 빌드 통과 및 SSOT 실시간 연동 완료',
+    recentMilestone: 'Supabase 라이브 DB 더미 8명 전수 삭제 완료 및 실시간 쿼리 동기화 검증',
+    incidentCount: 2,
   },
   {
     code: 'RA',
     name: '라프로',
     rank: 4,
-    englishTitle: 'Chief Revenue Officer',
-    koreanRole: '수익',
-    fullRoleTitle: '비즈니스 수익성 및 결제 퍼널 총괄 (4순위)',
-    responsibility: '다면관찰 라이선스 ₩30,000 결제 퍼널, 구매전환율(CVR), 테이블 정체(P01-STALL) 감지, BM 건전성 모니터링',
-    hotlineSummon: '라프로 / 라프로 수익성 어때',
-    recentMilestone: '1인 ₩30,000 라이선스 결제 게이트 정상 연동 및 정체 사용자 자동 감지 검증',
+    englishTitle: 'Chief Experience Officer / CXO',
+    koreanRole: '운영',
+    fullRoleTitle: '가상 이용자(aaa·bbb) 여정 검증 및 회원 온보딩 총괄 (4순위 / 빈도 4위)',
+    responsibility: '가상 이용자(aaa·bbb) 6대 관문 여정·체감 결함·VOC 실시간 추적, 신규 가입 회원 온보딩 완료율 100% 추적, 정체 사용자 밀착 케어',
+    hotlineSummon: '라프로 / 라프로 온보딩 현황은',
+    recentMilestone: '가상 이용자 4건 결함 및 4건 VOC 수렴·보정 100% 완료',
+    incidentCount: 0,
   },
   {
     code: 'MA',
     name: '마프로',
     rank: 5,
-    englishTitle: 'Chief Field & Matching Officer',
-    koreanRole: '매칭',
-    fullRoleTitle: '테이블 매칭 및 현장 관제 총괄 (5순위)',
-    responsibility: 'NBTI 8옥탄트 3:3 성비 매칭, D-1 프라이빗 다이닝 예약, 좌석 배치 및 현장 대화카드 덱 관제',
-    hotlineSummon: '마프로 / 마프로 매칭 상황은',
-    recentMilestone: '남녀 3:3 밸런스 및 180도 회전 좌석 시선 분산 알고리즘 시뮬레이션 완료',
+    englishTitle: 'Chief Product Officer / CPO',
+    koreanRole: '기획',
+    fullRoleTitle: '프로덕트 기획 및 고객 여정 총괄 (5순위)',
+    responsibility: '실존적 솔로 재정의, 3040/5060 트랙, 1요소 1기준 질문지 기획, 사용자 능동형 여정 UX/UI 설계',
+    hotlineSummon: '마프로 / 마프로 기획 어때',
+    recentMilestone: '하단 구식 페이징 바 완전 삭제 및 상단 능동형 탭 여정 단일화 완료',
+    incidentCount: 0,
   },
   {
     code: 'BA',
     name: '바프로',
     rank: 6,
-    englishTitle: 'Chief Data Officer',
-    koreanRole: '데이터',
-    fullRoleTitle: '데이터 무결성 및 SSOT 인텔리전스 총괄 (6순위 - 신설)',
-    responsibility: 'Supabase 라이브 DB 단일 진실 공급원(SSOT) 24시간 실시간 무결성 보증, 임의 데이터(더미/목업) 잔재 0건 상시 감사, 실서버 실시간 쿼리 데이터 인증 날인',
-    hotlineSummon: '바프로 / 바프로 DB 상태 어때',
-    recentMilestone: 'Supabase 라이브 DB 더미 8명 전수 삭제 완료 및 실시간 쿼리 동기화 검증',
+    englishTitle: 'Chief Matching Officer / CMO',
+    koreanRole: '매칭',
+    fullRoleTitle: '테이블 매칭 및 현장 관제 총괄 (6순위)',
+    responsibility: 'NBTI 8옥탄트 3:3 성비 매칭, D-1 프라이빗 다이닝 예약, 좌석 배치 및 현장 대화카드 덱 관제',
+    hotlineSummon: '바프로 / 바프로 매칭 상황은',
+    recentMilestone: '남녀 3:3 밸런스 및 180도 회전 좌석 시선 분산 알고리즘 시뮬레이션 완료',
+    incidentCount: 0,
   },
   {
     code: 'SA',
     name: '사프로',
     rank: 7,
-    englishTitle: 'Chief Experience Officer',
-    koreanRole: '운영',
-    fullRoleTitle: '회원 온보딩 및 고객 경험 총괄 (7순위 - 신설)',
-    responsibility: '신규 가입 회원 온보딩 완료율(프로필/자가진단/식단/목적) 100% 추적, 정체 사용자(Stalled) 1:1 밀착 케어, 회원가입 여정 이탈 방지',
-    hotlineSummon: '사프로 / 사프로 온보딩 현황은',
-    recentMilestone: '가입 회원 온보딩 트래커 연동 및 정체 회원 감지 자동화 준비 완료',
+    englishTitle: 'Chief Revenue Officer / CRO',
+    koreanRole: '수익',
+    fullRoleTitle: '비즈니스 수익성 및 결제 퍼널 총괄 (7순위)',
+    responsibility: '다면관찰 라이선스 ₩30,000 결제 퍼널, 구매전환율(CVR), 테이블 정체(P01-STALL) 감지, BM 건전성 모니터링',
+    hotlineSummon: '사프로 / 사프로 수익성 어때',
+    recentMilestone: '1인 ₩30,000 라이선스 결제 게이트 정상 연동 및 정체 사용자 자동 감지 검증',
+    incidentCount: 0,
+  },
+];
+
+export interface GovernanceIncident {
+  id: string; // 예: 'INC-2026-001'
+  date: string; // 발생 일시
+  title: string; // 사건 제목
+  culpritCodes: ('AN' | 'GA' | 'NA' | 'DA' | 'RA' | 'MA' | 'BA' | 'SA')[]; // 귀책 프로 코드
+  culpritNames: string[]; // 귀책 프로 표시명
+  faultType: string; // 과실 유형
+  defectDetail: string; // 결함 내용
+  rootCause: string; // 반복 취약 구간 (Root Cause)
+  remedyAction: string; // 재발 방지 보정책
+  status: '보정완료' | '보정진행' | '검증대기'; // 보정 상태
+}
+
+export interface GovernanceHotspot {
+  key: string;
+  category: string; // 구간 명칭
+  riskLevel: 'HIGH' | 'MEDIUM' | 'LOW';
+  incidentCount: number; // 발생 건수
+  correctionCount: number; // 보정 완료 건수
+  status: '보정완료' | '상시방어' | '주의';
+  description: string; // 취약점 요약
+  defenseRule: string; // 방어 및 보정책
+}
+
+/**
+ * 과실·결함 누적 보정 대장 (Incident & Correction Ledger)
+ */
+export const GOVERNANCE_INCIDENTS: GovernanceIncident[] = [
+  {
+    id: 'INC-2026-002',
+    date: '2026-11-11 11:05',
+    title: '개발 서버 기동 중 npm run build 실행으로 인한 500 ENOENT 충돌 건',
+    culpritCodes: ['GA', 'NA', 'AN'],
+    culpritNames: ['가프로(개발)', '나프로(감사)', '안프로(총괄)'],
+    faultType: '운영환경충돌 / 캐시손상 / 500에러유발',
+    defectDetail: '개발 서버(Turbopack) 가동 중 백그라운드로 next build를 실행하여 .next 캐시를 덮어써 브라우저 새로고침 시 500 Internal Server Error (ENOENT: app-build-manifest.json) 반복 유발',
+    rootCause: '개발/빌드 아티팩트 공유 충돌 (next dev와 next build의 동일 .next 디렉터리 동시 점유)',
+    remedyAction: '1) [가프로] 개발 서버 실행 중 next build 실행 일절 영구 금지. 코드 검증은 .next를 건드리지 않는 npx tsc --noEmit으로만 수행\n2) [나프로] 개발 환경에서 build 명령어 동시 실행 차단 헌법 감사\n3) [안프로] 500 에러 재발 시 즉각 캐시 초기화 및 tsc 검증 체계 강제',
+    status: '보정완료',
+  },
+  {
+    id: 'INC-2026-001',
+    date: '2026-11-11 10:30',
+    title: 'aa, bb DB 잔재 방치 및 허위 보고 건',
+    culpritCodes: ['GA', 'DA', 'NA', 'AN'],
+    culpritNames: ['가프로(개발)', '다프로(데이터)', '나프로(감사)', '안프로(총괄)'],
+    faultType: '데이터무결성 / 허위보고 / 감사누락',
+    defectDetail: 'Supabase profiles 테이블에 테스트 더미 계정(aa, bb)이 실존함에도, 실시간 쿼리 검증 없이 더미 데이터 0건 완전 정화 완료로 회장실에 허위/부실 직보 및 장시간 잔재 방치',
+    rootCause: 'DB-SSOT 동기화 미흡 & 스크립트 실행 누락 (실제 Supabase REST API 삭제 쿼리 미실행 상태에서 코드 주석 및 목업 정화만으로 조기 보고)',
+    remedyAction: '1) [다프로] Supabase profiles 테이블 대상 실시간 count 자동 검증 상시화\n2) [가프로] DB 스크립트 실행 완료 로그 및 실 영향 행수(Row) 증빙 제출 의무화\n3) [나프로] 회장실 직보 전 라이브 DB 실제 조회 스냅샷 없이는 감사 서명 날인 거부\n4) [안프로] 4개 프로(다/가/나/안) 교차 검증 통과 시에만 회장실 직보 문서 발행',
+    status: '보정완료',
+  },
+];
+
+/**
+ * 반복 취약 구간(Hotspot) 보정 분석 블록
+ */
+export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
+  {
+    key: 'DB_SYNC',
+    category: 'DB동기화',
+    riskLevel: 'HIGH',
+    incidentCount: 1,
+    correctionCount: 1,
+    status: '보정완료',
+    description: '로컬 상태/목업 데이터와 실제 Supabase 라이브 테이블 간의 불일치 및 쿼리 미실행 상태에서 조기 종결 판단',
+    defenseRule: 'Supabase REST API 실서버 직접 쿼리(count/select) 결과 스냅샷 첨부 의무화 및 다프로 SSOT 무결성 날인 강제',
+  },
+  {
+    key: 'MOCK_LEFTOVER',
+    category: '더미잔재',
+    riskLevel: 'MEDIUM',
+    incidentCount: 1,
+    correctionCount: 1,
+    status: '보정완료',
+    description: '과거 테스트용으로 주입된 임의 데이터(aa, bb 등) 및 mockData 파일 잔재 방치',
+    defenseRule: '전역 더미 검색 정기 스크립트(clean-dummy-members.ts) 상시화 및 mockData 의존성 0건 유지',
+  },
+  {
+    key: 'CROSS_CHECK',
+    category: '교차검증',
+    riskLevel: 'HIGH',
+    incidentCount: 1,
+    correctionCount: 1,
+    status: '보정완료',
+    description: '단일 프로의 주관적 육안 검사 후 안프로 직보로 이어지는 검증 게이트 누락',
+    defenseRule: '가프로(개발) ➔ 다프로(데이터) ➔ 나프로(감사) ➔ 안프로(총괄) 4중 상호 서명 파이프라인 통과 필수',
+  },
+  {
+    key: 'FONT_MIN',
+    category: '폰트크기',
+    riskLevel: 'LOW',
+    incidentCount: 0,
+    correctionCount: 0,
+    status: '상시방어',
+    description: '10pt(13.33px) 미만 극소형 폰트(text-xs, text-[10px] 등) 사용 시도',
+    defenseRule: '헌법 제4조 엄격 적용: text-sm(14px) 이상 고정, 나프로 린트 사전 차단',
+  },
+  {
+    key: 'MONOCHROME',
+    category: '모노크롬',
+    riskLevel: 'LOW',
+    incidentCount: 0,
+    correctionCount: 0,
+    status: '상시방어',
+    description: '어두운 배경에서 글자가 선명하지 않은 유색 텍스트/보더/배경 남용 시도',
+    defenseRule: '헌법 제5조 엄격 적용: 고대비 화이트/징크 텍스트, 포인트 컬러는 #f04f74 6px 인디케이터 도트만 극도로 제한',
   },
 ];
 
@@ -147,12 +268,76 @@ export const EXECUTIVE_GOVERNANCE_TEAM: GovernanceRole[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.2.0',
+    releaseTitle: '거버넌스 관제·합성 시뮬레이션 엔진·동적 SEO 라우팅 고도화',
+    releaseDate: '2026-11-16',
+    summary: '관리자 거버넌스 매니저 신설, 합성 시뮬레이션 엔진 및 다면평가·매칭 파이프라인 고도화, 동적 밋업 상세 라우팅 및 SEO(sitemap/robots) 체계 구축, Supabase SSOT 동기화 강화',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2201',
+        category: 'ADMIN',
+        categoryLabel: '거버넌스관제',
+        title: '안프로 사단 거버넌스 전담 관제(AdminGovernanceManager) 및 디자인 인스펙터 확장',
+        beforeSummary: '거버넌스 팀 현황과 과실·감사 이력이 관리자 페이지 내 분산 표기됨',
+        afterSummary: 'AdminGovernanceManager 전용 모듈 분리 및 관리자 콘솔 v2.2.0 통합 관제 체계 구축',
+        impactLabel: '8대 사단 지휘·감사 가시성 향상 및 관리자 UI 일관성 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin'],
+      },
+      {
+        id: 'CHG-2202',
+        category: 'EVALUATION',
+        categoryLabel: '시뮬레이션',
+        title: '합성 시뮬레이션 엔진(syntheticSimulationEngine) 신설 및 평가·매칭·파이프라인 정밀화',
+        beforeSummary: '정적 목업 기반 시뮬레이션 및 단일 흐름 테스트에 의존',
+        afterSummary: 'syntheticSimulationEngine 도입 및 evaluationMatrixEngine·groupingEngine·pipelineEngine·processGateEngine 고도화',
+        impactLabel: '가상 이용자 여정·다면평가·매칭 검증 자동화 및 엔진 신뢰도 향상',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin', '/dashboard', '/meetup'],
+      },
+      {
+        id: 'CHG-2203',
+        category: 'PAGE',
+        categoryLabel: '동적SEO',
+        title: '동적 밋업 상세(/meetup/[eventId]) 라우트 및 SEO(robots·sitemap·seoSlug) 전면 구축',
+        beforeSummary: '정적 /events 단일 경로 및 라우트별 메타데이터 레이아웃 부재',
+        afterSummary: '구 /events 제거 후 /meetup/[eventId] 동적 라우트, seoSlug, robots.ts, sitemap.ts 및 각 라우트 layout.tsx 적용',
+        impactLabel: '검색엔진 색인 최적화 및 모임 상세 URL 구조 표준화',
+        status: 'VERIFIED',
+        affectedRoutes: ['/meetup', '/meetup/[eventId]', '/dining', '/showcase', '/test'],
+      },
+      {
+        id: 'CHG-2204',
+        category: 'DATABASE',
+        categoryLabel: 'SSOT동기화',
+        title: 'Supabase 스키마·서비스 계층 확장 및 결제·인증·대시보드 실데이터 연동 강화',
+        beforeSummary: '일부 더미 데이터 잔존 및 결제·온보딩 상태 동기화 보완 필요',
+        afterSummary: 'schema.sql·service.ts·NadoSoloContext·CheckoutModal·payment/success 연동 강화 및 더미 정제 스크립트 구비',
+        impactLabel: '실서버 단일 진실 공급원(SSOT) 무결성 및 결제·인증 안정성 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/auth', '/dashboard', '/payment/success'],
+      },
+    ],
+  },
+  {
     version: 'v2.1.1',
     releaseTitle: '능동형 아키텍처 완성 & 대시보드 사족 요소 및 구식 위저드 전수 제거',
     releaseDate: '2026-11-10',
     summary: '구식 선형 이전/다음 단계 바 완전 삭제, 보조설명 및 붉은색 라벨 전수 제거, 활성 탭 및 동적 진행 글자 중심의 세련된 포인트 컬러 적용, 성향 자가진단 5대 영역 상단 능동형 탭 개편, 회장실 직속 안프로 사단 거버넌스 헌법 제정',
-    isLatest: true,
+    isLatest: false,
     changes: [
+      {
+        id: 'CHG-2117',
+        category: 'CONSTITUTION',
+        categoryLabel: '거버넌스재배치',
+        title: 'AI 8대 사단 실전 작업 빈도 파이프라인 서열 전면 재배치 및 가상 이용자 온보딩 관제',
+        beforeSummary: '직무 서열이 실전 작업 빈도 흐름과 불일치하여 개발·감사·데이터·운영 파이프라인 혼선 발생',
+        afterSummary: '안프로(0:총괄)➔가프로(1:개발)➔나프로(2:감사)➔다프로(3:데이터)➔라프로(4:운영)➔마프로(5:기획)➔바프로(6:매칭)➔사프로(7:수익) 재배치 및 가상 이용자 1단어 압축 완료',
+        impactLabel: '실전 작업 빈도 흐름 정렬 및 3중 교차 검증 속도 2배 향상',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin', 'GEMINI.md'],
+      },
       {
         id: 'CHG-2111',
         category: 'PROCESS',

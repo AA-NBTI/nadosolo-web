@@ -268,7 +268,7 @@ export const DEFAULT_CATEGORY_ITEMS: SectorCategoryItem[] = [
 ];
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  version: 9,
+  version: 11,
   header: {
     announcement: {
       text: '부산 5060 골든 소셜 다이닝 참가 신청 안내',
@@ -277,11 +277,11 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
       tag: 'NOTICE',
     },
     navItems: [
-      { id: 'dining', label: '소셜 다이닝', href: '/dining', visible: true, order: 1 },
-      { id: 'showcase', label: '쇼케이스', href: '/showcase', visible: true, order: 2 },
-      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 3 },
-      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 4 },
-      { id: 'meetup', label: '테마 밋업', href: '/meetup', visible: false, order: 5 },
+      { id: 'meetup', label: '모임 일정', href: '/meetup', visible: true, order: 1 },
+      { id: 'dining', label: '소셜 다이닝', href: '/dining', visible: true, order: 2 },
+      { id: 'showcase', label: '쇼케이스', href: '/showcase', visible: true, order: 3 },
+      { id: 'salon', label: '소셜 살롱', href: '/salon', visible: false, order: 4 },
+      { id: 'club', label: '소셜 클럽', href: '/club', visible: false, order: 5 },
     ],
     activeCityLabel: '부산',
   },

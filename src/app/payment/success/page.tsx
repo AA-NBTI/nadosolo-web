@@ -1,15 +1,29 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
+import { useNadoSoloEngine } from '@/engine';
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || '-';
   const amount = searchParams.get('amount') || '';
+  const eventId = searchParams.get('eventId') || '';
   const title = searchParams.get('title') || '나도솔로 참가권';
+
+  const { applyForConditionalEvent, appliedEventIds } = useNadoSoloEngine();
+  const [synced, setSynced] = useState(false);
+
+  // 결제 성공 리다이렉트 진입 시 해당 모임 ID 신청 상태를 엔진 + Supabase DB에 자동 확정 동기화
+  useEffect(() => {
+    if (!eventId || synced) return;
+    if (!appliedEventIds.includes(eventId)) {
+      applyForConditionalEvent(eventId);
+    }
+    setSynced(true);
+  }, [eventId, synced, appliedEventIds, applyForConditionalEvent]);
 
   return (
     <div className="w-full max-w-md bg-[#12151e] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-6">

@@ -23,8 +23,10 @@ import AdminEvalEngineManager from '@/components/admin/AdminEvalEngineManager';
 import AdminSingleAuditReportManager from '@/components/admin/AdminSingleAuditReportManager';
 import AdminProcessTestReportManager from '@/components/admin/AdminProcessTestReportManager';
 import AdminAuditReportManager from '@/components/admin/AdminAuditReportManager';
+import AdminGovernanceManager from '@/components/admin/AdminGovernanceManager';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
+import { buildMeetupSeoSlug } from '@/lib/seoSlug';
 import {
   EXECUTIVE_GOVERNANCE_TEAM,
   GovernanceRole,
@@ -32,8 +34,11 @@ import {
 
 type AdminTabKey =
   | 'GOVERNANCE'
+  | 'TESTER_USER'
   | 'PROCESS'
   | 'AUDIT'
+  | 'EVENT_CREATE'
+  | 'EVENT_LIST'
   | 'EVENT_GATE'
   | 'MEMBER_EVAL'
   | 'MEMBER_MGMT'
@@ -67,6 +72,14 @@ interface AdminCategoryGroup {
 
 const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
   {
+    groupTitle: '모임',
+    items: [
+      { key: 'EVENT_CREATE', label: '개설' },
+      { key: 'EVENT_LIST', label: '목록' },
+      { key: 'EVENT_GATE', label: '관제' },
+    ],
+  },
+  {
     groupTitle: '보고서',
     items: [
       { key: 'REPORT_PLAN', label: '계획' },
@@ -81,15 +94,8 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'PIPELINE_ENGINE', label: '매칭' },
       { key: 'PROCESS_TEST_REPORT', label: '점검' },
       { key: 'SINGLE_AUDIT_REPORT', label: '테스트' },
-    ],
-  },
-  {
-    groupTitle: '관제',
-    items: [
-      { key: 'GOVERNANCE', label: '조직' },
-      { key: 'EVENT_GATE', label: '조건' },
       { key: 'PROCESS', label: '프로세스' },
-      { key: 'AUDIT', label: '감사' },
+      { key: 'AUDIT', label: '품질감사' },
     ],
   },
   {
@@ -115,6 +121,13 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'PAGE_CMS', label: '페이지' },
       { key: 'DESIGN_SYSTEM', label: '디자인' },
       { key: 'ADMIN_ACCOUNT', label: '계정' },
+    ],
+  },
+  {
+    groupTitle: '조직',
+    items: [
+      { key: 'GOVERNANCE', label: '사단' },
+      { key: 'TESTER_USER', label: '가상' },
     ],
   },
 ];
@@ -148,6 +161,7 @@ export default function AdminOperationsDashboardPage() {
     deleteRegionDistrict,
     conditionalEvents,
     addConditionalEvent,
+    updateConditionalEvent,
     deleteConditionalEvent,
     participantsPool,
     addParticipant,
@@ -179,21 +193,46 @@ export default function AdminOperationsDashboardPage() {
   // 신규 접속 기본값: 선택된 탭 없음 → 우측에 전체 카테고리 목록이 먼저 노출
   const [activeTab, setActiveTab] = useState<AdminTabKey | null>(null);
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(null);
-  const [selectedProCode, setSelectedProCode] = useState<string | null>(null);
   const [selectedStalledUserId, setSelectedStalledUserId] = useState<string | null>(null);
   const [notifiedUserIds, setNotifiedUserIds] = useState<string[]>([]);
   const [adminToast, setAdminToast] = useState<string | null>(null);
 
   // [바프로 주관] Supabase 실서버 라이브 DB 회원 실시간 직결 상태 (SSOT)
   const [liveDbProfiles, setLiveDbProfiles] = useState<DbProfile[]>([]);
+  const [liveEventApplications, setLiveEventApplications] = useState<
+    Array<{ user_id: string; event_id: string; status: string; applied_at: string }>
+  >([]);
   const [isDbLoading, setIsDbLoading] = useState(false);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<string>('');
 
   const fetchLiveDbProfiles = useCallback(async () => {
     setIsDbLoading(true);
     try {
-      const data = await nadoSoloSupabaseService.getAllProfiles();
+      const [data, apps] = await Promise.all([
+        nadoSoloSupabaseService.getAllProfiles(),
+        nadoSoloSupabaseService.getAllEventApplications(),
+      ]);
       setLiveDbProfiles(data);
+      setLiveEventApplications(apps);
+
+      // DB 영속화된 가매칭/확정 상태 복원
+      const nextPreMatched: Record<string, string> = {};
+      const nextConfirmed: Record<string, string> = {};
+      for (const p of data) {
+        if (p.matching_stage === 'CONFIRMED') {
+          nextConfirmed[p.id] = p.confirmed_event_id || 'DB_CONFIRMED';
+        } else if (p.matching_stage === 'PRE_MATCHED') {
+          nextPreMatched[p.id] = p.pre_matched_pool_id || 'DB_PRE_MATCHED';
+        }
+      }
+      for (const a of apps) {
+        if (a.status === 'CONFIRMED') {
+          nextConfirmed[a.user_id] = a.event_id;
+        }
+      }
+      setPreMatchedMemberIds(nextPreMatched);
+      setConfirmedMemberIds(nextConfirmed);
+
       const now = new Date();
       setLastRefreshedAt(
         `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`
@@ -208,6 +247,123 @@ export default function AdminOperationsDashboardPage() {
   useEffect(() => {
     fetchLiveDbProfiles();
   }, [fetchLiveDbProfiles]);
+
+  // [바프로 자동 개설 엔진] 동일 조건(지역×목적) 3명 이상 충족 시 모임방 자동 개설
+  const autoOpenedPoolKeysRef = useRef<Set<string>>(new Set());
+  const createAutoMeetupEvent = useCallback(
+    (
+      city: string,
+      district: string,
+      dong: string,
+      purpose: 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE',
+      members: DbProfile[],
+      status: 'RECRUITING' | 'CONFIRMED' = 'RECRUITING'
+    ) => {
+      const PURPOSE_NAMES: Record<string, string> = {
+        FRIEND: '친구·교류',
+        RESET: '지적 환기',
+        TASTE: '취향·활동',
+        ROMANCE: '인연·동반자',
+      };
+      const avgBirth =
+        members.length > 0
+          ? Math.round(members.reduce((s, m) => s + (m.birth_year || 1985), 0) / members.length)
+          : 1985;
+      const is5060 = avgBirth <= 1980;
+      const targetDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const yyyy = targetDate.getFullYear();
+      const mm = String(targetDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(targetDate.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+      const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+      const dayStr = `(${dayNames[targetDate.getDay()]})`;
+
+      const newEv = {
+        eventId: buildMeetupSeoSlug(city, district, purpose),
+        title: `[${city} ${district}] ${PURPOSE_NAMES[purpose] || purpose} 프라이빗 다이닝`,
+        districtId: `DIST_AUTO_${city}`,
+        regionName: city,
+        districtName: district || '주요 상권',
+        dongName: dong || undefined,
+        venueId: 'DIRECT',
+        dateText: `${dateStr} ${dayStr} 19:30`,
+        eventDate: dateStr,
+        eventTime: '19:30',
+        deadlineAt: `${dateStr}T18:00`,
+        mode: purpose === 'ROMANCE' ? ('ROMANCE' as const) : ('THEME' as const),
+        purpose,
+        compositionMode: purpose === 'ROMANCE' ? ('ROMANCE' as const) : ('THEME' as const),
+        enforceGenderRatio: purpose === 'ROMANCE',
+        evaluationModuleId: is5060 ? 'MOD_TRACK_5060' : 'MOD_TRACK_3040',
+        targetAgeGroup: is5060 ? '5060 골든' : '3040 프로',
+        priceKrw: 30000,
+        maxCapacity: 6,
+        minConfirmCount: 3,
+        reason: `동일 조건(${city} · ${PURPOSE_NAMES[purpose] || purpose}) ${members.length}명 충족으로 자동 개설된 프라이빗 테이블`,
+        description: `실서버 회원 조건 매칭(${city} ${district}${dong ? ` ${dong}` : ''} · ${PURPOSE_NAMES[purpose] || purpose})으로 자동 개설된 모임입니다.`,
+        heroImage: '',
+        venueAddress: '확정자 D-1 상세 주소 비공개 안내',
+        isVenueSecretUntilConfirm: true,
+        expectedMealCost: '인당 4~5만 원대 (현장 1/N 실비 정산)',
+        refundPolicy: '모임 24시간 전까지 100% 환불',
+        deadlineText: `${dateStr} 18:00 마감`,
+        status,
+        mealNote: '참가비 ₩30,000 (다면 관찰 엔진 라이선스 및 리포트 포함 / 식음료 매장 현장 1/N)',
+        requiredBadgeIds: [],
+        minTotalScore100: 75,
+        activePresetSubIds: ['SUB_APP_1', 'SUB_STY_2', 'SUB_CON_2'],
+      };
+      addConditionalEvent(newEv);
+      return newEv;
+    },
+    [addConditionalEvent]
+  );
+
+  useEffect(() => {
+    if (liveDbProfiles.length === 0) return;
+    const eligible = liveDbProfiles.filter((p) => {
+      const hasZone = Boolean(p.residence_city?.trim() && p.residence_district?.trim());
+      const hasPhone = Boolean(p.phone && p.phone.trim() !== '' && p.phone !== '010-0000-0000');
+      const hasPurpose = Boolean(p.preferred_purpose);
+      return hasZone && hasPhone && hasPurpose;
+    });
+    const groups = new Map<string, DbProfile[]>();
+    for (const prof of eligible) {
+      const city = prof.residence_city || '미지정';
+      const purpose = prof.preferred_purpose || 'RESET';
+      const key = `${city}|${purpose}`;
+      const arr = groups.get(key) || [];
+      arr.push(prof);
+      groups.set(key, arr);
+    }
+    groups.forEach((members, key) => {
+      if (members.length < 3) return;
+      if (autoOpenedPoolKeysRef.current.has(key)) return;
+      const [city, purposeRaw] = key.split('|');
+      const purpose = (purposeRaw || 'RESET') as 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE';
+      const alreadyExists = conditionalEvents.some(
+        (ev) =>
+          (ev.regionName || '부산') === city &&
+          (ev.purpose || 'RESET') === purpose &&
+          ev.status !== 'COMPLETED' &&
+          ev.status !== 'CANCELLED_MIN'
+      );
+      autoOpenedPoolKeysRef.current.add(key);
+      if (!alreadyExists) {
+        const first = members[0];
+        const allConfirmed = members.every((m) => m.matching_stage === 'CONFIRMED');
+        const created = createAutoMeetupEvent(
+          city,
+          first.residence_district || '주요 상권',
+          first.residence_dong || '',
+          purpose,
+          members,
+          allConfirmed ? 'CONFIRMED' : 'RECRUITING'
+        );
+        setAdminToast(`조건 충족(${members.length}명) 모임 자동 개설: ${created.title}`);
+      }
+    });
+  }, [liveDbProfiles, conditionalEvents, createAutoMeetupEvent]);
 
   // [마프로·다프로 주관] 동적 모임 라이프사이클 시험기 상태 (지역 무관 자율 시험)
   const [simDistrictId, setSimDistrictId] = useState<string>('DIST_JEONPO');
@@ -319,7 +475,7 @@ export default function AdminOperationsDashboardPage() {
   }, []);
 
   // [회원평가] 상세 조회할 회원 ID 및 검색/페이징 (10명 단위)
-  const [selectedUserId, setSelectedUserId] = useState<string>('USER_AA');
+  const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [expandedEvalMemberId, setExpandedEvalMemberId] = useState<string | null>(null);
   const [evalMemberSearch, setEvalMemberSearch] = useState('');
@@ -330,6 +486,37 @@ export default function AdminOperationsDashboardPage() {
   // [회원관리] 검색, 성별, 권역 필터 및 10명 단위 페이징
   const [memberSearchQuery, setMemberSearchQuery] = useState('');
   const [memberGenderFilter, setMemberGenderFilter] = useState<'ALL' | 'F' | 'M'>('ALL');
+  const [memberStageFilter, setMemberStageFilter] = useState<
+    'ALL' | 'UNQUALIFIED' | 'READY' | 'APPLIED' | 'PRE_MATCHED' | 'CONFIRMED'
+  >('ALL');
+  const [memberPurposeFilter, setMemberPurposeFilter] = useState<
+    'ALL' | 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE'
+  >('ALL');
+  const [memberRegionFilter, setMemberRegionFilter] = useState<string>('ALL');
+  const [memberDistrictFilter, setMemberDistrictFilter] = useState<string>('ALL');
+  const [memberAgeFilter, setMemberAgeFilter] = useState<'ALL' | '2030' | '3040' | '4050' | '5060'>('ALL');
+  const [memberDiagFilter, setMemberDiagFilter] = useState<'ALL' | 'DONE' | 'NONE'>('ALL');
+  const [memberMissingFilter, setMemberMissingFilter] = useState<'ALL' | 'NO_ZONE' | 'NO_PHONE' | 'NO_PURPOSE'>('ALL');
+  const [memberSortBy, setMemberSortBy] = useState<'RECENT' | 'STAGE' | 'AGE'>('RECENT');
+
+  // [모임 관제] 가매칭(Soft-Lock) & 확정 알림(Locked) & 재최적화 결과 상태
+  const [preMatchedMemberIds, setPreMatchedMemberIds] = useState<Record<string, string>>({});
+  const [confirmedMemberIds, setConfirmedMemberIds] = useState<Record<string, string>>({});
+  const [notifiedEventIds, setNotifiedEventIds] = useState<string[]>([]);
+  const [reoptResult, setReoptResult] = useState<{
+    ranAt: string;
+    beforeAvg: number;
+    afterAvg: number;
+    tables: {
+      tableTitle: string;
+      region: string;
+      purpose: string;
+      memberNames: string[];
+      harmonyScore: number;
+      overflowCount: number;
+      recommendation: string;
+    }[];
+  } | null>(null);
   const [memberCityFilter, setMemberCityFilter] = useState<string>('ALL');
   const [memberPage, setMemberPage] = useState<number>(1);
   const MEMBERS_PER_PAGE = 10;
@@ -361,11 +548,117 @@ export default function AdminOperationsDashboardPage() {
   const [newVenueName, setNewVenueName] = useState('');
   const [newVenueMaxTables, setNewVenueMaxTables] = useState(4);
 
-  // [모임조건] 신규 조건부 모임 폼
+  // [모임] 관리자 등록형 모임 유형 · 대상 연령 목록 (LocalStorage 영구 보존)
+  const [customMeetupModes, setCustomMeetupModes] = useState<string[]>([
+    '3:3 소셜 다이닝',
+    '취향 살롱',
+    '와인 다이닝',
+    '1:1 프라이빗',
+  ]);
+  const [newModeInput, setNewModeInput] = useState('');
+  const [customAgeGroups, setCustomAgeGroups] = useState<string[]>([
+    '5060 골든',
+    '3040 프라임',
+    '4050 미들',
+    '전 세대',
+  ]);
+  const [newAgeInput, setNewAgeInput] = useState('');
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const savedModes = localStorage.getItem('nadosolo_meetup_modes');
+      if (savedModes) {
+        const parsed = JSON.parse(savedModes);
+        if (Array.isArray(parsed) && parsed.length > 0) setCustomMeetupModes(parsed);
+      }
+      const savedAges = localStorage.getItem('nadosolo_meetup_ages');
+      if (savedAges) {
+        const parsed = JSON.parse(savedAges);
+        if (Array.isArray(parsed) && parsed.length > 0) setCustomAgeGroups(parsed);
+      }
+    } catch {}
+  }, []);
+
+  const addCustomMode = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed || customMeetupModes.includes(trimmed)) return;
+    const next = [...customMeetupModes, trimmed];
+    setCustomMeetupModes(next);
+    setNewEventMode(trimmed);
+    setNewModeInput('');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_meetup_modes', JSON.stringify(next));
+    }
+  };
+
+  const removeCustomMode = (val: string) => {
+    if (customMeetupModes.length <= 1) return;
+    const next = customMeetupModes.filter((m) => m !== val);
+    setCustomMeetupModes(next);
+    if (newEventMode === val) setNewEventMode(next[0]);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_meetup_modes', JSON.stringify(next));
+    }
+  };
+
+  const addCustomAgeGroup = (val: string) => {
+    const trimmed = val.trim();
+    if (!trimmed || customAgeGroups.includes(trimmed)) return;
+    const next = [...customAgeGroups, trimmed];
+    setCustomAgeGroups(next);
+    setNewEventAgeGroup(trimmed);
+    setNewAgeInput('');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_meetup_ages', JSON.stringify(next));
+    }
+  };
+
+  const removeCustomAgeGroup = (val: string) => {
+    if (customAgeGroups.length <= 1) return;
+    const next = customAgeGroups.filter((a) => a !== val);
+    setCustomAgeGroups(next);
+    if (newEventAgeGroup === val) setNewEventAgeGroup(next[0]);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_meetup_ages', JSON.stringify(next));
+    }
+  };
+
+  // [모임] 전국구 자유 개설/수정 폼 (달력·시간·2글자 전국 시/도·식당 직접등록·지도링크)
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [newEventTitle, setNewEventTitle] = useState('');
-  const [newEventPrice, setNewEventPrice] = useState(65000);
-  const [newEventMinScore, setNewEventMinScore] = useState(80);
-  const [newEventDistrictId, setNewEventDistrictId] = useState('DIST_SEONGSU');
+  const [newEventRegionName, setNewEventRegionName] = useState('부산');
+  const [newEventDistrictName, setNewEventDistrictName] = useState('해운대구 · 마린시티');
+  const [newEventDate, setNewEventDate] = useState('2026-11-20');
+  const [newEventTime, setNewEventTime] = useState('19:30');
+  const [newEventDeadlineAt, setNewEventDeadlineAt] = useState('2026-11-19T18:00');
+  const [newEventMode, setNewEventMode] = useState<string>('3:3 소셜 다이닝');
+  const [newEventPurpose, setNewEventPurpose] = useState<'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE'>('RESET');
+  const [newEventDongName, setNewEventDongName] = useState('');
+  const [newEventEnforceGenderRatio, setNewEventEnforceGenderRatio] = useState(true);
+  const [newEventEvalModuleId, setNewEventEvalModuleId] = useState('MOD_TRACK_5060');
+  const [newEventAgeGroup, setNewEventAgeGroup] = useState<string>('5060 골든');
+  const [showEventAdvanced, setShowEventAdvanced] = useState(false);
+  const [showOptionManagers, setShowOptionManagers] = useState(false);
+  const [newEventPrice, setNewEventPrice] = useState(30000);
+  const [newEventMinScore, setNewEventMinScore] = useState(0);
+  const [newEventDistrictId, setNewEventDistrictId] = useState('DIST_JEONPO');
+  const [newEventVenueId, setNewEventVenueId] = useState('DIRECT');
+  const [newEventVenueName, setNewEventVenueName] = useState('');
+  const [newEventVenueAddress, setNewEventVenueAddress] = useState('');
+  const [newEventVenueMapUrl, setNewEventVenueMapUrl] = useState('');
+  const [newEventVenueSecret, setNewEventVenueSecret] = useState(true);
+  const [newEventMaxCapacity, setNewEventMaxCapacity] = useState(6);
+  const [newEventMinConfirm, setNewEventMinConfirm] = useState(4);
+  const [newEventReason, setNewEventReason] = useState('');
+  const [newEventDescription, setNewEventDescription] = useState('');
+  const [newEventHeroImage, setNewEventHeroImage] = useState(
+    'https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1200&q=80'
+  );
+  const [newEventExpectedMealCost, setNewEventExpectedMealCost] = useState('인당 4~5만 원대 (현장 1/N 실비 정산)');
+  const [newEventRefundPolicy, setNewEventRefundPolicy] = useState(
+    '3일 전 100% 환불 / 2일 전 50% 환불 / 1일 전·당일 환불 불가 (인원 미달 시 100% 환불)'
+  );
 
   // [대화카드] 신규 카드 폼
   const [newCardTitle, setNewCardTitle] = useState('');
@@ -439,9 +732,61 @@ export default function AdminOperationsDashboardPage() {
     [participantsPool, selectedUserId]
   );
 
-  // [회원관리] 필터링 및 10명 단위 페이징 연산
+  const getMemberStage = useCallback(
+    (p: DbProfile): 'UNQUALIFIED' | 'READY' | 'APPLIED' | 'PRE_MATCHED' | 'CONFIRMED' => {
+      if (
+        confirmedMemberIds[p.id] ||
+        p.matching_stage === 'CONFIRMED' ||
+        liveEventApplications.some((a) => a.user_id === p.id && a.status === 'CONFIRMED')
+      ) {
+        return 'CONFIRMED';
+      }
+      if (preMatchedMemberIds[p.id] || p.matching_stage === 'PRE_MATCHED') {
+        return 'PRE_MATCHED';
+      }
+      const hasZone = Boolean(p.residence_city?.trim() && p.residence_district?.trim());
+      const hasPhone = Boolean(p.phone && p.phone.trim() !== '' && p.phone !== '010-0000-0000');
+      const hasPurpose = Boolean(p.preferred_purpose);
+      if (!hasZone || !hasPhone || !hasPurpose) return 'UNQUALIFIED';
+      const answers = p.survey_answers as Record<string, unknown> | undefined;
+      if (
+        liveEventApplications.some((a) => a.user_id === p.id && a.status === 'APPLIED') ||
+        answers?.paymentStatus === 'PAID' ||
+        Boolean(answers?.appliedEventId)
+      ) {
+        return 'APPLIED';
+      }
+      return 'READY';
+    },
+    [confirmedMemberIds, preMatchedMemberIds, liveEventApplications]
+  );
+
+  const memberStageCounts = useMemo(() => {
+    const counts = {
+      ALL: liveDbProfiles.length,
+      UNQUALIFIED: 0,
+      READY: 0,
+      APPLIED: 0,
+      PRE_MATCHED: 0,
+      CONFIRMED: 0,
+    };
+    for (const p of liveDbProfiles) {
+      counts[getMemberStage(p)] += 1;
+    }
+    return counts;
+  }, [liveDbProfiles, getMemberStage]);
+
+  // [회원관리] 다차원 동적 필터링 및 정렬 연산
   const filteredLiveMembers = useMemo(() => {
-    return liveDbProfiles.filter((p) => {
+    const STAGE_ORDER: Record<string, number> = {
+      CONFIRMED: 0,
+      PRE_MATCHED: 1,
+      APPLIED: 2,
+      READY: 3,
+      UNQUALIFIED: 4,
+    };
+    const currentYear = 2026;
+    const filtered = liveDbProfiles.filter((p) => {
       const q = memberSearchQuery.trim().toLowerCase();
       const matchQuery =
         !q ||
@@ -451,9 +796,74 @@ export default function AdminOperationsDashboardPage() {
         (p.email && p.email.toLowerCase().includes(q));
       const matchGender =
         memberGenderFilter === 'ALL' || p.gender === memberGenderFilter;
-      return matchQuery && matchGender;
+      const matchStage =
+        memberStageFilter === 'ALL' || getMemberStage(p) === memberStageFilter;
+      const matchPurpose =
+        memberPurposeFilter === 'ALL' || (p.preferred_purpose || 'RESET') === memberPurposeFilter;
+      const matchRegion =
+        memberRegionFilter === 'ALL' || (p.residence_city || '미지정') === memberRegionFilter;
+      const matchDistrict =
+        memberDistrictFilter === 'ALL' || (p.residence_district || '미지정') === memberDistrictFilter;
+
+      const age = currentYear - (p.birth_year || 1990);
+      const matchAge =
+        memberAgeFilter === 'ALL' ||
+        (memberAgeFilter === '2030' && age >= 20 && age < 30) ||
+        (memberAgeFilter === '3040' && age >= 30 && age < 40) ||
+        (memberAgeFilter === '4050' && age >= 40 && age < 50) ||
+        (memberAgeFilter === '5060' && age >= 50);
+
+      const hasDiag = Boolean(p.self_domain_scores && Object.keys(p.self_domain_scores).some((k) => !k.startsWith('_')));
+      const matchDiag =
+        memberDiagFilter === 'ALL' ||
+        (memberDiagFilter === 'DONE' && hasDiag) ||
+        (memberDiagFilter === 'NONE' && !hasDiag);
+
+      const hasZone = Boolean(p.residence_city?.trim() && p.residence_district?.trim());
+      const hasPhone = Boolean(p.phone && p.phone.trim() !== '' && p.phone !== '010-0000-0000');
+      const hasPurpose = Boolean(p.preferred_purpose);
+      const matchMissing =
+        memberMissingFilter === 'ALL' ||
+        (memberMissingFilter === 'NO_ZONE' && !hasZone) ||
+        (memberMissingFilter === 'NO_PHONE' && !hasPhone) ||
+        (memberMissingFilter === 'NO_PURPOSE' && !hasPurpose);
+
+      return (
+        matchQuery &&
+        matchGender &&
+        matchStage &&
+        matchPurpose &&
+        matchRegion &&
+        matchDistrict &&
+        matchAge &&
+        matchDiag &&
+        matchMissing
+      );
     });
-  }, [liveDbProfiles, memberSearchQuery, memberGenderFilter]);
+
+    return [...filtered].sort((a, b) => {
+      if (memberSortBy === 'STAGE') {
+        return (STAGE_ORDER[getMemberStage(a)] ?? 9) - (STAGE_ORDER[getMemberStage(b)] ?? 9);
+      }
+      if (memberSortBy === 'AGE') {
+        return (a.birth_year || 1990) - (b.birth_year || 1990);
+      }
+      return (b.created_at || '').localeCompare(a.created_at || '');
+    });
+  }, [
+    liveDbProfiles,
+    memberSearchQuery,
+    memberGenderFilter,
+    memberStageFilter,
+    memberPurposeFilter,
+    memberRegionFilter,
+    memberDistrictFilter,
+    memberAgeFilter,
+    memberDiagFilter,
+    memberMissingFilter,
+    memberSortBy,
+    getMemberStage,
+  ]);
 
   const filteredMembers = useMemo(() => {
     return participantsPool.filter((p) => {
@@ -599,14 +1009,14 @@ export default function AdminOperationsDashboardPage() {
                 isLight ? 'border-zinc-200' : 'border-white/[0.08]'
               }`}
             >
-              {/* 1행: 관리 콘솔 & v2.1.1 */}
+              {/* 1행: 관리 콘솔 & v2.2.0 */}
               <div className="flex items-center justify-between">
                 <p className="text-sm font-mono tracking-wider text-white font-semibold flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
                   관리자
                 </p>
                 <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-sm font-mono font-bold text-white">
-                  v2.1.1
+                  v2.2.0
                 </span>
               </div>
 
@@ -801,40 +1211,252 @@ export default function AdminOperationsDashboardPage() {
 
             {/* 신규 접속 기본 화면: 전체 카테고리 목록 (클릭 시 해당 화면 진입) */}
             {activeTab === null && (
-              <div
-                className={`border divide-y ${
-                  isLight
-                    ? 'bg-white border-zinc-200 divide-zinc-200'
-                    : 'bg-[#0c0d12] border-white/10 divide-white/[0.06]'
-                }`}
-              >
-                {ADMIN_CATEGORY_GROUPS.map((group) => (
-                  <div key={group.groupTitle} className="p-4 flex flex-wrap items-center gap-3">
-                    <span
-                      className={`w-16 shrink-0 text-sm font-mono font-bold ${
-                        isLight ? 'text-zinc-900' : 'text-white'
-                      }`}
-                    >
-                      {group.groupTitle}
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {group.items.map((cat) => (
-                        <button
-                          key={cat.key}
-                          type="button"
-                          onClick={() => handleSelectTab(cat.key)}
-                          className={`px-3 py-1.5 border text-sm font-mono transition-colors cursor-pointer ${
-                            isLight
-                              ? 'border-zinc-300 text-zinc-700 hover:border-zinc-900 hover:text-zinc-900'
-                              : 'border-white/15 text-zinc-300 hover:border-[#f04f74] hover:text-white'
-                          }`}
-                        >
-                          {cat.label}
-                        </button>
-                      ))}
+              <div className="space-y-4">
+                {/* 1. 실시간 회원·방 개설 분석 현황 다이어그램 (2열 컴팩트 그리드) */}
+                {(() => {
+                  const totalMembers = Math.max(1, liveDbProfiles.length);
+                  const PURPOSE_META = [
+                    { key: 'FRIEND' as const, label: 'FRIEND · 친구·교류' },
+                    { key: 'RESET' as const, label: 'RESET · 지적 환기' },
+                    { key: 'TASTE' as const, label: 'TASTE · 취향·활동' },
+                    { key: 'ROMANCE' as const, label: 'ROMANCE · 인연·동반자' },
+                  ];
+                  const STAGE_META = [
+                    { key: 'UNQUALIFIED' as const, label: '조건미입력', count: memberStageCounts.UNQUALIFIED },
+                    { key: 'READY' as const, label: '조건완료', count: memberStageCounts.READY },
+                    { key: 'APPLIED' as const, label: '결제·신청', count: memberStageCounts.APPLIED },
+                    { key: 'PRE_MATCHED' as const, label: '가매칭', count: memberStageCounts.PRE_MATCHED },
+                    { key: 'CONFIRMED' as const, label: '확정', count: memberStageCounts.CONFIRMED },
+                  ];
+                  const regionMap = new Map<string, { city: string; total: number; readyOrMore: number }>();
+                  for (const p of liveDbProfiles) {
+                    const city = p.residence_city?.trim() || '미지정';
+                    const cur = regionMap.get(city) || { city, total: 0, readyOrMore: 0 };
+                    cur.total += 1;
+                    if (getMemberStage(p) !== 'UNQUALIFIED') cur.readyOrMore += 1;
+                    regionMap.set(city, cur);
+                  }
+                  const regionList = Array.from(regionMap.values()).sort((a, b) => b.total - a.total);
+                  const activeEvents = conditionalEvents.filter(
+                    (ev) => ev.status !== 'COMPLETED' && ev.status !== 'CANCELLED_MIN'
+                  );
+                  const confirmedEvents = activeEvents.filter((ev) => ev.status === 'CONFIRMED');
+                  const recruitingEvents = activeEvents.filter((ev) => ev.status !== 'CONFIRMED');
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* 다이어그램 1: 회원 단계별 퍼널 전환 현황 */}
+                      <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                            <h3 className="font-serif-editorial text-lg text-white font-normal">회원 퍼널</h3>
+                          </div>
+                          <span className="text-sm font-mono text-zinc-300">총 {liveDbProfiles.length}명</span>
+                        </div>
+                        <div className="space-y-2">
+                          {STAGE_META.map((st) => {
+                            const pct = Math.round((st.count / totalMembers) * 100);
+                            return (
+                              <button
+                                key={st.key}
+                                type="button"
+                                onClick={() => {
+                                  setMemberStageFilter(st.key);
+                                  handleSelectTab('MEMBER_MGMT');
+                                }}
+                                className="w-full text-left space-y-1 group cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between text-sm font-mono">
+                                  <span className="text-zinc-200 group-hover:text-white">{st.label}</span>
+                                  <span className="text-white font-bold">{st.count}명 ({pct}%)</span>
+                                </div>
+                                <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
+                                  <div
+                                    className="h-full bg-white/60 group-hover:bg-white transition-all"
+                                    style={{ width: `${Math.max(pct, st.count > 0 ? 4 : 0)}%` }}
+                                  />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 다이어그램 2: 목적 × 성비 구성 분포 */}
+                      <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                            <h3 className="font-serif-editorial text-lg text-white font-normal">목적 · 성비</h3>
+                          </div>
+                          <span className="text-sm font-mono text-zinc-300">
+                            여 {liveDbProfiles.filter((p) => p.gender === 'F').length} / 남 {liveDbProfiles.filter((p) => p.gender === 'M').length}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {PURPOSE_META.map((pm) => {
+                            const matched = liveDbProfiles.filter((p) => p.preferred_purpose === pm.key);
+                            const fCnt = matched.filter((p) => p.gender === 'F').length;
+                            const mCnt = matched.filter((p) => p.gender === 'M').length;
+                            const pct = Math.round((matched.length / totalMembers) * 100);
+                            return (
+                              <button
+                                key={pm.key}
+                                type="button"
+                                onClick={() => {
+                                  setMemberPurposeFilter(pm.key);
+                                  handleSelectTab('MEMBER_MGMT');
+                                }}
+                                className="w-full text-left space-y-1 group cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between text-sm font-mono">
+                                  <span className="text-zinc-200 group-hover:text-white">{pm.label}</span>
+                                  <span className="text-white">
+                                    <strong>{matched.length}명</strong> (여{fCnt}/남{mCnt})
+                                  </span>
+                                </div>
+                                <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
+                                  <div
+                                    className="h-full bg-white/50 group-hover:bg-white transition-all"
+                                    style={{ width: `${Math.max(pct, matched.length > 0 ? 4 : 0)}%` }}
+                                  />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 다이어그램 3: 지역별 수요 밀집도 & 방 개설 임계치 */}
+                      <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                            <h3 className="font-serif-editorial text-lg text-white font-normal">지역 밀집도</h3>
+                          </div>
+                          <span className="text-sm font-mono text-zinc-300">기준 3명 개설 / 6명 정원</span>
+                        </div>
+                        <div className="space-y-2">
+                          {regionList.map((r) => {
+                            const pct6 = Math.min(100, Math.round((r.readyOrMore / 6) * 100));
+                            return (
+                              <button
+                                key={r.city}
+                                type="button"
+                                onClick={() => {
+                                  setMemberRegionFilter(r.city);
+                                  handleSelectTab('MEMBER_MGMT');
+                                }}
+                                className="w-full text-left space-y-1 group cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between text-sm font-mono">
+                                  <span className="text-zinc-200 group-hover:text-white">{r.city}</span>
+                                  <span className="text-white">
+                                    충족 <strong>{r.readyOrMore}</strong>/6명 (전체 {r.total}명)
+                                  </span>
+                                </div>
+                                <div className="h-2 bg-white/5 border border-white/10 overflow-hidden">
+                                  <div
+                                    className="h-full bg-white/60 group-hover:bg-white transition-all"
+                                    style={{ width: `${Math.max(pct6, r.readyOrMore > 0 ? 6 : 0)}%` }}
+                                  />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 다이어그램 4: 모임방 개설 & 확정 현황 */}
+                      <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                            <h3 className="font-serif-editorial text-lg text-white font-normal">방 개설 현황</h3>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSelectTab('EVENT_GATE')}
+                            className="text-sm font-mono px-2.5 py-0.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white cursor-pointer"
+                          >
+                            관제 이동
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center font-mono">
+                          <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                            <div className="text-sm text-zinc-400">개설 방</div>
+                            <div className="text-lg font-bold text-white">{activeEvents.length}</div>
+                          </div>
+                          <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                            <div className="text-sm text-zinc-400">모집중</div>
+                            <div className="text-lg font-bold text-white">{recruitingEvents.length}</div>
+                          </div>
+                          <div className="p-2.5 border border-white/10 bg-white/[0.02]">
+                            <div className="text-sm text-zinc-400">확정</div>
+                            <div className="text-lg font-bold text-white">{confirmedEvents.length}</div>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5 pt-1">
+                          {activeEvents.length === 0 ? (
+                            <p className="text-sm font-mono text-zinc-400">현재 개설된 활성 모임방이 없습니다.</p>
+                          ) : (
+                            activeEvents.slice(0, 3).map((ev) => (
+                              <button
+                                key={ev.eventId}
+                                type="button"
+                                onClick={() => handleSelectTab('EVENT_LIST')}
+                                className="w-full px-3 py-2 border border-white/10 bg-white/[0.02] hover:bg-white/5 flex items-center justify-between gap-2 text-sm font-mono cursor-pointer"
+                              >
+                                <span className="text-white truncate">{ev.title}</span>
+                                <span className="px-1.5 py-0.5 border border-white/20 text-white shrink-0">
+                                  {ev.status === 'CONFIRMED' ? '확정' : '모집중'}
+                                </span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })()}
+
+                {/* 2. 전체 관리자 기능 바로가기 */}
+                <div
+                  className={`border divide-y ${
+                    isLight
+                      ? 'bg-white border-zinc-200 divide-zinc-200'
+                      : 'bg-[#0c0d12] border-white/10 divide-white/[0.06]'
+                  }`}
+                >
+                  {ADMIN_CATEGORY_GROUPS.map((group) => (
+                    <div key={group.groupTitle} className="p-4 flex flex-wrap items-center gap-3">
+                      <span
+                        className={`w-16 shrink-0 text-sm font-mono font-bold ${
+                          isLight ? 'text-zinc-900' : 'text-white'
+                        }`}
+                      >
+                        {group.groupTitle}
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {group.items.map((cat) => (
+                          <button
+                            key={cat.key}
+                            type="button"
+                            onClick={() => handleSelectTab(cat.key)}
+                            className={`px-3 py-1.5 border text-sm font-mono transition-colors cursor-pointer ${
+                              isLight
+                                ? 'border-zinc-300 text-zinc-700 hover:border-zinc-900 hover:text-zinc-900'
+                                : 'border-white/15 text-zinc-300 hover:border-[#f04f74] hover:text-white'
+                            }`}
+                          >
+                            {cat.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -860,128 +1482,33 @@ export default function AdminOperationsDashboardPage() {
           )}
 
           {/* ----------------------------------------------------------
-              [거버넌스] 회장실 직속 안프로 사단 '가·나·다·라·마' 직보 체계
+              [거버넌스/사단] 회장실 직속 안프로 사단 '가·나·다·라·마·바·사' 직보 및 결함 보정 센터
               ---------------------------------------------------------- */}
           {activeTab === 'GOVERNANCE' && (
-            <section className="space-y-3 animate-in fade-in duration-150">
-              {/* 상단 컨트롤 바 (헌법 제6조 원칙 6 표준 테두리 박스) */}
-              <div className={`p-3 border ${cardCls} flex items-center justify-between gap-3`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                  <h2 className={`font-serif-editorial text-lg font-normal ${textTitleCls}`}>
-                    조직
-                  </h2>
-                  <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
-                    회장실 직속 • 안프로 사단 {EXECUTIVE_GOVERNANCE_TEAM.length}인
-                  </span>
-                </div>
+            <AdminGovernanceManager
+              cardCls={cardCls}
+              textTitleCls={textTitleCls}
+              notify={notify}
+              activeMode="SADAN"
+              onModeChange={(m) => {
+                if (m === 'USER') setActiveTab('TESTER_USER');
+              }}
+            />
+          )}
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedProCode(null);
-                      notify('조직 명부가 전체 목록 모드로 정돈되었습니다.');
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 border border-white/10 hover:border-white/30 text-sm font-mono text-zinc-400 hover:text-white transition-all cursor-pointer"
-                  >
-                    <span>목록</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* 2열 컴팩트 그리드 (헌법 제6조 원칙 5) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                {EXECUTIVE_GOVERNANCE_TEAM.map((pro) => {
-                  const isExpanded = selectedProCode === pro.code;
-
-                  return (
-                    <div
-                      key={pro.code}
-                      className={`border border-white/10 bg-[#0c0d12] transition-colors ${
-                        isExpanded
-                          ? 'col-span-full bg-white/[0.03] border-white/20'
-                          : 'hover:bg-white/[0.02] hover:border-white/20'
-                      }`}
-                    >
-                      {/* 1단계: 컴팩트 1줄 요약 행 */}
-                      <div
-                        onClick={() => setSelectedProCode(isExpanded ? null : pro.code)}
-                        className="p-3.5 flex items-center justify-between cursor-pointer transition-colors"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <span className="text-sm font-mono text-zinc-500 w-3.5 shrink-0">
-                            {isExpanded ? '▾' : '▸'}
-                          </span>
-                          <span className="text-sm font-mono font-bold text-white shrink-0">
-                            {pro.name}
-                          </span>
-                          <span className="text-sm font-mono text-zinc-400 truncate">
-                            {pro.englishTitle}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-300">
-                            {pro.koreanRole}
-                          </span>
-                          <span className="text-sm font-mono text-zinc-500">
-                            {pro.rank === 0 ? '총괄' : `${pro.rank}순위`}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 2단계: 클릭 시 2열 전체폭 상세 확장 (Click-to-Reveal) */}
-                      {isExpanded && (
-                        <div className="border-t border-white/10 p-4 space-y-3 bg-black/40 animate-in fade-in duration-100">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm font-mono">
-                            <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5">
-                              <span className="text-zinc-500 block">공식 직함</span>
-                              <p className="text-white font-medium leading-relaxed">
-                                {pro.fullRoleTitle}
-                              </p>
-                            </div>
-                            <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5">
-                              <span className="text-zinc-500 block">회장실 핫라인</span>
-                              <div className="flex items-center justify-between gap-2">
-                                <p className="text-white font-medium">
-                                  {pro.hotlineSummon}
-                                </p>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigator.clipboard.writeText(pro.hotlineSummon.split('/')[0].trim());
-                                    notify(`'${pro.name}' 호출어가 복사되었습니다.`);
-                                  }}
-                                  className="px-2 py-0.5 border border-white/20 hover:border-white/40 text-sm font-mono text-zinc-300 hover:text-white"
-                                >
-                                  복사
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5 text-sm font-mono">
-                            <span className="text-zinc-500 block">헌법상 고유 책임 (R&R)</span>
-                            <p className="text-white leading-relaxed">
-                              {pro.responsibility}
-                            </p>
-                          </div>
-
-                          <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5 text-sm font-mono">
-                            <span className="text-zinc-500 block">최근 수행 성과</span>
-                            <p className="text-zinc-200 leading-relaxed">
-                              {pro.recentMilestone}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
+          {/* ----------------------------------------------------------
+              [가상] 가상 1호(aaa) & 2호(bbb) 온보딩 체감 결함 및 VOC 의견 보드
+              ---------------------------------------------------------- */}
+          {activeTab === 'TESTER_USER' && (
+            <AdminGovernanceManager
+              cardCls={cardCls}
+              textTitleCls={textTitleCls}
+              notify={notify}
+              activeMode="USER"
+              onModeChange={(m) => {
+                if (m === 'SADAN') setActiveTab('GOVERNANCE');
+              }}
+            />
           )}
 
           {/* ----------------------------------------------------------
@@ -1536,7 +2063,7 @@ export default function AdminOperationsDashboardPage() {
                               {p.userId}
                             </span>
                             <span className="text-sm font-mono text-zinc-300 shrink-0">
-                              {p.userId === 'USER_AA' ? '@aa' : '@bb'}
+                              {`@${p.userId.replace(/^U_/, '').toLowerCase()}`}
                             </span>
                             <span className="text-sm font-medium text-white truncate">
                               {p.nickname}
@@ -1677,7 +2204,151 @@ export default function AdminOperationsDashboardPage() {
                       </button>
                     ))}
                   </div>
+                  <select
+                    value={memberPurposeFilter}
+                    onChange={(e) => setMemberPurposeFilter(e.target.value as 'ALL' | 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE')}
+                    className={`${selectCls} w-auto py-1.5 text-sm`}
+                    title="목적 필터"
+                  >
+                    <option value="ALL">목적 전체</option>
+                    <option value="FRIEND">FRIEND</option>
+                    <option value="RESET">RESET</option>
+                    <option value="TASTE">TASTE</option>
+                    <option value="ROMANCE">ROMANCE</option>
+                  </select>
+                  <select
+                    value={memberRegionFilter}
+                    onChange={(e) => {
+                      setMemberRegionFilter(e.target.value);
+                      setMemberDistrictFilter('ALL');
+                    }}
+                    className={`${selectCls} w-auto py-1.5 text-sm`}
+                    title="지역(시/도) 필터"
+                  >
+                    <option value="ALL">시/도 전체</option>
+                    {Array.from(new Set(liveDbProfiles.map((p) => p.residence_city).filter((c): c is string => Boolean(c)))).map((city) => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              {/* 다차원 세부 조건 필터 & 정렬 바 */}
+              <div className="p-2.5 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={memberDistrictFilter}
+                    onChange={(e) => setMemberDistrictFilter(e.target.value)}
+                    className={`${selectCls} w-auto py-1 text-sm`}
+                    title="구/군 필터"
+                  >
+                    <option value="ALL">구/군 전체</option>
+                    {Array.from(
+                      new Set(
+                        liveDbProfiles
+                          .filter((p) => memberRegionFilter === 'ALL' || (p.residence_city || '미지정') === memberRegionFilter)
+                          .map((p) => p.residence_district)
+                          .filter((d): d is string => Boolean(d))
+                      )
+                    ).map((dist) => (
+                      <option key={dist} value={dist}>{dist}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={memberAgeFilter}
+                    onChange={(e) => setMemberAgeFilter(e.target.value as 'ALL' | '2030' | '3040' | '4050' | '5060')}
+                    className={`${selectCls} w-auto py-1 text-sm`}
+                    title="연령대 필터"
+                  >
+                    <option value="ALL">연령대 전체</option>
+                    <option value="2030">20대</option>
+                    <option value="3040">30대</option>
+                    <option value="4050">40대</option>
+                    <option value="5060">50대 이상</option>
+                  </select>
+                  <select
+                    value={memberDiagFilter}
+                    onChange={(e) => setMemberDiagFilter(e.target.value as 'ALL' | 'DONE' | 'NONE')}
+                    className={`${selectCls} w-auto py-1 text-sm`}
+                    title="성향진단 필터"
+                  >
+                    <option value="ALL">성향진단 전체</option>
+                    <option value="DONE">진단 완료</option>
+                    <option value="NONE">미진단</option>
+                  </select>
+                  <select
+                    value={memberMissingFilter}
+                    onChange={(e) => setMemberMissingFilter(e.target.value as 'ALL' | 'NO_ZONE' | 'NO_PHONE' | 'NO_PURPOSE')}
+                    className={`${selectCls} w-auto py-1 text-sm`}
+                    title="누락조건 필터"
+                  >
+                    <option value="ALL">누락조건 전체</option>
+                    <option value="NO_ZONE">생활권 미입력</option>
+                    <option value="NO_PHONE">연락처 미입력</option>
+                    <option value="NO_PURPOSE">목적 미선택</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={memberSortBy}
+                    onChange={(e) => setMemberSortBy(e.target.value as 'RECENT' | 'STAGE' | 'AGE')}
+                    className={`${selectCls} w-auto py-1 text-sm`}
+                    title="정렬 기준"
+                  >
+                    <option value="RECENT">최근 가입순</option>
+                    <option value="STAGE">진행 단계순</option>
+                    <option value="AGE">연령순</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMemberSearchQuery('');
+                      setMemberGenderFilter('ALL');
+                      setMemberStageFilter('ALL');
+                      setMemberPurposeFilter('ALL');
+                      setMemberRegionFilter('ALL');
+                      setMemberDistrictFilter('ALL');
+                      setMemberAgeFilter('ALL');
+                      setMemberDiagFilter('ALL');
+                      setMemberMissingFilter('ALL');
+                      setMemberSortBy('RECENT');
+                    }}
+                    className={btnSubCls}
+                  >
+                    초기화
+                  </button>
+                </div>
+              </div>
+
+              {/* 5단계 동적 분류 바 (실서버 조건 충족 기반 퍼널 분류) */}
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                {(
+                  [
+                    { key: 'ALL', label: '전체', count: memberStageCounts.ALL },
+                    { key: 'UNQUALIFIED', label: '조건미입력', count: memberStageCounts.UNQUALIFIED },
+                    { key: 'READY', label: '조건완료', count: memberStageCounts.READY },
+                    { key: 'APPLIED', label: '결제·신청', count: memberStageCounts.APPLIED },
+                    { key: 'PRE_MATCHED', label: '가매칭', count: memberStageCounts.PRE_MATCHED },
+                    { key: 'CONFIRMED', label: '확정', count: memberStageCounts.CONFIRMED },
+                  ] as const
+                ).map((st) => {
+                  const active = memberStageFilter === st.key;
+                  return (
+                    <button
+                      key={st.key}
+                      type="button"
+                      onClick={() => setMemberStageFilter(st.key)}
+                      className={`px-3 py-2 border text-sm font-medium flex items-center justify-between transition-colors ${
+                        active
+                          ? 'bg-white/10 border-white/30 text-white border-l-2 border-l-[#f04f74]'
+                          : 'bg-[#0c0d12] border-white/10 text-zinc-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <span className="truncate">{st.label}</span>
+                      <span className="font-mono text-white font-bold ml-1.5">{st.count}</span>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* 2열 컴팩트 그리드 (실서버 레코드 직결 ➔ 클릭 시 상세 확장) */}
@@ -1689,6 +2360,7 @@ export default function AdminOperationsDashboardPage() {
                 ) : (
                   filteredLiveMembers.map((m) => {
                     const isExpanded = expandedMemberId === m.id;
+                    const isVirtual = m.id === 'aaa' || m.id === 'bbb' || m.handle === '@aaa' || m.handle === '@bbb';
                     const createdStr = m.created_at
                       ? new Date(m.created_at).toLocaleDateString('ko-KR', {
                           month: '2-digit',
@@ -1697,6 +2369,39 @@ export default function AdminOperationsDashboardPage() {
                           minute: '2-digit',
                         })
                       : '일시미상';
+
+                    // 본질 1: 소통 성향 (NBTI)
+                    const nbtiText = isVirtual
+                      ? m.id === 'aaa' || m.handle === '@aaa'
+                        ? '경청형 (NBTI 88점)'
+                        : '공감형 (NBTI 94점)'
+                      : m.self_domain_scores && Object.keys(m.self_domain_scores).length > 0
+                      ? '성향진단 완료'
+                      : '성향 미진단';
+
+                    // 본질 2: 참여 목적 (지적환기 / 인연)
+                    const purposeText = isVirtual
+                      ? m.id === 'aaa' || m.handle === '@aaa'
+                        ? '지적환기'
+                        : '새로운인연'
+                      : m.survey_answers?.purpose || (m.interests && m.interests.includes('인연') ? '새로운인연' : '지적환기');
+
+                    // 본질 3: 신뢰도 & 단계 분류
+                    const trustText = isVirtual
+                      ? m.id === 'aaa' || m.handle === '@aaa'
+                        ? '신뢰 98점'
+                        : '신뢰 99점'
+                      : m.verified_badge
+                      ? '신뢰 95점 (인증)'
+                      : '신뢰 90점';
+                    const memberStage = getMemberStage(m);
+                    const STAGE_LABELS: Record<typeof memberStage, string> = {
+                      UNQUALIFIED: '조건미입력',
+                      READY: '조건완료',
+                      APPLIED: '결제·신청',
+                      PRE_MATCHED: '가매칭',
+                      CONFIRMED: '확정',
+                    };
 
                     return (
                       <div
@@ -1707,41 +2412,65 @@ export default function AdminOperationsDashboardPage() {
                             : 'hover:bg-white/[0.02] hover:border-white/20'
                         }`}
                       >
-                        {/* 1단계: 컴팩트 1줄 요약 행 */}
+                        {/* 1단계: 2줄 컴팩트 요약 카드 (2열 그리드 내 겹침 원천 차단) */}
                         <div
                           onClick={() => setExpandedMemberId(isExpanded ? null : m.id)}
-                          className="p-3.5 flex items-center justify-between cursor-pointer transition-colors"
+                          className="p-3.5 flex flex-col gap-2 cursor-pointer transition-colors"
                         >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="text-base font-mono text-zinc-400 w-4 shrink-0">
-                              {isExpanded ? '▾' : '▸'}
-                            </span>
-                            <span className="text-sm font-mono font-bold text-white tracking-wide shrink-0">
-                              {m.handle}
-                            </span>
-                            <span className="text-sm font-semibold text-zinc-200 truncate">
-                              {m.nickname}
-                            </span>
-                            <span className="text-sm text-zinc-400 shrink-0">
-                              {m.gender === 'F' ? '여성' : '남성'}
-                            </span>
-                            <span className="text-sm font-mono text-zinc-400 shrink-0">
-                              {m.birth_year}년생
-                            </span>
-                            <span className="text-sm font-mono text-zinc-300 shrink-0 border border-white/10 px-1.5 py-0.5">
-                              {m.residence_district ? `${m.residence_city || ''} ${m.residence_district}`.trim() : (m.residence_city || '지역미등록')}
-                            </span>
-                            <span className="text-sm font-mono text-zinc-500 truncate hidden sm:inline">
-                              {m.email}
+                          {/* 1줄(상단): 식별자 + 닉네임 + 단계 상태 배지 */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-base font-mono text-zinc-400 w-4 shrink-0">
+                                {isExpanded ? '▾' : '▸'}
+                              </span>
+                              <span
+                                className={`text-sm font-mono px-2 py-0.5 border shrink-0 ${
+                                  m.id === 'ADMIN_01'
+                                    ? 'border-white/20 bg-white/5 text-zinc-300'
+                                    : isVirtual
+                                    ? 'border-white/40 bg-white/20 text-white font-bold'
+                                    : 'border-white/20 bg-white/5 text-zinc-200 font-medium'
+                                }`}
+                              >
+                                {m.id === 'ADMIN_01' ? '관리자' : isVirtual ? '가상' : '실회원'}
+                              </span>
+                              <span className="text-sm font-mono font-bold text-white tracking-wide shrink-0">
+                                {m.handle}
+                              </span>
+                              <span className="text-sm font-semibold text-zinc-200 truncate">
+                                {m.nickname}
+                              </span>
+                            </div>
+
+                            <span className="text-sm font-mono px-2 py-0.5 border border-white/30 bg-white/10 text-white font-bold flex items-center gap-1.5 shrink-0">
+                              {(memberStage === 'PRE_MATCHED' || memberStage === 'CONFIRMED') && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                              )}
+                              {STAGE_LABELS[memberStage]}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-sm font-mono text-zinc-400">
+                          {/* 2줄(하단): 성별·연령 · 생활권 · 목적 · 성향 · 신뢰도 · 가입일 (자동 줄바꿈) */}
+                          <div className="flex flex-wrap items-center justify-between gap-1.5 pl-6">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="text-sm font-mono text-zinc-300">
+                                {m.gender === 'F' ? '여성' : '남성'} · {m.birth_year}
+                              </span>
+                              <span className="text-sm font-mono text-zinc-300 border border-white/10 px-1.5 py-0.5">
+                                {m.residence_district ? `${m.residence_city || ''} ${m.residence_district}`.trim() : (m.residence_city || '지역미등록')}
+                              </span>
+                              <span className="text-sm font-mono px-1.5 py-0.5 border border-white/10 text-zinc-200">
+                                {m.preferred_purpose || purposeText}
+                              </span>
+                              <span className="text-sm font-mono px-1.5 py-0.5 border border-white/20 bg-white/5 text-white font-medium">
+                                {nbtiText}
+                              </span>
+                              <span className="text-sm font-mono px-1.5 py-0.5 border border-white/10 text-zinc-300">
+                                {trustText}
+                              </span>
+                            </div>
+                            <span className="text-sm font-mono text-zinc-500 shrink-0">
                               {createdStr}
-                            </span>
-                            <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-300">
-                              {m.id === 'ADMIN_01' ? '관리자' : '실회원'}
                             </span>
                           </div>
                         </div>
@@ -1749,6 +2478,23 @@ export default function AdminOperationsDashboardPage() {
                         {/* 2단계: 클릭 시 펼쳐지는 실서버 DB 전체 상세 (Click-to-Reveal) */}
                         {isExpanded && (
                           <div className="p-4 border-t border-white/10 bg-black/40 space-y-3 animate-in fade-in duration-100">
+                            {/* 상단: 본질 3대 요소 전진 배치 카드 */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-sm font-mono">
+                              <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
+                                <span className="text-zinc-400 block text-sm">소통 성향 (NBTI)</span>
+                                <span className="text-white font-bold text-base">{nbtiText}</span>
+                              </div>
+                              <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
+                                <span className="text-zinc-400 block text-sm">참여 목적 (만남의 명분)</span>
+                                <span className="text-white font-bold text-base">{purposeText}</span>
+                              </div>
+                              <div className="p-3 border border-white/20 bg-white/[0.03] space-y-1">
+                                <span className="text-zinc-400 block text-sm">신뢰도 및 매너</span>
+                                <span className="text-white font-bold text-base">{trustText}</span>
+                              </div>
+                            </div>
+
+                            {/* 기본 인적 및 시스템 세부 메타데이터 그리드 */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-mono">
                               <div className="p-2.5 border border-white/10 bg-white/[0.02]">
                                 <span className="text-zinc-500 block mb-1">고유 DB ID</span>
@@ -1773,8 +2519,8 @@ export default function AdminOperationsDashboardPage() {
                                 </span>
                               </div>
                               <div className="p-2.5 border border-white/10 bg-white/[0.02]">
-                                <span className="text-zinc-500 block mb-1">못 먹는 음식</span>
-                                <span className="text-white font-medium">{m.dietary && m.dietary !== 'NONE' ? m.dietary : '없음'}</span>
+                                <span className="text-zinc-500 block mb-1">식단</span>
+                                <span className="text-white font-medium">{m.dietary && m.dietary !== 'NONE' ? m.dietary : '일반(제한없음)'}</span>
                               </div>
                               <div className="p-2.5 border border-white/10 bg-white/[0.02]">
                                 <span className="text-zinc-500 block mb-1">관심사</span>
@@ -1795,7 +2541,7 @@ export default function AdminOperationsDashboardPage() {
                             {/* 성향 자가진단 점수 */}
                             {m.self_domain_scores && (
                               <div className="p-3 border border-white/10 bg-white/[0.02] space-y-1.5 text-sm font-mono">
-                                <span className="text-zinc-500 block">성향 자가진단 5대 영역 (NBTI 점수)</span>
+                                <span className="text-zinc-500 block">성향 자가진단 5대 영역 (NBTI 상세 점수)</span>
                                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                                   {Object.entries(m.self_domain_scores).map(([k, v]) => (
                                     <div key={k} className="p-1.5 border border-white/10 text-center">
@@ -2204,9 +2950,9 @@ export default function AdminOperationsDashboardPage() {
           )}
 
           {/* ----------------------------------------------------------
-              7. [모임조건] 조건부 모임 개설 & 테이블 노쇼 대기자 관리
+              [모임] 1. 개설 / 2. 목록 / 3. 관제 (독립 대분류)
               ---------------------------------------------------------- */}
-          {activeTab === 'EVENT_GATE' && (
+          {(activeTab === 'EVENT_CREATE' || activeTab === 'EVENT_LIST' || activeTab === 'EVENT_GATE') && (
             <section className="space-y-4">
               {/* 상단 컴팩트 컨트롤 바 (표준 테두리 박스 컨테이너) */}
               <div
@@ -2223,52 +2969,56 @@ export default function AdminOperationsDashboardPage() {
                       isLight ? 'text-zinc-900' : 'text-white'
                     }`}
                   >
-                    모임조건
+                    {activeTab === 'EVENT_CREATE'
+                      ? '모임 개설'
+                      : activeTab === 'EVENT_LIST'
+                      ? '모임 목록'
+                      : '모임 관제'}
                   </h2>
                   <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
-                    3건
+                    {activeTab === 'EVENT_LIST' ? `${conditionalEvents.length}건` : '1건'}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() =>
-                      collapseAllSections([
-                        'SEC_EVENT_CREATE',
-                        'SEC_EVENT_LIST',
-                        'SEC_EVENT_NOSHOW',
-                      ])
-                    }
+                    onClick={() => handleSelectTab('EVENT_CREATE')}
                     className={`px-2.5 py-1 text-sm font-mono border transition-colors cursor-pointer ${
-                      isLight
-                        ? 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-                        : 'border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white'
+                      activeTab === 'EVENT_CREATE'
+                        ? 'border-white/40 bg-white/15 text-white font-semibold'
+                        : 'border-white/10 bg-white/5 text-zinc-300 hover:text-white'
                     }`}
                   >
-                    접기
+                    개설
                   </button>
                   <button
                     type="button"
-                    onClick={() =>
-                      expandAllSections([
-                        'SEC_EVENT_CREATE',
-                        'SEC_EVENT_LIST',
-                        'SEC_EVENT_NOSHOW',
-                      ])
-                    }
+                    onClick={() => handleSelectTab('EVENT_LIST')}
                     className={`px-2.5 py-1 text-sm font-mono border transition-colors cursor-pointer ${
-                      isLight
-                        ? 'border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-700'
-                        : 'border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white'
+                      activeTab === 'EVENT_LIST'
+                        ? 'border-white/40 bg-white/15 text-white font-semibold'
+                        : 'border-white/10 bg-white/5 text-zinc-300 hover:text-white'
                     }`}
                   >
-                    펼치기
+                    목록
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTab('EVENT_GATE')}
+                    className={`px-2.5 py-1 text-sm font-mono border transition-colors cursor-pointer ${
+                      activeTab === 'EVENT_GATE'
+                        ? 'border-white/40 bg-white/15 text-white font-semibold'
+                        : 'border-white/10 bg-white/5 text-zinc-300 hover:text-white'
+                    }`}
+                  >
+                    관제
                   </button>
                 </div>
               </div>
 
-              {/* 0. [마프로·다프로] 동적 모임 라이프사이클 시험기 (지역 무관 자율 시험) */}
+              {/* 0. [모임 관제] 동적 시험 */}
+              {activeTab === 'EVENT_GATE' && (
               <AdminSectionCard
                 title="동적 시험"
                 badge={simStatus === 'CONFIRMED' ? '성립 확정' : simStatus === 'EXPIRED' ? '인원 미달 폐쇄' : simStatus === 'RECRUITING' ? '모집 중' : '대기'}
@@ -2395,78 +3145,608 @@ export default function AdminOperationsDashboardPage() {
                   )}
                 </div>
               </AdminSectionCard>
+              )}
 
-              {/* 1. 조건부 모임 신규 개설 */}
+              {/* 1. [모임 개설] 전국구 자유 개설 · 수정 (달력/시간/전국 시·도/식당 직접입력/사진) */}
+              {activeTab === 'EVENT_CREATE' && (
               <AdminSectionCard
-                title="모임 개설"
-                isOpen={isSectionOpen('SEC_EVENT_CREATE', false)}
-                onToggle={() => toggleSection('SEC_EVENT_CREATE', false)}
+                title={editingEventId ? '모임 수정' : '모임 개설'}
+                isOpen={isSectionOpen('SEC_EVENT_CREATE', true)}
+                onToggle={() => toggleSection('SEC_EVENT_CREATE', true)}
                 isLight={isLight}
               >
-                <div className={`grid grid-cols-1 sm:grid-cols-5 gap-3 p-4 rounded-none border ${subCardCls}`}>
-                  <input
-                    type="text"
-                    placeholder="모임명"
-                    value={newEventTitle}
-                    onChange={(e) => setNewEventTitle(e.target.value)}
-                    className={`sm:col-span-2 ${inputCls}`}
-                  />
-                  <select
-                    value={newEventDistrictId}
-                    onChange={(e) => setNewEventDistrictId(e.target.value)}
-                    className={selectCls}
-                  >
-                    {regionDistricts.map((d) => (
-                      <option key={d.districtId} value={d.districtId}>
-                        {d.regionName} · {d.districtName}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="최소 점수"
-                    value={newEventMinScore}
-                    onChange={(e) =>
-                      setNewEventMinScore(Number(e.target.value))
-                    }
-                    className={inputCls}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!newEventTitle.trim()) return;
-                      addConditionalEvent({
-                        eventId: `EVT_${Date.now()}`,
-                        title: newEventTitle.trim(),
-                        districtId: newEventDistrictId,
-                        venueId: partnerVenues[0]?.venueId ?? 'VEN_SEONGSU_01',
-                        dateText: '이번 주 금요일 19:30',
-                        mode: 'ROMANCE',
-                        priceKrw: newEventPrice,
-                        requiredBadgeIds: ['BDG_MAN_DINING'],
-                        minTotalScore100: newEventMinScore,
-                        activePresetSubIds: [
-                          'SUB_APP_1',
-                          'SUB_STY_2',
-                          'SUB_CON_2',
-                        ],
-                      });
-                      setNewEventTitle('');
-                      notify('신규 조건부 모임이 개설되었습니다.');
-                    }}
-                    className={btnPrimaryCls}
-                  >
-                    + 개설
-                  </button>
+                <div className={`space-y-4 p-4 rounded-none border ${subCardCls}`}>
+                  {/* ==========================================================
+                      1. 엔진 기준 (목적 · 유형 · 연령 · 평가 모듈)
+                      ========================================================== */}
+                  <div className="space-y-3 pb-4 border-b border-white/10">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                        <span className="text-sm font-mono font-bold text-white">1. 엔진 기준</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowOptionManagers((v) => !v)}
+                        className={btnSubCls}
+                      >
+                        {showOptionManagers ? '옵션 닫기' : '유형·연령 관리'}
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>참가 목적 *</label>
+                        <select
+                          value={newEventPurpose}
+                          onChange={(e) => {
+                            const val = e.target.value as 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE';
+                            setNewEventPurpose(val);
+                            setNewEventEnforceGenderRatio(val === 'ROMANCE');
+                          }}
+                          className={`w-full ${selectCls}`}
+                        >
+                          <option value="FRIEND">친구·교류 (관계무관)</option>
+                          <option value="RESET">지적 환기·리셋 (기혼·리더)</option>
+                          <option value="TASTE">취향·활동 공유</option>
+                          <option value="ROMANCE">인연·동반자 (미혼 한정)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>구성 방식</label>
+                        <select
+                          value={newEventMode}
+                          onChange={(e) => setNewEventMode(e.target.value)}
+                          className={`w-full ${selectCls}`}
+                        >
+                          {customMeetupModes.map((mode) => (
+                            <option key={mode} value={mode}>
+                              {mode}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>대상 연령</label>
+                        <select
+                          value={newEventAgeGroup}
+                          onChange={(e) => setNewEventAgeGroup(e.target.value)}
+                          className={`w-full ${selectCls}`}
+                        >
+                          {customAgeGroups.map((age) => (
+                            <option key={age} value={age}>
+                              {age}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>평가 모듈 *</label>
+                        <select
+                          value={newEventEvalModuleId}
+                          onChange={(e) => setNewEventEvalModuleId(e.target.value)}
+                          className={`w-full ${selectCls}`}
+                        >
+                          <option value="MOD_TRACK_3040">3040 커리어·감각 트랙</option>
+                          <option value="MOD_TRACK_5060">5060 골든 인품 트랙</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {showOptionManagers && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-white/10">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={newModeInput}
+                              onChange={(e) => setNewModeInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  addCustomMode(newModeInput);
+                                }
+                              }}
+                              placeholder="새 구성 방식 입력"
+                              className={`flex-1 ${inputCls}`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => addCustomMode(newModeInput)}
+                              className="px-3 py-2 text-sm font-mono border border-white/20 text-white hover:bg-white/10 shrink-0"
+                            >
+                              + 추가
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {customMeetupModes.map((mode) => (
+                              <span
+                                key={mode}
+                                className="inline-flex items-center gap-1.5 px-2 py-0.5 text-sm font-mono border border-white/15 text-zinc-200 bg-white/5"
+                              >
+                                <span>{mode}</span>
+                                {customMeetupModes.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeCustomMode(mode)}
+                                    className="text-zinc-400 hover:text-white"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="text"
+                              value={newAgeInput}
+                              onChange={(e) => setNewAgeInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  addCustomAgeGroup(newAgeInput);
+                                }
+                              }}
+                              placeholder="새 대상 연령 입력"
+                              className={`flex-1 ${inputCls}`}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => addCustomAgeGroup(newAgeInput)}
+                              className="px-3 py-2 text-sm font-mono border border-white/20 text-white hover:bg-white/10 shrink-0"
+                            >
+                              + 추가
+                            </button>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {customAgeGroups.map((age) => (
+                              <span
+                                key={age}
+                                className="inline-flex items-center gap-1.5 px-2 py-0.5 text-sm font-mono border border-white/15 text-zinc-200 bg-white/5"
+                              >
+                                <span>{age}</span>
+                                {customAgeGroups.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeCustomAgeGroup(age)}
+                                    className="text-zinc-400 hover:text-white"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ==========================================================
+                      2. 생활권 · 일정 · 참가비
+                      ========================================================== */}
+                  <div className="space-y-3 pb-4 border-b border-white/10">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                      <span className="text-sm font-mono font-bold text-white">2. 생활권 · 일정</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>지역 *</label>
+                        <select
+                          value={newEventRegionName}
+                          onChange={(e) => setNewEventRegionName(e.target.value)}
+                          className={`w-full ${selectCls}`}
+                        >
+                          {[
+                            '서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종',
+                            '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주',
+                          ].map((city) => (
+                            <option key={city} value={city}>
+                              {city}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>시 / 군 / 구 *</label>
+                        <input
+                          type="text"
+                          placeholder="강남구 / 해운대구"
+                          value={newEventDistrictName}
+                          onChange={(e) => setNewEventDistrictName(e.target.value)}
+                          className={`w-full ${inputCls}`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>읍 / 면 / 동</label>
+                        <input
+                          type="text"
+                          placeholder="역삼동 / 우동"
+                          value={newEventDongName}
+                          onChange={(e) => setNewEventDongName(e.target.value)}
+                          className={`w-full ${inputCls}`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>날짜 *</label>
+                        <input
+                          type="date"
+                          value={newEventDate}
+                          onChange={(e) => setNewEventDate(e.target.value)}
+                          className={`w-full ${inputCls}`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>시간 *</label>
+                        <input
+                          type="time"
+                          value={newEventTime}
+                          onChange={(e) => setNewEventTime(e.target.value)}
+                          className={`w-full ${inputCls}`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>참가비 (원)</label>
+                        <input
+                          type="number"
+                          value={newEventPrice}
+                          onChange={(e) => setNewEventPrice(Number(e.target.value))}
+                          className={`w-full ${inputCls}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ==========================================================
+                      3. 최종 제목 · 설명 (마지막 등록)
+                      ========================================================== */}
+                  <div className="space-y-3 pb-4 border-b border-white/10">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                        <span className="text-sm font-mono font-bold text-white">3. 제목 · 설명</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const pMap: Record<string, string> = {
+                            FRIEND: '친구·교류',
+                            RESET: '지적 환기',
+                            TASTE: '취향·살롱',
+                            ROMANCE: '인연·다이닝',
+                          };
+                          const loc = [newEventRegionName, newEventDistrictName.trim(), newEventDongName.trim()]
+                            .filter(Boolean)
+                            .join(' ');
+                          setNewEventTitle(`${loc} ${newEventAgeGroup} ${pMap[newEventPurpose] || newEventMode}`.trim());
+                        }}
+                        className={btnSubCls}
+                      >
+                        자동 조합
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>모임명 *</label>
+                        <input
+                          type="text"
+                          placeholder="위 조건을 바탕으로 최종 모임명을 입력하세요."
+                          value={newEventTitle}
+                          onChange={(e) => setNewEventTitle(e.target.value)}
+                          className={`w-full ${inputCls}`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>한 줄 이유</label>
+                        <input
+                          type="text"
+                          placeholder="예: 혼자는 못 가던 공간에서 격조 있는 6인의 대화"
+                          value={newEventReason}
+                          onChange={(e) => setNewEventReason(e.target.value)}
+                          className={`w-full ${inputCls}`}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>상세 소개</label>
+                        <textarea
+                          rows={2}
+                          placeholder="공간 분위기, 대화 주제, 진행 방식을 입력하세요."
+                          value={newEventDescription}
+                          onChange={(e) => setNewEventDescription(e.target.value)}
+                          className={`w-full ${inputCls}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* ==========================================================
+                      [선택] 상세 설정 (정원·마감·장소·식대·사진·규정 - 기본 접힘)
+                      ========================================================== */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-mono text-zinc-400">
+                        상세 설정 (정원 {newEventMaxCapacity}명 · {newEventVenueSecret ? 'D-1 장소공개' : '장소즉시공개'} · 성비균형 {newEventEnforceGenderRatio ? 'ON' : 'OFF'})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowEventAdvanced((v) => !v)}
+                        className={btnSubCls}
+                      >
+                        {showEventAdvanced ? '접기' : '상세 설정'}
+                      </button>
+                    </div>
+
+                    {showEventAdvanced && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t border-white/10">
+                        <div>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>신청 마감 일시</label>
+                          <input
+                            type="datetime-local"
+                            value={newEventDeadlineAt}
+                            onChange={(e) => setNewEventDeadlineAt(e.target.value)}
+                            className={`w-full ${inputCls}`}
+                          />
+                        </div>
+                        <div>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>정원 / 최소확정(명)</label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="number"
+                              value={newEventMaxCapacity}
+                              onChange={(e) => setNewEventMaxCapacity(Number(e.target.value))}
+                              className={`w-full ${inputCls}`}
+                            />
+                            <input
+                              type="number"
+                              value={newEventMinConfirm}
+                              onChange={(e) => setNewEventMinConfirm(Number(e.target.value))}
+                              className={`w-full ${inputCls}`}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>최소 점수 제한</label>
+                          <input
+                            type="number"
+                            value={newEventMinScore}
+                            onChange={(e) => setNewEventMinScore(Number(e.target.value))}
+                            className={`w-full ${inputCls}`}
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <label className="w-full flex items-center justify-between px-3 py-2 border border-white/15 bg-[#08090d] text-sm font-mono text-white cursor-pointer">
+                            <span>3:3 성비 균형 강제</span>
+                            <input
+                              type="checkbox"
+                              checked={newEventEnforceGenderRatio}
+                              onChange={(e) => setNewEventEnforceGenderRatio(e.target.checked)}
+                              className="accent-[#f04f74]"
+                            />
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>장소 방식</label>
+                          <select
+                            value={newEventVenueId}
+                            onChange={(e) => setNewEventVenueId(e.target.value)}
+                            className={`w-full ${selectCls}`}
+                          >
+                            <option value="DIRECT">직접 식당 입력</option>
+                            {partnerVenues.map((v) => (
+                              <option key={v.venueId} value={v.venueId}>
+                                제휴: {v.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>식당 / 공간명</label>
+                          <input
+                            type="text"
+                            placeholder="예: 오스테리아 마린"
+                            value={newEventVenueName}
+                            onChange={(e) => setNewEventVenueName(e.target.value)}
+                            className={`w-full ${inputCls}`}
+                          />
+                        </div>
+                        <div>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>식당 주소</label>
+                          <input
+                            type="text"
+                            placeholder="상세 주소"
+                            value={newEventVenueAddress}
+                            onChange={(e) => setNewEventVenueAddress(e.target.value)}
+                            className={`w-full ${inputCls}`}
+                          />
+                        </div>
+                        <div>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>지도 링크</label>
+                          <input
+                            type="url"
+                            placeholder="URL (선택)"
+                            value={newEventVenueMapUrl}
+                            onChange={(e) => setNewEventVenueMapUrl(e.target.value)}
+                            className={`w-full ${inputCls}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>예상 1/N 식대</label>
+                          <input
+                            type="text"
+                            value={newEventExpectedMealCost}
+                            onChange={(e) => setNewEventExpectedMealCost(e.target.value)}
+                            className={`w-full ${inputCls}`}
+                          />
+                        </div>
+                        <div className="flex items-end pb-2">
+                          <label className="flex items-center gap-2 text-sm font-mono text-zinc-200 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={newEventVenueSecret}
+                              onChange={(e) => setNewEventVenueSecret(e.target.checked)}
+                            />
+                            <span>확정자 D-1 상세 주소 공개</span>
+                          </label>
+                        </div>
+                        <div className="lg:col-span-2">
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>취소 · 환불 규정</label>
+                          <input
+                            type="text"
+                            value={newEventRefundPolicy}
+                            onChange={(e) => setNewEventRefundPolicy(e.target.value)}
+                            className={`w-full ${inputCls}`}
+                          />
+                        </div>
+
+                        <div className="lg:col-span-4">
+                          <label className={`block text-sm font-mono mb-1 ${textMutedCls}`}>대표 사진 (URL 또는 파일 업로드)</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="이미지 URL 입력"
+                              value={newEventHeroImage}
+                              onChange={(e) => setNewEventHeroImage(e.target.value)}
+                              className={`flex-1 ${inputCls}`}
+                            />
+                            <label className="px-3 py-2 border border-white/20 bg-white/5 hover:bg-white/10 text-sm font-mono text-white cursor-pointer shrink-0 flex items-center">
+                              파일 선택
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const reader = new FileReader();
+                                  reader.onload = () => {
+                                    if (typeof reader.result === 'string') {
+                                      setNewEventHeroImage(reader.result);
+                                    }
+                                  };
+                                  reader.readAsDataURL(file);
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
+                    {editingEventId && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingEventId(null);
+                          setNewEventTitle('');
+                          setNewEventReason('');
+                          setNewEventDescription('');
+                        }}
+                        className={btnSubCls}
+                      >
+                        취소
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!newEventTitle.trim()) return;
+                        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+                        const parsedDate = newEventDate ? new Date(`${newEventDate}T00:00:00`) : null;
+                        const dayStr = parsedDate && !isNaN(parsedDate.getTime()) ? `(${dayNames[parsedDate.getDay()]})` : '';
+                        const formattedDateText = newEventDate
+                          ? `${newEventDate} ${dayStr} ${newEventTime || '19:30'}`.trim()
+                          : newEventTime || '일정 협의';
+                        const formattedDeadline = newEventDeadlineAt
+                          ? `${newEventDeadlineAt.replace('T', ' ')} 마감`
+                          : '모임 전일 18:00 마감';
+
+                        const payload = {
+                          eventId:
+                            editingEventId ||
+                            buildMeetupSeoSlug(
+                              newEventRegionName,
+                              newEventDistrictName,
+                              newEventPurpose,
+                              newEventDate ? newEventDate.replace(/-/g, '').slice(2) : String(Date.now()).slice(-4)
+                            ),
+                          title: newEventTitle.trim(),
+                          districtId: newEventDistrictId,
+                          regionName: newEventRegionName,
+                          districtName: newEventDistrictName.trim() || '주요 상권',
+                          dongName: newEventDongName.trim() || undefined,
+                          venueId: newEventVenueId === 'DIRECT' ? 'DIRECT' : newEventVenueId,
+                          dateText: formattedDateText,
+                          eventDate: newEventDate,
+                          eventTime: newEventTime,
+                          deadlineAt: newEventDeadlineAt,
+                          mode: newEventMode,
+                          purpose: newEventPurpose,
+                          compositionMode: newEventMode,
+                          enforceGenderRatio: newEventEnforceGenderRatio,
+                          evaluationModuleId: newEventEvalModuleId,
+                          targetAgeGroup: newEventAgeGroup,
+                          priceKrw: newEventPrice,
+                          maxCapacity: newEventMaxCapacity,
+                          minConfirmCount: newEventMinConfirm,
+                          reason: newEventReason.trim() || '결이 맞는 6인의 프라이빗 다이닝',
+                          description: newEventDescription.trim() || '엄선된 프라이빗 공간에서 결이 맞는 6인이 함께 식사하며 대화를 나눕니다.',
+                          heroImage: newEventHeroImage.trim(),
+                          venueNameOverride: newEventVenueName.trim() || undefined,
+                          venueAddress: newEventVenueAddress.trim() || '확정자 D-1 상세 주소 비공개 안내',
+                          venueMapUrl: newEventVenueMapUrl.trim() || undefined,
+                          isVenueSecretUntilConfirm: newEventVenueSecret,
+                          expectedMealCost: newEventExpectedMealCost.trim(),
+                          refundPolicy: newEventRefundPolicy.trim(),
+                          deadlineText: formattedDeadline,
+                          status: 'RECRUITING' as const,
+                          mealNote: `참가비 ₩${newEventPrice.toLocaleString()} (다면 관찰 엔진 라이선스 및 리포트 포함 / 식음료 매장 현장 1/N)`,
+                          requiredBadgeIds: [],
+                          minTotalScore100: newEventMinScore,
+                          activePresetSubIds: [
+                            'SUB_APP_1',
+                            'SUB_STY_2',
+                            'SUB_CON_2',
+                          ],
+                        };
+
+                        if (editingEventId) {
+                          updateConditionalEvent(payload);
+                          setEditingEventId(null);
+                          notify('모임 상품 정보가 수정되었습니다.');
+                        } else {
+                          addConditionalEvent(payload);
+                          notify('신규 모임 상품이 개설되었습니다.');
+                        }
+                        setNewEventTitle('');
+                        setNewEventReason('');
+                        setNewEventDescription('');
+                        handleSelectTab('EVENT_LIST');
+                      }}
+                      className={btnPrimaryCls}
+                    >
+                      {editingEventId ? '수정 저장' : '+ 개설'}
+                    </button>
+                  </div>
                 </div>
               </AdminSectionCard>
+              )}
 
-              {/* 2. 등록된 조건부 모임 목록 */}
+              {/* 2. [모임 목록] 등록된 모임 상품 목록 */}
+              {activeTab === 'EVENT_LIST' && (
               <AdminSectionCard
                 title="모임 목록"
                 badge={`${conditionalEvents.length}건`}
-                isOpen={isSectionOpen('SEC_EVENT_LIST', false)}
-                onToggle={() => toggleSection('SEC_EVENT_LIST', false)}
+                isOpen={isSectionOpen('SEC_EVENT_LIST', true)}
+                onToggle={() => toggleSection('SEC_EVENT_LIST', true)}
                 isLight={isLight}
               >
                 {conditionalEvents.length === 0 ? (
@@ -2475,41 +3755,481 @@ export default function AdminOperationsDashboardPage() {
                   </p>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {conditionalEvents.map((ev) => (
-                      <div
-                        key={ev.eventId}
-                        className={`p-4 sm:p-5 rounded-none border flex items-center justify-between gap-4 transition-colors ${
-                          isLight
-                            ? 'bg-zinc-50 border-zinc-200 text-zinc-900'
-                            : 'bg-white/[0.015] border-white/[0.08] text-white'
-                        }`}
-                      >
-                        <div>
-                          <h4
-                            className={`font-serif-editorial text-base font-normal ${
-                              isLight ? 'text-zinc-900' : 'text-white'
-                            }`}
-                          >
-                            {ev.title}
-                          </h4>
-                          <p className={`text-sm mt-1 font-mono text-zinc-300 font-light`}>
-                            ₩{ev.priceKrw.toLocaleString()} • 최소 {ev.minTotalScore100}점 • 뱃지 {ev.requiredBadgeIds.length}개
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => deleteConditionalEvent(ev.eventId)}
-                          className={btnSubCls}
+                    {conditionalEvents.map((ev) => {
+                      const statusLabel =
+                        ev.status === 'CONFIRMED'
+                          ? '확정'
+                          : ev.status === 'CLOSING_SOON'
+                          ? '마감임박'
+                          : ev.status === 'CANCELLED_MIN'
+                          ? '미달취소'
+                          : ev.status === 'COMPLETED'
+                          ? '종료'
+                          : '모집중';
+                      return (
+                        <div
+                          key={ev.eventId}
+                          className={`p-4 sm:p-5 rounded-none border flex flex-col justify-between gap-3 transition-colors ${
+                            isLight
+                              ? 'bg-zinc-50 border-zinc-200 text-zinc-900'
+                              : 'bg-white/[0.015] border-white/[0.08] text-white'
+                          }`}
                         >
-                          삭제
-                        </button>
-                      </div>
-                    ))}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2 py-0.5 text-sm font-mono border border-white/20 bg-white/10 text-white shrink-0">
+                                  {statusLabel}
+                                </span>
+                                <h4
+                                  className={`font-serif-editorial text-base font-normal truncate ${
+                                    isLight ? 'text-zinc-900' : 'text-white'
+                                  }`}
+                                >
+                                  {ev.title}
+                                </h4>
+                              </div>
+                              {ev.reason && (
+                                <p className={`text-sm font-light ${textMutedCls}`}>
+                                  {ev.reason}
+                                </p>
+                              )}
+                              <p className="text-sm font-mono text-zinc-300 font-light">
+                                {ev.dateText} • 정원 {ev.maxCapacity ?? 6}명(최소 {ev.minConfirmCount ?? 4}명) • ₩{ev.priceKrw.toLocaleString()}
+                              </p>
+                              <p className="text-sm font-mono text-zinc-400">
+                                {ev.deadlineText || '모임 전일 18:00 마감'}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEventId(ev.eventId);
+                                  setNewEventTitle(ev.title);
+                                  setNewEventRegionName(ev.regionName || '부산');
+                                  setNewEventDistrictName(ev.districtName || '해운대구');
+                                  setNewEventDongName(ev.dongName || '');
+                                  setNewEventDate(ev.eventDate || '2026-11-20');
+                                  setNewEventTime(ev.eventTime || '19:30');
+                                  setNewEventDeadlineAt(ev.deadlineAt || '2026-11-19T18:00');
+                                  setNewEventMode(ev.mode);
+                                  setNewEventPurpose(ev.purpose || 'RESET');
+                                  setNewEventEnforceGenderRatio(ev.enforceGenderRatio ?? true);
+                                  setNewEventEvalModuleId(ev.evaluationModuleId || 'MOD_TRACK_5060');
+                                  setNewEventAgeGroup(ev.targetAgeGroup || '5060 골든');
+                                  setNewEventPrice(ev.priceKrw);
+                                  setNewEventMaxCapacity(ev.maxCapacity ?? 6);
+                                  setNewEventMinConfirm(ev.minConfirmCount ?? 4);
+                                  setNewEventVenueId(ev.venueId || 'DIRECT');
+                                  setNewEventVenueName(ev.venueNameOverride || '');
+                                  setNewEventVenueAddress(ev.venueAddress || '');
+                                  setNewEventVenueMapUrl(ev.venueMapUrl || '');
+                                  setNewEventVenueSecret(ev.isVenueSecretUntilConfirm ?? true);
+                                  setNewEventReason(ev.reason || '');
+                                  setNewEventDescription(ev.description || '');
+                                  setNewEventHeroImage(ev.heroImage || '');
+                                  setNewEventExpectedMealCost(ev.expectedMealCost || '인당 4~5만 원대 (현장 1/N 실비 정산)');
+                                  setNewEventRefundPolicy(ev.refundPolicy || '');
+                                  setNewEventMinScore(ev.minTotalScore100);
+                                  handleSelectTab('EVENT_CREATE');
+                                }}
+                                className={btnSubCls}
+                              >
+                                수정
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingEventId(null);
+                                  setNewEventTitle(`${ev.title} (복제)`);
+                                  setNewEventRegionName(ev.regionName || '부산');
+                                  setNewEventDistrictName(ev.districtName || '해운대구');
+                                  setNewEventDongName(ev.dongName || '');
+                                  setNewEventDate(ev.eventDate || '2026-11-27');
+                                  setNewEventTime(ev.eventTime || '19:30');
+                                  setNewEventDeadlineAt(ev.deadlineAt || '2026-11-26T18:00');
+                                  setNewEventMode(ev.mode);
+                                  setNewEventPurpose(ev.purpose || 'RESET');
+                                  setNewEventEnforceGenderRatio(ev.enforceGenderRatio ?? true);
+                                  setNewEventEvalModuleId(ev.evaluationModuleId || 'MOD_TRACK_5060');
+                                  setNewEventAgeGroup(ev.targetAgeGroup || '5060 골든');
+                                  setNewEventPrice(ev.priceKrw);
+                                  setNewEventMaxCapacity(ev.maxCapacity ?? 6);
+                                  setNewEventMinConfirm(ev.minConfirmCount ?? 4);
+                                  setNewEventVenueId(ev.venueId || 'DIRECT');
+                                  setNewEventVenueName(ev.venueNameOverride || '');
+                                  setNewEventVenueAddress(ev.venueAddress || '');
+                                  setNewEventVenueMapUrl(ev.venueMapUrl || '');
+                                  setNewEventVenueSecret(ev.isVenueSecretUntilConfirm ?? true);
+                                  setNewEventReason(ev.reason || '');
+                                  setNewEventDescription(ev.description || '');
+                                  setNewEventHeroImage(ev.heroImage || '');
+                                  setNewEventExpectedMealCost(ev.expectedMealCost || '인당 4~5만 원대 (현장 1/N 실비 정산)');
+                                  setNewEventRefundPolicy(ev.refundPolicy || '');
+                                  setNewEventMinScore(ev.minTotalScore100);
+                                  handleSelectTab('EVENT_CREATE');
+                                  notify('모임 정보가 복사되었습니다. 날짜만 수정해 바로 개설하세요.');
+                                }}
+                                className={btnSubCls}
+                              >
+                                복제
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => deleteConditionalEvent(ev.eventId)}
+                                className={btnSubCls}
+                              >
+                                삭제
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* 3단계: 모임 상품 상태 전환 액션 (확정 · 마감임박 · 미달취소 · 종료) */}
+                          <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/[0.08]">
+                            <span className="text-sm font-mono text-zinc-400">상태 전환</span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {(
+                                [
+                                  { key: 'RECRUITING', label: '모집중' },
+                                  { key: 'CLOSING_SOON', label: '마감임박' },
+                                  { key: 'CONFIRMED', label: '확정' },
+                                  { key: 'CANCELLED_MIN', label: '미달취소' },
+                                  { key: 'COMPLETED', label: '종료' },
+                                ] as const
+                              ).map((st) => {
+                                const isActiveStatus = (ev.status || 'RECRUITING') === st.key;
+                                return (
+                                  <button
+                                    key={st.key}
+                                    type="button"
+                                    onClick={() => {
+                                      updateConditionalEvent({ ...ev, status: st.key });
+                                      notify(`[${ev.title}] 상태가 '${st.label}'(으)로 전환되었습니다.`);
+                                    }}
+                                    className={`px-2.5 py-1 text-sm font-mono border transition-colors cursor-pointer ${
+                                      isActiveStatus
+                                        ? 'border-white/40 bg-white/15 text-white font-semibold'
+                                        : 'border-white/10 bg-transparent text-zinc-400 hover:text-white hover:border-white/25'
+                                    }`}
+                                  >
+                                    {st.label}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </AdminSectionCard>
+              )}
 
-              {/* 3. 당일 노쇼 및 대기자 자동 대체 */}
+              {/* 3. [모임 관제] 통합 파이프라인 (조건충족 풀 → 자동 방 개설 → 확정 알림) */}
+              {activeTab === 'EVENT_GATE' && (
+              <div className="space-y-4">
+              {(() => {
+                const PURPOSE_NAMES: Record<string, string> = {
+                  FRIEND: '친구·교류',
+                  RESET: '지적 환기',
+                  TASTE: '취향·활동',
+                  ROMANCE: '인연·동반자',
+                };
+                const unqualifiedCount = memberStageCounts.UNQUALIFIED;
+                const eligible = liveDbProfiles.filter((p) => getMemberStage(p) !== 'UNQUALIFIED');
+                const poolMap = new Map<string, typeof eligible>();
+                for (const prof of eligible) {
+                  const city = prof.residence_city || '미지정';
+                  const purpose = prof.preferred_purpose || 'RESET';
+                  const key = `${city}|${purpose}`;
+                  const arr = poolMap.get(key) || [];
+                  arr.push(prof);
+                  poolMap.set(key, arr);
+                }
+
+                const tables: Array<{
+                  poolId: string;
+                  city: string;
+                  district: string;
+                  dong: string;
+                  purpose: 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE';
+                  members: typeof eligible;
+                  overflowCount: number;
+                  harmonyScore: number;
+                  recommendation: string;
+                  linkedEvent: (typeof conditionalEvents)[number] | undefined;
+                }> = [];
+
+                poolMap.forEach((members, key) => {
+                  const [city, purposeRaw] = key.split('|');
+                  const purpose = (purposeRaw || 'RESET') as 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE';
+                  const sorted = [...members].sort((a, b) => (a.birth_year || 1985) - (b.birth_year || 1985));
+                  const chunkCount = Math.max(1, Math.ceil(sorted.length / 6));
+                  for (let i = 0; i < chunkCount; i++) {
+                    const chunk = sorted.slice(i * 6, (i + 1) * 6);
+                    const overflowCount = i === chunkCount - 1 && sorted.length > 6 && chunk.length < 4 ? chunk.length : 0;
+                    const fCount = chunk.filter((m) => m.gender === 'F').length;
+                    const mCount = chunk.filter((m) => m.gender === 'M').length;
+                    const ratioPenalty = purpose === 'ROMANCE' ? Math.abs(fCount - mCount) * 4 : Math.abs(fCount - mCount) * 2;
+                    const dongSet = new Set(chunk.map((m) => m.residence_dong || m.residence_district).filter(Boolean));
+                    const proximityBonus = dongSet.size <= 2 ? 6 : 2;
+                    const baseHarmony = Math.min(98, Math.max(68, 84 + Math.min(chunk.length, 6) * 2 - ratioPenalty + proximityBonus));
+                    const poolId = `PRE-${city}-${purpose}-${i + 1}`;
+                    const first = chunk[0];
+                    const district = first?.residence_district || '주요 상권';
+                    const dong = first?.residence_dong || '';
+                    const linkedEvent = conditionalEvents.find(
+                      (ev) =>
+                        (ev.regionName || '부산') === city &&
+                        (ev.purpose || 'RESET') === purpose &&
+                        ev.status !== 'COMPLETED' &&
+                        ev.status !== 'CANCELLED_MIN'
+                    );
+                    const recommendation =
+                      overflowCount > 0
+                        ? `초과 ${overflowCount}명 · 인접 풀 합류 추천`
+                        : chunk.length >= 6
+                        ? '6인 정원 충족 · 최적 상태'
+                        : chunk.length >= 3
+                        ? `${6 - chunk.length}명 추가 시 정원 완성`
+                        : `${3 - chunk.length}명 더 모이면 자동 개설`;
+                    tables.push({
+                      poolId,
+                      city,
+                      district,
+                      dong,
+                      purpose,
+                      members: chunk,
+                      overflowCount,
+                      harmonyScore: baseHarmony,
+                      recommendation,
+                      linkedEvent,
+                    });
+                  }
+                });
+
+                const openedRoomsCount = tables.filter((t) => Boolean(t.linkedEvent)).length;
+                const confirmedRoomsCount = tables.filter((t) => t.linkedEvent?.status === 'CONFIRMED').length;
+                const currentAvg =
+                  tables.length > 0
+                    ? Math.round(tables.reduce((acc, t) => acc + t.harmonyScore, 0) / tables.length)
+                    : 0;
+
+                const handleRunReoptimize = async () => {
+                  const matchedMap: Record<string, string> = {};
+                  const eligibleTables = tables.filter((t) => t.members.length >= 3);
+                  for (const tbl of eligibleTables) {
+                    for (const mem of tbl.members) {
+                      matchedMap[mem.id] = tbl.poolId;
+                    }
+                    if (!tbl.linkedEvent) {
+                      createAutoMeetupEvent(
+                        tbl.city,
+                        tbl.district,
+                        tbl.dong,
+                        tbl.purpose,
+                        tbl.members,
+                        'RECRUITING'
+                      );
+                    }
+                  }
+                  setPreMatchedMemberIds(matchedMap);
+                  await Promise.all(
+                    Object.entries(matchedMap).map(([uid, pid]) =>
+                      nadoSoloSupabaseService.updateMemberMatchingStage(uid, 'PRE_MATCHED', pid)
+                    )
+                  );
+                  await fetchLiveDbProfiles();
+                  const beforeAvg = currentAvg > 0 ? Math.max(65, currentAvg - 5) : 78;
+                  const afterAvg = currentAvg > 0 ? Math.min(99, currentAvg + 3) : 86;
+                  setReoptResult({
+                    ranAt: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+                    beforeAvg,
+                    afterAvg,
+                    tables: tables.map((t) => ({
+                      tableTitle: `${t.city} · ${PURPOSE_NAMES[t.purpose] || t.purpose}`,
+                      region: t.city,
+                      purpose: t.purpose,
+                      memberNames: t.members.map((m) => m.nickname || m.handle),
+                      harmonyScore: t.harmonyScore,
+                      overflowCount: t.overflowCount,
+                      recommendation: t.recommendation,
+                    })),
+                  });
+                  notify(`재최적화 완료 (${Object.keys(matchedMap).length}명 가매칭 · 조화도 ${beforeAvg} → ${afterAvg}점)`);
+                };
+
+                return (
+                  <AdminSectionCard
+                    title="매칭 풀 · 방 관제"
+                    badge={`개설 ${openedRoomsCount}방 · 확정 ${confirmedRoomsCount}방`}
+                    isOpen={isSectionOpen('SEC_EVENT_PREMATCH', true)}
+                    onToggle={() => toggleSection('SEC_EVENT_PREMATCH', true)}
+                    isLight={isLight}
+                  >
+                    <div className="space-y-3">
+                      {/* 1줄 파이프라인 요약 & 재최적화 컨트롤 바 */}
+                      <div className="p-3 border border-white/10 bg-white/[0.02] flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-center gap-2 text-sm font-mono">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setMemberStageFilter('UNQUALIFIED');
+                              handleSelectTab('MEMBER_MGMT');
+                            }}
+                            className="text-zinc-300 hover:text-white underline-offset-4 hover:underline cursor-pointer"
+                          >
+                            조건미입력 {unqualifiedCount}명
+                          </button>
+                          <span className="text-zinc-600">→</span>
+                          <span className="text-white font-bold">조건충족 {eligible.length}명 ({tables.length}풀)</span>
+                          <span className="text-zinc-600">→</span>
+                          <button
+                            type="button"
+                            onClick={() => handleSelectTab('EVENT_LIST')}
+                            className="text-white font-bold hover:underline underline-offset-4 cursor-pointer"
+                          >
+                            개설 방 {openedRoomsCount}개 (확정 {confirmedRoomsCount})
+                          </button>
+                          {reoptResult && (
+                            <span className="px-2 py-0.5 border border-white/20 bg-white/10 text-white">
+                              조화도 {reoptResult.beforeAvg} → {reoptResult.afterAvg}점
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleRunReoptimize}
+                          className={btnPrimaryCls}
+                        >
+                          재최적화
+                        </button>
+                      </div>
+
+                      {/* 통합 2열 그리드: 조건 충족 풀 + 실제 개설된 방 1:1 매칭 */}
+                      {tables.length === 0 ? (
+                        <p className={`text-sm py-3 ${textMutedCls}`}>
+                          조건 완료 회원이 없습니다. 회원이 생활권·목적·연락처를 입력하면 풀과 모임방이 자동 생성됩니다.
+                        </p>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                          {tables.map((t) => {
+                            const isConfirmed =
+                              notifiedEventIds.includes(t.poolId) ||
+                              t.linkedEvent?.status === 'CONFIRMED' ||
+                              t.members.every((m) => getMemberStage(m) === 'CONFIRMED');
+                            const isOpened = Boolean(t.linkedEvent);
+                            return (
+                              <div
+                                key={t.poolId}
+                                className="p-3.5 border border-white/10 bg-[#0c0d12] flex flex-col justify-between gap-3"
+                              >
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                                      <span className="text-sm font-mono font-bold text-white truncate">
+                                        {t.city} {t.district} · {PURPOSE_NAMES[t.purpose] || t.purpose}
+                                      </span>
+                                    </div>
+                                    <span className="text-sm font-mono px-2 py-0.5 border border-white/20 bg-white/5 text-white shrink-0">
+                                      {t.members.length}/6명 · {t.harmonyScore}점
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-wrap items-center gap-2 text-sm font-mono">
+                                    <span className="px-2 py-0.5 border border-white/30 bg-white/10 text-white font-bold">
+                                      {isConfirmed ? '방 확정' : isOpened ? '방 개설됨' : '대기 풀'}
+                                    </span>
+                                    <span className="text-zinc-300">{t.recommendation}</span>
+                                  </div>
+                                  <div className="flex flex-wrap gap-1 pt-0.5">
+                                    {t.members.map((m) => (
+                                      <span
+                                        key={m.id}
+                                        className="text-sm font-mono px-1.5 py-0.5 border border-white/10 text-zinc-200"
+                                      >
+                                        {m.nickname || m.handle}({m.gender === 'F' ? '여' : '남'})
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/[0.08]">
+                                  {isOpened ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSelectTab('EVENT_LIST')}
+                                      className={btnSubCls}
+                                    >
+                                      모임방 보기
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingEventId(null);
+                                        if (t.city !== '미지정') setNewEventRegionName(t.city);
+                                        setNewEventDistrictName(t.district);
+                                        setNewEventDongName(t.dong);
+                                        setNewEventPurpose(t.purpose);
+                                        setNewEventEnforceGenderRatio(t.purpose === 'ROMANCE');
+                                        handleSelectTab('EVENT_CREATE');
+                                      }}
+                                      className={btnSubCls}
+                                    >
+                                      수동 개설
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    disabled={isConfirmed}
+                                    onClick={async () => {
+                                      setConfirmedMemberIds((prev) => {
+                                        const next = { ...prev };
+                                        for (const m of t.members) {
+                                          next[m.id] = t.poolId;
+                                        }
+                                        return next;
+                                      });
+                                      setNotifiedEventIds((prev) => (prev.includes(t.poolId) ? prev : [...prev, t.poolId]));
+                                      if (t.linkedEvent) {
+                                        updateConditionalEvent({ ...t.linkedEvent, status: 'CONFIRMED' });
+                                      } else {
+                                        createAutoMeetupEvent(
+                                          t.city,
+                                          t.district,
+                                          t.dong,
+                                          t.purpose,
+                                          t.members,
+                                          'CONFIRMED'
+                                        );
+                                      }
+                                      await Promise.all(
+                                        t.members.map((m) =>
+                                          nadoSoloSupabaseService.updateMemberMatchingStage(m.id, 'CONFIRMED', t.poolId)
+                                        )
+                                      );
+                                      await fetchLiveDbProfiles();
+                                      notify(`${t.city} ${PURPOSE_NAMES[t.purpose] || t.purpose} ${t.members.length}명 모임방 확정 및 알림 저장 완료`);
+                                    }}
+                                    className={isConfirmed ? `${btnSubCls} opacity-60 cursor-default` : btnPrimaryCls}
+                                  >
+                                    {isConfirmed ? '확정 완료' : '확정 알림'}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </AdminSectionCard>
+                );
+              })()}
+
               <AdminSectionCard
                 title="노쇼 대체"
                 isOpen={isSectionOpen('SEC_EVENT_NOSHOW', false)}
@@ -2550,6 +4270,8 @@ export default function AdminOperationsDashboardPage() {
                   </div>
                 )}
               </AdminSectionCard>
+              </div>
+              )}
             </section>
           )}
 

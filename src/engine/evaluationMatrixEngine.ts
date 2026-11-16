@@ -128,18 +128,45 @@ export interface RegionDistrictItem {
   highlights?: string[];
 }
 
+export type EventProductStatus = 'RECRUITING' | 'CLOSING_SOON' | 'CONFIRMED' | 'CANCELLED_MIN' | 'COMPLETED';
+
 /**
- * 조건부 모임 (1모듈 1기능: 모임 조건 게이트)
+ * 조건부 모임 상품 (1모듈 1기능: 모임 상품 표준 정의)
  */
 export interface ConditionalEventItem {
   eventId: string;
   title: string;
   districtId: string;
+  regionName?: string; // 전국 시/도 (2글자: 서울, 부산, 경기, 제주 등)
+  districtName?: string; // 시·군·구 / 상권 (예: 강남구, 해운대구)
+  dongName?: string; // 읍·면·동 (예: 역삼동, 우동, 성수동)
+  latitude?: number; // 모임 거점 위도 (거리 반경 매칭용)
+  longitude?: number; // 모임 거점 경도 (거리 반경 매칭용)
   venueId: string;
-  dateText: string;
-  mode: 'ROMANCE' | 'THEME' | 'ONE_ON_ONE'; // 3:3 로맨스 | 미식 모임 | 1:1 매칭
+  dateText: string; // 화면 표시용 (예: 2026-11-20 (금) 19:30)
+  eventDate?: string; // YYYY-MM-DD (달력 입력)
+  eventTime?: string; // HH:mm (시간 입력)
+  deadlineAt?: string; // YYYY-MM-DDTHH:mm (실제 마감 일시)
+  mode: string; // 모임 유형 / 구성 방식 (예 '3:3 소셜 다이닝', '성비무관 오픈', '1:1 프라이빗' 등)
+  purpose?: 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE'; // 엔진 2층: 참가 목적 풀
+  compositionMode?: string; // 엔진 3층: 구성 방식 (3:3 성비균형, 성비무관 오픈 등)
+  enforceGenderRatio?: boolean; // 성비 균형 강제 여부
+  evaluationModuleId?: string; // 엔진 6층: 사후 다면 평가 모듈 ID (예: MOD_TRACK_3040, MOD_TRACK_5060)
   priceKrw: number;
-  targetAgeGroup?: '3045_PRIME' | '5060_GOLDEN' | 'ALL';
+  maxCapacity?: number; // 정원 (기본 6명)
+  minConfirmCount?: number; // 최소 확정 인원 (기본 4명)
+  reason?: string; // 모임 이유 (테마 한 줄)
+  description?: string; // 모임 상세 소개
+  heroImage?: string; // 대표 사진 URL / Data URL
+  venueNameOverride?: string; // 직접 입력 식당명
+  venueAddress?: string; // 식당 위치/주소 안내
+  venueMapUrl?: string; // 네이버/카카오 지도 URL
+  isVenueSecretUntilConfirm?: boolean; // 확정자 D-1 비공개 안내 여부
+  expectedMealCost?: string; // 예상 1/N 식대 (예: 4~5만원대)
+  refundPolicy?: string; // 취소·환불 규정
+  deadlineText?: string; // 신청 마감 시점 (예: 모임 24시간 전)
+  status?: EventProductStatus; // 상태값 (모집중/마감임박/확정/미달취소/종료)
+  targetAgeGroup?: string; // 대상 연령 트랙 (관리자 자유 등록 가능: 예 '5060 골든', '3040 프라임' 등)
   mealNote?: string;
   requiredBadgeIds: string[]; // 필수 보유 뱃지 조건
   minTotalScore100: number; // 최소 종합 점수 커트라인 (0이면 제한 없음)
@@ -679,113 +706,9 @@ export const INITIAL_REGION_DISTRICTS: RegionDistrictItem[] = [
 ];
 
 // ============================================================================
-// 6. 조건부 모임 초기 데이터 (부산 소셜 다이닝 + 3040/5060 트랙 & 3만 원 기준 참가권)
+// 6. 모임 상품 초기 데이터 (순수 Supabase 실서버 SSOT — 더미 데이터 0건)
 // ============================================================================
-export const INITIAL_CONDITIONAL_EVENTS: ConditionalEventItem[] = [
-  // --- 부산 5060 골든 핵심 모임 (₩30,000 참가비 + 식대 현장 1/N) ---
-  {
-    eventId: 'EVT_BUSAN_DINING_FRI',
-    title: '부산 5060 골든 소셜 다이닝 (금요 디너)',
-    districtId: 'DIST_JEONPO',
-    venueId: 'VEN_BUSAN_JEONPO_03',
-    dateText: '매주 금요일 19:30',
-    mode: 'ROMANCE',
-    priceKrw: 30000,
-    targetAgeGroup: '5060_GOLDEN',
-    mealNote: '참가비 ₩30,000 (좌석 예약 및 대화카드 키트 운영비 포함 / 식음료는 매장 현장 1/N 개별 정산)',
-    requiredBadgeIds: [],
-    minTotalScore100: 0,
-    activePresetSubIds: ['SUB_STY_2', 'SUB_CON_1', 'SUB_CON_2', 'SUB_CON_3', 'SUB_MAN_1'],
-  },
-  {
-    eventId: 'EVT_BUSAN_5060_GOLDEN',
-    title: '부산 5060 골든 소셜 다이닝 (토요 살롱)',
-    districtId: 'DIST_JEONPO',
-    venueId: 'VEN_BUSAN_JEONPO_03',
-    dateText: '매주 토요일 17:30',
-    mode: 'THEME',
-    priceKrw: 30000,
-    targetAgeGroup: '5060_GOLDEN',
-    mealNote: '참가비 ₩30,000 (좌석 예약 및 대화카드 키트 운영비 포함 / 식음료는 매장 현장 1/N 개별 정산)',
-    requiredBadgeIds: [],
-    minTotalScore100: 0,
-    activePresetSubIds: ['SUB_APP_1', 'SUB_CON_3', 'SUB_MAN_1', 'SUB_MAN_2', 'SUB_MAN_3'],
-  },
-  {
-    eventId: 'EVT_BUSAN_HAEUNDAE_VIP',
-    title: '부산 해운대 5060 골든 다이닝',
-    districtId: 'DIST_HAEUNDAE',
-    venueId: 'VEN_BUSAN_HAEUNDAE_01',
-    dateText: '격주 토요일 18:00',
-    mode: 'ROMANCE',
-    priceKrw: 30000,
-    targetAgeGroup: '5060_GOLDEN',
-    mealNote: '참가비 ₩30,000 (좌석 예약 및 대화카드 키트 운영비 포함 / 식음료는 매장 현장 1/N 개별 정산)',
-    requiredBadgeIds: [],
-    minTotalScore100: 0,
-    minDomainCode: 'MANNER',
-    minDomainScore100: 80,
-    activePresetSubIds: ['SUB_STY_1', 'SUB_STY_2', 'SUB_CON_3', 'SUB_CON_4', 'SUB_MAN_3'],
-  },
-  {
-    eventId: 'EVT_BUSAN_GWANGAN_ROMANCE',
-    title: '부산 광안리 5060 오션뷰 다이닝',
-    districtId: 'DIST_GWANGAN',
-    venueId: 'VEN_BUSAN_GWANGAN_02',
-    dateText: '매주 토요일 19:00',
-    mode: 'ROMANCE',
-    priceKrw: 30000,
-    targetAgeGroup: '5060_GOLDEN',
-    mealNote: '참가비 ₩30,000 (좌석 예약 및 대화카드 키트 운영비 포함 / 식음료는 매장 현장 1/N 개별 정산)',
-    requiredBadgeIds: [],
-    minTotalScore100: 0,
-    activePresetSubIds: ['SUB_APP_1', 'SUB_STY_1', 'SUB_VOI_1', 'SUB_CON_4', 'SUB_MAN_2'],
-  },
-
-  // --- 서울 확장 대기 모임 ---
-  {
-    eventId: 'EVT_SEONGSU_ROMANCE',
-    title: '서울 성수 3040 소셜 다이닝',
-    districtId: 'DIST_SEONGSU',
-    venueId: 'VEN_SEONGSU_01',
-    dateText: '사전 알림 예약중',
-    mode: 'ROMANCE',
-    priceKrw: 30000,
-    targetAgeGroup: '3045_PRIME',
-    mealNote: '참가비 ₩30,000 (좌석 예약 및 대화카드 키트 운영비 포함 / 식음료는 매장 현장 1/N 개별 정산)',
-    requiredBadgeIds: [],
-    minTotalScore100: 0,
-    activePresetSubIds: ['SUB_APP_1', 'SUB_STY_2', 'SUB_VOI_3', 'SUB_CON_2', 'SUB_MAN_3'],
-  },
-  {
-    eventId: 'EVT_HANNAM_MANNER_VIP',
-    title: '서울 한남 소셜 다이닝',
-    districtId: 'DIST_HANNAM',
-    venueId: 'VEN_SEONGSU_02',
-    dateText: '사전 알림 예약중',
-    mode: 'ROMANCE',
-    priceKrw: 30000,
-    targetAgeGroup: '3045_PRIME',
-    mealNote: '참가비 ₩30,000 (좌석 예약 및 대화카드 키트 운영비 포함 / 식음료는 매장 현장 1/N 개별 정산)',
-    requiredBadgeIds: ['BDG_MAN_DINING', 'BDG_CON_EMPATHY'],
-    minTotalScore100: 80,
-    minDomainCode: 'MANNER',
-    minDomainScore100: 85,
-    activePresetSubIds: ['SUB_STY_1', 'SUB_STY_2', 'SUB_CON_3', 'SUB_CON_4', 'SUB_MAN_3'],
-  },
-  {
-    eventId: 'EVT_GANGNAM_1ON1',
-    title: '청담 결혼전제 1:1 프라이빗 매칭 (실전 프로파일 검증)',
-    districtId: 'DIST_GANGNAM',
-    venueId: 'VEN_SEONGSU_01',
-    dateText: '사전 알림 예약중',
-    mode: 'ONE_ON_ONE',
-    priceKrw: 120000,
-    requiredBadgeIds: ['BDG_MAN_RULE'],
-    minTotalScore100: 82,
-    activePresetSubIds: ['SUB_APP_4', 'SUB_STY_2', 'SUB_VOI_1', 'SUB_CON_4', 'SUB_MAN_3'],
-  },
-];
+export const INITIAL_CONDITIONAL_EVENTS: ConditionalEventItem[] = [];
 
 // ============================================================================
 // 7. 서비스 프로세스 모듈 초기 설정 (스마트 마이페이지 4대 핵심 축)
@@ -832,10 +755,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_01',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_BB',
-    fromNickname: '이비비',
+    fromUserId: 'U_test_01',
+    fromNickname: '유일남',
     fromGender: 'M',
-    toUserId: 'USER_AA',
+    toUserId: 'U_test_03',
     subElementId: 'SUB_APP_1', // 외모 > 눈
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
     createdAt: '2026-11-03T21:10:00Z',
@@ -843,10 +766,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_02',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_BB',
-    fromNickname: '이비비',
+    fromUserId: 'U_test_01',
+    fromNickname: '유일남',
     fromGender: 'M',
-    toUserId: 'USER_AA',
+    toUserId: 'U_test_03',
     subElementId: 'SUB_APP_3', // 외모 > 입
     scores: { C1_NEAT: 5, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
     createdAt: '2026-11-03T21:10:00Z',
@@ -854,10 +777,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_03',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_BB',
-    fromNickname: '이비비',
+    fromUserId: 'U_test_01',
+    fromNickname: '유일남',
     fromGender: 'M',
-    toUserId: 'USER_AA',
+    toUserId: 'U_test_03',
     subElementId: 'SUB_APP_4', // 외모 > 피부
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 4 },
     createdAt: '2026-11-03T21:10:00Z',
@@ -865,10 +788,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_04',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_BB',
-    fromNickname: '이비비',
+    fromUserId: 'U_test_01',
+    fromNickname: '유일남',
     fromGender: 'M',
-    toUserId: 'USER_AA',
+    toUserId: 'U_test_03',
     subElementId: 'SUB_STY_1', // 스타일 > 헤어
     scores: { C1_NEAT: 4, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 4, C5_APPEAL: 4 },
     createdAt: '2026-11-03T21:11:00Z',
@@ -876,10 +799,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_05',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_BB',
-    fromNickname: '이비비',
+    fromUserId: 'U_test_01',
+    fromNickname: '유일남',
     fromGender: 'M',
-    toUserId: 'USER_AA',
+    toUserId: 'U_test_03',
     subElementId: 'SUB_STY_2', // 스타일 > 상의
     scores: { C1_NEAT: 5, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 4, C5_APPEAL: 4 },
     createdAt: '2026-11-03T21:11:00Z',
@@ -887,10 +810,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_06',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_BB',
-    fromNickname: '이비비',
+    fromUserId: 'U_test_01',
+    fromNickname: '유일남',
     fromGender: 'M',
-    toUserId: 'USER_AA',
+    toUserId: 'U_test_03',
     subElementId: 'SUB_STY_5', // 스타일 > 소품
     scores: { C1_NEAT: 4, C2_HARMONY: 4, C3_SENSE: 4, C4_STABILITY: 4, C5_APPEAL: 4 },
     createdAt: '2026-11-03T21:12:00Z',
@@ -898,10 +821,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_07',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_BB',
-    fromNickname: '이비비',
+    fromUserId: 'U_test_01',
+    fromNickname: '유일남',
     fromGender: 'M',
-    toUserId: 'USER_AA',
+    toUserId: 'U_test_03',
     subElementId: 'SUB_DIA_1', // 대화 > 질문
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 5, C4_STABILITY: 5, C5_APPEAL: 5 },
     createdAt: '2026-11-03T21:15:00Z',
@@ -909,10 +832,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_08',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_BB',
-    fromNickname: '이비비',
+    fromUserId: 'U_test_01',
+    fromNickname: '유일남',
     fromGender: 'M',
-    toUserId: 'USER_AA',
+    toUserId: 'U_test_03',
     subElementId: 'SUB_DIA_2', // 대화 > 경청
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 5, C4_STABILITY: 5, C5_APPEAL: 5 },
     createdAt: '2026-11-03T21:15:00Z',
@@ -920,10 +843,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_09',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_AA',
-    fromNickname: '김에이',
+    fromUserId: 'U_test_03',
+    fromNickname: '유삼여',
     fromGender: 'F',
-    toUserId: 'USER_BB',
+    toUserId: 'U_test_01',
     subElementId: 'SUB_DIA_1', // 대화 > 질문
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
     createdAt: '2026-11-03T21:16:00Z',
@@ -931,10 +854,10 @@ export const INITIAL_MATRIX_EVALUATIONS: MatrixEvaluationRecord[] = [
   {
     recordId: 'REC_10',
     sessionId: 'SES_SEONGSU_38',
-    fromUserId: 'USER_AA',
-    fromNickname: '김에이',
+    fromUserId: 'U_test_03',
+    fromNickname: '유삼여',
     fromGender: 'F',
-    toUserId: 'USER_BB',
+    toUserId: 'U_test_01',
     subElementId: 'SUB_DIA_2', // 대화 > 경청
     scores: { C1_NEAT: 5, C2_HARMONY: 5, C3_SENSE: 4, C4_STABILITY: 5, C5_APPEAL: 5 },
     createdAt: '2026-11-03T21:16:00Z',

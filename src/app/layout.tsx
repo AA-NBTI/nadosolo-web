@@ -6,10 +6,75 @@ import GlobalFooter from '@/components/GlobalFooter';
 import ChunkErrorRecovery from '@/components/ChunkErrorRecovery';
 import AdminViewerBanner from '@/components/admin/AdminViewerBanner';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nadosolo.com';
+
 export const metadata: Metadata = {
-  title: 'nadosolo | 좋은 사람들과, 좋은 시간을. 신뢰 기반 프리미엄 솔로 라이프스타일 플랫폼',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: '나도솔로 | 소셜 다이닝 · 다면 관찰 플랫폼',
+    template: '%s | 나도솔로',
+  },
   description:
-    '검증된 매너와 삶의 결이 맞는 신중년의 사교. 5060 골든을 위한 부산 소셜 다이닝 플랫폼',
+    '나도솔로 — 오프라인 소셜 다이닝에서의 실제 상호작용을 통해 타인의 시선으로 나의 소통과 매너를 발견하는 소셜 메타인지 플랫폼입니다.',
+  keywords: [
+    '나도솔로',
+    'nadosolo',
+    '나도솔로 모임',
+    '나도솔로 다이닝',
+    '소셜 다이닝',
+    '프라이빗 밋업',
+    '소셜 메타인지',
+    '다면 피드백',
+  ],
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    url: SITE_URL,
+    siteName: '나도솔로',
+    title: '나도솔로 | 소셜 다이닝 · 다면 관찰 플랫폼',
+    description:
+      '나도솔로 — 오프라인 소셜 다이닝에서의 실제 상호작용을 통해 타인의 시선으로 나의 소통과 매너를 발견하는 소셜 메타인지 플랫폼입니다.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '나도솔로 | 소셜 다이닝 · 다면 관찰 플랫폼',
+    description:
+      '나도솔로 — 오프라인 소셜 다이닝에서의 실제 상호작용을 통해 타인의 시선으로 나의 소통과 매너를 발견하는 소셜 메타인지 플랫폼입니다.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+    },
+  },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      name: '나도솔로',
+      alternateName: ['nadosolo', '나도솔로 공식'],
+      url: SITE_URL,
+      inLanguage: 'ko-KR',
+    },
+    {
+      '@type': 'Organization',
+      name: '나도솔로',
+      alternateName: 'nadosolo',
+      url: SITE_URL,
+      description:
+        '오프라인 소셜 다이닝 환경에서의 실제 상호작용을 통해 소통 역량과 매너를 다면 관찰하는 소셜 메타인지 플랫폼',
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -20,6 +85,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"

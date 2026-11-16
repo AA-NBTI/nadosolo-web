@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { ShieldCheck, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
+import { useNadoSoloEngine } from '@/engine';
 
 export interface CheckoutEventData {
   eventId: string;
@@ -10,6 +12,8 @@ export interface CheckoutEventData {
   priceKrw: number;
   districtName?: string;
   mealNote?: string;
+  refundPolicy?: string;
+  deadlineText?: string;
 }
 
 interface CheckoutModalProps {
@@ -27,15 +31,69 @@ export default function CheckoutModal({
   event,
   onSuccessPayment,
 }: CheckoutModalProps) {
+  const { currentUser, updateCurrentUser, surveyAnswers } = useNadoSoloEngine();
   const [payMethod, setPayMethod] = useState<PayMethod>('CARD');
   const [agreeRefund, setAgreeRefund] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // 신청 직전 필수 매칭 조건 로컬 보완 상태
+  const [gateCity, setGateCity] = useState(currentUser?.residenceCity || '서울');
+  const [gateDistrict, setGateDistrict] = useState(currentUser?.residenceDistrict || '');
+  const [gateDong, setGateDong] = useState(currentUser?.residenceDong || '');
+  const [gatePhone, setGatePhone] = useState(
+    currentUser?.phone && currentUser.phone !== '010-0000-0000' ? currentUser.phone : ''
+  );
+  const [gatePurpose, setGatePurpose] = useState<'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE'>(
+    currentUser?.preferredPurpose || 'RESET'
+  );
+  const [gateSavedNotice, setGateSavedNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      setGateCity(currentUser.residenceCity || '서울');
+      setGateDistrict(currentUser.residenceDistrict || '');
+      setGateDong(currentUser.residenceDong || '');
+      setGatePhone(
+        currentUser.phone && currentUser.phone !== '010-0000-0000' ? currentUser.phone : ''
+      );
+      setGatePurpose(currentUser.preferredPurpose || 'RESET');
+    }
+  }, [currentUser, isOpen]);
+
   if (!isOpen || !event) return null;
 
-  const isFormValid = agreeRefund && agreePrivacy;
+  const hasLivingZone = Boolean(
+    currentUser?.residenceCity?.trim() &&
+      currentUser?.residenceDistrict?.trim() &&
+      currentUser?.residenceDong?.trim()
+  );
+  const hasPurpose = Boolean(currentUser?.preferredPurpose);
+  const hasPhone = Boolean(
+    currentUser?.phone &&
+      currentUser.phone.trim() !== '' &&
+      currentUser.phone !== '010-0000-0000'
+  );
+  const hasSurvey = Object.keys(surveyAnswers || {}).length >= 4;
+  const needsPreCheck = Boolean(currentUser) && (!hasLivingZone || !hasPurpose || !hasPhone || !hasSurvey);
+
+  const isFormValid = agreeRefund && agreePrivacy && !needsPreCheck;
+
+  const handleSavePreCheck = () => {
+    if (!gateCity.trim() || !gateDistrict.trim() || !gateDong.trim() || !gatePhone.trim()) {
+      setGateSavedNotice('시/도, 시/군/구, 읍/면/동 및 연락처를 모두 입력해 주세요.');
+      return;
+    }
+    updateCurrentUser({
+      residenceCity: gateCity.trim(),
+      residenceDistrict: gateDistrict.trim(),
+      residenceDong: gateDong.trim(),
+      phone: gatePhone.trim(),
+      preferredPurpose: gatePurpose,
+    });
+    setGateSavedNotice('필수 조건이 저장되었습니다.');
+  };
 
   const handlePaySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,6 +215,92 @@ export default function CheckoutModal({
               </div>
             </div>
 
+            {/* 1.5 신청 직전 필수 매칭 조건 게이트 (미충족 시에만 노출) */}
+            {needsPreCheck && (
+              <div className="p-4 rounded-2xl bg-[#181c28] border border-[#f04f74]/40 space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-white">매칭 필수 조건 확인</span>
+                  <span className="text-xs font-mono text-[#f04f74]">신청 전 1회 입력</span>
+                </div>
+                <p className="text-xs text-zinc-300 leading-relaxed">
+                  정확한 테이블 배정과 D-1 장소 안내를 위해 아래 조건을 완료해 주세요.
+                </p>
+
+                {(!hasLivingZone || !hasPurpose || !hasPhone) && (
+                  <div className="space-y-2.5 pt-1">
+                    <div className="grid grid-cols-3 gap-2">
+                      <select
+                        value={gateCity}
+                        onChange={(e) => setGateCity(e.target.value)}
+                        className="px-2.5 py-2 bg-[#0d1018] border border-white/15 text-xs text-white"
+                      >
+                        {['서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'].map((c) => (
+                          <option key={c} value={c}>{c}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="text"
+                        value={gateDistrict}
+                        onChange={(e) => setGateDistrict(e.target.value)}
+                        placeholder="시/군/구 (예: 강남구)"
+                        className="px-2.5 py-2 bg-[#0d1018] border border-white/15 text-xs text-white"
+                      />
+                      <input
+                        type="text"
+                        value={gateDong}
+                        onChange={(e) => setGateDong(e.target.value)}
+                        placeholder="읍/면/동 (예: 역삼동)"
+                        className="px-2.5 py-2 bg-[#0d1018] border border-white/15 text-xs text-white"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <select
+                        value={gatePurpose}
+                        onChange={(e) => setGatePurpose(e.target.value as 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE')}
+                        className="px-2.5 py-2 bg-[#0d1018] border border-white/15 text-xs text-white"
+                      >
+                        <option value="FRIEND">친구·사회적 교류</option>
+                        <option value="RESET">지적 환기·리셋 (기혼·리더 포함)</option>
+                        <option value="TASTE">취향·활동 공유</option>
+                        <option value="ROMANCE">인연·동반자 (미혼 한정)</option>
+                      </select>
+                      <input
+                        type="tel"
+                        value={gatePhone}
+                        onChange={(e) => setGatePhone(e.target.value)}
+                        placeholder="연락처 (010-0000-0000)"
+                        className="px-2.5 py-2 bg-[#0d1018] border border-white/15 text-xs text-white"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSavePreCheck}
+                      className="w-full py-2 bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-mono font-bold transition-colors cursor-pointer"
+                    >
+                      필수 조건 저장
+                    </button>
+                  </div>
+                )}
+
+                {!hasSurvey && (
+                  <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                    <span className="text-xs text-zinc-300">소통 성향 진단(5문항) 미완료</span>
+                    <Link
+                      href="/test"
+                      onClick={onClose}
+                      className="px-3 py-1.5 bg-[#f04f74] text-white text-xs font-mono font-bold"
+                    >
+                      성향 진단 →
+                    </Link>
+                  </div>
+                )}
+
+                {gateSavedNotice && (
+                  <p className="text-xs font-mono text-zinc-200">{gateSavedNotice}</p>
+                )}
+              </div>
+            )}
+
             {/* 2. 결제 수단 선택 (토스페이먼츠 연동) */}
             <div className="space-y-2.5">
               <label className="block text-xs font-semibold text-zinc-300">
@@ -227,7 +371,13 @@ export default function CheckoutModal({
                 <ShieldCheck className="w-4 h-4 text-[#f04f74]" />
                 <span className="text-xs font-bold text-white">취소 및 환불 정책 (전자상거래법 준수)</span>
               </div>
-              <ul className="text-[11px] text-zinc-400 space-y-1 list-disc pl-4 leading-relaxed">
+              <ul className="text-sm text-zinc-300 space-y-1 list-disc pl-4 leading-relaxed">
+                {event.refundPolicy && (
+                  <li className="text-white font-medium">{event.refundPolicy}</li>
+                )}
+                {event.deadlineText && (
+                  <li>신청 마감: <strong>{event.deadlineText}</strong></li>
+                )}
                 <li>모임 3일 전 취소 시: <strong>100% 전액 환불</strong></li>
                 <li>모임 2일 전 취소 시: <strong>50% 부분 환불</strong></li>
                 <li>모임 1일 전 및 당일 취소/노쇼: <strong>환불 불가</strong> (좌석 예약 확정 및 테이블 세팅 완료)</li>

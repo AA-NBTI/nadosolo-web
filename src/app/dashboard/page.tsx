@@ -12,7 +12,6 @@ import {
   useNadoSoloEngine,
 } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
-import ProcessJourneyTracker from '@/components/dashboard/ProcessJourneyTracker';
 import ProcessGateLockedCard from '@/components/dashboard/ProcessGateLockedCard';
 import { KeyRound, UserX, AlertCircle, CheckCircle2, ShieldAlert, Phone, Mail } from 'lucide-react';
 
@@ -103,15 +102,18 @@ function MemberDashboardContent() {
   // [모임현황 라이프사이클 단계]
   // TICKET (티켓 및 매칭 대기) -> VENUE_SEAT (D-1 장소 및 좌석) -> LIVE_DECK (현장 대화카드) -> POST_FEEDBACK (매너평가 & 투표)
   const [meetupPhase, setMeetupPhase] = useState<'TICKET' | 'VENUE_SEAT' | 'LIVE_DECK' | 'POST_FEEDBACK'>('TICKET');
-  const [profileSubTab, setProfileSubTab] = useState<'BASIC' | 'SELF_DIAG'>('BASIC');
+  const [profileSubTab, setProfileSubTab] = useState<'BASIC' | 'SELF_DIAG' | 'ACCOUNT'>('BASIC');
 
   useEffect(() => {
     if (stepQuery) {
-      if (stepQuery === 'P05_EVENT_APPLY' || stepQuery === 'P06_SEAT' || stepQuery === 'P07_DECK' || stepQuery === 'P08_EVALUATION' || stepQuery === 'P09_VOTE') {
+      if (stepQuery === 'P06_SEAT' || stepQuery === 'P07_DECK' || stepQuery === 'P08_EVALUATION' || stepQuery === 'P09_VOTE') {
         setActiveProcessId('P00_MEETUP_STATUS');
         if (stepQuery === 'P06_SEAT') setMeetupPhase('VENUE_SEAT');
         if (stepQuery === 'P07_DECK') setMeetupPhase('LIVE_DECK');
         if (stepQuery === 'P08_EVALUATION' || stepQuery === 'P09_VOTE') setMeetupPhase('POST_FEEDBACK');
+      } else if (stepQuery === 'P01_ACCOUNT') {
+        setActiveProcessId('P02_PROFILE');
+        setProfileSubTab('ACCOUNT');
       } else {
         setActiveProcessId(stepQuery);
       }
@@ -127,6 +129,8 @@ function MemberDashboardContent() {
           priceKrw: targetEv.priceKrw,
           districtName: dist ? dist.regionName : '부산',
           mealNote: targetEv.mealNote,
+          refundPolicy: targetEv.refundPolicy,
+          deadlineText: targetEv.deadlineText,
         });
         setIsCheckoutOpen(true);
       }
@@ -139,13 +143,25 @@ function MemberDashboardContent() {
     [enabledModules]
   );
 
+  // 이용자 대시보드 핵심 4대 상단 탭 (Timeleft형 단일 허브)
+  const USER_DASHBOARD_MENUS = useMemo(
+    () => [
+      { id: 'P00_MEETUP_STATUS', label: '내 모임' },
+      { id: 'P05_EVENT_APPLY', label: '모임 찾기' },
+      { id: 'P10_REPORT', label: '모임 평가' },
+      { id: 'P02_PROFILE', label: '내 정보' },
+    ],
+    []
+  );
+
   // 현재 선택된 모듈이 비활성화되었을 경우 첫 번째 모듈로 폴백
   const currentProcess =
     enabledModules.find((m) => m.processId === activeProcessId) ??
     serviceModules[0];
 
-  const currentProcessIdx = serviceModules.findIndex(
-    (m) => m.processId === currentProcess?.processId
+  const myAppliedEvents = useMemo(
+    () => conditionalEvents.filter((ev) => appliedEventIds.includes(ev.eventId)),
+    [conditionalEvents, appliedEventIds]
   );
 
   // [P01 계정정보 & P02 기본프로필] 로컬 폼 상태
@@ -170,6 +186,21 @@ function MemberDashboardContent() {
   const [editJob, setEditJob] = useState(
     currentUser?.jobTitle ?? '프로덕트 디자이너'
   );
+  const [editResidenceCity, setEditResidenceCity] = useState(
+    currentUser?.residenceCity ?? '서울'
+  );
+  const [editResidenceDistrict, setEditResidenceDistrict] = useState(
+    currentUser?.residenceDistrict ?? ''
+  );
+  const [editResidenceDong, setEditResidenceDong] = useState(
+    currentUser?.residenceDong ?? ''
+  );
+  const [editResidenceAddress, setEditResidenceAddress] = useState(
+    currentUser?.residenceAddress ?? ''
+  );
+  const [editPreferredPurpose, setEditPreferredPurpose] = useState<
+    'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE'
+  >(currentUser?.preferredPurpose ?? 'RESET');
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
 
   // currentUser가 변경(관리자 뷰어 모드 회원 전환 등)될 때 로컬 폼 상태 동기화
@@ -182,6 +213,11 @@ function MemberDashboardContent() {
       setEditBirthYear(currentUser.birthYear);
       setEditGender(currentUser.gender);
       setEditJob(currentUser.jobTitle ?? '');
+      setEditResidenceCity(currentUser.residenceCity ?? '서울');
+      setEditResidenceDistrict(currentUser.residenceDistrict ?? '');
+      setEditResidenceDong(currentUser.residenceDong ?? '');
+      setEditResidenceAddress(currentUser.residenceAddress ?? '');
+      setEditPreferredPurpose(currentUser.preferredPurpose ?? 'RESET');
     }
   }, [currentUser]);
 
@@ -194,10 +230,6 @@ function MemberDashboardContent() {
   // [회원탈퇴 모달 상태]
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
-
-  // [연락처 세팅 필요 여부]
-  const needsPhoneSetup = !currentUser?.phone || currentUser.phone.trim() === '' || currentUser.phone === '010-0000-0000';
-  const needsEmailSetup = !currentUser?.email || currentUser.email.trim() === '';
 
   const handlePasswordChange = () => {
     if (!currentPw || !newPw || !confirmPw) {
@@ -272,10 +304,16 @@ function MemberDashboardContent() {
 
   // [P08 개인평가] 동석자 선택 및 평가 중분류 양방향 이동 상태
   const tablePeers = useMemo(
-    () => (activeTable?.participants ?? []).filter((p) => p.userId !== (currentUser?.userId || 'USER_AA')),
+    () => (activeTable?.participants ?? []).filter((p) => p.userId !== (currentUser?.userId ?? '')),
     [activeTable, currentUser]
   );
-  const [evalTargetUserId, setEvalTargetUserId] = useState<string>('USER_BB');
+  const [evalTargetUserId, setEvalTargetUserId] = useState<string>('');
+
+  useEffect(() => {
+    if (!evalTargetUserId && tablePeers.length > 0) {
+      setEvalTargetUserId(tablePeers[0].userId);
+    }
+  }, [evalTargetUserId, tablePeers]);
   const activeEvalSubElements = useMemo(
     () => subElements.filter((s) => s.activeInCurrentProcess),
     [subElements]
@@ -364,127 +402,71 @@ function MemberDashboardContent() {
 
   return (
     <div className="min-h-screen bg-[#07080a] text-[#f5f2eb] py-8 sm:py-12">
-      <main className="w-full max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* ============================================================
-              좌측 사이드바: 럭셔리 다크 메인 톤 프로세스 모듈 네비게이션
-              ============================================================ */}
-          <aside className="w-full lg:w-64 shrink-0 bg-[#0c0d12] border border-white/[0.08] p-5 shadow-xl lg:sticky lg:top-24 space-y-4">
-            <div className="px-2 pb-4 border-b border-white/[0.08]">
-              <div className="flex items-center gap-1.5 mb-1.5">
+      <main className="w-full max-w-[1120px] mx-auto px-5 sm:px-10 space-y-6">
+        {/* ============================================================
+            상단 프로필 헤더 + 가로 4탭 네비게이션 (사이드바 없는 단일 허브)
+            ============================================================ */}
+        <header className="bg-[#0c0d12] border border-white/[0.08] p-5 sm:p-6 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                <p className="text-sm font-mono uppercase tracking-[0.25em] text-zinc-400 font-medium">
-                  MEMBER CONSOLE
-                </p>
+                <span className="text-sm font-mono text-zinc-400">마이페이지</span>
               </div>
-              <h1 className="font-serif-editorial text-xl font-normal text-white">
-                {currentUser ? `${currentUser.nickname} (${currentUser.handle})` : '지수 (@jisoo_kim)'}
-              </h1>
-              <p className="text-sm font-mono text-zinc-400 mt-1">
-                종합 프로파일 <span className="text-zinc-200 font-bold">{myPersonalDossier.totalScore100}점</span> · 뱃지{' '}
-                {myPersonalDossier.earnedBadgeIds.length}개
-              </p>
-            </div>
-
-            <nav className="space-y-1">
-              {serviceModules.map((mod) => {
-                const active = currentProcess?.processId === mod.processId;
-                return (
-                  <button
-                    key={mod.processId}
-                    type="button"
-                    onClick={() => setActiveProcessId(mod.processId)}
-                    className={`w-full text-left px-3 py-2.5 transition-all flex items-center justify-between cursor-pointer text-sm font-mono tracking-wide ${
-                      active
-                        ? 'bg-white/[0.04] text-[#f04f74] font-bold'
-                        : 'bg-transparent hover:bg-white/[0.02] text-zinc-400 hover:text-white font-normal'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-[#f04f74]' : 'bg-zinc-600'}`} />
-                      <span className="text-sm truncate">{mod.label}</span>
-                    </div>
-                    <span className="text-sm text-zinc-500 font-mono">
-                      {active ? '●' : '›'}
-                    </span>
-                  </button>
-                );
-              })}
-            </nav>
-
-            {/* 회원 가입 및 계정 정보 영역 독립 분리 (매칭 프로세스와 격리) */}
-            <div className="pt-3 border-t border-white/[0.08]">
-              <button
-                type="button"
-                onClick={() => setActiveProcessId('P01_ACCOUNT')}
-                className={`w-full text-left px-3 py-2.5 transition-all flex items-center justify-between cursor-pointer text-sm font-mono tracking-wide ${
-                  currentProcess?.processId === 'P01_ACCOUNT'
-                    ? 'bg-white/[0.04] text-[#f04f74] font-bold'
-                    : 'bg-transparent hover:bg-white/[0.02] text-zinc-400 hover:text-white font-normal'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      currentProcess?.processId === 'P01_ACCOUNT' ? 'bg-[#f04f74]' : 'bg-zinc-600'
-                    }`}
-                  />
-                  <span className="text-sm truncate">계정 정보</span>
-                </div>
-                <span className="text-sm text-zinc-500 font-mono">
-                  {currentProcess?.processId === 'P01_ACCOUNT' ? '●' : '⚙'}
+              <div className="flex flex-wrap items-baseline gap-3">
+                <h1 className="font-serif-editorial text-2xl font-normal text-white">
+                  {currentUser ? `${currentUser.nickname} (${currentUser.handle})` : '지수 (@jisoo_kim)'}
+                </h1>
+                <span className="text-sm font-mono text-zinc-400">
+                  종합 <strong className="text-zinc-200">{myPersonalDossier.totalScore100}점</strong> · 뱃지{' '}
+                  {myPersonalDossier.earnedBadgeIds.length}개
                 </span>
-              </button>
+              </div>
             </div>
-          </aside>
+
+            <div className="flex items-center gap-2">
+              {saveNotice && (
+                <span className="px-2.5 py-1 border border-white/20 bg-white/5 text-zinc-200 text-sm font-mono">
+                  {saveNotice}
+                </span>
+              )}
+              <Link
+                href="/meetup"
+                prefetch={true}
+                className="px-3.5 py-2 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors"
+              >
+                모임 둘러보기 →
+              </Link>
+            </div>
+          </div>
+
+          <nav className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t border-white/[0.08]">
+            {USER_DASHBOARD_MENUS.map((menu) => {
+              const currentId = currentProcess?.processId ?? activeProcessId;
+              const active =
+                currentId === menu.id || (currentId === 'P01_ACCOUNT' && menu.id === 'P02_PROFILE');
+              return (
+                <button
+                  key={menu.id}
+                  type="button"
+                  onClick={() => setActiveProcessId(menu.id)}
+                  className={`py-2.5 px-3 text-center transition-all cursor-pointer text-sm font-mono border ${
+                    active
+                      ? 'border-b-2 border-b-[#f04f74] border-white/20 bg-white/[0.08] text-white font-bold'
+                      : 'border-white/[0.06] bg-black/30 text-zinc-400 hover:text-white hover:bg-white/[0.03] font-normal'
+                  }`}
+                >
+                  {menu.label}
+                </button>
+              );
+            })}
+          </nav>
+        </header>
 
         {/* ============================================================
-            우측 메인 워크스페이스 (선택된 단일 모듈 실행 화면)
+            메인 워크스페이스 (선택된 단일 메뉴 화면)
             ============================================================ */}
-        <div className="flex-1 w-full min-w-0 space-y-6">
-          
-          {/* [동적 프로세스 3단계 체계] 진행 마일스톤 및 선행 조건 즉시 안내 배너 */}
-          <ProcessJourneyTracker onNavigateTab={(tabKey) => setActiveProcessId(tabKey)} />
-          
-          {/* 연락처 세팅 유도 배너 (보조설명 제거 및 컴팩트 1줄 규격화) */}
-          {(needsPhoneSetup || needsEmailSetup) && (
-            <div className="p-3.5 border border-white/10 bg-[#0c0d12] flex items-center justify-between gap-3 shadow-sm">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                <span className="text-sm font-mono text-zinc-400">안내:</span>
-                <span className="text-sm font-bold text-[#f04f74] truncate">
-                  식당 및 좌석 수신용 연락처 등록 필요
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveProcessId('P01_ACCOUNT')}
-                className="px-3 py-1 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors shrink-0 cursor-pointer"
-              >
-                등록
-              </button>
-            </div>
-          )}
-
-          {/* 상단 컨트롤 바 (표준 일체형 테두리 박스 규격 강제) */}
-          <div className="p-3.5 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-3 shadow-sm">
-            <div className="flex items-center gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-              <h2 className="font-serif-editorial text-lg text-white font-normal">
-                {currentProcess?.label}
-              </h2>
-              <span className="px-2 py-0.5 text-sm font-mono border border-white/10 bg-white/5 text-zinc-300">
-                {currentProcess?.processId === 'P01_ACCOUNT'
-                  ? '계정'
-                  : `${currentProcessIdx + 1} / ${serviceModules.length}단계`}
-              </span>
-            </div>
-            {saveNotice && (
-              <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-zinc-200 text-sm font-mono">
-                {saveNotice}
-              </span>
-            )}
-          </div>
+        <div className="w-full min-w-0 space-y-6">
 
           {/* ----------------------------------------------------------
               [P00] 모임현황 모듈 (티켓 ➡️ D-1 식당/좌석 ➡️ 현장 대화카드 ➡️ 사후 평가 & 투표)
@@ -547,96 +529,89 @@ function MemberDashboardContent() {
                   <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                      <h3 className="font-serif-editorial text-xl font-normal text-white">모임현황</h3>
+                      <h3 className="font-serif-editorial text-xl font-normal text-white">내 모임</h3>
                     </div>
                     <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-white text-sm font-mono font-semibold">
-                      매칭완료 (3:3)
+                      {myAppliedEvents.length > 0 ? `신청 ${myAppliedEvents.length}건` : '예정 모임 없음'}
                     </span>
                   </div>
 
-                  {/* 확정된 모임 티켓 카드 (2열 컴팩트 조망 그리드) */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="p-4 border border-white/10 bg-white/[0.02] space-y-3">
-                      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
-                        <span className="px-2 py-0.5 bg-white/5 text-zinc-300 text-sm font-mono border border-white/10">
-                          부산 살롱
-                        </span>
-                        <span className="px-2 py-0.5 border border-white/20 bg-white/10 text-white text-sm font-mono font-bold">
-                          결제완료
-                        </span>
-                      </div>
-                      <h4 className="font-serif-editorial text-lg font-normal text-white">
-                        부산 5060 골든 소셜 다이닝
-                      </h4>
-                      <p className="text-sm text-zinc-300 font-mono">
-                        매주 금요일 19:30 • 프라이빗 소셜 살롱
+                  {myAppliedEvents.length === 0 ? (
+                    <div className="p-6 sm:p-8 border border-white/10 bg-white/[0.02] text-center space-y-4">
+                      <p className="font-serif-editorial text-lg text-white">
+                        예정된 모임이 없습니다.
                       </p>
-                    </div>
-
-                    {/* D-1 장소 비공개 상태 안내 카드 */}
-                    <div className="p-4 bg-white/[0.02] border border-white/10 space-y-2.5 flex flex-col justify-between">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center gap-2 text-white font-mono text-sm font-bold">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                          <span>D-1 목요일 19:00 비공개 식당 및 좌석 안내</span>
-                        </div>
-                        <p className="text-sm text-zinc-400 font-normal leading-relaxed">
-                          엄선된 프라이빗 비스트로/와인바로 확정되며 단독 룸으로 안내됩니다. 
-                          식대 및 주류 비용은 당일 현장에서 1/N 실비 카드 결제합니다.
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                      <p className="text-sm text-zinc-400 font-light">
+                        모임을 신청하면 티켓, D-1 식당·좌석, 대화카드, 동석자 평가가 이곳에 순서대로 열립니다.
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
                         <button
                           type="button"
-                          onClick={() => setMeetupPhase('VENUE_SEAT')}
-                          className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors cursor-pointer"
+                          onClick={() => setActiveProcessId('P05_EVENT_APPLY')}
+                          className="px-4 py-2 border border-white/25 bg-white/10 hover:bg-white/15 text-white text-sm font-mono transition-colors cursor-pointer"
                         >
-                          좌석 배치도
+                          모임 찾기
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setMeetupPhase('LIVE_DECK')}
-                          className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors cursor-pointer"
+                        <Link
+                          href="/meetup"
+                          prefetch={true}
+                          className="px-4 py-2 border border-white/15 bg-black/40 hover:bg-white/10 text-zinc-200 hover:text-white text-sm font-mono transition-colors"
                         >
-                          대화카드
-                        </button>
+                          모임 둘러보기 →
+                        </Link>
                       </div>
                     </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {myAppliedEvents.map((ev) => (
+                        <div key={ev.eventId} className="p-4 border border-white/10 bg-white/[0.02] space-y-3">
+                          <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2.5">
+                            <span className="px-2 py-0.5 bg-white/5 text-zinc-300 text-sm font-mono border border-white/10">
+                              {ev.regionName || '전국'} · {ev.districtName || '상권'}
+                            </span>
+                            <span className="px-2 py-0.5 border border-white/20 bg-white/10 text-white text-sm font-mono font-bold">
+                              신청완료
+                            </span>
+                          </div>
+                          <h4 className="font-serif-editorial text-lg font-normal text-white">
+                            {ev.title}
+                          </h4>
+                          <p className="text-sm text-zinc-300 font-mono">
+                            {ev.dateText} • ₩{ev.priceKrw.toLocaleString()}
+                          </p>
+                          <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
+                            <button
+                              type="button"
+                              onClick={() => setMeetupPhase('VENUE_SEAT')}
+                              className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors cursor-pointer"
+                            >
+                              식당·좌석
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMeetupPhase('LIVE_DECK')}
+                              className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm font-mono transition-colors cursor-pointer"
+                            >
+                              대화카드
+                            </button>
+                          </div>
+                        </div>
+                      ))}
 
-                    {/* 3:3 큐레이션 현황 카드 (2열 전체폭 확장) */}
-                    <div className="col-span-full p-4 border border-white/10 bg-white/[0.015] space-y-2.5">
-                      <div className="flex items-center justify-between text-sm text-zinc-300 font-medium">
-                        <span className="font-mono text-zinc-400">테이블 성비 밸런스</span>
-                        <span className="text-white font-bold">정원 6명 확정 (남 3 / 여 3)</span>
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block mb-1">👔</span>
-                          <span className="text-sm text-zinc-300 font-medium">건축가</span>
-                        </div>
-                        <div className="p-2.5 bg-white/10 border border-white/30 text-center">
-                          <span className="text-sm block mb-1">👗</span>
-                          <span className="text-sm text-white font-bold">나 (디자이너)</span>
-                        </div>
-                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block mb-1">👔</span>
-                          <span className="text-sm text-zinc-300 font-medium">브랜드마케터</span>
-                        </div>
-                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block mb-1">👗</span>
-                          <span className="text-sm text-zinc-300 font-medium">스타트업 대표</span>
-                        </div>
-                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block mb-1">👔</span>
-                          <span className="text-sm text-zinc-300 font-medium">개발자</span>
-                        </div>
-                        <div className="p-2.5 bg-white/5 border border-white/10 text-center">
-                          <span className="text-sm block mb-1">👗</span>
-                          <span className="text-sm text-zinc-300 font-medium">약사</span>
+                      {/* D-1 장소 비공개 상태 안내 카드 */}
+                      <div className="p-4 bg-white/[0.02] border border-white/10 space-y-2.5 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2 text-white font-mono text-sm font-bold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                            <span>D-1 19:00 비공개 식당 및 좌석 안내</span>
+                          </div>
+                          <p className="text-sm text-zinc-400 font-normal leading-relaxed">
+                            프라이빗 단독 룸으로 확정 안내되며, 식대 및 주류는 당일 현장에서 1/N 실비 정산합니다.
+                          </p>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </section>
               )}
 
@@ -682,14 +657,14 @@ function MemberDashboardContent() {
                           <div
                             key={seat.seatNumber}
                             className={`p-4 rounded-none border text-center space-y-1.5 transition-all ${
-                              seat.userId === (currentUser?.userId || 'USER_AA')
+                              Boolean(currentUser?.userId && seat.userId === currentUser.userId)
                                 ? 'bg-white/[0.03] border-[#f04f74]'
                                 : 'bg-black/40 border-white/10'
                             }`}
                           >
                             <span className="text-sm text-zinc-400 font-mono block">좌석 {seat.seatNumber}</span>
                             <p className="text-sm font-medium text-white">
-                              {seat.userId === (currentUser?.userId || 'USER_AA') ? `${seat.nickname} (나)` : seat.nickname}
+                              {Boolean(currentUser?.userId && seat.userId === currentUser.userId) ? `${seat.nickname} (나)` : seat.nickname}
                             </p>
                             <span className="text-sm text-zinc-400 block truncate font-light">{seat.pairingReason}</span>
                           </div>
@@ -706,14 +681,14 @@ function MemberDashboardContent() {
                           <div
                             key={seat.seatNumber}
                             className={`p-4 rounded-none border text-center space-y-1.5 transition-all ${
-                              seat.userId === (currentUser?.userId || 'USER_AA')
+                              Boolean(currentUser?.userId && seat.userId === currentUser.userId)
                                 ? 'bg-white/[0.03] border-[#f04f74]'
                                 : 'bg-black/40 border-white/10'
                             }`}
                           >
                             <span className="text-sm text-zinc-400 font-mono block">좌석 {seat.seatNumber}</span>
                             <p className="text-sm font-medium text-white">
-                              {seat.userId === (currentUser?.userId || 'USER_AA') ? `${seat.nickname} (나)` : seat.nickname}
+                              {Boolean(currentUser?.userId && seat.userId === currentUser.userId) ? `${seat.nickname} (나)` : seat.nickname}
                             </p>
                             <span className="text-sm text-zinc-400 block truncate font-light">{seat.pairingReason}</span>
                           </div>
@@ -855,11 +830,441 @@ function MemberDashboardContent() {
           )}
 
           {/* ----------------------------------------------------------
-              [P01] 계정정보 모듈 (@핸들, 이메일, 연락처, 비밀번호, 회원탈퇴)
+              [P02] 내 정보 모듈 (프로필 / 성향 진단 / 계정 관리)
               ---------------------------------------------------------- */}
-          {currentProcess?.processId === 'P01_ACCOUNT' && (
+          {(currentProcess?.processId === 'P02_PROFILE' ||
+            currentProcess?.processId === 'P01_ACCOUNT') && (
             <div className="space-y-6">
-              {/* 1. 기본 계정정보 및 연락처 관리 (보조설명 제거 및 단일 명사화) */}
+              {/* 프로필설정 서브 탭 (프로필 / 성향 진단 / 계정 관리) */}
+              <div className="bg-[#0c0d12] p-1 rounded-none border border-white/[0.08] grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setProfileSubTab('BASIC')}
+                  className={`py-2.5 rounded-none text-sm font-mono tracking-wider transition-all cursor-pointer ${
+                    profileSubTab === 'BASIC'
+                      ? 'border border-white/30 bg-white/10 text-white font-medium'
+                      : 'text-zinc-400 hover:text-white border border-transparent'
+                  }`}
+                >
+                  프로필
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProfileSubTab('SELF_DIAG')}
+                  className={`py-2.5 rounded-none text-sm font-mono tracking-wider transition-all cursor-pointer ${
+                    profileSubTab === 'SELF_DIAG'
+                      ? 'border border-white/30 bg-white/10 text-white font-medium'
+                      : 'text-zinc-400 hover:text-white border border-transparent'
+                  }`}
+                >
+                  성향 진단
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProfileSubTab('ACCOUNT')}
+                  className={`py-2.5 rounded-none text-sm font-mono tracking-wider transition-all cursor-pointer ${
+                    profileSubTab === 'ACCOUNT'
+                      ? 'border border-white/30 bg-white/10 text-white font-medium'
+                      : 'text-zinc-400 hover:text-white border border-transparent'
+                  }`}
+                >
+                  계정 관리
+                </button>
+              </div>
+
+              {profileSubTab === 'BASIC' ? (
+                <section className="bg-[#0c0d12] border border-white/[0.08] p-6 sm:p-8 space-y-6">
+                  <div className="border-b border-white/[0.08] pb-4">
+                    <h3 className="font-serif-editorial text-xl font-normal text-white">기본 프로필</h3>
+                    <p className="text-sm text-zinc-400 mt-1 font-light">
+                      모임 배정 및 레스토랑 식단 준비에 사용되는 기본 조건입니다.
+                    </p>
+                  </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div>
+                  <label className="block text-sm font-mono text-zinc-400 mb-2">
+                    성별
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditGender('F')}
+                      className={`py-3 rounded-none text-sm font-mono tracking-wider cursor-pointer transition-all ${
+                        editGender === 'F'
+                          ? 'border border-white/40 bg-white/10 text-white font-medium'
+                          : 'bg-[#08090d] text-zinc-400 border border-white/10 hover:border-white/20 hover:text-white font-normal'
+                      }`}
+                    >
+                      여성 (F)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditGender('M')}
+                      className={`py-3 rounded-none text-sm font-mono tracking-wider cursor-pointer transition-all ${
+                        editGender === 'M'
+                          ? 'border border-white/40 bg-white/10 text-white font-medium'
+                          : 'bg-[#08090d] text-zinc-400 border border-white/10 hover:border-white/20 hover:text-white font-normal'
+                      }`}
+                    >
+                      남성 (M)
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-mono text-zinc-400 mb-2">
+                    출생연도
+                  </label>
+                  <input
+                    type="number"
+                    value={editBirthYear}
+                    onChange={(e) =>
+                      setEditBirthYear(Number(e.target.value) || 1995)
+                    }
+                    className="w-full px-4 py-3 rounded-none border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-mono text-zinc-400 mb-2">
+                    직업 / 분야
+                  </label>
+                  <input
+                    type="text"
+                    value={editJob}
+                    onChange={(e) => setEditJob(e.target.value)}
+                    className="w-full px-4 py-3 rounded-none border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/40"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-mono text-zinc-400 mb-2.5">
+                  못 먹는 음식 (알레르기 / 비건 / 논알콜)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {(Object.keys(DIETARY_LABELS) as DietaryRestriction[]).map(
+                    (dKey) => (
+                      <button
+                        key={dKey}
+                        type="button"
+                        onClick={() => setDietary(dKey)}
+                        className={`px-3.5 py-2 rounded-none text-sm font-mono tracking-wider border transition-all cursor-pointer ${
+                          dietary === dKey
+                            ? 'border-white/40 bg-white/10 text-white font-medium'
+                            : 'bg-[#08090d] text-zinc-400 border-white/10 hover:border-white/25 hover:text-white'
+                        }`}
+                      >
+                        {DIETARY_LABELS[dKey]}
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-mono text-zinc-400 mb-2.5">
+                  관심사 키워드
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {(Object.keys(INTEREST_LABELS) as InterestTag[]).map(
+                    (tag) => {
+                      const active = interests.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleInterest(tag)}
+                          className={`px-3.5 py-2 rounded-none text-sm font-mono tracking-wider border transition-all cursor-pointer ${
+                            active
+                              ? 'border-white/40 bg-white/10 text-white font-medium'
+                              : 'bg-[#08090d] text-zinc-400 border-white/10 hover:border-white/25 hover:text-white'
+                          }`}
+                        >
+                          {INTEREST_LABELS[tag]}
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
+
+              {/* 내 생활권 · 위치 정보 (시/도 -> 시/군/구 -> 읍/면/동 -> 상세 주소) */}
+              <div className="pt-4 border-t border-white/[0.08] space-y-4">
+                <div>
+                  <label className="block text-sm font-mono text-zinc-200 font-medium">
+                    내 생활권 · 위치
+                  </label>
+                  <p className="text-sm text-zinc-400 mt-0.5 font-light">
+                    시/도, 시/군/구, 읍/면/동까지 입력하면 가까운 생활권 테이블 매칭에 반영됩니다.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-mono text-zinc-400 mb-1.5">시 / 도</label>
+                    <select
+                      value={editResidenceCity}
+                      onChange={(e) => setEditResidenceCity(e.target.value)}
+                      className="w-full px-3.5 py-2.5 border border-white/15 bg-[#08090d] text-sm font-mono text-white focus:outline-none focus:border-white/30"
+                    >
+                      {[
+                        '서울',
+                        '부산',
+                        '대구',
+                        '인천',
+                        '광주',
+                        '대전',
+                        '울산',
+                        '세종',
+                        '경기',
+                        '강원',
+                        '충북',
+                        '충남',
+                        '전북',
+                        '전남',
+                        '경북',
+                        '경남',
+                        '제주',
+                      ].map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-mono text-zinc-400 mb-1.5">시 / 군 / 구</label>
+                    <input
+                      type="text"
+                      value={editResidenceDistrict}
+                      onChange={(e) => setEditResidenceDistrict(e.target.value)}
+                      placeholder="예: 강남구, 해운대구"
+                      className="w-full px-3.5 py-2.5 border border-white/15 bg-[#08090d] text-sm font-mono text-white focus:outline-none focus:border-white/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-mono text-zinc-400 mb-1.5">읍 / 면 / 동</label>
+                    <input
+                      type="text"
+                      value={editResidenceDong}
+                      onChange={(e) => setEditResidenceDong(e.target.value)}
+                      placeholder="예: 역삼동, 우동"
+                      className="w-full px-3.5 py-2.5 border border-white/15 bg-[#08090d] text-sm font-mono text-white focus:outline-none focus:border-white/30"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-mono text-zinc-400 mb-1.5">
+                    상세 주소 / 주요 역세권 (선택)
+                  </label>
+                  <input
+                    type="text"
+                    value={editResidenceAddress}
+                    onChange={(e) => setEditResidenceAddress(e.target.value)}
+                    placeholder="예: 강남역 인근 / 해운대 센텀시티 인근"
+                    className="w-full px-3.5 py-2.5 border border-white/15 bg-[#08090d] text-sm font-mono text-white focus:outline-none focus:border-white/30"
+                  />
+                </div>
+              </div>
+
+              {/* 희망 참가 목적 (엔진 2층 4대 목적 풀 직결) */}
+              <div className="pt-4 border-t border-white/[0.08] space-y-3">
+                <div>
+                  <label className="block text-sm font-mono text-zinc-200 font-medium">
+                    희망 모임 목적
+                  </label>
+                  <p className="text-sm text-zinc-400 mt-0.5 font-light">
+                    선택한 목적에 맞는 테이블로 우선 배정됩니다.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {[
+                    { code: 'FRIEND' as const, label: '친구·사회적 교류', desc: '관계상태 무관 · 폭넓은 소통' },
+                    { code: 'RESET' as const, label: '지적 환기·리셋', desc: '기혼·리더 환영 · 연애 목적 배제' },
+                    { code: 'TASTE' as const, label: '취향·활동 공유', desc: '와인·미식·독서 등 공통 취향' },
+                    { code: 'ROMANCE' as const, label: '인연·동반자', desc: '미혼·싱글 한정 · 진지한 만남' },
+                  ].map((item) => {
+                    const active = editPreferredPurpose === item.code;
+                    return (
+                      <button
+                        key={item.code}
+                        type="button"
+                        onClick={() => setEditPreferredPurpose(item.code)}
+                        className={`p-3.5 text-left border transition-all cursor-pointer ${
+                          active
+                            ? 'border-white/40 bg-white/10 text-white'
+                            : 'border-white/10 bg-[#08090d] text-zinc-400 hover:border-white/25 hover:text-white'
+                        }`}
+                      >
+                        <div className="text-sm font-mono font-bold text-white">{item.label}</div>
+                        <div className="text-sm text-zinc-400 mt-0.5 font-light">{item.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateCurrentUser({
+                      gender: editGender,
+                      birthYear: editBirthYear,
+                      jobTitle: editJob,
+                      residenceCity: editResidenceCity,
+                      residenceDistrict: editResidenceDistrict.trim(),
+                      residenceDong: editResidenceDong.trim(),
+                      residenceAddress: editResidenceAddress.trim(),
+                      preferredPurpose: editPreferredPurpose,
+                    });
+                    showToast('기본프로필 및 희망 조건이 저장되었습니다.');
+                  }}
+                  className="px-6 py-3 rounded-none border border-white/20 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/40 text-white text-sm font-mono tracking-wider uppercase font-medium transition-all duration-300"
+                >
+                  기본프로필 저장
+                </button>
+              </div>
+            </section>
+          ) : profileSubTab === 'SELF_DIAG' ? (
+            <section className="bg-[#0c0d12] border border-white/[0.08] p-6 sm:p-8 space-y-6">
+              {/* 소통 성향 자가진단 (5문항) 상단 배너 */}
+              <div className="p-5 bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                    <span className="text-sm font-mono text-[#f04f74] font-medium">
+                      {Object.keys(surveyAnswers).length >= 4 ? '소통 성향 자가진단 완료' : '소통 성향 자가진단 필요'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-zinc-400 font-light">
+                    {Object.keys(surveyAnswers).length >= 4
+                      ? '6인의 식탁 매칭과 기준선 측정을 위한 성향 질문지가 완료되었습니다.'
+                      : '테이블 3:3 균형 매칭을 위해 5개 문항의 소통 성향 진단을 진행해 주세요.'}
+                  </p>
+                </div>
+                <Link
+                  href="/test"
+                  prefetch={true}
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-mono transition-colors shrink-0"
+                >
+                  {Object.keys(surveyAnswers).length >= 4 ? '성향 다시 진단' : '자가진단 시작'}
+                </Link>
+              </div>
+
+              <div className="border-b border-white/[0.08] pb-4 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-serif-editorial text-xl font-normal text-white">
+                    자가진단 (5대 대분류)
+                  </h3>
+                  <p className="text-sm text-zinc-400 mt-1 font-light">
+                    본인이 생각하는 자신의 5대 영역(외모 · 스타일 · 음성 · 대화 · 매너) 점수를 입력합니다. 모임 후 동석자 평가 점수와 비교됩니다.
+                  </p>
+                </div>
+                <div className="flex gap-1.5 flex-wrap">
+                  {majorDomains.map((dom, idx) => (
+                    <button
+                      key={dom.code}
+                      type="button"
+                      onClick={() => setSelfStepIdx(idx)}
+                      className={`px-3 py-1.5 rounded-none text-sm font-mono tracking-wider cursor-pointer transition-all ${
+                        selfStepIdx === idx
+                          ? 'border border-white/40 bg-white/10 text-white font-medium'
+                          : 'bg-[#08090d] text-zinc-400 border border-white/10 hover:border-white/20 hover:text-white font-normal'
+                      }`}
+                    >
+                      {idx + 1}. {dom.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5대 대분류 능동 선택 탭 (1클릭 즉시 전환) */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {majorDomains.map((dom, idx) => {
+                  const isSelected = selfStepIdx === idx;
+                  return (
+                    <button
+                      key={dom.code}
+                      type="button"
+                      onClick={() => setSelfStepIdx(idx)}
+                      className={`p-3 border text-center cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-white/40 bg-white/15 text-white'
+                          : 'border-white/10 bg-[#0c0d12] hover:border-white/20 text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      <p className={`text-sm font-mono ${isSelected ? 'text-[#f04f74] font-bold' : 'text-zinc-400'}`}>
+                        {dom.label}
+                      </p>
+                      <p className="text-lg font-bold text-white mt-0.5 font-mono">
+                        {selfDomainScores100[dom.code]}점
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {(() => {
+                const activeDom = majorDomains[selfStepIdx] ?? majorDomains[0];
+                const domSubs = subElements.filter(
+                  (s) => s.majorCode === activeDom.code
+                );
+                const currentVal = selfDomainScores100[activeDom.code] ?? 80;
+
+                return (
+                  <div className="bg-[#0c0d12] p-5 sm:p-6 border border-white/10 space-y-5">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                          <h4 className="font-serif-editorial text-lg font-normal text-white">
+                            [{activeDom.label}] 자가진단
+                          </h4>
+                        </div>
+                        <p className="text-sm text-zinc-400 mt-1 font-normal">
+                          포함 항목:{' '}
+                          {domSubs.map((s) => s.label).join(' · ')}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono text-2xl font-bold text-white">
+                          {currentVal}점
+                        </span>
+                        <span className="text-sm font-mono text-zinc-500 block">
+                          / 100점
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <input
+                        type="range"
+                        min={40}
+                        max={100}
+                        step={4}
+                        value={currentVal}
+                        onChange={(e) =>
+                          setSelfDomainScore100(
+                            activeDom.code,
+                            Number(e.target.value)
+                          )
+                        }
+                        className="w-full accent-primary cursor-pointer"
+                      />
+                      <div className="flex justify-between text-sm font-mono text-zinc-400 mt-2">
+                        <span>40점 (보완)</span>
+                        <span>60점 (보통)</span>
+                        <span>80점 (우수)</span>
+                        <span>100점 (최상)</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </section>
+          ) : (
+            <div className="space-y-6">
+              {/* 1. 기본 계정정보 및 연락처 관리 */}
               <section className="bg-[#0c0d12] border border-white/10 p-5 sm:p-6 shadow-sm space-y-5">
                 <div className="border-b border-white/10 pb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1009,7 +1414,7 @@ function MemberDashboardContent() {
                   </button>
                 </div>
 
-                {/* 3. 회원탈퇴 미니멀 링크 (과도한 영역 차지 배제) */}
+                {/* 3. 회원탈퇴 미니멀 링크 */}
                 <div className="pt-8 mt-8 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm font-mono">
                   <span className="text-zinc-500 text-sm">
                     계정 파기 및 서비스 탈퇴가 필요하신가요?
@@ -1027,309 +1432,6 @@ function MemberDashboardContent() {
                 </div>
               </section>
             </div>
-          )}
-
-          {/* ----------------------------------------------------------
-              [P02] 프로필설정 모듈 (기본프로필 + 5대 영역 자가진단)
-              ---------------------------------------------------------- */}
-          {currentProcess?.processId === 'P02_PROFILE' && (
-            <div className="space-y-6">
-              {/* 프로필설정 서브 탭 */}
-              <div className="bg-[#0c0d12] p-1 rounded-none border border-white/[0.08] flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setProfileSubTab('BASIC')}
-                  className={`flex-1 py-2.5 rounded-none text-sm font-mono tracking-wider transition-all cursor-pointer ${
-                    profileSubTab === 'BASIC'
-                      ? 'border border-white/30 bg-white/10 text-white font-medium'
-                      : 'text-zinc-400 hover:text-white border border-transparent'
-                  }`}
-                >
-                  기본 프로필 &amp; 관심사
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setProfileSubTab('SELF_DIAG')}
-                  className={`flex-1 py-2.5 rounded-none text-sm font-mono tracking-wider transition-all cursor-pointer ${
-                    profileSubTab === 'SELF_DIAG'
-                      ? 'border border-white/30 bg-white/10 text-white font-medium'
-                      : 'text-zinc-400 hover:text-white border border-transparent'
-                  }`}
-                >
-                  5대 영역 성향 자가진단
-                </button>
-              </div>
-
-              {profileSubTab === 'BASIC' ? (
-                <section className="bg-[#0c0d12] border border-white/[0.08] p-6 sm:p-8 space-y-6">
-                  <div className="border-b border-white/[0.08] pb-4">
-                    <h3 className="font-serif-editorial text-xl font-normal text-white">기본 프로필</h3>
-                    <p className="text-sm text-zinc-400 mt-1 font-light">
-                      모임 배정 및 레스토랑 식단 준비에 사용되는 기본 조건입니다.
-                    </p>
-                  </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div>
-                  <label className="block text-sm font-mono text-zinc-400 mb-2">
-                    성별
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditGender('F')}
-                      className={`py-3 rounded-none text-sm font-mono tracking-wider cursor-pointer transition-all ${
-                        editGender === 'F'
-                          ? 'border border-white/40 bg-white/10 text-white font-medium'
-                          : 'bg-[#08090d] text-zinc-400 border border-white/10 hover:border-white/20 hover:text-white font-normal'
-                      }`}
-                    >
-                      여성 (F)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditGender('M')}
-                      className={`py-3 rounded-none text-sm font-mono tracking-wider cursor-pointer transition-all ${
-                        editGender === 'M'
-                          ? 'border border-white/40 bg-white/10 text-white font-medium'
-                          : 'bg-[#08090d] text-zinc-400 border border-white/10 hover:border-white/20 hover:text-white font-normal'
-                      }`}
-                    >
-                      남성 (M)
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-mono text-zinc-400 mb-2">
-                    출생연도
-                  </label>
-                  <input
-                    type="number"
-                    value={editBirthYear}
-                    onChange={(e) =>
-                      setEditBirthYear(Number(e.target.value) || 1995)
-                    }
-                    className="w-full px-4 py-3 rounded-none border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/40"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-mono text-zinc-400 mb-2">
-                    직업 / 분야
-                  </label>
-                  <input
-                    type="text"
-                    value={editJob}
-                    onChange={(e) => setEditJob(e.target.value)}
-                    className="w-full px-4 py-3 rounded-none border border-white/15 bg-black/40 text-sm font-mono text-white focus:outline-none focus:border-white/40"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-mono text-zinc-400 mb-2.5">
-                  못 먹는 음식 (알레르기 / 비건 / 논알콜)
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.keys(DIETARY_LABELS) as DietaryRestriction[]).map(
-                    (dKey) => (
-                      <button
-                        key={dKey}
-                        type="button"
-                        onClick={() => setDietary(dKey)}
-                        className={`px-3.5 py-2 rounded-none text-sm font-mono tracking-wider border transition-all cursor-pointer ${
-                          dietary === dKey
-                            ? 'border-white/40 bg-white/10 text-white font-medium'
-                            : 'bg-[#08090d] text-zinc-400 border-white/10 hover:border-white/25 hover:text-white'
-                        }`}
-                      >
-                        {DIETARY_LABELS[dKey]}
-                      </button>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-mono text-zinc-400 mb-2.5">
-                  관심사 키워드
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.keys(INTEREST_LABELS) as InterestTag[]).map(
-                    (tag) => {
-                      const active = interests.includes(tag);
-                      return (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() => toggleInterest(tag)}
-                          className={`px-3.5 py-2 rounded-none text-sm font-mono tracking-wider border transition-all cursor-pointer ${
-                            active
-                              ? 'border-white/40 bg-white/10 text-white font-medium'
-                              : 'bg-[#08090d] text-zinc-400 border-white/10 hover:border-white/25 hover:text-white'
-                          }`}
-                        >
-                          {INTEREST_LABELS[tag]}
-                        </button>
-                      );
-                    }
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    updateCurrentUser({
-                      gender: editGender,
-                      birthYear: editBirthYear,
-                      jobTitle: editJob,
-                    });
-                    showToast('기본프로필이 저장되었습니다.');
-                  }}
-                  className="px-6 py-3 rounded-none border border-white/20 bg-white/[0.04] hover:bg-white/[0.08] hover:border-white/40 text-white text-sm font-mono tracking-wider uppercase font-medium transition-all duration-300"
-                >
-                  기본프로필 저장
-                </button>
-              </div>
-            </section>
-          ) : (
-            <section className="bg-[#0c0d12] border border-white/[0.08] p-6 sm:p-8 space-y-6">
-              {/* 소통 성향 자가진단 (5문항) 상단 배너 */}
-              <div className="p-5 bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                    <span className="text-sm font-mono text-[#f04f74] font-medium">
-                      {Object.keys(surveyAnswers).length >= 4 ? '소통 성향 자가진단 완료' : '소통 성향 자가진단 필요'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-zinc-400 font-light">
-                    {Object.keys(surveyAnswers).length >= 4
-                      ? '6인의 식탁 매칭과 기준선 측정을 위한 성향 질문지가 완료되었습니다.'
-                      : '테이블 3:3 균형 매칭을 위해 5개 문항의 소통 성향 진단을 진행해 주세요.'}
-                  </p>
-                </div>
-                <Link
-                  href="/test"
-                  prefetch={true}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-mono transition-colors shrink-0"
-                >
-                  {Object.keys(surveyAnswers).length >= 4 ? '성향 다시 진단' : '자가진단 시작'}
-                </Link>
-              </div>
-
-              <div className="border-b border-white/[0.08] pb-4 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-serif-editorial text-xl font-normal text-white">
-                    자가진단 (5대 대분류)
-                  </h3>
-                  <p className="text-sm text-zinc-400 mt-1 font-light">
-                    본인이 생각하는 자신의 5대 영역(외모 · 스타일 · 음성 · 대화 · 매너) 점수를 입력합니다. 모임 후 동석자 평가 점수와 비교됩니다.
-                  </p>
-                </div>
-                <div className="flex gap-1.5 flex-wrap">
-                  {majorDomains.map((dom, idx) => (
-                    <button
-                      key={dom.code}
-                      type="button"
-                      onClick={() => setSelfStepIdx(idx)}
-                      className={`px-3 py-1.5 rounded-none text-sm font-mono tracking-wider cursor-pointer transition-all ${
-                        selfStepIdx === idx
-                          ? 'border border-white/40 bg-white/10 text-white font-medium'
-                          : 'bg-[#08090d] text-zinc-400 border border-white/10 hover:border-white/20 hover:text-white font-normal'
-                      }`}
-                    >
-                      {idx + 1}. {dom.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* 5대 대분류 능동 선택 탭 (1클릭 즉시 전환) */}
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                {majorDomains.map((dom, idx) => {
-                  const isSelected = selfStepIdx === idx;
-                  return (
-                    <button
-                      key={dom.code}
-                      type="button"
-                      onClick={() => setSelfStepIdx(idx)}
-                      className={`p-3 border text-center cursor-pointer transition-all ${
-                        isSelected
-                          ? 'border-white/40 bg-white/15 text-white'
-                          : 'border-white/10 bg-[#0c0d12] hover:border-white/20 text-zinc-400 hover:text-white'
-                      }`}
-                    >
-                      <p className={`text-sm font-mono ${isSelected ? 'text-[#f04f74] font-bold' : 'text-zinc-400'}`}>
-                        {dom.label}
-                      </p>
-                      <p className="text-lg font-bold text-white mt-0.5 font-mono">
-                        {selfDomainScores100[dom.code]}점
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {(() => {
-                const activeDom = majorDomains[selfStepIdx] ?? majorDomains[0];
-                const domSubs = subElements.filter(
-                  (s) => s.majorCode === activeDom.code
-                );
-                const currentVal = selfDomainScores100[activeDom.code] ?? 80;
-
-                return (
-                  <div className="bg-[#0c0d12] p-5 sm:p-6 border border-white/10 space-y-5">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                          <h4 className="font-serif-editorial text-lg font-normal text-white">
-                            [{activeDom.label}] 자가진단
-                          </h4>
-                        </div>
-                        <p className="text-sm text-zinc-400 mt-1 font-normal">
-                          포함 항목:{' '}
-                          {domSubs.map((s) => s.label).join(' · ')}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <span className="font-mono text-2xl font-bold text-white">
-                          {currentVal}점
-                        </span>
-                        <span className="text-sm font-mono text-zinc-500 block">
-                          / 100점
-                        </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <input
-                        type="range"
-                        min={40}
-                        max={100}
-                        step={4}
-                        value={currentVal}
-                        onChange={(e) =>
-                          setSelfDomainScore100(
-                            activeDom.code,
-                            Number(e.target.value)
-                          )
-                        }
-                        className="w-full accent-primary cursor-pointer"
-                      />
-                      <div className="flex justify-between text-sm font-mono text-zinc-400 mt-2">
-                        <span>40점 (보완)</span>
-                        <span>60점 (보통)</span>
-                        <span>80점 (우수)</span>
-                        <span>100점 (최상)</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </section>
           )}
         </div>
       )}
@@ -1499,9 +1601,28 @@ function MemberDashboardContent() {
                           </span>
                         </div>
 
-                        <h4 className="font-serif-editorial text-lg font-normal text-white">
-                          {ev.title}
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-serif-editorial text-lg font-normal text-white">
+                            {ev.title}
+                          </h4>
+                          <span className="px-2 py-0.5 text-sm font-mono border border-white/20 bg-white/10 text-white shrink-0">
+                            {ev.status === 'CONFIRMED'
+                              ? '확정'
+                              : ev.status === 'CLOSING_SOON'
+                              ? '마감임박'
+                              : ev.status === 'CANCELLED_MIN'
+                              ? '미달취소'
+                              : ev.status === 'COMPLETED'
+                              ? '종료'
+                              : '모집중'}
+                          </span>
+                        </div>
+
+                        {ev.reason && (
+                          <p className="text-sm text-zinc-200 font-light">
+                            {ev.reason}
+                          </p>
+                        )}
 
                         {/* 식대 안내 */}
                         <p className="text-sm text-zinc-400 font-normal leading-relaxed">
@@ -1550,8 +1671,9 @@ function MemberDashboardContent() {
                         </div>
                         <button
                           type="button"
+                          disabled={isApplied || ev.status === 'CANCELLED_MIN' || ev.status === 'COMPLETED'}
                           onClick={() => {
-                            if (isApplied) return;
+                            if (isApplied || ev.status === 'CANCELLED_MIN' || ev.status === 'COMPLETED') return;
                             setCheckoutEvent({
                               eventId: ev.eventId,
                               title: ev.title,
@@ -1559,16 +1681,24 @@ function MemberDashboardContent() {
                               priceKrw: ev.priceKrw,
                               districtName: dist ? dist.regionName : '부산',
                               mealNote: ev.mealNote,
+                              refundPolicy: ev.refundPolicy,
+                              deadlineText: ev.deadlineText,
                             });
                             setIsCheckoutOpen(true);
                           }}
                           className={`px-4 py-1.5 text-sm font-mono transition-colors cursor-pointer font-semibold ${
-                            isApplied
+                            isApplied || ev.status === 'CANCELLED_MIN' || ev.status === 'COMPLETED'
                               ? 'border border-white/10 text-zinc-500 bg-transparent cursor-not-allowed'
                               : 'border border-white/30 bg-white/15 hover:bg-white/25 text-white'
                           }`}
                         >
-                          {isApplied ? '완료' : '신청하기'}
+                          {isApplied
+                            ? '완료'
+                            : ev.status === 'CANCELLED_MIN'
+                            ? '미달취소'
+                            : ev.status === 'COMPLETED'
+                            ? '종료'
+                            : '신청하기'}
                         </button>
                       </div>
                     </div>
@@ -1608,7 +1738,12 @@ function MemberDashboardContent() {
                     좌석배정
                   </h3>
                   <p className="text-sm text-zinc-400 mt-1">
-                    1부 착석 위치와 2부 하프타임 로테이션 좌석을 확인합니다.
+                    {(() => {
+                      const appliedEv = conditionalEvents.find((e) => appliedEventIds.includes(e.eventId));
+                      return appliedEv
+                        ? `[${appliedEv.title}] • ${appliedEv.dateText} • 1부 착석 및 2부 로테이션 좌석`
+                        : '1부 착석 위치와 2부 하프타임 로테이션 좌석을 확인합니다.';
+                    })()}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -1642,7 +1777,7 @@ function MemberDashboardContent() {
                   const member = activeTable?.participants.find(
                     (p) => p.userId === seat.userId
                   );
-                  const isMe = seat.userId === (currentUser?.userId || 'USER_AA');
+                  const isMe = Boolean(currentUser?.userId && seat.userId === currentUser.userId);
                   return (
                     <div
                       key={seat.seatNumber}
@@ -1860,9 +1995,19 @@ function MemberDashboardContent() {
               <div className="border-b border-white/10 pb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                  <h3 className="font-serif-editorial text-xl font-normal text-white">
-                    다면평가
-                  </h3>
+                  <div>
+                    <h3 className="font-serif-editorial text-xl font-normal text-white">
+                      다면평가
+                    </h3>
+                    {(() => {
+                      const appliedEv = conditionalEvents.find((e) => appliedEventIds.includes(e.eventId));
+                      return appliedEv ? (
+                        <span className="text-sm font-mono text-zinc-400">
+                          대상 모임: {appliedEv.title} ({appliedEv.dateText})
+                        </span>
+                      ) : null;
+                    })()}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 font-mono text-sm">
                   <span className="px-2.5 py-0.5 border border-white/10 bg-white/5 text-zinc-300">
@@ -2087,7 +2232,7 @@ function MemberDashboardContent() {
                 {visibleMatchesForMe.length > 0 ? (
                   <div className="space-y-2">
                     {visibleMatchesForMe.map((m, idx) => {
-                      const myId = currentUser?.userId || 'USER_AA';
+                      const myId = currentUser?.userId ?? '';
                       const partnerId = m.userA === myId ? m.userB : m.userA;
                       const partner = activeTable?.participants.find(
                         (p) => p.userId === partnerId
@@ -2132,7 +2277,7 @@ function MemberDashboardContent() {
                     METALOGUE SOCIAL DOSSIER
                   </span>
                   <h3 className="font-serif-editorial text-2xl font-normal text-white mt-1">
-                    다면 관찰 코칭 리포트
+                    모임 평가
                   </h3>
                 </div>
               </div>
@@ -2542,7 +2687,6 @@ function MemberDashboardContent() {
         </section>
           )}
         </div>
-      </div>
 
       {/* 토스페이먼츠 참가권 결제 & 주문 확인 모달 */}
       <CheckoutModal

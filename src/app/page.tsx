@@ -172,8 +172,8 @@ export default function PurchaseMainPage() {
           {/* 상단 메타 바 */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/60 border border-white/15 backdrop-blur-md mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74] animate-ping" />
-            <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.3em] text-zinc-300 uppercase">
-              Curated Private Dining • Booking Hub
+            <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.25em] text-zinc-300">
+              나도솔로 · 소셜 다이닝 &amp; 다면 관찰 플랫폼
             </span>
           </div>
 
@@ -181,14 +181,14 @@ export default function PurchaseMainPage() {
             {/* 좌측: 타이틀 및 서비스 가치 (오픈테이블과 동일한 자연스러운 직사각형 텍스트 조판) */}
             <div className="lg:col-span-8 space-y-5">
               <h1 className="font-serif-editorial text-4xl sm:text-6xl lg:text-[68px] font-normal text-white tracking-tight leading-[1.14]">
-                <span className="block">삶의 결이 통하는 6인의 저녁,</span>
+                <span className="block">나도솔로 — 삶의 결이 통하는 6인의 저녁,</span>
                 <span className="block font-light italic text-[#f5f2eb]/90 mt-1 sm:mt-1.5">
                   이번 주말 당신의 식탁을 예약하세요
                 </span>
               </h1>
 
               <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed pt-2">
-                신원과 에티켓이 검증된 6인의 참가자가 엄선된 프라이빗 룸에 모여 코스 디너와 와인을 함께합니다. 식사와 주류 비용은 당일 현장에서 1/N 실비로 정산하며, 온라인 참가비 ₩30,000은 다면 관찰 엔진 라이선스 및 소셜 리포트 발행비입니다.
+                나도솔로는 신원과 에티켓이 검증된 6인의 참가자가 엄선된 프라이빗 룸에 모여 코스 디너와 와인을 함께하며 타인의 시선으로 나의 소통과 매너를 발견하는 소셜 메타인지 플랫폼입니다. 식사와 주류 비용은 당일 현장에서 1/N 실비로 정산하며, 온라인 참가비 ₩30,000은 다면 관찰 엔진 라이선스 및 리포트 발행비입니다.
               </p>
 
               {/* 빠른 쇼케이스 안내 링크 */}

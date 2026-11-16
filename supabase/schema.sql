@@ -21,6 +21,16 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   self_domain_scores JSONB DEFAULT '{"APPEARANCE":80,"STYLE":85,"VOICE":80,"CONVERSATION":90,"MANNER":95}'::jsonb,
   verified_badge TEXT DEFAULT 'VERIFIED_MEMBER',
   session_count INTEGER DEFAULT 1,
+  residence_city TEXT,
+  residence_district TEXT,
+  residence_dong TEXT,
+  residence_address TEXT,
+  latitude DOUBLE PRECISION,
+  longitude DOUBLE PRECISION,
+  preferred_purpose TEXT,
+  matching_stage TEXT,
+  pre_matched_pool_id TEXT,
+  confirmed_event_id TEXT,
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
@@ -123,6 +133,48 @@ CREATE POLICY "Public insert/update personal_reports" ON public.personal_reports
 
 CREATE POLICY "Public read secret_votes" ON public.secret_votes FOR SELECT USING (true);
 CREATE POLICY "Public insert/update secret_votes" ON public.secret_votes FOR ALL USING (true);
+
+-- ============================================================================
+-- 11. 밋업 상품 테이블 (Meetups) - 전국구 자유 개설·수정·상태전환 SSOT
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.meetups (
+  meetup_id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  district_id TEXT NOT NULL DEFAULT 'DIST_JEONPO',
+  region_name TEXT,
+  district_name TEXT,
+  venue_id TEXT NOT NULL DEFAULT 'DIRECT',
+  date_text TEXT NOT NULL,
+  event_date TEXT,
+  event_time TEXT,
+  deadline_at TEXT,
+  mode TEXT NOT NULL DEFAULT 'ROMANCE',
+  price_krw INTEGER NOT NULL DEFAULT 30000,
+  max_capacity INTEGER DEFAULT 6,
+  min_confirm_count INTEGER DEFAULT 4,
+  reason TEXT,
+  description TEXT,
+  hero_image TEXT,
+  venue_name_override TEXT,
+  venue_address TEXT,
+  venue_map_url TEXT,
+  is_venue_secret_until_confirm BOOLEAN DEFAULT true,
+  expected_meal_cost TEXT,
+  refund_policy TEXT,
+  deadline_text TEXT,
+  status TEXT DEFAULT 'RECRUITING',
+  target_age_group TEXT DEFAULT '5060_GOLDEN',
+  meal_note TEXT,
+  required_badge_ids JSONB DEFAULT '[]'::jsonb,
+  min_total_score100 INTEGER DEFAULT 0,
+  active_preset_sub_ids JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.meetups ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read meetups" ON public.meetups FOR SELECT USING (true);
+CREATE POLICY "Public insert/update/delete meetups" ON public.meetups FOR ALL USING (true);
 
 -- ============================================================================
 -- 10. 시드 데이터 (Seed Data)

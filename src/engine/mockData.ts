@@ -57,8 +57,8 @@ export const INITIAL_U01_SELF_VECTOR: TraitVector = {
 export const INITIAL_PEER_FEEDBACKS: PeerMirrorFeedback[] = [
   {
     sessionId: 'SES_PAST_01',
-    fromUserId: 'USER_BB',
-    toUserId: 'USER_AA',
+    fromUserId: 'U_test_01',
+    toUserId: 'U_test_03',
     observedTraitHint: { talkLead: 0.85, extroversion: 0.8, romanceIntent: 0.85, alcoholPreference: 0.8 },
     competencyRatings: {
       communicationBalance: 88,
@@ -71,8 +71,8 @@ export const INITIAL_PEER_FEEDBACKS: PeerMirrorFeedback[] = [
   },
   {
     sessionId: 'SES_PAST_02',
-    fromUserId: 'USER_BB',
-    toUserId: 'USER_AA',
+    fromUserId: 'U_test_01',
+    toUserId: 'U_test_03',
     observedTraitHint: { talkLead: 0.8, extroversion: 0.75, romanceIntent: 0.85, alcoholPreference: 0.8 },
     competencyRatings: {
       communicationBalance: 86,

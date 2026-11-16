@@ -36,8 +36,13 @@ export interface LoggedInUser {
   authProvider: 'KAKAO' | 'GOOGLE' | 'APPLE' | 'EMAIL';
   verifiedBadge: string;
   sessionCount: number;
-  residenceCity?: string;     // 광역시·도 (예: 부산광역시)
-  residenceDistrict?: string; // 시·군·구 (예: 해운대구, 부산진구)
+  residenceCity?: string;     // 시·도 (2글자: 서울, 부산, 경기 등)
+  residenceDistrict?: string; // 시·군·구 (예: 강남구, 해운대구)
+  residenceDong?: string;     // 읍·면·동 (예: 역삼동, 우동)
+  residenceAddress?: string;  // 상세 주소 / 주요 역세권 (추후 지도 연동)
+  latitude?: number;          // 위도 (거리 기반 매칭 확장용)
+  longitude?: number;         // 경도 (거리 기반 매칭 확장용)
+  preferredPurpose?: 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE'; // 희망 참가 목적 (엔진 2층)
 }
 
 // ============================================================================
@@ -216,6 +221,11 @@ export interface ParticipantProfile {
   gender: Gender;
   birthYear: number;
   cityCode: string;
+  residenceCity?: string;
+  residenceDistrict?: string;
+  residenceDong?: string;
+  latitude?: number;
+  longitude?: number;
   /** 신청한 모임 모드 */
   preferredMode: SocialMode;
   /** 구사 언어 및 유창성 */

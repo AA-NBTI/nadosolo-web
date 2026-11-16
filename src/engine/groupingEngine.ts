@@ -340,12 +340,64 @@ export class GroupingEngine {
         candidate.interests,
         member.interests
       );
+      const locationBonus = this.calculateLocationProximityBonus(candidate, member);
       total +=
         traitScore * (w.traitSynergyWeight + w.energyBalanceWeight) +
-        interestScore * (w.interestSimilarityWeight + w.ageCompatibilityWeight);
+        interestScore * (w.interestSimilarityWeight + w.ageCompatibilityWeight) +
+        locationBonus;
     }
 
     return total / group.length;
+  }
+
+  /**
+   * 생활권(시/도·시/군/구·읍/면/동) 및 좌표(km) 기반 근접 가산점 계산
+   */
+  public static calculateLocationProximityBonus(
+    a: ParticipantProfile,
+    b: ParticipantProfile
+  ): number {
+    if (
+      typeof a.latitude === 'number' &&
+      typeof a.longitude === 'number' &&
+      typeof b.latitude === 'number' &&
+      typeof b.longitude === 'number'
+    ) {
+      const distKm = this.haversineKm(a.latitude, a.longitude, b.latitude, b.longitude);
+      if (distKm <= 3) return 20;
+      if (distKm <= 10) return 12;
+      if (distKm <= 25) return 5;
+      return 0;
+    }
+
+    const sameCity =
+      Boolean(a.residenceCity && b.residenceCity && a.residenceCity.trim() === b.residenceCity.trim());
+    const sameDistrict =
+      Boolean(
+        a.residenceDistrict &&
+          b.residenceDistrict &&
+          a.residenceDistrict.trim() === b.residenceDistrict.trim()
+      );
+    const sameDong =
+      Boolean(a.residenceDong && b.residenceDong && a.residenceDong.trim() === b.residenceDong.trim());
+
+    if (sameCity && sameDistrict && sameDong) return 20;
+    if (sameCity && sameDistrict) return 12;
+    if (sameCity) return 5;
+    return 0;
+  }
+
+  private static haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const sinLat = Math.sin(dLat / 2);
+    const sinLon = Math.sin(dLon / 2);
+    const h =
+      sinLat * sinLat +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * sinLon * sinLon;
+    return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
   }
 
   private static satisfiesConstraints(

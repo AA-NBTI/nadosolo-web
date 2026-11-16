@@ -2,6 +2,7 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
+import { buildMeetupSeoSlug } from '@/lib/seoSlug';
 import {
   ADAPTIVE_DINING_PLAYBOOK,
   CityLocaleConfig,
@@ -526,7 +527,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const [isSecondHalfRotated, setIsSecondHalfRotated] =
     useState<boolean>(false);
-  const [myVoteTargetId, setMyVoteTargetId] = useState<string>('USER_BB');
+  const [myVoteTargetId, setMyVoteTargetId] = useState<string>('');
   const [myVoteCategory, setMyVoteCategory] = useState<VoteCategory>('ROMANCE');
   const [isMidnightPassed, setIsMidnightPassed] = useState<boolean>(true);
 
@@ -600,14 +601,108 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         // 세션 복원 완료 (이 시점 이전에는 관리자/회원 가드 화면을 그리지 않는다)
         if (isMounted) setIsSessionReady(true);
 
-        // [SSOT] Supabase 라이브 DB 전체 회원 실시간 로드 (이중 목업 완전 배제)
+        // [SSOT] Supabase 라이브 DB 전체 회원 + 모임 상품 실시간 로드 (이중 목업 완전 배제)
         try {
-          const allDbProfiles = await nadoSoloSupabaseService.getAllProfiles();
+          const [allDbProfiles, allDbEvents] = await Promise.all([
+            nadoSoloSupabaseService.getAllProfiles(),
+            nadoSoloSupabaseService.getEvents(),
+          ]);
           if (isMounted && allDbProfiles && allDbProfiles.length > 0) {
             setParticipantsPool(allDbProfiles.map(mapDbProfileToParticipant));
           }
+          if (isMounted && allDbEvents && allDbEvents.length > 0) {
+            setConditionalEvents(allDbEvents);
+            try {
+              localStorage.setItem('nadosolo_conditional_events_v1', JSON.stringify(allDbEvents));
+            } catch {}
+          } else if (isMounted) {
+            let restored: ConditionalEventItem[] | null = null;
+            try {
+              const rawSaved = localStorage.getItem('nadosolo_conditional_events_v1');
+              if (rawSaved) {
+                const parsed = JSON.parse(rawSaved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  restored = parsed;
+                }
+              }
+            } catch {}
+            if (restored) {
+              const migrated = restored.map((ev) =>
+                ev.eventId.startsWith('EVT_AUTO_') || /^[a-z0-9-]+$/.test(ev.eventId)
+                  ? { ...ev, eventId: buildMeetupSeoSlug(ev.regionName, ev.districtName, ev.purpose) }
+                  : ev
+              );
+              setConditionalEvents(migrated);
+            } else if (allDbProfiles && allDbProfiles.length > 0) {
+              // meetups 테이블 미생성 시에도 실서버 조건 충족(3명+) 풀 기반 자동 개설 모임 복원
+              const PURPOSE_NAMES: Record<string, string> = {
+                FRIEND: '친구·교류',
+                RESET: '지적 환기',
+                TASTE: '취향·활동',
+                ROMANCE: '인연·동반자',
+              };
+              const groups = new Map<string, typeof allDbProfiles>();
+              for (const p of allDbProfiles) {
+                const hasZone = Boolean(p.residence_city?.trim() && p.residence_district?.trim());
+                const hasPhone = Boolean(p.phone && p.phone.trim() !== '' && p.phone !== '010-0000-0000');
+                const hasPurpose = Boolean(p.preferred_purpose);
+                if (!hasZone || !hasPhone || !hasPurpose) continue;
+                const key = `${p.residence_city}|${p.preferred_purpose}`;
+                const arr = groups.get(key) || [];
+                arr.push(p);
+                groups.set(key, arr);
+              }
+              const autoEvents: ConditionalEventItem[] = [];
+              groups.forEach((members, key) => {
+                if (members.length < 3) return;
+                const [city, purposeRaw] = key.split('|');
+                const purpose = (purposeRaw || 'RESET') as 'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE';
+                const first = members[0];
+                const allConfirmed = members.every((m) => m.matching_stage === 'CONFIRMED');
+                const targetDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                const dateStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
+                autoEvents.push({
+                  eventId: buildMeetupSeoSlug(city, first.residence_district || '주요 상권', purpose),
+                  title: `[${city} ${first.residence_district || '주요 상권'}] ${PURPOSE_NAMES[purpose] || purpose} 프라이빗 다이닝`,
+                  districtId: `DIST_AUTO_${city}`,
+                  regionName: city,
+                  districtName: first.residence_district || '주요 상권',
+                  dongName: first.residence_dong || undefined,
+                  venueId: 'DIRECT',
+                  dateText: `${dateStr} 19:30`,
+                  eventDate: dateStr,
+                  eventTime: '19:30',
+                  deadlineAt: `${dateStr}T18:00`,
+                  mode: purpose === 'ROMANCE' ? 'ROMANCE' : 'THEME',
+                  purpose,
+                  compositionMode: purpose === 'ROMANCE' ? 'ROMANCE' : 'THEME',
+                  enforceGenderRatio: purpose === 'ROMANCE',
+                  evaluationModuleId: 'MOD_TRACK_3040',
+                  targetAgeGroup: '3040 프로',
+                  priceKrw: 30000,
+                  maxCapacity: 6,
+                  minConfirmCount: 3,
+                  reason: `동일 조건(${city} · ${PURPOSE_NAMES[purpose] || purpose}) ${members.length}명 충족으로 자동 개설된 프라이빗 테이블`,
+                  description: `실서버 회원 조건 매칭으로 자동 개설된 모임입니다.`,
+                  venueAddress: '확정자 D-1 상세 주소 비공개 안내',
+                  isVenueSecretUntilConfirm: true,
+                  expectedMealCost: '인당 4~5만 원대 (현장 1/N 실비 정산)',
+                  refundPolicy: '모임 24시간 전까지 100% 환불',
+                  deadlineText: `${dateStr} 18:00 마감`,
+                  status: allConfirmed ? 'CONFIRMED' : 'RECRUITING',
+                  mealNote: '참가비 ₩30,000 (다면 관찰 엔진 라이선스 및 리포트 포함 / 식음료 매장 현장 1/N)',
+                  requiredBadgeIds: [],
+                  minTotalScore100: 75,
+                  activePresetSubIds: ['SUB_APP_1', 'SUB_STY_2', 'SUB_CON_2'],
+                });
+              });
+              if (autoEvents.length > 0) {
+                setConditionalEvents(autoEvents);
+              }
+            }
+          }
         } catch (e) {
-          console.warn('[Supabase] getAllProfiles load error:', e);
+          console.warn('[Supabase] initial SSOT load error:', e);
         }
 
         // 로그인 세션이 없는 경우 자동 로그인(기본 사용자 강제 로그인)을 차단하고 비로그인 초기 세팅 유지
@@ -639,6 +734,11 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
             authProvider: 'EMAIL',
             verifiedBadge: dbProfile.verified_badge ?? '본인인증 완료',
             sessionCount: dbProfile.session_count ?? 1,
+            residenceCity: dbProfile.residence_city ?? activeUser.residenceCity,
+            residenceDistrict: dbProfile.residence_district ?? activeUser.residenceDistrict,
+            residenceDong: dbProfile.residence_dong ?? activeUser.residenceDong,
+            residenceAddress: dbProfile.residence_address ?? activeUser.residenceAddress,
+            preferredPurpose: dbProfile.preferred_purpose ?? activeUser.preferredPurpose,
           };
           setCurrentUser(restoredUser);
           if (typeof window !== 'undefined') {
@@ -795,6 +895,11 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         self_domain_scores: selfDomainScores100,
         verified_badge: nextUser.verifiedBadge,
         session_count: nextUser.sessionCount,
+        residence_city: nextUser.residenceCity,
+        residence_district: nextUser.residenceDistrict,
+        residence_dong: nextUser.residenceDong,
+        residence_address: nextUser.residenceAddress,
+        preferred_purpose: nextUser.preferredPurpose,
       });
 
       return nextUser;
@@ -815,22 +920,20 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
     // 2. 대상 회원 정보 구성
     const foundProfile = participantsPool.find((p) => p.userId === targetUserId);
-    const isAA = targetUserId === 'USER_AA';
-    const isBB = targetUserId === 'USER_BB';
 
     const targetUser: LoggedInUser = {
       userId: targetUserId,
-      handle: isAA ? '@aa' : isBB ? '@bb' : `@${targetUserId.toLowerCase()}`,
+      handle: `@${targetUserId.replace(/^U_/, '').toLowerCase()}`,
       role: 'MEMBER',
-      email: isAA ? 'aa@nadosolo.com' : isBB ? 'bb@nadosolo.com' : `${targetUserId.toLowerCase()}@nadosolo.com`,
-      nickname: foundProfile?.nickname || (isAA ? '김에이' : isBB ? '이비비' : '회원'),
-      phone: isAA ? '010-1111-2222' : isBB ? '010-3333-4444' : '010-0000-0000',
-      jobTitle: isAA ? '브랜드 마케터' : isBB ? 'IT 기획자' : '전문직',
-      gender: foundProfile?.gender || (isAA ? 'F' : 'M'),
-      birthYear: foundProfile?.birthYear || (isAA ? 1994 : 1992),
+      email: `${targetUserId.toLowerCase()}@nadosolo.com`,
+      nickname: foundProfile?.nickname || '회원',
+      phone: '010-0000-0000',
+      jobTitle: '전문직',
+      gender: foundProfile?.gender || 'F',
+      birthYear: foundProfile?.birthYear || 1995,
       authProvider: 'EMAIL',
       verifiedBadge: '본인인증 완료',
-      sessionCount: isAA ? 3 : isBB ? 2 : 1,
+      sessionCount: 1,
     };
 
     // 화면(React 상태)은 바꾸지 않고 저장소만 갱신한 뒤 전체 이동한다.
@@ -984,8 +1087,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     subElementId: string,
     scores: Record<CriterionCode, number>
   ) => {
-    const fromId = currentUser?.userId ?? 'USER_AA';
-    const fromNick = currentUser?.nickname ?? '김에이';
+    const fromId = currentUser?.userId ?? '';
+    const fromNick = currentUser?.nickname ?? '회원';
     const fromGen = currentUser?.gender ?? 'F';
 
     setMatrixEvaluations((prev) => {
@@ -1057,7 +1160,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const myPersonalDossier = useMemo(() => {
     return EvaluationMatrixEngine.buildPersonalDossier({
-      userId: currentUser?.userId ?? 'USER_AA',
+      userId: currentUser?.userId ?? '',
       userGender: currentUser?.gender ?? 'F',
       majorDomains,
       subElements,
@@ -1077,50 +1180,9 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   // ==========================================================================
   // [신규 헌법 기반] 마이크로 플러그인 평가 엔진 및 상호주의 해금 소셜 프로필
   // ==========================================================================
-  const [participantObservations, setParticipantObservations] = useState<ParticipantObservationRecord[]>([
-    {
-      recordId: 'REC_SAMPLE_01',
-      sessionId: 'SES_BUSAN_01',
-      moduleId: 'MOD_TRACK_3040',
-      fromUserId: 'USER_BB',
-      toUserId: 'USER_AA',
-      elementId: 'EL_3040_LISTEN',
-      scoreStep: 5,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      recordId: 'REC_SAMPLE_02',
-      sessionId: 'SES_BUSAN_01',
-      moduleId: 'MOD_TRACK_3040',
-      fromUserId: 'USER_BB',
-      toUserId: 'USER_AA',
-      elementId: 'EL_3040_QUESTION',
-      scoreStep: 4,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      recordId: 'REC_SAMPLE_03',
-      sessionId: 'SES_BUSAN_01',
-      moduleId: 'MOD_TRACK_3040',
-      fromUserId: 'USER_BB',
-      toUserId: 'USER_AA',
-      elementId: 'EL_3040_SENSE',
-      scoreStep: 5,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      recordId: 'REC_SAMPLE_04',
-      sessionId: 'SES_BUSAN_01',
-      moduleId: 'MOD_THEME_DINING',
-      fromUserId: 'USER_BB',
-      toUserId: 'USER_AA',
-      elementId: 'EL_DIN_NEAT',
-      scoreStep: 5,
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+  const [participantObservations, setParticipantObservations] = useState<ParticipantObservationRecord[]>([]);
 
-  const [completedEvalUserIds, setCompletedEvalUserIds] = useState<string[]>(['USER_BB']);
+  const [completedEvalUserIds, setCompletedEvalUserIds] = useState<string[]>([]);
 
   const submitParticipantObservation = (
     toUserId: string,
@@ -1128,7 +1190,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     elementId: string,
     scoreStep: 1 | 2 | 3 | 4 | 5
   ) => {
-    const fromId = currentUser?.userId ?? 'USER_AA';
+    const fromId = currentUser?.userId ?? '';
     const nextRec: ParticipantObservationRecord = {
       recordId: `REC_OBS_${Date.now()}`,
       sessionId: 'SES_BUSAN_01',
@@ -1157,7 +1219,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   };
 
   const personalSocialDossier = useMemo(() => {
-    const myId = currentUser?.userId ?? 'USER_AA';
+    const myId = currentUser?.userId ?? '';
     return CoreRunner.generateDossier(
       myId,
       'SES_BUSAN_01',
@@ -1244,15 +1306,34 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addConditionalEvent = (ev: ConditionalEventItem) => {
-    setConditionalEvents((prev) => [ev, ...prev]);
+    setConditionalEvents((prev) => {
+      const next = [ev, ...prev];
+      try {
+        localStorage.setItem('nadosolo_conditional_events_v1', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    void nadoSoloSupabaseService.upsertEvent(ev);
   };
   const updateConditionalEvent = (ev: ConditionalEventItem) => {
-    setConditionalEvents((prev) =>
-      prev.map((x) => (x.eventId === ev.eventId ? ev : x))
-    );
+    setConditionalEvents((prev) => {
+      const next = prev.map((x) => (x.eventId === ev.eventId ? ev : x));
+      try {
+        localStorage.setItem('nadosolo_conditional_events_v1', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    void nadoSoloSupabaseService.upsertEvent(ev);
   };
   const deleteConditionalEvent = (eventId: string) => {
-    setConditionalEvents((prev) => prev.filter((x) => x.eventId !== eventId));
+    setConditionalEvents((prev) => {
+      const next = prev.filter((x) => x.eventId !== eventId);
+      try {
+        localStorage.setItem('nadosolo_conditional_events_v1', JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+    void nadoSoloSupabaseService.deleteEvent(eventId);
   };
 
   // ① ProfilingEngine
@@ -1296,8 +1377,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   // ② MirrorEngine
   const mirrorDiagnosis = useMemo(
-    () => MirrorEngine.analyzeMirror('USER_AA', selfVector, peerFeedbacks),
-    [selfVector, peerFeedbacks]
+    () => MirrorEngine.analyzeMirror(currentUser?.userId ?? '', selfVector, peerFeedbacks),
+    [currentUser?.userId, selfVector, peerFeedbacks]
   );
 
   const mirrorPersonaTitle = useMemo(() => {
@@ -1326,11 +1407,11 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const coachingReport = useMemo(
     () =>
       GrowthCoachingEngine.generateCoachingReport(
-        'USER_AA',
+        currentUser?.userId ?? '',
         INITIAL_GROWTH_SNAPSHOTS,
         mirrorDiagnosis
       ),
-    [mirrorDiagnosis]
+    [currentUser?.userId, mirrorDiagnosis]
   );
 
   // ④ LocalePolicyEngine & ⑤ GroupingEngine & ⑥ VenueAndYieldEngine
@@ -1354,7 +1435,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const matchedTables = useMemo(() => {
     const updatedPool = participantsPool.map((p) => {
-      if (p.userId === 'USER_AA') {
+      if (currentUser?.userId && p.userId === currentUser.userId) {
         return {
           ...p,
           nickname: currentUser?.nickname ?? p.nickname,
@@ -1397,7 +1478,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const triggerNoShowAndStandbyRecovery = () => {
     if (!activeTable) return;
     const dropped =
-      activeTable.participants.find((p) => p.userId === 'USER_BB') ??
+      activeTable.participants.find((p) => p.userId !== currentUser?.userId) ??
       activeTable.participants[1];
     if (!dropped) return;
     const replacement = VenueAndYieldEngine.findStandbyReplacement(
@@ -1448,22 +1529,18 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       const sessionId = `SES_${activeTable.tableId}`;
       const revealUtc = '2026-11-07T00:00:00Z';
 
-      const votes: SecretVote[] = [
-        {
-          sessionId,
-          fromUserId: 'USER_AA',
-          toUserId: myVoteTargetId,
-          category: myVoteCategory,
-          submittedAt: '2026-11-06T21:00:00Z',
-        },
-        {
-          sessionId,
-          fromUserId: 'USER_BB',
-          toUserId: 'USER_AA',
-          category: 'ROMANCE',
-          submittedAt: '2026-11-06T21:01:00Z',
-        },
-      ];
+      const myId = currentUser?.userId ?? '';
+      const votes: SecretVote[] = myVoteTargetId
+        ? [
+            {
+              sessionId,
+              fromUserId: myId,
+              toUserId: myVoteTargetId,
+              category: myVoteCategory,
+              submittedAt: new Date().toISOString(),
+            },
+          ]
+        : [];
 
       const all = MutualMatchEngine.resolveMutualMatches(
         sessionId,
@@ -1475,7 +1552,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         ? '2026-11-07T00:05:00Z'
         : '2026-11-06T21:15:00Z';
       const visible = MutualMatchEngine.getVisibleMatchesForUser(
-        'USER_AA',
+        myId,
         all,
         nowIso
       );
@@ -1490,7 +1567,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       return {
         allMutualMatches: all,
         visibleMatchesForMe: visible,
-        isVipUnlockedForMe: vipList.includes('USER_AA'),
+        isVipUnlockedForMe: vipList.includes(myId),
       };
     }, [
       activeTable,
@@ -1498,6 +1575,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       myVoteCategory,
       isMidnightPassed,
       peerFeedbacks,
+      currentUser?.userId,
     ]);
 
   const addPeerFeedbackSimulation = (
@@ -1508,7 +1586,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     const newFb: PeerMirrorFeedback = {
       sessionId: `SES_SIM_${peerFeedbacks.length + 1}`,
       fromUserId: `PEER_${peerFeedbacks.length + 1}`,
-      toUserId: 'USER_AA',
+      toUserId: currentUser?.userId ?? '',
       observedTraitHint: {
         talkLead: observedTalkLead,
         extroversion: 0.8,
