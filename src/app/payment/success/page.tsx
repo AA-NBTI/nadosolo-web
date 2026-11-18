@@ -107,22 +107,41 @@ function PaymentSuccessContent() {
         )}
       </div>
 
+      {/* D-1 정밀 배정 체크리스트 안내 카드 (Timeleft 심층 매칭 프로파일러) */}
+      <div className="p-4 border border-white/20 bg-[#161a26] text-left space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+          <span className="text-xs font-mono font-bold text-white uppercase tracking-wider">
+            D-1 정밀 매칭 프로파일러
+          </span>
+        </div>
+        <p className="text-xs text-zinc-300 leading-relaxed font-normal">
+          나와 가치관·대화 결이 100% 꼭 맞는 동석자 배정을 위해, 타임레프트 심층 22문항 체크리스트를 작성해 주세요.
+        </p>
+        <Link
+          href="/test?mode=DEEP"
+          className="block w-full py-2.5 mt-2 text-center border border-[#f04f74] bg-[#f04f74] hover:bg-[#d93a5e] text-white text-xs font-mono font-bold transition-colors"
+        >
+          정밀 체크리스트 시작하기 (22문항) →
+        </Link>
+      </div>
+
       <p className="text-xs text-zinc-400 leading-relaxed">
-        D-1에 배정된 프라이빗 테이블 및 상세 장소가 카카오톡 알림톡으로 비공개 안내됩니다.
+        D-1 화요일 18:00에 배정된 프라이빗 테이블 및 상세 장소가 카카오톡 알림톡으로 비공개 안내됩니다.
       </p>
 
       <div className="grid grid-cols-2 gap-3 pt-2">
         <Link
           href="/"
-          className="py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-xs sm:text-sm font-semibold transition-colors text-center"
+          className="py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white text-xs sm:text-sm font-semibold transition-colors text-center"
         >
           홈
         </Link>
         <Link
           href="/dashboard"
-          className="py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs sm:text-sm font-semibold transition-colors shadow-lg shadow-rose-950/40 text-center"
+          className="py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs sm:text-sm font-semibold transition-colors text-center"
         >
-          확인
+          대시보드
         </Link>
       </div>
     </div>

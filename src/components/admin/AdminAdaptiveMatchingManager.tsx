@@ -44,6 +44,7 @@ export default function AdminAdaptiveMatchingManager({
   const [expandedAxisId, setExpandedAxisId] = useState<string | null>(null);
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [expandedCalId, setExpandedCalId] = useState<string | null>(null);
+  const [questionLayerFilter, setQuestionLayerFilter] = useState<'ALL' | 'BASE' | 'DEEP' | 'PULSE'>('ALL');
 
   const loadLiveProfiles = useCallback(async () => {
     setIsLoading(true);
@@ -526,51 +527,83 @@ export default function AdminAdaptiveMatchingManager({
         </div>
       )}
 
-      {/* 4. 12+4 질문지 관제 */}
+      {/* 4. 2단계 프로그레시브 질문지 관제 (BASE 9 + DEEP 22 + PULSE 4 = 35문항) */}
       {perspective === 'QUESTIONS' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-          {questions.map((q) => {
-            const isExpanded = expandedQuestionId === q.id;
-            return (
-              <div
-                key={q.id}
-                className={`border border-white/10 bg-[#0c0d12] ${
-                  isExpanded ? 'col-span-full border-white/25' : ''
+        <div className="space-y-3">
+          {/* 필터 바 */}
+          <div className="flex flex-wrap items-center gap-1.5 p-2 bg-[#0c0d12] border border-white/10">
+            {[
+              { id: 'ALL', label: `전체 (${questions.length})` },
+              { id: 'BASE', label: `결제 전 필수 (${questions.filter((q) => q.layer === 'BASE').length})` },
+              { id: 'DEEP', label: `결제 후 심층 (${questions.filter((q) => q.layer === 'DEEP').length})` },
+              { id: 'PULSE', label: `컨디션 (${questions.filter((q) => q.layer === 'PULSE').length})` },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setQuestionLayerFilter(tab.id as any)}
+                className={`px-3 py-1 text-sm font-mono transition-colors cursor-pointer ${
+                  questionLayerFilter === tab.id
+                    ? 'border border-white/40 bg-white/15 text-white font-bold'
+                    : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
                 }`}
               >
-                <div className="p-3.5 flex items-center justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedQuestionId(isExpanded ? null : q.id)
-                    }
-                    className="flex-1 text-left cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                      <span className="text-sm font-mono font-bold text-white">
-                        {q.layer === 'PULSE' ? '컨디션' : '기본'} · {q.categoryLabel}
-                      </span>
-                      <span className="text-sm font-mono text-zinc-400">
-                        v{q.version}
-                      </span>
-                    </div>
-                    <p className="text-sm text-zinc-200 mt-1 line-clamp-1">
-                      {q.questionText}
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleQuestionActive(q.id)}
-                    className={`px-2.5 py-1 border text-sm font-mono cursor-pointer shrink-0 ${
-                      q.isActive
-                        ? 'border-white/40 bg-white/15 text-white font-bold'
-                        : 'border-white/10 bg-white/5 text-zinc-400'
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            {questions
+              .filter((q) => questionLayerFilter === 'ALL' || q.layer === questionLayerFilter)
+              .map((q) => {
+                const isExpanded = expandedQuestionId === q.id;
+                const layerBadge =
+                  q.layer === 'DEEP'
+                    ? '결제후 심층'
+                    : q.layer === 'PULSE'
+                    ? '컨디션'
+                    : '결제전 필수';
+                return (
+                  <div
+                    key={q.id}
+                    className={`border border-white/10 bg-[#0c0d12] ${
+                      isExpanded ? 'col-span-full border-white/25' : ''
                     }`}
                   >
-                    {q.isActive ? 'ON' : 'OFF'}
-                  </button>
-                </div>
+                    <div className="p-3.5 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedQuestionId(isExpanded ? null : q.id)
+                        }
+                        className="flex-1 text-left cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                          <span className="text-sm font-mono font-bold text-white">
+                            {layerBadge} · {q.categoryLabel}
+                          </span>
+                          <span className="text-sm font-mono text-zinc-400">
+                            v{q.version}
+                          </span>
+                        </div>
+                        <p className="text-sm text-zinc-200 mt-1 line-clamp-1">
+                          {q.questionText}
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => toggleQuestionActive(q.id)}
+                        className={`px-2.5 py-1 border text-sm font-mono cursor-pointer shrink-0 ${
+                          q.isActive
+                            ? 'border-white/40 bg-white/15 text-white font-bold'
+                            : 'border-white/10 bg-white/5 text-zinc-400'
+                        }`}
+                      >
+                        {q.isActive ? 'ON' : 'OFF'}
+                      </button>
+                    </div>
 
                 {isExpanded && (
                   <div className="p-4 border-t border-white/10 bg-[#08090d] space-y-2 text-sm font-mono text-zinc-300">
@@ -600,6 +633,7 @@ export default function AdminAdaptiveMatchingManager({
               </div>
             );
           })}
+          </div>
         </div>
       )}
     </div>

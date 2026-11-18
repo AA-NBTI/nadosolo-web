@@ -169,7 +169,7 @@ function MeetupSlotBookingContent() {
                 prefetch={true}
                 className="px-4 py-2 border border-white/20 text-sm font-mono text-zinc-200 hover:text-white hover:border-white/40 transition-colors"
               >
-                성향 퀴즈
+                체크리스트
               </Link>
               <Link
                 href={currentUser ? '/dashboard' : '/auth'}
@@ -220,7 +220,7 @@ function MeetupSlotBookingContent() {
                     prefetch={true}
                     className="px-3 py-1.5 border border-white/25 bg-white/10 text-white hover:bg-white/20"
                   >
-                    성향 퀴즈 먼저 완료하기 →
+                    체크리스트 먼저 완료하기 →
                   </Link>
                 )}
               </div>
@@ -388,7 +388,7 @@ function MeetupSlotBookingContent() {
                     : ticketCredits > 0
                     ? '참가권 예약'
                     : !hasCompletedQuiz && currentUser
-                    ? '퀴즈 후 예약'
+                    ? '체크리스트 후 예약'
                     : '슬롯 예약'}
                 </button>
               </div>

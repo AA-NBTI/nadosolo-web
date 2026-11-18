@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { getAppConfig } from '@/lib/appConfigDb';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useNadoSoloEngine,
   DEFAULT_ADAPTIVE_QUESTIONS,
@@ -10,10 +9,11 @@ import {
   computeUserAxisProfile,
   AdaptiveAnswer,
 } from '@/engine';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, ArrowRight } from 'lucide-react';
 
-export default function SoloTestPage() {
+function ChecklistContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { currentUser, surveyAnswers, saveSurveyAnswers } = useNadoSoloEngine();
 
   const activeQuestions = useMemo(
@@ -24,53 +24,37 @@ export default function SoloTestPage() {
     () => activeQuestions.filter((q) => q.layer === 'BASE'),
     [activeQuestions]
   );
+  const deepQuestions = useMemo(
+    () => activeQuestions.filter((q) => q.layer === 'DEEP'),
+    [activeQuestions]
+  );
   const pulseQuestions = useMemo(
     () => activeQuestions.filter((q) => q.layer === 'PULSE'),
     [activeQuestions]
   );
 
-  // 기존 BASE 응답이 이미 충분하면 기본으로 '오늘의 컨디션(PULSE)' 모드 제안 가능
-  const hasExistingBase = useMemo(() => {
-    const baseCount = baseQuestions.filter((q) => surveyAnswers[q.id] !== undefined).length;
-    return baseCount >= 10;
-  }, [baseQuestions, surveyAnswers]);
+  // 쿼리 스트링 ?mode=DEEP | PULSE | BASE 결정
+  const modeParam = searchParams.get('mode')?.toUpperCase();
+  const checklistMode: 'BASE' | 'DEEP' | 'PULSE' =
+    modeParam === 'DEEP'
+      ? 'DEEP'
+      : modeParam === 'PULSE'
+      ? 'PULSE'
+      : 'BASE';
 
-  const [quizMode, setQuizMode] = useState<'TIMELEFT_A' | 'B_EXTENDED' | 'PULSE'>(() => {
-    if (hasExistingBase) return 'PULSE';
-    if (typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem('nadosolo_ab_experiments_v1');
-        if (raw) {
-          const parsed = JSON.parse(raw) as Array<{ experimentId: string; activeMode: string }>;
-          const exp = parsed.find((e) => e.experimentId === 'EXP_QUIZ_ONBOARDING');
-          if (exp?.activeMode === 'B_ONLY') return 'B_EXTENDED';
-          if (exp?.activeMode === 'AB_SPLIT') return Math.random() < 0.5 ? 'TIMELEFT_A' : 'B_EXTENDED';
-        }
-      } catch {}
-    }
-    return 'TIMELEFT_A';
-  });
   const [currentIdx, setCurrentIdx] = useState(0);
-
-  useEffect(() => {
-    if (hasExistingBase) return;
-    getAppConfig<Array<{ experimentId: string; activeMode: string }>>('ab_experiments', 'nadosolo_ab_experiments_v1', []).then((list) => {
-      const exp = Array.isArray(list) ? list.find((e) => e.experimentId === 'EXP_QUIZ_ONBOARDING') : undefined;
-      if (exp?.activeMode === 'B_ONLY') setQuizMode('B_EXTENDED');
-      else if (exp?.activeMode === 'A_ONLY') setQuizMode('TIMELEFT_A');
-    });
-  }, [hasExistingBase]);
   const [localAnswers, setLocalAnswers] = useState<Record<string, string>>(() => ({
     ...surveyAnswers,
   }));
   const [isCompleted, setIsCompleted] = useState(false);
 
-  const questions =
-    quizMode === 'PULSE'
-      ? pulseQuestions
-      : quizMode === 'B_EXTENDED'
-      ? activeQuestions
-      : baseQuestions;
+  // 모드별 문항 목록
+  const questions = useMemo(() => {
+    if (checklistMode === 'DEEP') return deepQuestions;
+    if (checklistMode === 'PULSE') return pulseQuestions;
+    return baseQuestions;
+  }, [checklistMode, deepQuestions, pulseQuestions, baseQuestions]);
+
   const currentQ = questions[currentIdx];
   const totalQuestions = questions.length;
   const currentAnswer = currentQ ? localAnswers[currentQ.id] : undefined;
@@ -171,12 +155,24 @@ export default function SoloTestPage() {
 
   const handleFinishAndProceed = () => {
     saveSurveyAnswers(localAnswers);
-    if (currentUser) {
-      router.push('/meetup');
+    if (checklistMode === 'DEEP' || checklistMode === 'PULSE') {
+      router.push('/dashboard');
     } else {
-      router.push('/auth?next=/meetup');
+      if (currentUser) {
+        router.push('/meetup');
+      } else {
+        router.push('/auth?next=/meetup');
+      }
     }
   };
+
+  // 모드별 명칭
+  const modeBadgeText =
+    checklistMode === 'DEEP'
+      ? 'D-1 정밀 배정 체크리스트'
+      : checklistMode === 'PULSE'
+      ? '오늘의 컨디션 체크'
+      : '결제 전 사전 체크리스트';
 
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col justify-between selection:bg-[#f04f74] selection:text-white">
@@ -189,7 +185,7 @@ export default function SoloTestPage() {
               <div className="flex items-center justify-between text-sm font-mono text-zinc-300">
                 <span className="flex items-center gap-2 font-medium text-white">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                  {currentQ.layer === 'PULSE' ? '컨디션' : '기본'} · {currentQ.categoryLabel}
+                  {modeBadgeText} · {currentQ.categoryLabel}
                 </span>
                 <span>
                   {String(currentIdx + 1).padStart(2, '0')} / {String(totalQuestions).padStart(2, '0')}
@@ -206,9 +202,16 @@ export default function SoloTestPage() {
             {/* 질문 카드 */}
             <div className="bg-[#0c0d12] border border-white/15 p-6 sm:p-8 space-y-6">
               <div className="space-y-2">
-                <span className="inline-block px-2.5 py-0.5 text-sm font-mono bg-white/5 text-zinc-200 border border-white/15">
-                  {currentQ.categoryLabel}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="inline-block px-2.5 py-0.5 text-sm font-mono bg-white/5 text-zinc-200 border border-white/15">
+                    {currentQ.categoryLabel}
+                  </span>
+                  {checklistMode === 'DEEP' && (
+                    <span className="text-xs font-mono text-zinc-400">
+                      심층 분석
+                    </span>
+                  )}
+                </div>
                 <h2 className="font-serif-editorial text-xl sm:text-2xl font-normal text-white leading-snug">
                   {currentQ.questionText}
                 </h2>
@@ -333,10 +336,14 @@ export default function SoloTestPage() {
               <span className="inline-flex items-center gap-2 px-3 py-1 text-sm font-mono text-white bg-white/10 border border-white/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                 <Sparkles className="w-4 h-4" />
-                <span>진단 완료</span>
+                <span>체크 완료</span>
               </span>
               <h2 className="font-serif-editorial text-2xl sm:text-3xl font-normal text-white">
-                나의 소셜 테이블 좌표
+                {checklistMode === 'DEEP'
+                  ? 'D-1 정밀 배정 프로필 반영 완료'
+                  : checklistMode === 'PULSE'
+                  ? '오늘의 컨디션 업데이트 완료'
+                  : '사전 체크리스트 완료'}
               </h2>
             </div>
 
@@ -367,15 +374,26 @@ export default function SoloTestPage() {
               </div>
 
               <div className="p-4 bg-white/[0.03] border border-white/10 text-sm text-zinc-300 font-light leading-relaxed">
-                입력한 성향과 오늘의 컨디션 좌표는 동석자에게 비공개로 보호되며, 가장 결이 맞는 6인 테이블 매칭 및 사후 메타인지 리포트 비교 기준선으로만 사용됩니다.
+                {checklistMode === 'DEEP'
+                  ? '타임레프트 검증 Big Five 성향 및 가치관 22문항 분석이 정밀 저장되었습니다. D-1 화요일 18:00에 나와 가장 결이 맞는 6인 테이블과 식당이 배정 및 공개됩니다.'
+                  : checklistMode === 'PULSE'
+                  ? '오늘 밤 식탁에서 나눌 대화 에너지와 음료 취향이 모임 테이블에 실시간 반영되었습니다.'
+                  : '입력하신 기본 정보(도시, 예산, 식단, 기질)가 안전하게 저장되었습니다. 원하는 일정 슬롯을 예약해 주세요. 결제 완료 후 D-1 정밀 배정을 위한 심층 체크리스트가 이어집니다.'}
               </div>
 
               <button
                 type="button"
                 onClick={handleFinishAndProceed}
-                className="w-full py-3.5 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-mono font-semibold text-sm transition-all cursor-pointer text-center"
+                className="w-full py-3.5 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-mono font-semibold text-sm transition-all cursor-pointer text-center flex items-center justify-center gap-2"
               >
-                {currentUser ? '일정 예약' : '저장 후 일정 예약'}
+                <span>
+                  {checklistMode === 'DEEP' || checklistMode === 'PULSE'
+                    ? '대시보드로 이동'
+                    : currentUser
+                    ? '일정 예약'
+                    : '저장 후 일정 예약'}
+                </span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -384,8 +402,22 @@ export default function SoloTestPage() {
 
       {/* 3. 푸터 */}
       <footer className="px-6 py-4 border-t border-white/[0.06] text-center text-sm font-mono text-zinc-400">
-        NADOSOLO ADAPTIVE MATCHING • 12+4 동적 축 표준
+        NADOSOLO ADAPTIVE MATCHING • 2단계 프로그레시브 체크리스트 (BASE 9 · DEEP 22 · PULSE 4)
       </footer>
     </div>
+  );
+}
+
+export default function SoloTestPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#07080a] flex items-center justify-center text-zinc-400 font-mono text-sm">
+          체크리스트 불러오는 중...
+        </div>
+      }
+    >
+      <ChecklistContent />
+    </Suspense>
   );
 }

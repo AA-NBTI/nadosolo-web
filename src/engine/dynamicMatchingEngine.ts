@@ -22,7 +22,7 @@ export type AxisMatchStrategy =
   | 'COMPLEMENTARY'
   | 'DIVERSITY';
 
-export type QuestionLayer = 'BASE' | 'PULSE';
+export type QuestionLayer = 'BASE' | 'DEEP' | 'PULSE';
 export type QuestionInputType = 'SINGLE' | 'MULTI' | 'SCALE_1_5';
 
 export type PurposeCode = 'RESET' | 'FRIEND' | 'TASTE' | 'ROMANCE';
@@ -412,13 +412,30 @@ export const DEFAULT_MATCHING_AXES: MatchingAxisSpec[] = [
 ];
 
 // ============================================================================
-// 2. 12(고정 BASE) + 4(오늘의 컨디션 PULSE) = 16문항 적응형 질문지
+// 2. 2단계 프로그레시브 체크리스트 (결제 전 사전 BASE 9 + 결제 후 심층 DEEP 22 + 컨디션 PULSE 4 = 35문항)
 // ============================================================================
 
 export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
-  // --- [BASE 1~4: 현재 상황 & 맥락] ---
+  // ==========================================================================
+  // [PART 1: 결제 전 필수 사전 체크리스트 (Fast Gate - BASE 9문항, 1분 컷)]
+  // ==========================================================================
   {
-    id: 'Q01_RELATIONSHIP',
+    id: 'BASE_01_CITY',
+    version: 1,
+    layer: 'BASE',
+    categoryLabel: '도시',
+    questionText: '이번 주 다이닝에 참여하고 싶은 도시는 어디인가요? (직접 입력 가능)',
+    inputType: 'SINGLE',
+    allowCustomInput: true,
+    customPlaceholder: '예: 대구, 대전, 광주, 제주 등 직접 입력',
+    isActive: true,
+    options: [
+      { id: '서울', label: '서울 (성수 · 강남 · 한남 · 홍대 등)', metaTag: { targetCity: '서울' } },
+      { id: '부산', label: '부산 (전포 · 해운대 · 광안리 등)', metaTag: { targetCity: '부산' } },
+    ],
+  },
+  {
+    id: 'BASE_02_RELATIONSHIP',
     version: 1,
     layer: 'BASE',
     categoryLabel: '현황',
@@ -433,25 +450,25 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     ],
   },
   {
-    id: 'Q02_THIRST',
+    id: 'BASE_03_PURPOSE',
     version: 1,
     layer: 'BASE',
-    categoryLabel: '현황',
-    questionText: '지금 이 식탁에서 가장 얻고 싶은 변화는 무엇인가요?',
+    categoryLabel: '목적',
+    questionText: '나도솔로에서 지향하는 핵심 모임 목적은 무엇인가요?',
     inputType: 'SINGLE',
     isActive: true,
     options: [
-      { id: 'RESET_WORK', label: '일상과 역할에서 벗어난 건강한 환기', axisScores: { DEPTH: 70, THEME: 20 } },
-      { id: 'INSIGHT', label: '낯선 분야 사람들과의 지적 영감', axisScores: { DEPTH: 80, THEME: 90 } },
-      { id: 'SOCIAL', label: '결이 통하는 동네·취향 친구', axisScores: { DEPTH: 40, THEME: 50 } },
-      { id: 'MIRROR', label: '타인의 시선으로 보는 객관적인 나', axisScores: { DEPTH: 75, THEME: 60 } },
+      { id: 'RESET', label: '변화 (일상과 역할에서 벗어난 건강한 환기)', metaTag: { purpose: 'RESET' }, axisScores: { DEPTH: 65, THEME: 30 } },
+      { id: 'FRIEND', label: '교류 (결이 통하는 편안한 사회적 친구)', metaTag: { purpose: 'FRIEND' }, axisScores: { DEPTH: 45, THEME: 50 } },
+      { id: 'TASTE', label: '취향 (와인 · 미식 · 문화 공감)', metaTag: { purpose: 'TASTE' }, axisScores: { DEPTH: 60, THEME: 85 } },
+      { id: 'ROMANCE', label: '인연 (미혼 한정 설레는 만남)', metaTag: { purpose: 'ROMANCE' }, axisScores: { DEPTH: 50, THEME: 60 } },
     ],
   },
   {
-    id: 'Q03_INDUSTRY',
+    id: 'BASE_04_INDUSTRY',
     version: 1,
     layer: 'BASE',
-    categoryLabel: '현황',
+    categoryLabel: '직업',
     questionText: '현재 주로 몸담고 있는 분야를 선택해 주세요. (복수 선택 · 직접 입력 가능)',
     inputType: 'MULTI',
     allowCustomInput: true,
@@ -468,142 +485,7 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     ],
   },
   {
-    id: 'Q04_PURPOSE',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '현황',
-    questionText: '나도솔로에서 지향하는 핵심 모임 목적은 무엇인가요?',
-    inputType: 'SINGLE',
-    isActive: true,
-    options: [
-      { id: 'RESET', label: '변화 (일상·사고의 건강한 환기)', metaTag: { purpose: 'RESET' } },
-      { id: 'FRIEND', label: '교류 (편안한 사회적 친구)', metaTag: { purpose: 'FRIEND' } },
-      { id: 'TASTE', label: '취향 (와인·미식·문화 공감)', metaTag: { purpose: 'TASTE' } },
-      { id: 'ROMANCE', label: '인연 (미혼 한정 설레는 만남)', metaTag: { purpose: 'ROMANCE' } },
-    ],
-  },
-
-  // --- [BASE 5~8: 기본 기질 & 사고방식] ---
-  {
-    id: 'Q05_BASE_ENERGY',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '기질',
-    questionText: '평소 처음 만난 사람들의 모임에서 나의 기본 에너지는?',
-    inputType: 'SCALE_1_5',
-    isActive: true,
-    scaleConfig: {
-      minLabel: '조용히 듣고 관찰',
-      maxLabel: '먼저 말 걸고 주도',
-      axisWeights: { ENERGY: { weight: 1.0 } },
-    },
-  },
-  {
-    id: 'Q06_SILENCE',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '기질',
-    questionText: '대화 중 잠깐의 정적이 흘렀을 때 나의 평소 반응은?',
-    inputType: 'SCALE_1_5',
-    isActive: true,
-    scaleConfig: {
-      minLabel: '여백으로 편안히 수용',
-      maxLabel: '가벼운 질문으로 환기',
-      axisWeights: { ENERGY: { weight: 0.7 } },
-    },
-  },
-  {
-    id: 'Q07_LOGIC_EMOTION',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '기질',
-    questionText: '이야기를 풀어가고 판단할 때 더 가까운 중심축은?',
-    inputType: 'SCALE_1_5',
-    isActive: true,
-    scaleConfig: {
-      minLabel: '논리 · 팩트 중심',
-      maxLabel: '감정 · 공감 중심',
-      axisWeights: { DEPTH: { weight: 0.4 } },
-    },
-  },
-  {
-    id: 'Q08_HUMOR_CODE',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '기질',
-    questionText: '내가 가장 편안하게 느끼는 대화의 결은 무엇인가요? (복수 선택)',
-    inputType: 'MULTI',
-    isActive: true,
-    options: [
-      { id: 'WIT', label: '위트 있고 유쾌한 티키타카', axisScores: { DEPTH: 25, ENERGY: 75 } },
-      { id: 'WARM', label: '따뜻하고 편안한 일상 공감', axisScores: { DEPTH: 45, ENERGY: 45 } },
-      { id: 'DEEP_TALK', label: '차분하고 사유적인 깊은 대화', axisScores: { DEPTH: 90, ENERGY: 30 } },
-      { id: 'INSIGHT', label: '아이디어와 영감이 오가는 대화', axisScores: { DEPTH: 75, THEME: 90 } },
-    ],
-  },
-
-  // --- [BASE 9~12: 가치관 & 경계선] ---
-  {
-    id: 'Q09_SENSITIVE_TOPIC',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '경계',
-    questionText: '정치·사회·종교 등 민감할 수 있는 이슈 대화에 대한 태도는?',
-    inputType: 'SCALE_1_5',
-    isActive: true,
-    scaleConfig: {
-      minLabel: '가급적 피하고 싶음',
-      maxLabel: '다름을 존중하며 토론',
-      axisWeights: { DEPTH: { weight: 0.3 } },
-    },
-  },
-  {
-    id: 'Q10_FEEDBACK_TONE',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '경계',
-    questionText: '모임 종료 후 동석자들에게 기대하는 관찰 피드백 톤은?',
-    inputType: 'SINGLE',
-    isActive: true,
-    options: [
-      { id: 'OBJECTIVE', label: '성장을 위한 솔직·객관적 리포트', axisScores: { DEPTH: 80 } },
-      { id: 'BALANCED', label: '객관적 시선과 따뜻한 격려의 균형', axisScores: { DEPTH: 55 } },
-      { id: 'WARM', label: '나의 고유한 매력을 짚어주는 응원', axisScores: { DEPTH: 35 } },
-    ],
-  },
-  {
-    id: 'Q11_CULTURE_INTEREST',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '경계',
-    questionText: '식탁에서 가장 즐겁게 이야기할 수 있는 관심 분야는? (복수 선택 · 직접 입력 가능)',
-    inputType: 'MULTI',
-    allowCustomInput: true,
-    customPlaceholder: '예: 골프, 클래식, 반려동물 등 직접 입력',
-    isActive: true,
-    options: [
-      { id: 'REST', label: '여행 · 쉼 · 소소한 라이프스타일', axisScores: { THEME: 15 } },
-      { id: 'GASTRO', label: '미식 · 와인 · 위스키 · 공간', axisScores: { THEME: 45 } },
-      { id: 'ART', label: '책 · 전시 · 영화 · 음악', axisScores: { THEME: 70 } },
-      { id: 'WORK', label: '비즈니스 · 트렌드 · 자기계발', axisScores: { THEME: 95 } },
-    ],
-  },
-  {
-    id: 'Q12_BUDGET',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '경계',
-    questionText: '현장 1/N 식사 비용으로 가장 편안한 1인 예산 범위는?',
-    inputType: 'SINGLE',
-    isActive: true,
-    options: [
-      { id: '$', label: '3만원대 캐주얼 다이닝', metaTag: { budgetTier: '$' } },
-      { id: '$$', label: '5~7만원대 비스트로 · 와인바', metaTag: { budgetTier: '$$' } },
-      { id: '$$$', label: '10만원 이상 파인 다이닝', metaTag: { budgetTier: '$$$' } },
-    ],
-  },
-  {
-    id: 'Q13_DIETARY',
+    id: 'BASE_05_DIETARY',
     version: 1,
     layer: 'BASE',
     categoryLabel: '식단',
@@ -621,7 +503,21 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     ],
   },
   {
-    id: 'Q14_LANGUAGE',
+    id: 'BASE_06_BUDGET',
+    version: 1,
+    layer: 'BASE',
+    categoryLabel: '예산',
+    questionText: '현장 1/N 식사 비용으로 가장 편안한 1인 예산 범위는?',
+    inputType: 'SINGLE',
+    isActive: true,
+    options: [
+      { id: '$', label: '3만원대 캐주얼 다이닝', metaTag: { budgetTier: '$' } },
+      { id: '$$', label: '5~7만원대 비스트로 · 와인바', metaTag: { budgetTier: '$$' } },
+      { id: '$$$', label: '10만원 이상 파인 다이닝', metaTag: { budgetTier: '$$$' } },
+    ],
+  },
+  {
+    id: 'BASE_07_LANGUAGE',
     version: 1,
     layer: 'BASE',
     categoryLabel: '언어',
@@ -637,20 +533,374 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     ],
   },
   {
-    id: 'Q15_TARGET_CITY',
+    id: 'BASE_08_ENERGY',
     version: 1,
     layer: 'BASE',
-    categoryLabel: '도시',
-    questionText: '이번 주 다이닝에 참여하고 싶은 도시는 어디인가요?',
+    categoryLabel: '기질',
+    questionText: '평소 처음 만난 사람들의 모임에서 나의 기본 에너지는?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '조용히 경청하고 관찰',
+      maxLabel: '먼저 말 걸고 대화 주도',
+      axisWeights: { ENERGY: { weight: 1.0 } },
+    },
+  },
+  {
+    id: 'BASE_09_FEEDBACK_TONE',
+    version: 1,
+    layer: 'BASE',
+    categoryLabel: '경계',
+    questionText: '모임 종료 후 동석자들에게 기대하는 관찰 피드백 톤은?',
     inputType: 'SINGLE',
     isActive: true,
     options: [
-      { id: '서울', label: '서울 (성수 · 강남 · 한남 등)', metaTag: { targetCity: '서울' } },
-      { id: '부산', label: '부산 (전포 · 해운대 · 광안리 등)', metaTag: { targetCity: '부산' } },
+      { id: 'OBJECTIVE', label: '성장을 위한 솔직·객관적 리포트', axisScores: { DEPTH: 80 } },
+      { id: 'BALANCED', label: '객관적 시선과 따뜻한 격려의 균형', axisScores: { DEPTH: 55 } },
+      { id: 'WARM', label: '나의 고유한 매력을 짚어주는 응원', axisScores: { DEPTH: 35 } },
     ],
   },
 
-  // --- [PULSE 13~16: 오늘의 컨디션 (재방문 시 15초 빠른 체크)] ---
+  // ==========================================================================
+  // [PART 2: 결제 후 D-1 정밀 배정 프로파일러 (DEEP 22문항)]
+  // - 타임레프트 검증 Big Five 심층 16문항 전수 이식
+  // - 라이프스타일 · 취향 · 2차 라운지 4문항
+  // - 나도솔로 고유 소셜 미러 2문항
+  // ==========================================================================
+
+  // --- [외향성 (Extraversion) 4문항] ---
+  {
+    id: 'DEEP_E01_NEW_PEOPLE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '외향',
+    questionText: '낯선 사람들과의 새로운 만남이 나에게 주는 느낌은?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '다소 긴장되고 에너지가 소모됨',
+      maxLabel: '설레고 활력과 에너지가 충전됨',
+      axisWeights: { ENERGY: { weight: 1.2 } },
+    },
+  },
+  {
+    id: 'DEEP_E02_SPEAK_FIRST',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '외향',
+    questionText: '낯선 테이블에서 먼저 입을 열고 분위기를 여는 편인가요?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '상대가 먼저 말 걸어주길 기다림',
+      maxLabel: '내가 먼저 자연스럽게 질문을 던짐',
+      axisWeights: { ENERGY: { weight: 1.0 } },
+    },
+  },
+  {
+    id: 'DEEP_E03_SILENCE_TOLERANCE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '외향',
+    questionText: '대화 중 잠깐의 정적이 흘렀을 때 나의 평소 반응은?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '정적이 어색해 빠르게 화제를 채움',
+      maxLabel: '침묵도 편안한 대화의 여백으로 즐김',
+      axisWeights: { DEPTH: { weight: 0.8 } },
+    },
+  },
+  {
+    id: 'DEEP_E04_SMALL_TALK',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '외향',
+    questionText: '날씨, 최근 본 영화, 소소한 일상 스몰토크에 대한 선호도는?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '영양가 없게 느껴져 깊은 대화 선호',
+      maxLabel: '마음의 벽을 허무는 훌륭한 윤활유',
+      axisWeights: { ENERGY: { weight: 0.6 } },
+    },
+  },
+
+  // --- [개방성 (Openness to Experience) 4문항] ---
+  {
+    id: 'DEEP_O01_UNFAMILIAR_THOUGHT',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '개방',
+    questionText: '나와 완전히 다른 가치관이나 낯선 배경의 사람을 만났을 때 나의 태도는?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '이질감이 느껴져 거리를 둠',
+      maxLabel: '호기심과 지적 흥미가 솟아남',
+      axisWeights: { DEPTH: { weight: 0.9 } },
+    },
+  },
+  {
+    id: 'DEEP_O02_ABSTRACT_IDEAS',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '개방',
+    questionText: '명확한 현실/팩트 이야기 vs 깊이 있는 개념/가치관/상상 대화 중 더 끌리는 쪽은?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '실질적인 팩트와 현실 이야기',
+      maxLabel: '철학·개념·깊은 가치관 사유',
+      axisWeights: { DEPTH: { weight: 1.2 } },
+    },
+  },
+  {
+    id: 'DEEP_O03_NEW_EXPERIENCE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '개방',
+    questionText: '실패 없는 익숙한 맛과 공간 vs 경험해보지 못한 새로운 발견 중 선호는?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '늘 가던 검증되고 익숙한 공간',
+      maxLabel: '새롭고 이국적인 낯선 도전',
+      axisWeights: { THEME: { weight: 1.0 } },
+    },
+  },
+  {
+    id: 'DEEP_O04_ART_CULTURE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '개방',
+    questionText: '예술, 전시, 철학, 음악 등 심미적 화제에 대한 관심도는?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '일상에서 거의 이야기하지 않음',
+      maxLabel: '매우 좋아하며 깊게 이야기하고 싶음',
+      axisWeights: { THEME: { weight: 1.0 } },
+    },
+  },
+
+  // --- [친화성 (Agreeableness) 4문항] ---
+  {
+    id: 'DEEP_A01_EMPATHY_FACT',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '친화',
+    questionText: '누군가 고민을 털어놓을 때 나의 첫 번째 반응은?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '명확한 해결책과 팩트 제시',
+      maxLabel: '감정에 대한 온전한 공감과 경청',
+      axisWeights: { DEPTH: { weight: 0.7 } },
+    },
+  },
+  {
+    id: 'DEEP_A02_DEBATE_STYLE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '친화',
+    questionText: '대화 중 의견 대립이나 논쟁이 생길 때 나의 태도는?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '논리적으로 옳고 그름을 짚어야 직성이 풀림',
+      maxLabel: '관계의 온도를 지키며 부드럽게 조율',
+      axisWeights: { DEPTH: { weight: 0.7 } },
+    },
+  },
+  {
+    id: 'DEEP_A03_LISTENING',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '친화',
+    questionText: '상대방이 길게 이야기할 때 나의 평소 경청 스타일은?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '내 생각이 떠오르면 중간에 끼어들기도 함',
+      maxLabel: '상대의 호흡이 끝날 때까지 온전히 귀 기울임',
+      axisWeights: { DEPTH: { weight: 1.0 } },
+    },
+  },
+  {
+    id: 'DEEP_A04_HUMOR_CODE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '친화',
+    questionText: '테이블에서 가장 즐기는 유머와 티키타카 결은 무엇인가요? (복수 선택)',
+    inputType: 'MULTI',
+    isActive: true,
+    options: [
+      { id: 'WIT', label: '위트 있고 재치 넘치는 티키타카', axisScores: { DEPTH: 25, ENERGY: 75 } },
+      { id: 'WARM', label: '따뜻하고 편안한 일상 공감 유머', axisScores: { DEPTH: 45, ENERGY: 45 } },
+      { id: 'DEEP_TALK', label: '차분하고 은은한 미소의 사유형 대화', axisScores: { DEPTH: 90, ENERGY: 30 } },
+      { id: 'INSIGHT', label: '새로운 시각과 영감이 오가는 유쾌함', axisScores: { DEPTH: 75, THEME: 90 } },
+    ],
+  },
+
+  // --- [성실성 (Conscientiousness) 2문항] ---
+  {
+    id: 'DEEP_C01_TIME_PROMISE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '성실',
+    questionText: '약속 시간과 일정 관리에 대한 평소 습관은 어떠한가요?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '유연하고 상황에 맞춰 즉흥적으로 이동',
+      maxLabel: '10분 전 도착 및 철저한 시간 엄수',
+      axisWeights: { DEPTH: { weight: 0.5 } },
+    },
+  },
+  {
+    id: 'DEEP_C02_RULES_ETIQUETTE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '성실',
+    questionText: '테이블 매너와 다이닝 에티켓에 대한 나의 기준은?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '격식 없이 편안한 게 최고',
+      maxLabel: '서로를 배려하는 품격과 매너가 매우 중요',
+      axisWeights: { DEPTH: { weight: 0.8 } },
+    },
+  },
+
+  // --- [정서적 안정성 (Calmness) 2문항] ---
+  {
+    id: 'DEEP_N01_STRESS_EXPRESSION',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '안정',
+    questionText: '낯선 자리나 예상 밖 상황에서 나의 감정 컨트롤은?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '쉽게 긴장하거나 표정에서 티가 남',
+      maxLabel: '어떤 상황에서도 침착하고 여유롭게 대처',
+      axisWeights: { ENERGY: { weight: 0.7 } },
+    },
+  },
+  {
+    id: 'DEEP_N02_SENSITIVE_TOPICS',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '안정',
+    questionText: '정치·사회 등 민감할 수 있는 이슈 대화에 대한 태도는?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '식탁에서는 가급적 피하고 싶음',
+      maxLabel: '서로의 다름을 존중하며 성숙하게 토론 가능',
+      axisWeights: { DEPTH: { weight: 0.7 } },
+    },
+  },
+
+  // --- [라이프스타일 · 취향 · 2차 라운지 4문항] ---
+  {
+    id: 'DEEP_L01_INTERESTS',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '취향',
+    questionText: '평소 주말과 퇴근 후 가장 많은 시간을 보내는 관심 분야는? (복수 선택 · 직접 입력 가능)',
+    inputType: 'MULTI',
+    allowCustomInput: true,
+    customPlaceholder: '예: 골프, 러닝, 반려동물, 재테크 등 직접 입력',
+    isActive: true,
+    options: [
+      { id: 'REST', label: '여행 · 쉼 · 소소한 라이프스타일', axisScores: { THEME: 20 } },
+      { id: 'GASTRO', label: '미식 · 와인 · 위스키 · 공간 탐방', axisScores: { THEME: 50 } },
+      { id: 'ART', label: '책 · 전시 · 영화 · 음악 · 글쓰기', axisScores: { THEME: 75 } },
+      { id: 'WORK', label: '비즈니스 · 커리어 · 스타트업 · 인사이트', axisScores: { THEME: 90 } },
+    ],
+  },
+  {
+    id: 'DEEP_L02_AFTER_DRINK',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '취향',
+    questionText: '식사 후 2차 라운지(Last Drink)에 대한 참여 의향은?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '식사 마치고 바로 귀가 선호',
+      maxLabel: '분위기 맞는 분들과 2차 라운지까지 즐겁게 동참',
+      axisWeights: { ENERGY: { weight: 1.0 } },
+    },
+  },
+  {
+    id: 'DEEP_L03_TABLE_MOOD',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '취향',
+    questionText: '내가 꿈꾸는 이번 모임의 가장 이상적인 테이블 무드는?',
+    inputType: 'SINGLE',
+    isActive: true,
+    options: [
+      { id: 'PARTY', label: '유쾌하고 웃음 가득한 에너제틱한 식탁', axisScores: { ENERGY: 85, DEPTH: 30 } },
+      { id: 'SALON', label: '와인과 함께 깊어지는 지적 사유의 살롱', axisScores: { ENERGY: 40, DEPTH: 85 } },
+      { id: 'HEALING', label: '부담 없이 마음을 털어놓는 따뜻한 쉼터', axisScores: { ENERGY: 45, DEPTH: 60 } },
+      { id: 'NETWORK', label: '서로의 비즈니스와 성장을 응원하는 식탁', axisScores: { ENERGY: 70, DEPTH: 75 } },
+    ],
+  },
+  {
+    id: 'DEEP_L04_CONVERSATION_SPEED',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '취향',
+    questionText: '내가 가장 편안하다고 느끼는 대화의 템포는?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '한마디씩 천천히 여백 있는 호흡',
+      maxLabel: '빠른 티키타카와 박진감 있는 전개',
+      axisWeights: { ENERGY: { weight: 0.8 } },
+    },
+  },
+
+  // --- [나도솔로 고유 소셜 미러 2문항] ---
+  {
+    id: 'DEEP_S01_MIRROR_ASPECT',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '성찰',
+    questionText: '오늘 동석자들에게 가장 발견받고 싶은 나의 소통 강점은 무엇인가요?',
+    inputType: 'SINGLE',
+    isActive: true,
+    options: [
+      { id: '경청', label: '경청 (끝까지 따뜻하게 들어주는 힘)', axisScores: { DEPTH: 85 } },
+      { id: '배려', label: '배려 (테이블의 모두를 편안하게 품는 태도)', axisScores: { DEPTH: 70 } },
+      { id: '품격', label: '품격 (단정하고 깊이 있는 어조와 매너)', axisScores: { DEPTH: 80 } },
+      { id: '위트', label: '위트 (분위기를 부드럽게 환기하는 유머)', axisScores: { ENERGY: 80 } },
+      { id: '표현', label: '표현 (내 생각과 감정을 솔직명쾌하게 전하는 솔직함)', axisScores: { ENERGY: 75 } },
+      { id: '시선', label: '시선 (상대의 장점을 먼저 짚어내는 관찰력)', axisScores: { DEPTH: 75 } },
+    ],
+  },
+  {
+    id: 'DEEP_S02_SELF_IMAGE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '성찰',
+    questionText: '타인이 바라보는 나의 첫인상과 실제 나의 성향 간극은 어느 정도인가요?',
+    inputType: 'SCALE_1_5',
+    isActive: true,
+    scaleConfig: {
+      minLabel: '첫인상과 실제 성격이 거의 100% 일치',
+      maxLabel: '알면 알수록 반전 매력이 매우 큼',
+      axisWeights: { DEPTH: { weight: 0.6 } },
+    },
+  },
+
+  // ==========================================================================
+  // [PART 3: 오늘의 컨디션 (재방문 시 15초 빠른 체크 - PULSE 4문항)]
+  // ==========================================================================
   {
     id: 'P01_TODAY_ENERGY',
     version: 1,
@@ -662,7 +912,7 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     scaleConfig: {
       minLabel: '조용히 듣고 쉬고 싶다',
       maxLabel: '활발히 말하며 풀고 싶다',
-      axisWeights: { ENERGY: { weight: 1.8 } }, // 오늘 컨디션 가중치 우선
+      axisWeights: { ENERGY: { weight: 1.8 } },
     },
   },
   {
@@ -779,9 +1029,30 @@ export function computeUserAxisProfile(
   let surveyDietary: string | undefined;
   let surveyTargetCity: string | undefined;
 
+  const LEGACY_ID_FALLBACKS: Record<string, string[]> = {
+    BASE_01_CITY: ['Q15_TARGET_CITY'],
+    BASE_02_RELATIONSHIP: ['Q01_RELATIONSHIP'],
+    BASE_03_PURPOSE: ['Q04_PURPOSE', 'Q02_THIRST'],
+    BASE_04_INDUSTRY: ['Q03_INDUSTRY'],
+    BASE_05_DIETARY: ['Q13_DIETARY'],
+    BASE_06_BUDGET: ['Q12_BUDGET'],
+    BASE_07_LANGUAGE: ['Q14_LANGUAGE'],
+    BASE_08_ENERGY: ['Q05_BASE_ENERGY'],
+    BASE_09_FEEDBACK_TONE: ['Q10_FEEDBACK_TONE'],
+  };
+
   for (const q of questions) {
     if (!q.isActive) continue;
-    const ans = answerMap.get(q.id);
+    let ans = answerMap.get(q.id);
+    if (!ans && LEGACY_ID_FALLBACKS[q.id]) {
+      for (const oldId of LEGACY_ID_FALLBACKS[q.id]) {
+        const found = answerMap.get(oldId);
+        if (found) {
+          ans = found;
+          break;
+        }
+      }
+    }
     if (!ans) continue;
 
     answeredQuestionCount++;
@@ -809,8 +1080,11 @@ export function computeUserAxisProfile(
       for (const token of tokens) {
         if (token.startsWith('CUSTOM:')) {
           const customText = token.slice(7).trim();
-          if (q.id === 'Q13_DIETARY' && customText) {
+          if ((q.id.includes('DIETARY')) && customText) {
             dietaryTokens.push(customText);
+          }
+          if ((q.id.includes('CITY')) && customText) {
+            surveyTargetCity = customText;
           }
           continue;
         }
@@ -1673,7 +1947,7 @@ export function runAdversarialMatchingAudit(): AdversarialAuditCase[] {
   );
   const fullUser = computeUserAxisProfile(
     { userId: '실입력', gender: 'F', birthYear: 1995, residenceCity: '서울' },
-    [{ questionId: 'Q12_BUDGET', version: 1, value: '$$$' }]
+    [{ questionId: 'BASE_06_BUDGET', version: 1, value: '$$$' }]
   );
   const case5Pass = emptyUser.isDefaultBudget === true && fullUser.isDefaultBudget === false;
   results.push({

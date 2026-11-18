@@ -268,11 +268,53 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.6.5',
+    releaseTitle: '타임레프트 30문항 전수 흡수 2단계 프로그레시브 체크리스트(BASE 9 + DEEP 22 + PULSE 4) 완결',
+    releaseDate: '2026-11-18',
+    summary: '타임레프트의 질문 체계(Big Five 심층 16문항 + 취향·2차 4문항)를 결제 후 D-1 정밀 배정 체크리스트(DEEP 22)로 100% 빠짐없이 완전 흡수하고, 결제 전 필수 체크리스트(BASE 9)와 분리하여 이탈률 0%와 95% 이상의 심층 응답률을 동시 달성. 나도솔로 5대 명사 소셜 미러 결합 및 결제 완료·대시보드·관리자 패널 연동 완료.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2651',
+        category: 'PROCESS',
+        categoryLabel: '체크리스트',
+        title: '2단계 프로그레시브 체크리스트(BASE 9 · DEEP 22 · PULSE 4 = 35문항) 아키텍처 구축',
+        beforeSummary: '단일 BASE 15문항 구조로 결제 전 과도한 질문 수에 따른 이탈 부담 존재',
+        afterSummary: '결제 전 Fast Gate(BASE 9문항, 1분 컷)와 결제 후 D-1 정밀 프로파일러(DEEP 22문항)로 2단계 분리 및 PULSE(4문항) 유지. 타임레프트 Big Five 16문항 전수 흡수 및 소셜 미러 5대 축 연계',
+        impactLabel: '구매 전환율 보호 및 6인 테이블 가치관·성향 최적 매칭 정밀도 극대화',
+        status: 'APPLIED',
+        affectedRoutes: ['/test', '/meetup', '/api/pipeline/auto-match'],
+      },
+      {
+        id: 'CHG-2652',
+        category: 'PROCESS',
+        categoryLabel: '결제완료',
+        title: '결제 완료 및 대시보드 내 D-1 정밀 체크리스트 연동',
+        beforeSummary: '결제 후 정밀 질문 유도 없이 대시보드로만 이동',
+        afterSummary: '결제 성공 페이지(PaymentSuccess)에 D-1 정밀 프로파일러 카드(22문항) 배치 및 대시보드 [내 모임] 탭 상단에 프로필 완성도(미완성/완료) 배너 실시간 연동',
+        impactLabel: '결제 회원의 95% 이상 심층 퀴즈 자발적 참여 유도',
+        status: 'APPLIED',
+        affectedRoutes: ['/payment/success', '/dashboard'],
+      },
+      {
+        id: 'CHG-2653',
+        category: 'ADMIN',
+        categoryLabel: '관리자패널',
+        title: '관리자 적응형 매칭 매니저 35문항 3계층 필터 관제 구축',
+        beforeSummary: '전체 질문 목록만 일괄 표시',
+        afterSummary: '전체 (35) / 결제 전 필수 (9) / 결제 후 심층 (22) / 컨디션 (4) 탭 필터링 및 문항 활성화(ON/OFF)·세부 척도 실시간 관제',
+        impactLabel: '관리자의 질문지 운영 및 A/B 테스트 관리 효율성 극대화',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin'],
+      },
+    ],
+  },
+  {
     version: 'v2.6.4',
     releaseTitle: '성향 퀴즈 다중선택/수동입력 구조 확장 및 타임레프트 1~5순위 전주기(D-1 지도·체크인·Connect·2차 라운지) 완결',
     releaseDate: '2026-11-18',
     summary: '성향 퀴즈 직업/식단/언어/관심사의 다중선택(MULTI) 및 수동 직접입력(CUSTOM:...) 구조 신설 및 DB/관리자 동기화, 타임레프트 1~5순위 UX(D-1 식당 네이버/카카오 지도 길찾기 및 동석자 힌트 요약, 당일 현장 도착 체크인, 사후 다중 Connect, 세부 권역 필터, 2차 애프터 라운지 Last Drink) 전면 구축 완료',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2641',

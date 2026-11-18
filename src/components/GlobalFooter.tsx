@@ -51,7 +51,7 @@ export default function GlobalFooter() {
                 <Link href="/meetup" prefetch={true} className="hover:text-white transition-colors">밋업</Link>
                 <Link href="/locations" prefetch={true} className="hover:text-white transition-colors">운영 도시</Link>
                 <Link href="/pricing" prefetch={true} className="hover:text-white transition-colors">참가권 안내</Link>
-                <Link href="/test" prefetch={true} className="hover:text-white transition-colors">성향 퀴즈</Link>
+                <Link href="/test" prefetch={true} className="hover:text-white transition-colors">체크리스트</Link>
                 <Link href="/guide" prefetch={true} className="hover:text-white transition-colors">이용 안내</Link>
               </div>
             </div>

@@ -278,7 +278,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     },
     navItems: [
       { id: 'meetup', label: '일정 예약', href: '/meetup', visible: true, order: 1 },
-      { id: 'test', label: '성향 퀴즈', href: '/test', visible: true, order: 2 },
+      { id: 'test', label: '체크리스트', href: '/test', visible: true, order: 2 },
       { id: 'guide', label: '이용 안내', href: '/guide', visible: true, order: 3 },
       { id: 'dining', label: '소셜 다이닝', href: '/dining', visible: false, order: 4 },
       { id: 'showcase', label: '쇼케이스', href: '/showcase', visible: false, order: 5 },
