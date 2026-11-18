@@ -268,11 +268,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.4.1',
+    releaseTitle: '관리자 타임레프트 6대 관제 탭 신설 및 프로모션·페이지 사전 연동',
+    releaseDate: '2026-11-18',
+    summary: '관리자 화면(/admin)에 타임레프트 전용 관제 그룹(슬롯·알림·제재·참가권·제휴·자동화 6대 탭) 신설, Supabase 실시간 연동(meetups, notifications, user_blocks), 프로모션 코드 모듈 분리(promoCodes.ts) 및 CheckoutModal 연동, 사이트 10개 핵심 페이지 소통 사전(SITE_PAGE_STRUCTURES) 등록 완료',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2411',
+        category: 'ADMIN',
+        categoryLabel: '관리자관제',
+        title: '타임레프트 6대 관제 탭(슬롯·알림·제재·참가권·제휴·자동화) 신설 및 Supabase 실데이터 연동',
+        beforeSummary: '관리자 화면에 타임레프트 실데이터(알림, 차단, 슬롯, 참가권 등) 관제 UI 부재',
+        afterSummary: 'AdminTimeleftManager 신설 및 슬롯(D-1공개/이월/마감), 알림 발송, 차단 해제, 참가권 증감, 프로모션 관리, 파이프라인 자동화 관제 완비',
+        impactLabel: '타임레프트 백오피스 운영 체계 완성',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin'],
+      },
+      {
+        id: 'CHG-2412',
+        category: 'PAGE',
+        categoryLabel: '디자인사전',
+        title: '프로모션 코드 모듈화 및 신규 페이지 10개 명칭 사전 등록',
+        beforeSummary: 'CheckoutModal 하드코딩 프로모션 코드 및 미등록 페이지 존재',
+        afterSummary: 'src/lib/promoCodes.ts 독립 모듈화 및 AdminDesignSystemInspector에 10개 신규 라우트 사전 등록 완결',
+        impactLabel: '유지보수성 및 소통 효율 극대화',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/meetup', '/busan', '/pricing', '/locations'],
+      },
+    ],
+  },
+  {
     version: 'v2.4.0',
     releaseTitle: '타임레프트 일러스트·웜 크림 메인 전면 개편 · /busan 분리 · 전체 사이트맵 이식',
     releaseDate: '2026-11-16',
     summary: '기존 다크 메인을 /busan으로 분리 보존하고, 메인(/)을 타임레프트 특유의 웜 크림(#FAF6F0)·코랄(#FF5A36)·파스텔 카드·에디토리얼 일러스트 2종(tl-illus-dinner, tl-illus-city)·3슬라이드 실사 배너 구조로 전면 개편. /locations, /pricing, /about 페이지 추가 및 4열 사이트맵 푸터·상단 밋업 메뉴 복원',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2401',

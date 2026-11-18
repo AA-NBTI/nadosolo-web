@@ -27,6 +27,7 @@ import AdminAuditReportManager from '@/components/admin/AdminAuditReportManager'
 import AdminGovernanceManager from '@/components/admin/AdminGovernanceManager';
 import AdminAdaptiveMatchingManager from '@/components/admin/AdminAdaptiveMatchingManager';
 import AdminPreMatchPage from './pre-match/page';
+import AdminTimeleftManager from '@/components/admin/AdminTimeleftManager';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import { buildMeetupSeoSlug } from '@/lib/seoSlug';
@@ -69,7 +70,13 @@ type AdminTabKey =
   | 'LAYOUT_CMS'
   | 'PAGE_CMS'
   | 'DESIGN_SYSTEM'
-  | 'ADMIN_ACCOUNT';
+  | 'ADMIN_ACCOUNT'
+  | 'TL_SLOT'
+  | 'TL_NOTIFY'
+  | 'TL_SANCTION'
+  | 'TL_TICKET'
+  | 'TL_PARTNER'
+  | 'TL_AUTOMATION';
 
 const normalizeCityName = (city?: string): string => {
   if (!city) return '미지정';
@@ -103,6 +110,17 @@ interface AdminCategoryGroup {
 }
 
 const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
+  {
+    groupTitle: '타임레프트',
+    items: [
+      { key: 'TL_SLOT', label: '슬롯' },
+      { key: 'TL_NOTIFY', label: '알림' },
+      { key: 'TL_SANCTION', label: '제재' },
+      { key: 'TL_TICKET', label: '참가권' },
+      { key: 'TL_PARTNER', label: '제휴' },
+      { key: 'TL_AUTOMATION', label: '자동화' },
+    ],
+  },
   {
     groupTitle: '모임',
     items: [
@@ -3042,6 +3060,13 @@ export default function AdminOperationsDashboardPage() {
           {/* ----------------------------------------------------------
               [시스템/테스트] 프로세스 점검 보고서 & 이용자 동선 검증
               ---------------------------------------------------------- */}
+          {activeTab === 'TL_SLOT' && <AdminTimeleftManager section="SLOT" onNotify={notify} />}
+          {activeTab === 'TL_NOTIFY' && <AdminTimeleftManager section="NOTIFY" onNotify={notify} />}
+          {activeTab === 'TL_SANCTION' && <AdminTimeleftManager section="SANCTION" onNotify={notify} />}
+          {activeTab === 'TL_TICKET' && <AdminTimeleftManager section="TICKET" onNotify={notify} />}
+          {activeTab === 'TL_PARTNER' && <AdminTimeleftManager section="PARTNER" partnerVenues={partnerVenues} onNotify={notify} />}
+          {activeTab === 'TL_AUTOMATION' && <AdminTimeleftManager section="AUTOMATION" onNotify={notify} />}
+
           {activeTab === 'PROCESS_TEST_REPORT' && (
             <AdminProcessTestReportManager />
           )}

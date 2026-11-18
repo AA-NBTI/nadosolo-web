@@ -44,7 +44,61 @@ export interface PageStructureMap {
 // ============================================================================
 // 사이트 전 페이지 공식 소통 구조 사전 (Page Structure Dictionary)
 // ============================================================================
-export const SITE_PAGE_STRUCTURES: PageStructureMap[] = [
+const mkPage = (
+  id: string,
+  title: string,
+  route: string,
+  desc: string,
+  head: string,
+  cta: string
+): PageStructureMap => ({
+  pageId: `PAGE_${id}`,
+  pageTitle: title,
+  routePath: route,
+  desc,
+  sections: [
+    {
+      secId: `SEC-${id}-01`,
+      secNumber: '01',
+      categoryName: '헤로',
+      title: '상단',
+      desc,
+      componentPath: `src/app${route}/page.tsx`,
+      items: [
+        {
+          id: `SEC-${id}-01-A`,
+          officialName: `${title}-헤드라인`,
+          role: '페이지 대제목',
+          selector: 'h1.font-serif-editorial',
+          ruleNote: '단일 핵심 문구',
+          currentText: head,
+        },
+        {
+          id: `SEC-${id}-01-B`,
+          officialName: `${title}-주요버튼`,
+          role: '핵심 액션',
+          selector: 'a, button',
+          ruleNote: '1단어 라벨',
+          currentText: cta,
+        },
+      ],
+    },
+  ],
+});
+
+const TIMELEFT_TRANSPLANT_PAGES: PageStructureMap[] = [
+  mkPage('BUSAN', '부산', '/busan', '기존 다크 럭셔리 부산 다이닝 예약 (레퍼런스 A 보존)', '부산 다이닝', '신청'),
+  mkPage('MEETUP', '밋업', '/meetup', '도시×날짜 블라인드 슬롯 예약, D-1 Reveal', '슬롯 예약', '예약'),
+  mkPage('LOCATIONS', '도시', '/locations', '운영 도시·생활권 목록', '도시', '선택'),
+  mkPage('PRICING', '요금', '/pricing', '참가권·라이선스 요금 안내', '요금', '결제'),
+  mkPage('ABOUT', '소개', '/about', '서비스 본질·브랜드 소개', '소개', '시작'),
+  mkPage('AFFILIATE', '어필리에이트', '/affiliate', '제휴 코드 신청', '어필리에이트', '신청'),
+  mkPage('PARTNERS', '파트너', '/partners', '제휴 식당 입점 신청', '파트너', '등록'),
+  mkPage('SAFETY', '안전', '/safety', '안전·차단·노쇼 규율', '안전', '신고'),
+  mkPage('TERMS', '약관', '/terms', '이용약관', '약관', '확인'),
+  mkPage('PRIVACY', '개인정보', '/privacy', '개인정보 처리방침', '개인정보', '확인'),
+];
+const BASE_PAGE_STRUCTURES: PageStructureMap[] = [
   // --------------------------------------------------------------------------
   // 0. 관리자 대시보드 (/admin) - 최고관리자 전용 규격
   // --------------------------------------------------------------------------
@@ -1064,6 +1118,8 @@ export const SITE_PAGE_STRUCTURES: PageStructureMap[] = [
     ],
   },
 ];
+
+export const SITE_PAGE_STRUCTURES: PageStructureMap[] = [...BASE_PAGE_STRUCTURES, ...TIMELEFT_TRANSPLANT_PAGES];
 
 const PAGE_SHORT_TITLES: Record<string, string> = {
   PAGE_ADMIN: '관리자',

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ShieldCheck, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
+import { resolvePromo } from '@/lib/promoCodes';
 
 export interface CheckoutEventData {
   eventId: string;
@@ -89,17 +90,10 @@ export default function CheckoutModal({
   const handleApplyPromo = () => {
     const code = promoCode.trim().toUpperCase();
     if (!code) return;
-    if (code === 'NADOSOLO10') {
-      const disc = Math.round(basePrice * 0.1);
-      setAppliedPromo({ code, discountKrw: disc });
-      setPromoNotice(`10% 할인 (-₩${disc.toLocaleString()}) 적용`);
-    } else if (code === 'FRIEND20') {
-      const disc = Math.round(basePrice * 0.2);
-      setAppliedPromo({ code, discountKrw: disc });
-      setPromoNotice(`20% 할인 (-₩${disc.toLocaleString()}) 적용`);
-    } else if (code === 'WELCOME5000') {
-      setAppliedPromo({ code, discountKrw: 5000 });
-      setPromoNotice('₩5,000 할인 적용');
+    const resolved = resolvePromo(code, basePrice);
+    if (resolved) {
+      setAppliedPromo({ code, discountKrw: resolved.discountKrw });
+      setPromoNotice(resolved.notice);
     } else {
       setAppliedPromo(null);
       setPromoNotice('유효하지 않은 프로모션 코드입니다.');
