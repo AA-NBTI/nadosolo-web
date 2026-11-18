@@ -268,11 +268,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.6.2',
+    releaseTitle: '메인 화면 딥 다크 에디토리얼(#07080a/#0c0d12) 컨셉 개편 및 어필리에이트 영역 정리',
+    releaseDate: '2026-11-18',
+    summary: '메인 화면(src/app/page.tsx)을 나도솔로 시그니처 딥 다크 에디토리얼(bg-[#07080a], bg-[#0c0d12], 고대비 화이트 text-white, 핑크 포인트 #f04f74)로 전면 개편하고, 6인 다이닝 슬롯 예약 집중을 위해 어필리에이트 배너를 제거하여 컴팩트 UX 완성',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2621',
+        category: 'PAGE',
+        categoryLabel: '메인개편',
+        title: '메인 화면 딥 다크 에디토리얼 톤앤매너 전환 및 어필리에이트 영역 정리',
+        beforeSummary: '웜 크림(bg-[#FAF6F0]) 배경 및 하단 어필리에이트/제휴식당 배너 노출',
+        afterSummary: 'bg-[#07080a]/bg-[#0c0d12] 고대비 다크 럭셔리 적용 및 어필리에이트 영역 제거로 다이닝 예약 동선 정돈',
+        impactLabel: '나도솔로 시그니처 아이덴티티 확립 및 구매/예약 전환율 극대화',
+        status: 'APPLIED',
+        affectedRoutes: ['/'],
+      },
+    ],
+  },
+  {
     version: 'v2.6.1',
     releaseTitle: '메인 페이지 Timeleft 코랄 오렌지 컬러의 공식 브랜드 핑크 포인트(#f04f74) 전면 통일',
     releaseDate: '2026-11-18',
     summary: '메인 페이지(src/app/page.tsx)의 selection, 헤로 이탤릭 강조, 메인 CTA 버튼, D-1 공개 라벨, HOW IT WORKS 파스텔 카드 및 뱃지, 3대 안전 보증 아이콘, 5성급 후기 별점, 파트너십 입점 버튼 등 기존 코랄 오렌지(#FF5A36) 코드를 나도솔로 공식 브랜드 포인트 컬러(#f04f74, #d93a5e, #FFF1F4)로 완전 통일',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2611',

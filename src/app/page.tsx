@@ -37,25 +37,21 @@ const BANNER_SLIDES = [
 const HOW_IT_WORKS = [
   {
     step: '01',
-    bg: 'bg-[#FFF1F4]',
     title: '짧은 성향 퀴즈',
     desc: '대화 에너지, 깊이, 관심사, 예산, 식단 제한을 1분 만에 선택합니다.',
   },
   {
     step: '02',
-    bg: 'bg-[#E6F4EA]',
     title: '도시 · 요일 예약',
     desc: '방 제목이나 식당을 고르지 않고 [도시 × 날짜] 블라인드 슬롯만 예약합니다.',
   },
   {
     step: '03',
-    bg: 'bg-[#EEF2FF]',
     title: 'D-1 19:00 장소 공개',
     desc: '사전 1:1 DM 없이 모임 전날 저녁 제휴 식당과 동석자 힌트가 열립니다.',
   },
   {
     step: '04',
-    bg: 'bg-[#FCE7F3]',
     title: '식사 & 소셜 리포트',
     desc: '식음료는 현장 1/N 결제 후, 상호 관찰을 마치면 내 리포트가 열립니다.',
   },
@@ -84,7 +80,7 @@ const FAQS = [
   },
 ];
 
-export default function TimeleftEditorialHomePage() {
+export default function NadoSoloEditorialHomePage() {
   const { config } = useSiteConfig();
   const heroSector = config?.mainSectors?.find((s) => s.id === 'sector-hero');
   const [bannerIdx, setBannerIdx] = useState(0);
@@ -98,27 +94,27 @@ export default function TimeleftEditorialHomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] text-[#18181B] flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
-      {/* 1. 타임레프트 시그니처 웜 크림 + 일러스트 Hero */}
-      <section className="w-full py-12 sm:py-20 bg-[#FAF6F0]">
+    <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
+      {/* 1. 딥 다크 에디토리얼 Hero */}
+      <section className="w-full py-14 sm:py-24 bg-[#07080a] border-b border-white/10">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             <div className="lg:col-span-6 space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-black/10 shadow-sm">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0c0d12] border border-white/10 shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
-                <span className="text-xs font-semibold tracking-wide text-[#18181B]">
-                  매주 금·토 저녁, 낯선 6인의 따뜻한 식탁
+                <span className="text-xs font-semibold tracking-wide text-zinc-200">
+                  매주 금·토 저녁, 낯선 6인의 품격 있는 식탁
                 </span>
               </div>
 
-              <h1 className="font-serif-editorial text-4xl sm:text-5xl lg:text-[58px] font-normal text-[#18181B] tracking-tight leading-[1.15]">
+              <h1 className="font-serif-editorial text-4xl sm:text-5xl lg:text-[58px] font-normal text-white tracking-tight leading-[1.15]">
                 <span className="block">{heroSector?.headlineTitle || '나도솔로 — 이유있는 만남,'}</span>
                 <span className="block font-light italic text-[#f04f74] mt-2 whitespace-pre-line">
                   {heroSector?.headlineHighlight || '직진은 NO!\n같은 방향을 바라보다'}
                 </span>
               </h1>
 
-              <p className="text-base text-zinc-600 leading-relaxed max-w-xl">
+              <p className="text-base text-zinc-400 leading-relaxed max-w-xl">
                 프로필 탐색도, 어색한 사전 채팅도 없습니다. 도시와 요일만 선택하면 성향에 맞는 6인의 테이블과 제휴 식당을 모임 전날 공개해 드립니다.
               </p>
 
@@ -126,7 +122,7 @@ export default function TimeleftEditorialHomePage() {
                 <Link
                   href="/test"
                   prefetch={true}
-                  className="px-7 py-4 rounded-full bg-[#f04f74] hover:bg-[#d93a5e] text-white text-sm font-semibold inline-flex items-center gap-2 shadow-lg shadow-[#f04f74]/25 transition-all"
+                  className="px-7 py-4 rounded-full bg-[#f04f74] hover:bg-[#d93a5e] text-white text-sm font-semibold inline-flex items-center gap-2 shadow-lg shadow-[#f04f74]/20 transition-all cursor-pointer"
                 >
                   <span>내 자리 예약하기</span>
                   <ArrowRight className="w-4 h-4" />
@@ -134,23 +130,23 @@ export default function TimeleftEditorialHomePage() {
                 <Link
                   href="/meetup"
                   prefetch={true}
-                  className="px-7 py-4 rounded-full bg-[#18181B] hover:bg-zinc-800 text-white text-sm font-semibold transition-all"
+                  className="px-7 py-4 rounded-full bg-white/5 hover:bg-white/10 text-white text-sm font-semibold border border-white/15 transition-all"
                 >
                   밋업 일정 보기
                 </Link>
               </div>
             </div>
 
-            {/* 우측: 타임레프트 감성 다이닝 일러스트 카드 */}
+            {/* 우측: 딥 다크 에디토리얼 다이닝 일러스트/비주얼 카드 */}
             <div className="lg:col-span-6">
-              <div className="relative rounded-[2rem] overflow-hidden bg-white p-3 border border-black/10 shadow-xl">
+              <div className="relative rounded-[2rem] overflow-hidden bg-[#0c0d12] p-3 border border-white/10 shadow-2xl">
                 <img
                   src="/images/tl-illus-dinner.jpg"
                   alt="6인 소셜 다이닝 일러스트"
                   className="w-full aspect-[4/3] object-cover rounded-[1.5rem]"
                 />
-                <div className="mt-3 px-3 pb-1 flex items-center justify-between text-xs font-medium text-zinc-600">
-                  <span>6인 성향 맞춤 테이블 · 사전 1:1 DM 차단</span>
+                <div className="mt-3.5 px-3 pb-1 flex items-center justify-between text-xs font-medium text-zinc-400">
+                  <span className="text-zinc-300">6인 성향 맞춤 테이블 · 사전 1:1 DM 차단</span>
                   <span className="text-[#f04f74] font-semibold">D-1 19:00 식당 공개</span>
                 </div>
               </div>
@@ -159,14 +155,14 @@ export default function TimeleftEditorialHomePage() {
         </div>
       </section>
 
-      {/* 2. 4단계 파스텔 카드 How It Works */}
-      <section className="w-full py-16 sm:py-24 bg-white border-y border-black/[0.06]">
+      {/* 2. 4단계 다크 카드 How It Works */}
+      <section className="w-full py-16 sm:py-24 bg-[#0c0d12] border-b border-white/10">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="inline-block px-3.5 py-1 rounded-full bg-[#FFF1F4] text-[#f04f74] text-xs font-bold tracking-wider uppercase">
+            <span className="inline-block px-3.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#f04f74] text-xs font-bold tracking-wider uppercase">
               HOW IT WORKS
             </span>
-            <h2 className="font-serif-editorial text-3xl sm:text-5xl text-[#18181B] font-normal">
+            <h2 className="font-serif-editorial text-3xl sm:text-5xl text-white font-normal">
               네 단계로 완성되는 완벽한 저녁
             </h2>
           </div>
@@ -175,21 +171,21 @@ export default function TimeleftEditorialHomePage() {
             {HOW_IT_WORKS.map((item) => (
               <div
                 key={item.step}
-                className={`p-7 rounded-3xl ${item.bg} border border-black/[0.06] flex flex-col justify-between space-y-6`}
+                className="p-7 rounded-3xl bg-[#07080a] border border-white/10 hover:border-white/20 transition-all flex flex-col justify-between space-y-6"
               >
                 <div className="space-y-3.5">
-                  <span className="inline-flex w-10 h-10 rounded-full bg-white border border-black/10 items-center justify-center font-serif-editorial text-lg text-[#18181B] font-semibold">
+                  <span className="inline-flex w-10 h-10 rounded-full bg-white/5 border border-white/10 items-center justify-center font-serif-editorial text-lg text-white font-semibold">
                     {item.step}
                   </span>
-                  <h3 className="font-serif-editorial text-xl text-[#18181B] font-normal">
+                  <h3 className="font-serif-editorial text-xl text-white font-normal">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-zinc-700 leading-relaxed">{item.desc}</p>
+                  <p className="text-sm text-zinc-400 leading-relaxed">{item.desc}</p>
                 </div>
                 <Link
                   href={item.step === '01' ? '/test' : '/meetup'}
                   prefetch={true}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#18181B] hover:text-[#f04f74]"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-300 hover:text-[#f04f74] transition-colors"
                 >
                   <span>바로 가기</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -200,8 +196,8 @@ export default function TimeleftEditorialHomePage() {
         </div>
       </section>
 
-      {/* 3. 실제 저녁 분위기 3슬라이드 움직이는 배너 (딥 차콜 대비 섹션) */}
-      <section className="w-full py-16 sm:py-24 bg-[#18181B] text-white">
+      {/* 3. 실제 저녁 분위기 3슬라이드 움직이는 배너 */}
+      <section className="w-full py-16 sm:py-24 bg-[#07080a] text-white border-b border-white/10">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-2">
@@ -215,7 +211,7 @@ export default function TimeleftEditorialHomePage() {
             <Link
               href="/meetup"
               prefetch={true}
-              className="px-6 py-3 rounded-full bg-white text-[#18181B] hover:bg-[#FAF6F0] text-xs font-bold inline-flex items-center gap-2 self-start"
+              className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-bold inline-flex items-center gap-2 self-start transition-all"
             >
               <span>이번 주 밋업 예약</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -239,7 +235,7 @@ export default function TimeleftEditorialHomePage() {
                       active ? 'scale-105' : 'scale-100'
                     }`}
                   />
-                  <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
                   <div className="absolute bottom-5 left-6 right-32">
                     <p className="font-serif-editorial text-base sm:text-xl text-white font-normal drop-shadow truncate">
                       {slide.caption}
@@ -274,11 +270,11 @@ export default function TimeleftEditorialHomePage() {
         </div>
       </section>
 
-      {/* 4. 도시 일러스트 + 운영 도시 / 포맷 섹션 (#FAF6F0 웜 크림) */}
-      <section className="w-full py-16 sm:py-24 bg-[#FAF6F0]">
+      {/* 4. 운영 도시 / 포맷 & 3대 안전 보증 & 5성급 후기 */}
+      <section className="w-full py-16 sm:py-24 bg-[#0c0d12] border-b border-white/10">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-6 rounded-[2rem] overflow-hidden bg-white p-3 border border-black/10 shadow-lg">
+            <div className="lg:col-span-6 rounded-[2rem] overflow-hidden bg-[#07080a] p-3 border border-white/10 shadow-xl">
               <img
                 src="/images/tl-illus-city.jpg"
                 alt="도시 저녁 연결 일러스트"
@@ -287,28 +283,28 @@ export default function TimeleftEditorialHomePage() {
             </div>
 
             <div className="lg:col-span-6 space-y-5">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white border border-black/10 text-xs font-bold text-[#f04f74]">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-[#f04f74]">
                 <MapPin className="w-3.5 h-3.5" />
                 <span>CITIES &amp; FORMATS</span>
               </div>
-              <h2 className="font-serif-editorial text-3xl sm:text-4xl text-[#18181B] font-normal">
+              <h2 className="font-serif-editorial text-3xl sm:text-4xl text-white font-normal">
                 서울 · 부산에서 시작해 전국으로 이어지는 식탁
               </h2>
-              <p className="text-sm sm:text-base text-zinc-600 leading-relaxed">
+              <p className="text-sm sm:text-base text-zinc-400 leading-relaxed">
                 주간 6인 디너부터 싱글즈, 여성 전용 테이블, 가벼운 드링크 살롱까지. 미혼·기혼·직장인 누구나 각자의 목적 트랙(변화·교류·취향·인연)으로 안전하게 만납니다.
               </p>
               <div className="flex flex-wrap gap-3 pt-1">
                 <Link
                   href="/locations"
                   prefetch={true}
-                  className="px-6 py-3 rounded-full bg-[#18181B] text-white text-xs font-bold"
+                  className="px-6 py-3 rounded-full bg-white text-[#07080a] hover:bg-zinc-200 text-xs font-bold transition-colors"
                 >
                   운영 도시 보기
                 </Link>
                 <Link
                   href="/busan"
                   prefetch={true}
-                  className="px-6 py-3 rounded-full bg-white border border-black/15 text-[#18181B] text-xs font-bold hover:border-black/40"
+                  className="px-6 py-3 rounded-full bg-white/5 border border-white/15 text-zinc-300 hover:text-white text-xs font-bold hover:border-white/30 transition-all"
                 >
                   부산 다이닝 페이지
                 </Link>
@@ -316,37 +312,38 @@ export default function TimeleftEditorialHomePage() {
             </div>
           </div>
 
-          {/* 3대 안전 보증 + 5성급 후기 */}
+          {/* 3대 안전 보증 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="p-6 rounded-3xl bg-white border border-black/[0.06] space-y-2">
-              <div className="flex items-center gap-2 font-semibold text-[#18181B]">
+            <div className="p-6 rounded-3xl bg-[#07080a] border border-white/10 space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-white">
                 <ShieldCheck className="w-5 h-5 text-[#f04f74]" />
                 <span>공공 제휴 식당 100% · 사전 DM 차단</span>
               </div>
-              <p className="text-sm text-zinc-600 leading-relaxed">
+              <p className="text-sm text-zinc-400 leading-relaxed">
                 D-1 19:00 공개 전까지 연락처와 프로필을 가리고, 검증된 공공 매장에서만 만납니다.
               </p>
             </div>
-            <div className="p-6 rounded-3xl bg-white border border-black/[0.06] space-y-2">
-              <div className="flex items-center gap-2 font-semibold text-[#18181B]">
+            <div className="p-6 rounded-3xl bg-[#07080a] border border-white/10 space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-white">
                 <CheckCircle2 className="w-5 h-5 text-[#f04f74]" />
                 <span>노쇼 제재 &amp; 영구 재매칭 차단</span>
               </div>
-              <p className="text-sm text-zinc-600 leading-relaxed">
+              <p className="text-sm text-zinc-400 leading-relaxed">
                 모임 후 불편한 상대나 결석자를 신고하면 향후 모든 회차에서 영구 분리됩니다.
               </p>
             </div>
-            <div className="p-6 rounded-3xl bg-white border border-black/[0.06] space-y-2">
-              <div className="flex items-center gap-2 font-semibold text-[#18181B]">
+            <div className="p-6 rounded-3xl bg-[#07080a] border border-white/10 space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-white">
                 <CreditCard className="w-5 h-5 text-[#f04f74]" />
                 <span>48시간 전 무료 취소 · 참가권 보존</span>
               </div>
-              <p className="text-sm text-zinc-600 leading-relaxed">
+              <p className="text-sm text-zinc-400 leading-relaxed">
                 48시간 전 취소·이월 및 미달 시 참가권 1매가 보존되어 다음 일정에 바로 사용됩니다.
               </p>
             </div>
           </div>
 
+          {/* 5성급 후기 */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
               {
@@ -364,14 +361,14 @@ export default function TimeleftEditorialHomePage() {
             ].map((rv, idx) => (
               <div
                 key={idx}
-                className="p-7 rounded-3xl bg-white border border-black/[0.06] shadow-sm flex flex-col justify-between space-y-4"
+                className="p-7 rounded-3xl bg-[#07080a] border border-white/10 shadow-sm flex flex-col justify-between space-y-4"
               >
                 <div className="flex items-center gap-1 text-[#f04f74]">
                   {[0, 1, 2, 3, 4].map((s) => (
                     <Star key={s} className="w-4 h-4 fill-[#f04f74]" />
                   ))}
                 </div>
-                <p className="text-sm text-zinc-800 leading-relaxed">{rv.quote}</p>
+                <p className="text-sm text-zinc-200 leading-relaxed">{rv.quote}</p>
                 <span className="text-xs font-medium text-zinc-500">{rv.author}</span>
               </div>
             ))}
@@ -379,67 +376,41 @@ export default function TimeleftEditorialHomePage() {
         </div>
       </section>
 
-      {/* 5. 파트너 & FAQ (화이트 배경 마무리) */}
-      <section className="w-full py-16 sm:py-24 bg-white border-t border-black/[0.06]">
-        <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-14">
-          <div className="p-8 rounded-[2rem] bg-[#18181B] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-xl">
-              <span className="text-xs font-bold tracking-widest text-[#f04f74] uppercase block">
-                PARTNERS &amp; AFFILIATES
-              </span>
-              <h3 className="font-serif-editorial text-2xl sm:text-3xl font-normal">
-                앰배서더 어필리에이트 · 제휴 식당 파트너십
-              </h3>
-              <p className="text-sm text-zinc-300 font-light">
-                추천 링크로 수익을 나누는 앰배서더 프로그램과 6인 확정 손님을 배정받는 제휴 식당 입점을 신청하세요.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 shrink-0">
-              <Link
-                href="/affiliate"
-                prefetch={true}
-                className="px-6 py-3 rounded-full bg-white text-[#18181B] text-xs font-bold"
-              >
-                어필리에이트
-              </Link>
-              <Link
-                href="/partners"
-                prefetch={true}
-                className="px-6 py-3 rounded-full bg-[#f04f74] hover:bg-[#d93a5e] text-white text-xs font-bold transition-colors"
-              >
-                제휴식당 입점
-              </Link>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            <h2 className="font-serif-editorial text-3xl text-[#18181B] font-normal">
+      {/* 5. 자주 묻는 질문 (FAQ) — 어필리에이트 영역 완전 제거 후 깔끔한 마무리 */}
+      <section className="w-full py-16 sm:py-24 bg-[#07080a]">
+        <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-8">
+          <div className="space-y-3">
+            <span className="inline-block px-3.5 py-1 rounded-full bg-white/5 border border-white/10 text-[#f04f74] text-xs font-bold tracking-wider uppercase">
+              FREQUENTLY ASKED
+            </span>
+            <h2 className="font-serif-editorial text-3xl sm:text-4xl text-white font-normal">
               자주 묻는 질문
             </h2>
-            <div className="rounded-3xl border border-black/10 bg-[#FAF6F0] divide-y divide-black/[0.08] overflow-hidden">
-              {FAQS.map((item, idx) => {
-                const isOpen = openFaqIdx === idx;
-                return (
-                  <div key={idx}>
-                    <button
-                      type="button"
-                      onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
-                      className="w-full px-6 py-5 flex items-center justify-between gap-4 text-left hover:bg-black/[0.02] cursor-pointer"
-                    >
-                      <span className="text-sm sm:text-base text-[#18181B] font-semibold">{item.q}</span>
-                      {isOpen ? (
-                        <ChevronUp className="w-4 h-4 text-zinc-500 shrink-0" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
-                      )}
-                    </button>
-                    {isOpen && (
-                      <div className="px-6 pb-5 text-sm text-zinc-700 leading-relaxed">{item.a}</div>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-[#0c0d12] divide-y divide-white/10 overflow-hidden">
+            {FAQS.map((item, idx) => {
+              const isOpen = openFaqIdx === idx;
+              return (
+                <div key={idx}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
+                    className="w-full px-6 py-5 flex items-center justify-between gap-4 text-left hover:bg-white/[0.03] transition-colors cursor-pointer"
+                  >
+                    <span className="text-sm sm:text-base text-white font-semibold">{item.q}</span>
+                    {isOpen ? (
+                      <ChevronUp className="w-4 h-4 text-zinc-400 shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-zinc-400 shrink-0" />
                     )}
-                  </div>
-                );
-              })}
-            </div>
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-5 text-sm text-zinc-400 leading-relaxed">{item.a}</div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
