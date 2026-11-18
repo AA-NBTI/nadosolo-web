@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ShieldCheck, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
+import { ShieldCheck, CreditCard, Smartphone, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
 import {
   DEFAULT_PROMO_CODES,
@@ -16,11 +16,18 @@ export interface CheckoutEventData {
   title: string;
   dateText: string;
   priceKrw: number;
+  initialTicketCount?: 1 | 2 | 3;
   districtName?: string;
   mealNote?: string;
   refundPolicy?: string;
   deadlineText?: string;
 }
+
+const TICKET_PLANS: Record<1 | 2 | 3, { count: 1 | 2 | 3; label: string; price: number; perUnit: number; badge?: string }> = {
+  1: { count: 1, label: '1회 체험권', price: 30000, perUnit: 30000 },
+  2: { count: 2, label: '2회 체험권', price: 50000, perUnit: 25000, badge: '17% 혜택' },
+  3: { count: 3, label: '세번은 만나봐야', price: 60000, perUnit: 20000, badge: 'BEST · 33% 혜택' },
+};
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -49,9 +56,15 @@ export default function CheckoutModal({
   const [promoList, setPromoList] = useState<PromoCode[]>(DEFAULT_PROMO_CODES);
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountKrw: number } | null>(null);
   const [promoNotice, setPromoNotice] = useState<string | null>(null);
+  const [ticketCount, setTicketCount] = useState<1 | 2 | 3>(1);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !event) return;
+    const initCount: 1 | 2 | 3 =
+      event.initialTicketCount ||
+      (event.priceKrw === 60000 ? 3 : event.priceKrw === 50000 ? 2 : 1);
+    setTicketCount(initCount);
+
     const refCandidate =
       (initialPromoCode ||
         (typeof window !== 'undefined' ? localStorage.getItem('nadosolo_referral_code') : '') ||
@@ -61,8 +74,9 @@ export default function CheckoutModal({
 
     fetchPromoCodes().then((list) => {
       setPromoList(list);
-      if (refCandidate && event) {
-        const resolved = resolvePromoFromList(refCandidate, event.priceKrw, list);
+      if (refCandidate) {
+        const initPrice = TICKET_PLANS[initCount].price;
+        const resolved = resolvePromoFromList(refCandidate, initPrice, list);
         if (resolved) {
           setPromoCode(refCandidate);
           setAppliedPromo({ code: refCandidate, discountKrw: resolved.discountKrw });
@@ -114,8 +128,21 @@ export default function CheckoutModal({
 
   const isFormValid = agreeRefund && agreePrivacy && !needsPreCheck;
 
-  const basePrice = event.priceKrw;
+  const selectedPlan = TICKET_PLANS[ticketCount];
+  const basePrice = selectedPlan.price;
   const finalAmount = Math.max(1000, basePrice - (appliedPromo?.discountKrw ?? 0));
+
+  const handleSelectTickets = (nextCount: 1 | 2 | 3) => {
+    setTicketCount(nextCount);
+    const nextBase = TICKET_PLANS[nextCount].price;
+    if (appliedPromo) {
+      const resolved = resolvePromoFromList(appliedPromo.code, nextBase, promoList);
+      if (resolved) {
+        setAppliedPromo({ code: appliedPromo.code, discountKrw: resolved.discountKrw });
+        setPromoNotice(resolved.notice);
+      }
+    }
+  };
 
   const handleApplyPromo = () => {
     const code = promoCode.trim().toUpperCase();
@@ -168,15 +195,16 @@ export default function CheckoutModal({
       )
         .trim()
         .toUpperCase();
-      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(event.title)}${trackingPromo ? `&promo=${encodeURIComponent(trackingPromo)}` : ''}`;
+      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(`${event.title} (${selectedPlan.label})`)}&tickets=${ticketCount}${trackingPromo ? `&promo=${encodeURIComponent(trackingPromo)}` : ''}`;
       const failUrl = `${origin}/payment/fail`;
+      const orderTitle = `${event.title} (${selectedPlan.label})`;
 
       // 선택된 결제수단에 맞춰 토스페이먼츠 결제창 호출
       if (payMethod === 'CARD') {
         await tossPayments.requestPayment('카드', {
           amount: finalAmount,
           orderId,
-          orderName: event.title,
+          orderName: orderTitle,
           customerName: '나도솔로 참가자',
           successUrl,
           failUrl,
@@ -185,7 +213,7 @@ export default function CheckoutModal({
         await tossPayments.requestPayment('카드', {
           amount: finalAmount,
           orderId,
-          orderName: event.title,
+          orderName: orderTitle,
           customerName: '나도솔로 참가자',
           flowMode: 'DIRECT',
           easyPay: '토스페이',
@@ -196,7 +224,7 @@ export default function CheckoutModal({
         await tossPayments.requestPayment('카드', {
           amount: finalAmount,
           orderId,
-          orderName: event.title,
+          orderName: orderTitle,
           customerName: '나도솔로 참가자',
           flowMode: 'DIRECT',
           easyPay: '카카오페이',
@@ -207,7 +235,7 @@ export default function CheckoutModal({
         await tossPayments.requestPayment('카드', {
           amount: finalAmount,
           orderId,
-          orderName: event.title,
+          orderName: orderTitle,
           customerName: '나도솔로 참가자',
           flowMode: 'DIRECT',
           easyPay: '네이버페이',
@@ -261,11 +289,94 @@ export default function CheckoutModal({
                   <h4 className="text-base font-bold text-white mt-1.5">{event.title}</h4>
                   <p className="text-xs text-zinc-400 mt-0.5">{event.dateText}</p>
                 </div>
-                <div className="text-right">
-                  <span className="text-xs text-zinc-400 font-medium">참가비</span>
-                  <p className="text-lg font-bold text-[#f04f74]">₩{event.priceKrw.toLocaleString()}</p>
+                <div className="text-right shrink-0">
+                  <span className="text-xs text-zinc-400 font-medium">{selectedPlan.label}</span>
+                  <p className="text-lg font-bold text-[#f04f74]">₩{finalAmount.toLocaleString()}</p>
                 </div>
               </div>
+
+              {/* 참가권 티어 선택 (1회 3만 / 2회 5만 / 3회 6만) */}
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
+                {([1, 2, 3] as const).map((cnt) => {
+                  const plan = TICKET_PLANS[cnt];
+                  const active = ticketCount === cnt;
+                  return (
+                    <button
+                      key={cnt}
+                      type="button"
+                      onClick={() => handleSelectTickets(cnt)}
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer relative ${
+                        active
+                          ? 'bg-[#f04f74]/15 border-[#f04f74] text-white'
+                          : 'bg-[#10131c] border-white/10 text-zinc-400 hover:border-white/25 hover:text-white'
+                      }`}
+                    >
+                      {plan.badge && (
+                        <span className="block text-[10px] font-bold text-[#f04f74] mb-0.5">
+                          {plan.badge}
+                        </span>
+                      )}
+                      <div className="text-xs font-bold text-white">{plan.label}</div>
+                      <div className="text-xs font-mono text-zinc-200 mt-0.5">
+                        ₩{plan.price.toLocaleString()}
+                      </div>
+                      <div className="text-[10px] text-zinc-400">
+                        회당 ₩{plan.perUnit.toLocaleString()}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 결제 전 업셀 알림 (Order Bump) */}
+              {ticketCount === 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleSelectTickets(3)}
+                  className="w-full p-3 rounded-xl bg-[#f04f74]/10 border border-[#f04f74]/50 hover:bg-[#f04f74]/20 text-left transition-all cursor-pointer flex items-center justify-between gap-2"
+                >
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#f04f74]">
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span>권장 ₩30,000 추가시(2회 50% 혜택) 총 3회 「세번은 만나봐야」로 업그레이드됩니다!</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-300">
+                      (→ 총 ₩60,000 · 회당 ₩20,000으로 잔여 2회 지갑 자동 적립)
+                    </p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-[#f04f74] text-white text-[11px] font-bold shrink-0">
+                    적용
+                  </span>
+                </button>
+              )}
+
+              {ticketCount === 2 && (
+                <button
+                  type="button"
+                  onClick={() => handleSelectTickets(3)}
+                  className="w-full p-3 rounded-xl bg-[#f04f74]/10 border border-[#f04f74]/50 hover:bg-[#f04f74]/20 text-left transition-all cursor-pointer flex items-center justify-between gap-2"
+                >
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#f04f74]">
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span>권장 ₩10,000 추가시(1회 67% 혜택) 총 3회 「세번은 만나봐야」로 업그레이드됩니다!</span>
+                    </div>
+                    <p className="text-[11px] text-zinc-300">
+                      (→ 총 ₩60,000 · 회당 ₩20,000으로 잔여 2회 지갑 자동 적립)
+                    </p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-[#f04f74] text-white text-[11px] font-bold shrink-0">
+                    적용
+                  </span>
+                </button>
+              )}
+
+              {ticketCount === 3 && (
+                <div className="p-2.5 rounded-xl bg-white/5 border border-white/15 flex items-center gap-2 text-xs text-zinc-200">
+                  <CheckCircle2 className="w-4 h-4 text-[#f04f74] shrink-0" />
+                  <span>최대 할인 적용 중 · 이번 모임 1회 신청 후 잔여 2회권은 내 지갑에 자동 적립됩니다.</span>
+                </div>
+              )}
 
               <div className="pt-2 border-t border-white/5 flex items-center gap-1.5 text-[11px] text-zinc-400">
                 <AlertCircle className="w-3.5 h-3.5 text-zinc-500 shrink-0" />
@@ -470,6 +581,8 @@ export default function CheckoutModal({
                 <li>모임 3일 전 취소 시: <strong>100% 전액 환불</strong></li>
                 <li>모임 2일 전 취소 시: <strong>50% 부분 환불</strong></li>
                 <li>모임 1일 전 및 당일 취소/노쇼: <strong>환불 불가</strong> (좌석 예약 확정 및 테이블 세팅 완료)</li>
+                <li>다회권(세번은 만나봐야 등) 중도 환불: <strong>기이용 회차는 1회 정상가(₩30,000) 기준 차감</strong></li>
+                <li>2회 만남 이용(초과) 시: <strong>마지막 1회 혜택권은 환불 불가</strong> (일정 이월은 가능)</li>
                 <li>최소 인원 미달 등으로 주최 측 모임 취소 시: <strong>100% 전액 자동 환불</strong></li>
               </ul>
 
@@ -518,7 +631,7 @@ export default function CheckoutModal({
                 {isProcessing ? (
                   <span>토스페이먼츠 결제 승인 중...</span>
                 ) : (
-                  <span>₩{event.priceKrw.toLocaleString()} 결제하기</span>
+                  <span>₩{finalAmount.toLocaleString()} 결제하기 ({selectedPlan.label})</span>
                 )}
               </button>
 

@@ -224,6 +224,28 @@ export function createBillingEngine(
     return nextBalance;
   }
 
+  function evaluateMultiPassRefund(paidAmountKrw: number, usedTickets: number): {
+    refundable: boolean;
+    refundAmountKrw: number;
+    note: string;
+  } {
+    const unitPrice = preset.cancellationRule.multiPassRefundRule?.singleUnitPriceKrw ?? 30000;
+    const limitUsed = preset.cancellationRule.multiPassRefundRule?.nonRefundableAfterUsedCount ?? 2;
+    if (usedTickets >= limitUsed) {
+      return {
+        refundable: false,
+        refundAmountKrw: 0,
+        note: '2회 이용 완료(초과) 시 마지막 1회 혜택권은 환불 불가',
+      };
+    }
+    const refundAmountKrw = Math.max(0, paidAmountKrw - usedTickets * unitPrice);
+    return {
+      refundable: refundAmountKrw > 0,
+      refundAmountKrw,
+      note: `1회 정상가(₩${unitPrice.toLocaleString()}) 기준 차감 후 ₩${refundAmountKrw.toLocaleString()} 환불 가능`,
+    };
+  }
+
   return {
     preset,
     getCachedPromos,
@@ -236,6 +258,7 @@ export function createBillingEngine(
     recordPromoUsage,
     computePromoUsageCounts,
     evaluateCancellationPolicy,
+    evaluateMultiPassRefund,
     getCreditBalance,
     adjustCredits,
     fetchCreditLedger,

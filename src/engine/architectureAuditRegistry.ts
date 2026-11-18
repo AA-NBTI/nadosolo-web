@@ -268,11 +268,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.6.3',
+    releaseTitle: '3단 가격 티어(세번은 만나봐야) · 결제 직전 업셀 알림 · 다회권 환불 기준(1회가 기준 차감/2회 초과시 마지막 1회 환불 불가) 적용',
+    releaseDate: '2026-11-18',
+    summary: '1회(₩30,000)/2회(₩50,000)/세번은 만나봐야(₩60,000) 상품 체계 및 혜택 표현 통일, 결제 모달 내 3회권 업셀 알림 배너 탑재, billing 코어에 다회권 환불 계산(1회 정상가 ₩30,000 기준 차감 및 2회 초과 시 마지막 1회 환불 불가) 반영',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2631',
+        category: 'PROCESS',
+        categoryLabel: '결제업셀',
+        title: '「세번은 만나봐야」 가격 사다리 · 결제 직전 업셀 알림 및 다회권 환불 정책 수립',
+        beforeSummary: '단일 1회 결제창 및 다회권(준비중) 표기',
+        afterSummary: '1회(₩30,000)/2회(₩50,000)/세번은 만나봐야(₩60,000) 티어 + 업셀 알림 + 1회가 기준 환불·2회 초과시 마지막 1회 환불 불가 규정',
+        impactLabel: '객단가(ARPU) 및 3회 재방문 전환율 향상, 환불 분쟁 원천 방지',
+        status: 'APPLIED',
+        affectedRoutes: ['/pricing', '/meetup', '/payment/success'],
+      },
+    ],
+  },
+  {
     version: 'v2.6.2',
     releaseTitle: '메인 화면 딥 다크 에디토리얼(#07080a/#0c0d12) 컨셉 개편 및 어필리에이트 영역 정리',
     releaseDate: '2026-11-18',
     summary: '메인 화면(src/app/page.tsx)을 나도솔로 시그니처 딥 다크 에디토리얼(bg-[#07080a], bg-[#0c0d12], 고대비 화이트 text-white, 핑크 포인트 #f04f74)로 전면 개편하고, 6인 다이닝 슬롯 예약 집중을 위해 어필리에이트 배너를 제거하여 컴팩트 UX 완성',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2621',

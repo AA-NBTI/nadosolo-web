@@ -19,7 +19,7 @@ export interface PromoUsageRecord {
   at: string;
 }
 
-export type CreditReason = 'REDEEM' | 'ROLLOVER' | 'CANCEL_REFUND' | 'ADMIN_ADJUST';
+export type CreditReason = 'PURCHASE' | 'REDEEM' | 'ROLLOVER' | 'CANCEL_REFUND' | 'ADMIN_ADJUST';
 
 export interface CreditLedgerEntry {
   id: string;
@@ -32,11 +32,17 @@ export interface CreditLedgerEntry {
   at: string;
 }
 
+export interface MultiPassRefundRule {
+  singleUnitPriceKrw: number;
+  nonRefundableAfterUsedCount: number;
+}
+
 export interface CancellationPolicyRule {
   freeCancelHours: number;
   rolloverAllowedHours: number;
   penaltyHours: number;
   creditUnitName: string;
+  multiPassRefundRule?: MultiPassRefundRule;
 }
 
 export interface CancellationPolicyDecision {

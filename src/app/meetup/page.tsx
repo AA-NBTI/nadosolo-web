@@ -28,6 +28,8 @@ function MeetupSlotBookingContent() {
   const qRef = (searchParams.get('ref') || '').trim().toUpperCase();
   const qInvite = searchParams.get('invite') || '';
   const qEvent = searchParams.get('event') || '';
+  const rawTickets = Number(searchParams.get('tickets') || '1');
+  const qTickets: 1 | 2 | 3 = rawTickets === 3 ? 3 : rawTickets === 2 ? 2 : 1;
 
   const {
     currentUser,
@@ -323,6 +325,7 @@ function MeetupSlotBookingContent() {
                       title: `${slot.regionName} · ${slot.dateText} 프라이빗 다이닝`,
                       dateText: slot.dateText,
                       priceKrw: slot.priceKrw,
+                      initialTicketCount: qTickets,
                       districtName: slot.regionName,
                       mealNote: '식당 및 동석자 정보는 D-1 19:00에 비공개 공개되며 식음료는 현장 1/N 결제입니다.',
                     });

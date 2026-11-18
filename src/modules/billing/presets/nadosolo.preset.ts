@@ -17,6 +17,10 @@ export const NADOSOLO_BILLING_PRESET: BillingModulePreset = {
     rolloverAllowedHours: 24,
     penaltyHours: 24,
     creditUnitName: '참가권 1매',
+    multiPassRefundRule: {
+      singleUnitPriceKrw: 30000,
+      nonRefundableAfterUsedCount: 2,
+    },
   },
   storageKeys: {
     promoConfigKey: 'promo_codes',

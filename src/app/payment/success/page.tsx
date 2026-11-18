@@ -15,6 +15,9 @@ function PaymentSuccessContent() {
   const eventId = searchParams.get('eventId') || '';
   const promo = (searchParams.get('promo') || '').trim().toUpperCase();
   const title = searchParams.get('title') || '나도솔로 참가권';
+  const rawTickets = Number(searchParams.get('tickets') || '1');
+  const tickets = rawTickets === 3 ? 3 : rawTickets === 2 ? 2 : 1;
+  const bonusTickets = Math.max(0, tickets - 1);
 
   const { currentUser, applyForConditionalEvent, appliedEventIds } = useNadoSoloEngine();
   const [synced, setSynced] = useState(false);
@@ -24,6 +27,18 @@ function PaymentSuccessContent() {
     if (!eventId || synced) return;
     if (!appliedEventIds.includes(eventId)) {
       applyForConditionalEvent(eventId);
+    }
+    if (bonusTickets > 0 && currentUser?.userId) {
+      const creditKey = `nadosolo_credited_${orderId}`;
+      const alreadyCredited = typeof window !== 'undefined' && localStorage.getItem(creditKey);
+      if (!alreadyCredited) {
+        if (typeof window !== 'undefined') localStorage.setItem(creditKey, '1');
+        void nadosoloBillingEngine.adjustCredits(currentUser.userId, bonusTickets, {
+          reason: 'PURCHASE',
+          itemId: eventId,
+          note: `${tickets}회권 결제 잔여 참가권 ${bonusTickets}매 적립`,
+        });
+      }
     }
     if (promo) {
       void nadosoloBillingEngine.recordPromoUsage({
@@ -43,7 +58,7 @@ function PaymentSuccessContent() {
       });
     }
     setSynced(true);
-  }, [eventId, synced, appliedEventIds, applyForConditionalEvent, promo, orderId, amount, currentUser?.userId, currentUser?.email, currentUser?.handle]);
+  }, [eventId, synced, appliedEventIds, applyForConditionalEvent, promo, orderId, amount, bonusTickets, tickets, currentUser?.userId, currentUser?.email, currentUser?.handle]);
 
   return (
     <div className="w-full max-w-md bg-[#12151e] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-6">
@@ -74,6 +89,12 @@ function PaymentSuccessContent() {
           <div className="flex justify-between text-zinc-400">
             <span>프로모션 코드</span>
             <span className="font-mono text-white font-semibold">{promo}</span>
+          </div>
+        )}
+        {bonusTickets > 0 && (
+          <div className="flex justify-between text-zinc-400">
+            <span>지갑 적립 참가권</span>
+            <span className="font-mono text-[#f04f74] font-semibold">+{bonusTickets}매 (다음 일정 무료 예약)</span>
           </div>
         )}
         {amount && (
