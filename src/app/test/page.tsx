@@ -98,22 +98,25 @@ function ChecklistContent() {
   const handleToggleMulti = (optId: string) => {
     if (!currentQ) return;
     const withoutCustom = selectedTokens.filter((t) => !t.startsWith('CUSTOM:'));
-    const maxCount = currentQ.maxSelectCount ?? 2;
+    const maxCount = currentQ.maxSelectCount;
     let nextIds: string[];
+    let isAdding = false;
 
     if (optId === 'NONE') {
       nextIds = withoutCustom.includes('NONE') ? [] : ['NONE'];
+      isAdding = nextIds.length > 0;
     } else {
       const cleaned = withoutCustom.filter((id) => id !== 'NONE');
       if (cleaned.includes(optId)) {
         nextIds = cleaned.filter((id) => id !== optId);
       } else {
-        if (cleaned.length >= maxCount) {
+        if (maxCount !== undefined && cleaned.length >= maxCount) {
           setLimitWarning(`최대 ${maxCount}개까지만 선택할 수 있습니다.`);
           setTimeout(() => setLimitWarning(null), 2500);
           return;
         }
         nextIds = [...cleaned, optId];
+        isAdding = true;
       }
     }
 
@@ -123,6 +126,21 @@ function ChecklistContent() {
     if (nextVal) nextAnswers[currentQ.id] = nextVal;
     else delete nextAnswers[currentQ.id];
     setLocalAnswers(nextAnswers);
+
+    // 1) '제한 없음(NONE)' 선택 시 단일 선택처럼 250ms 후 다음 문항 자동 이동
+    if (isAdding && optId === 'NONE') {
+      setTimeout(() => {
+        goNextStep(nextAnswers);
+      }, 250);
+      return;
+    }
+
+    // 2) 최대 선택 개수(예: 2개)가 모두 선택되면 350ms 후 자동으로 다음 문항 자동 이동!
+    if (isAdding && maxCount !== undefined && nextTokens.length >= maxCount) {
+      setTimeout(() => {
+        goNextStep(nextAnswers);
+      }, 350);
+    }
   };
 
   const handleCustomInputChange = (rawText: string) => {

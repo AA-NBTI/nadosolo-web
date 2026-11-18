@@ -508,9 +508,8 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'BASE',
     categoryLabel: '언어',
-    questionText: '테이블에서 선호하는 대화 언어는 무엇인가요? (최대 2개 · 직접 입력 가능)',
-    inputType: 'MULTI',
-    maxSelectCount: 2,
+    questionText: '테이블에서 선호하는 대화 언어는 무엇인가요? (직접 입력 가능)',
+    inputType: 'SINGLE',
     allowCustomInput: true,
     customPlaceholder: '예: 일본어, 중국어, 프랑스어 등 직접 입력',
     isActive: true,
@@ -720,9 +719,8 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'DEEP',
     categoryLabel: '친화',
-    questionText: '테이블에서 가장 즐기는 유머와 티키타카 결은 무엇인가요? (최대 2개 선택)',
-    inputType: 'MULTI',
-    maxSelectCount: 2,
+    questionText: '테이블에서 가장 즐기는 유머와 티키타카 결은 무엇인가요?',
+    inputType: 'SINGLE',
     isActive: true,
     options: [
       { id: 'WIT', label: '위트 있고 재치 넘치는 티키타카', axisScores: { DEPTH: 25, ENERGY: 75 } },
@@ -798,9 +796,8 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'DEEP',
     categoryLabel: '취향',
-    questionText: '평소 주말과 퇴근 후 가장 많은 시간을 보내는 관심 분야는? (최대 2개 · 직접 입력 가능)',
-    inputType: 'MULTI',
-    maxSelectCount: 2,
+    questionText: '평소 주말과 퇴근 후 가장 많은 시간을 보내는 관심 분야는? (직접 입력 가능)',
+    inputType: 'SINGLE',
     allowCustomInput: true,
     customPlaceholder: '예: 골프, 러닝, 반려동물, 재테크 등 직접 입력',
     isActive: true,
@@ -861,8 +858,9 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'DEEP',
     categoryLabel: '성찰',
-    questionText: '오늘 동석자들에게 가장 발견받고 싶은 나의 소통 강점은 무엇인가요?',
-    inputType: 'SINGLE',
+    questionText: '오늘 동석자들에게 가장 발견받고 싶은 나의 소통 강점은 무엇인가요? (최대 2개 선택)',
+    inputType: 'MULTI',
+    maxSelectCount: 2,
     isActive: true,
     options: [
       { id: '경청', label: '경청 (끝까지 따뜻하게 들어주는 힘)', axisScores: { DEPTH: 85 } },
@@ -889,6 +887,24 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
   },
 
   // --- [식단 및 음료 제약/취향 (모임 전 필수/보조 영역)] ---
+  // 23번: [보조 취향] 테이블 선호 음료 (단일 선택)
+  {
+    id: 'DEEP_D02_BEVERAGE_PREFERENCE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '취향',
+    questionText: '[보조 취향] 테이블 선호 음료 및 다이닝 스타일은 무엇인가요?',
+    inputType: 'SINGLE',
+    isActive: true,
+    options: [
+      { id: 'ALCOHOL_FREE', label: '논알콜 (술 없이 식사 중심)', metaTag: { dietary: 'ALCOHOL_FREE' } },
+      { id: 'LIGHT_DRINK', label: '가볍게 맥주 · 하이볼 1~2잔' },
+      { id: 'WINE_LOVER', label: '와인 · 칵테일 페어링 환영' },
+      { id: 'LOW_SUGAR', label: '저당 · 헬시 라이프스타일' },
+    ],
+  },
+  // 24번 (맨 마지막 영구 배치): [필수 제약] 식단 제한/알레르기 (복수 다중 선택 무제한)
+  // [불변 헌칙: 질문 항목이 추가되더라도 식단 제약(DEEP_D01)은 항상 DEEP 파트의 맨 마지막 순서에 영구 배치]
   {
     id: 'DEEP_D01_DIETARY_RESTRICTIONS',
     version: 1,
@@ -904,22 +920,6 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
       { id: 'VEGAN', label: '비건 · 채식 메뉴 필수', metaTag: { dietary: 'VEGAN' } },
       { id: 'NO_PORK', label: '돼지고기 제외', metaTag: { dietary: 'NO_PORK' } },
       { id: 'HALAL', label: '할랄 식단', metaTag: { dietary: 'HALAL' } },
-    ],
-  },
-  {
-    id: 'DEEP_D02_BEVERAGE_PREFERENCE',
-    version: 1,
-    layer: 'DEEP',
-    categoryLabel: '취향',
-    questionText: '[보조 취향] 테이블 선호 음료 및 다이닝 스타일은 무엇인가요? (최대 2개 선택)',
-    inputType: 'MULTI',
-    maxSelectCount: 2,
-    isActive: true,
-    options: [
-      { id: 'ALCOHOL_FREE', label: '논알콜 (술 없이 식사 중심)', metaTag: { dietary: 'ALCOHOL_FREE' } },
-      { id: 'LIGHT_DRINK', label: '가볍게 맥주 · 하이볼 1~2잔' },
-      { id: 'WINE_LOVER', label: '와인 · 칵테일 페어링 환영' },
-      { id: 'LOW_SUGAR', label: '저당 · 헬시 라이프스타일' },
     ],
   },
 

@@ -181,11 +181,12 @@ export default function AdminAdaptiveMatchingManager({
       else if (q.id === 'BASE_03_PURPOSE') next[q.id] = persona === 'FOUNDER' ? 'RESET' : persona === 'WELLNESS' ? 'TASTE' : 'FRIEND';
       else if (q.id === 'BASE_04_INDUSTRY') next[q.id] = persona === 'IT_TECH' ? 'IT_TECH,FINANCE' : persona === 'DESIGN' ? 'DESIGN_ART' : persona === 'FOUNDER' ? 'FOUNDER' : 'PRO_SERVICE';
       else if (q.id === 'BASE_06_BUDGET') next[q.id] = persona === 'FOUNDER' ? '$$$' : persona === 'IT_TECH' ? '$$' : '$';
-      else if (q.id === 'BASE_07_LANGUAGE') next[q.id] = persona === 'IT_TECH' ? 'KO,EN' : 'KO';
+      else if (q.id === 'BASE_07_LANGUAGE') next[q.id] = persona === 'IT_TECH' ? 'EN' : 'KO';
       else if (q.id === 'BASE_08_ENERGY') next[q.id] = persona === 'FOUNDER' ? '4' : persona === 'DESIGN' ? '2' : '3';
       else if (q.id === 'BASE_09_FEEDBACK_TONE') next[q.id] = persona === 'IT_TECH' ? 'OBJECTIVE' : 'BALANCED';
-      else if (q.id === 'DEEP_D01_DIETARY_RESTRICTIONS') next[q.id] = persona === 'WELLNESS' ? 'VEGAN' : 'NONE';
+      else if (q.id === 'DEEP_S01_MIRROR_ASPECT') next[q.id] = persona === 'IT_TECH' ? '위트,표현' : '경청,배려';
       else if (q.id === 'DEEP_D02_BEVERAGE_PREFERENCE') next[q.id] = persona === 'WELLNESS' ? 'ALCOHOL_FREE' : persona === 'IT_TECH' ? 'WINE_LOVER' : 'LIGHT_DRINK';
+      else if (q.id === 'DEEP_D01_DIETARY_RESTRICTIONS') next[q.id] = persona === 'WELLNESS' ? 'VEGAN' : 'NONE';
       else if (q.inputType === 'SCALE_1_5') {
         next[q.id] = persona === 'FOUNDER' ? '4' : persona === 'DESIGN' ? '3' : '4';
       } else if (q.options && q.options.length > 0) {
@@ -1254,7 +1255,7 @@ export default function AdminAdaptiveMatchingManager({
                   const tokens = currentVal ? currentVal.split(',').filter(Boolean) : [];
                   const isScale = currentQ.inputType === 'SCALE_1_5';
                   const isMulti = currentQ.inputType === 'MULTI';
-                  const maxSelect = currentQ.maxSelectCount ?? 2;
+                  const maxSelect = currentQ.maxSelectCount;
 
                   return (
                     <div className="space-y-4">
@@ -1289,7 +1290,13 @@ export default function AdminAdaptiveMatchingManager({
                           <span>
                             입력방식:{' '}
                             <strong className="text-zinc-200">
-                              {isScale ? '5점 척도 (1~5)' : isMulti ? `복수 선택 (최대 ${maxSelect}개)` : '단일 선택'}
+                              {isScale
+                                ? '5점 척도 (1~5)'
+                                : isMulti
+                                ? maxSelect !== undefined
+                                  ? `복수 선택 (최대 ${maxSelect}개)`
+                                  : '복수 다중 선택 (무제한)'
+                                : '단일 선택'}
                             </strong>
                           </span>
                           {currentQ.allowCustomInput && (
@@ -1314,12 +1321,15 @@ export default function AdminAdaptiveMatchingManager({
                                 <button
                                   key={num}
                                   type="button"
-                                  onClick={() =>
+                                  onClick={() => {
                                     setSimulatorAnswers((prev) => ({
                                       ...prev,
                                       [currentQ.id]: String(num),
-                                    }))
-                                  }
+                                    }));
+                                    if (safeIdx < totalCount - 1) {
+                                      setTimeout(() => setSimulatorStepIdx(safeIdx + 1), 250);
+                                    }
+                                  }}
                                   className={`py-3.5 border text-base font-mono font-bold cursor-pointer transition-all ${
                                     isSelected
                                       ? 'border-white bg-white text-black shadow-lg scale-105'
@@ -1348,29 +1358,47 @@ export default function AdminAdaptiveMatchingManager({
                                   type="button"
                                   onClick={() => {
                                     if (isMulti) {
-                                      if (tokens.includes(opt.id)) {
-                                        const next = tokens.filter((t) => t !== opt.id);
+                                      if (opt.id === 'NONE') {
+                                        const next = tokens.includes('NONE') ? [] : ['NONE'];
+                                        setSimulatorAnswers((prev) => ({
+                                          ...prev,
+                                          [currentQ.id]: next.join(','),
+                                        }));
+                                        if (next.length > 0 && safeIdx < totalCount - 1) {
+                                          setTimeout(() => setSimulatorStepIdx(safeIdx + 1), 250);
+                                        }
+                                        return;
+                                      }
+                                      const cleaned = tokens.filter((t) => t !== 'NONE');
+                                      if (cleaned.includes(opt.id)) {
+                                        const next = cleaned.filter((t) => t !== opt.id);
                                         setSimulatorAnswers((prev) => ({
                                           ...prev,
                                           [currentQ.id]: next.join(','),
                                         }));
                                       } else {
-                                        if (tokens.length >= maxSelect) {
+                                        if (maxSelect !== undefined && cleaned.length >= maxSelect) {
                                           setSimulatorNotice(`최대 ${maxSelect}개까지만 선택할 수 있습니다.`);
                                           setTimeout(() => setSimulatorNotice(null), 2500);
                                           return;
                                         }
-                                        const next = [...tokens, opt.id];
+                                        const next = [...cleaned, opt.id];
                                         setSimulatorAnswers((prev) => ({
                                           ...prev,
                                           [currentQ.id]: next.join(','),
                                         }));
+                                        if (maxSelect !== undefined && next.length >= maxSelect && safeIdx < totalCount - 1) {
+                                          setTimeout(() => setSimulatorStepIdx(safeIdx + 1), 350);
+                                        }
                                       }
                                     } else {
                                       setSimulatorAnswers((prev) => ({
                                         ...prev,
                                         [currentQ.id]: opt.id,
                                       }));
+                                      if (safeIdx < totalCount - 1) {
+                                        setTimeout(() => setSimulatorStepIdx(safeIdx + 1), 250);
+                                      }
                                     }
                                   }}
                                   className={`p-3 border text-left cursor-pointer transition-all ${
@@ -1405,7 +1433,7 @@ export default function AdminAdaptiveMatchingManager({
                                   if (isMulti) {
                                     const nonCustom = tokens.filter((t) => !t.startsWith('CUSTOM:'));
                                     if (text) {
-                                      if (nonCustom.length >= maxSelect) {
+                                      if (maxSelect !== undefined && nonCustom.length >= maxSelect) {
                                         setSimulatorNotice(`최대 ${maxSelect}개까지만 선택할 수 있습니다.`);
                                         setTimeout(() => setSimulatorNotice(null), 2500);
                                         return;
