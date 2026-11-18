@@ -5,6 +5,12 @@ import Link from 'next/link';
 import { Copy, Check, Users, Sparkles, ArrowRight } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
 import { createClient } from '@/lib/supabase/client';
+import {
+  fetchAffiliateApplications,
+  fetchAffiliateEvents,
+  fetchAffiliatePayouts,
+  fetchPartnerMetaMap,
+} from '@/lib/affiliateDb';
 
 export default function AffiliateProgramPage() {
   const { currentUser } = useNadoSoloEngine();
@@ -16,6 +22,60 @@ export default function AffiliateProgramPage() {
   const [channelUrl, setChannelUrl] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [lookupKey, setLookupKey] = useState('');
+  const [lookupResult, setLookupResult] = useState<{
+    partnerName: string;
+    code: string;
+    status: string;
+    commissionRate: number;
+    clicks: number;
+    purchases: number;
+    totalCommission: number;
+    paidTotal: number;
+  } | null>(null);
+  const [lookupNotFound, setLookupNotFound] = useState(false);
+
+  const handleLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const key = lookupKey.trim().toLowerCase();
+    if (!key) return;
+    const [apps, events, payouts, metaMap] = await Promise.all([
+      fetchAffiliateApplications(),
+      fetchAffiliateEvents(),
+      fetchAffiliatePayouts(),
+      fetchPartnerMetaMap(),
+    ]);
+    const hit = apps.find(
+      (a) => a.code.toLowerCase() === key || a.contactEmail.toLowerCase() === key
+    );
+    if (!hit) {
+      setLookupResult(null);
+      setLookupNotFound(true);
+      return;
+    }
+    setLookupNotFound(false);
+    const code = hit.code.toUpperCase();
+    const clicks = events.filter((ev) => ev.code === code && ev.eventType === 'CLICK').length;
+    const purEvents = events.filter(
+      (ev) => ev.code === code && ev.eventType === 'PURCHASE' && !ev.blockedSelfReferral
+    );
+    const totalCommission = purEvents.reduce((s, ev) => s + (ev.commissionKrw || 0), 0);
+    const paidTotal = payouts
+      .filter((p) => p.code === code)
+      .reduce((s, p) => s + (p.amountKrw || 0), 0);
+    const commissionRate = metaMap[code]?.commissionRate ?? 10;
+
+    setLookupResult({
+      partnerName: hit.partnerName,
+      code,
+      status: hit.status,
+      commissionRate,
+      clicks,
+      purchases: purEvents.length,
+      totalCommission,
+      paidTotal,
+    });
+  };
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://nadosolo.com';
   const refUrl = `${origin}/meetup?ref=${encodeURIComponent(customCode.trim() || 'NADO10')}`;
@@ -170,6 +230,62 @@ export default function AffiliateProgramPage() {
                 파트너 신청
               </button>
             </form>
+          )}
+        </section>
+
+        <section className="p-6 border border-white/15 bg-[#0c0d12] space-y-4">
+          <h2 className="font-serif-editorial text-2xl text-white font-normal">파트너 실적 및 정산 조회</h2>
+          <form onSubmit={handleLookup} className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="text"
+              value={lookupKey}
+              onChange={(e) => setLookupKey(e.target.value)}
+              placeholder="추천 코드 또는 신청 이메일 입력"
+              className="flex-1 px-4 py-3 bg-[#07080a] border border-white/15 text-white font-mono text-sm"
+            />
+            <button
+              type="submit"
+              className="px-6 py-3 border border-white/30 bg-white/15 hover:bg-white/25 text-white text-sm font-mono font-semibold cursor-pointer"
+            >
+              조회
+            </button>
+          </form>
+
+          {lookupNotFound && (
+            <p className="text-sm font-mono text-zinc-400">일치하는 파트너 신청 내역을 찾지 못했습니다.</p>
+          )}
+
+          {lookupResult && (
+            <div className="space-y-4 pt-2 border-t border-white/10">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-mono">
+                <span className="text-white">
+                  {lookupResult.partnerName} · 코드 <strong>{lookupResult.code}</strong>
+                </span>
+                <span className="px-2.5 py-0.5 border border-white/25 text-white">
+                  {lookupResult.status} · 수수료 {lookupResult.commissionRate}%
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-mono">
+                <div className="p-3 border border-white/10 bg-[#07080a]">
+                  <span className="text-zinc-400 block">링크 클릭</span>
+                  <strong className="text-white text-lg">{lookupResult.clicks}회</strong>
+                </div>
+                <div className="p-3 border border-white/10 bg-[#07080a]">
+                  <span className="text-zinc-400 block">결제 전환</span>
+                  <strong className="text-white text-lg">{lookupResult.purchases}건</strong>
+                </div>
+                <div className="p-3 border border-white/10 bg-[#07080a]">
+                  <span className="text-zinc-400 block">누적 수수료</span>
+                  <strong className="text-white text-lg">₩{lookupResult.totalCommission.toLocaleString()}</strong>
+                </div>
+                <div className="p-3 border border-white/10 bg-[#07080a]">
+                  <span className="text-zinc-400 block">정산 가능 잔액</span>
+                  <strong className="text-white text-lg">
+                    ₩{Math.max(0, lookupResult.totalCommission - lookupResult.paidTotal).toLocaleString()}
+                  </strong>
+                </div>
+              </div>
+            </div>
           )}
         </section>
       </div>

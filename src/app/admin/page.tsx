@@ -28,6 +28,8 @@ import AdminGovernanceManager from '@/components/admin/AdminGovernanceManager';
 import AdminAdaptiveMatchingManager from '@/components/admin/AdminAdaptiveMatchingManager';
 import AdminPreMatchPage from './pre-match/page';
 import AdminTimeleftManager from '@/components/admin/AdminTimeleftManager';
+import AdminPartnersManager from '@/components/admin/AdminPartnersManager';
+import { ARCHITECTURE_RELEASES } from '@/engine/architectureAuditRegistry';
 import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
@@ -76,8 +78,11 @@ type AdminTabKey =
   | 'TL_NOTIFY'
   | 'TL_SANCTION'
   | 'TL_TICKET'
-  | 'TL_PARTNER'
-  | 'TL_AUTOMATION';
+  | 'TL_AUTOMATION'
+  | 'PT_AFFILIATE'
+  | 'PT_FUNNEL'
+  | 'PT_PAYOUT'
+  | 'PT_VENUE';
 
 const normalizeCityName = (city?: string): string => {
   if (!city) return '미지정';
@@ -118,8 +123,16 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'TL_NOTIFY', label: '알림' },
       { key: 'TL_SANCTION', label: '제재' },
       { key: 'TL_TICKET', label: '참가권' },
-      { key: 'TL_PARTNER', label: '제휴' },
       { key: 'TL_AUTOMATION', label: '자동화' },
+    ],
+  },
+  {
+    groupTitle: '파트너스',
+    items: [
+      { key: 'PT_AFFILIATE', label: '파트너' },
+      { key: 'PT_FUNNEL', label: '성과' },
+      { key: 'PT_PAYOUT', label: '정산' },
+      { key: 'PT_VENUE', label: '식당' },
     ],
   },
   {
@@ -1151,7 +1164,7 @@ export default function AdminOperationsDashboardPage() {
                     </div>
                   </div>
                   <span className="px-2 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white shrink-0">
-                    v2.4.0
+                    {ARCHITECTURE_RELEASES[0]?.version || 'v2.5.0'}
                   </span>
                 </div>
               </button>
@@ -3069,8 +3082,11 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'TL_NOTIFY' && <AdminTimeleftManager section="NOTIFY" isLight={isLight} onNotify={notify} />}
           {activeTab === 'TL_SANCTION' && <AdminTimeleftManager section="SANCTION" isLight={isLight} onNotify={notify} />}
           {activeTab === 'TL_TICKET' && <AdminTimeleftManager section="TICKET" isLight={isLight} onNotify={notify} />}
-          {activeTab === 'TL_PARTNER' && <AdminTimeleftManager section="PARTNER" isLight={isLight} partnerVenues={partnerVenues} onNotify={notify} />}
           {activeTab === 'TL_AUTOMATION' && <AdminTimeleftManager section="AUTOMATION" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'PT_AFFILIATE' && <AdminPartnersManager section="AFFILIATE" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'PT_FUNNEL' && <AdminPartnersManager section="FUNNEL" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'PT_PAYOUT' && <AdminPartnersManager section="PAYOUT" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'PT_VENUE' && <AdminPartnersManager section="VENUE" isLight={isLight} partnerVenues={partnerVenues} onNotify={notify} />}
 
           {activeTab === 'PROCESS_TEST_REPORT' && (
             <AdminProcessTestReportManager />

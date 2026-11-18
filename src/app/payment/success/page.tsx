@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
 import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
+import { trackAffiliatePurchase } from '@/lib/affiliateDb';
 
 interface PromoUsageLog {
   orderId: string;
@@ -51,9 +52,17 @@ function PaymentSuccessContent() {
           void saveAppConfig('promo_usage_logs', 'nadosolo_promo_usage_logs_v1', next);
         }
       });
+      void trackAffiliatePurchase({
+        code: promo,
+        orderId,
+        amountKrw: Number(amount) || 30000,
+        userId: currentUser?.userId,
+        userEmail: currentUser?.email,
+        userHandle: currentUser?.handle,
+      });
     }
     setSynced(true);
-  }, [eventId, synced, appliedEventIds, applyForConditionalEvent, promo, orderId, amount, currentUser?.userId]);
+  }, [eventId, synced, appliedEventIds, applyForConditionalEvent, promo, orderId, amount, currentUser?.userId, currentUser?.email, currentUser?.handle]);
 
   return (
     <div className="w-full max-w-md bg-[#12151e] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-6">

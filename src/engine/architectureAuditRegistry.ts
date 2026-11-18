@@ -268,11 +268,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.5.0',
+    releaseTitle: '파트너스 4대 관제(어필리에이트·성과·정산·식당) 신설 및 관리자 대시보드 실시간 버전 연동',
+    releaseDate: '2026-11-18',
+    summary: '관리자(/admin)에 파트너스 카테고리(파트너 심사/개별 수수료·할인율, 클릭→결제 퍼널 성과, 정산 원장·지급 확정, 제휴 식당 B2B) 4대 탭을 신설하고, ?ref= 클릭 추적·결제 어트리뷰션·자기추천(Self-Referral) 자동 차단·/affiliate 파트너 본인 실적 조회 포털·관리자 헤더/보고서 최신 버전 자동 동적 연동을 완결',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2501',
+        category: 'ADMIN',
+        categoryLabel: '파트너스',
+        title: '파트너스 4대 관제 탭(파트너·성과·정산·식당) 및 어트리뷰션·정산 원장 구축',
+        beforeSummary: '어필리에이트 신청 목록 및 단순 승인 외 커미션율·퍼널·정산 지급·자기추천 차단 부재',
+        afterSummary: '개별 수수료/할인율, 클릭→결제 CVR 추적, 미정산 잔액 지급 확정, /affiliate 실적 조회 포털 완비',
+        impactLabel: '확장 가능한 크리에이터·식당 파트너스 에코시스템 완결',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/affiliate', '/meetup', '/payment/success'],
+      },
+      {
+        id: 'CHG-2502',
+        category: 'ADMIN',
+        categoryLabel: '대시보드',
+        title: '관리자 헤더 및 점검 보고서 최신 버전(v2.5.0) 동적 연동',
+        beforeSummary: 'admin/page.tsx 및 AdminProcessTestReportManager에 v2.4.0 하드코딩',
+        afterSummary: 'ARCHITECTURE_RELEASES 최신 버전 자동 반영으로 관리자 대시보드 버전 저장 일관성 확보',
+        impactLabel: '릴리즈 이력 및 관리자 관제 대시보드 100% 동기화',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin'],
+      },
+    ],
+  },
+  {
     version: 'v2.4.3',
     releaseTitle: '이용자 전체 여정 단절 해소 · 프로모션 실적 DB 추적 · PAGE_CMS 실페이지 연동',
     releaseDate: '2026-11-18',
     summary: '비로그인 게스트 퀴즈 응답의 가입/로그인 시 자동 DB 이관, /locations?region= · /meetup?ref= · ?invite= · ?event= URL 파라미터 전주기 연결, 폴백 슬롯 대시보드 노출 보완, 결제 완료 시 프로모션 사용 실적(promo_usage_logs) DB 기록 및 관리자 사용 건수 표시, CmsPageHeader를 통한 PAGE_CMS 실시간 실페이지 반영 완결',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2431',
