@@ -236,6 +236,7 @@ export default function AdminOperationsDashboardPage() {
     adjustTrustScore,
     partnerVenues,
     addPartnerVenue,
+    updatePartnerVenue,
     deletePartnerVenue,
     activeTable,
     standbyReplacementLog,
@@ -3086,7 +3087,17 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'PT_AFFILIATE' && <AdminPartnersManager section="AFFILIATE" isLight={isLight} onNotify={notify} />}
           {activeTab === 'PT_FUNNEL' && <AdminPartnersManager section="FUNNEL" isLight={isLight} onNotify={notify} />}
           {activeTab === 'PT_PAYOUT' && <AdminPartnersManager section="PAYOUT" isLight={isLight} onNotify={notify} />}
-          {activeTab === 'PT_VENUE' && <AdminPartnersManager section="VENUE" isLight={isLight} partnerVenues={partnerVenues} onNotify={notify} />}
+          {activeTab === 'PT_VENUE' && (
+            <AdminPartnersManager
+              section="VENUE"
+              isLight={isLight}
+              partnerVenues={partnerVenues}
+              onAddVenue={addPartnerVenue}
+              onUpdateVenue={updatePartnerVenue}
+              onDeleteVenue={deletePartnerVenue}
+              onNotify={notify}
+            />
+          )}
 
           {activeTab === 'PROCESS_TEST_REPORT' && (
             <AdminProcessTestReportManager />

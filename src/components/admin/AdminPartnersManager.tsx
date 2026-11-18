@@ -1,36 +1,37 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
+import type { BudgetTier, PartnerVenue } from '@/engine';
 import {
   AffiliateApplicationRow,
   AffiliateEventLog,
   AffiliatePayoutRecord,
   PartnerMeta,
+  VenuePartnerApplication,
+  clearCreatorPayoutRequest,
+  createAffiliateApplication,
+  deleteAffiliateApplication,
+  deleteAffiliatePayout,
   fetchAffiliateApplications,
   fetchAffiliateEvents,
   fetchAffiliatePayouts,
   fetchPartnerMetaMap,
+  fetchVenueApplications,
   saveAffiliatePayouts,
   savePartnerMetaMap,
   updateAffiliateStatusAndPromo,
+  updateVenueApplicationStatus,
 } from '@/lib/affiliateDb';
 
 export type PartnersSection = 'AFFILIATE' | 'FUNNEL' | 'PAYOUT' | 'VENUE';
 
-interface PartnerVenueItem {
-  venueId: string;
-  name: string;
-  cityCode: string;
-  budgetTier: string;
-  maxTablesPerNight: number;
-  supportedDietary?: string[];
-  vibeThemes?: string[];
-}
-
 interface Props {
   section: PartnersSection;
   isLight?: boolean;
-  partnerVenues?: PartnerVenueItem[];
+  partnerVenues?: PartnerVenue[];
+  onAddVenue?: (v: PartnerVenue) => void;
+  onUpdateVenue?: (v: PartnerVenue) => void;
+  onDeleteVenue?: (venueId: string) => void;
   onNotify?: (msg: string) => void;
 }
 
@@ -47,6 +48,9 @@ export default function AdminPartnersManager({
   section,
   isLight = false,
   partnerVenues = [],
+  onAddVenue,
+  onUpdateVenue,
+  onDeleteVenue,
   onNotify,
 }: Props) {
   const notify = useCallback((m: string) => onNotify?.(m), [onNotify]);
@@ -57,6 +61,7 @@ export default function AdminPartnersManager({
   const [metaMap, setMetaMap] = useState<Record<string, PartnerMeta>>({});
   const [events, setEvents] = useState<AffiliateEventLog[]>([]);
   const [payouts, setPayouts] = useState<AffiliatePayoutRecord[]>([]);
+  const [venueApps, setVenueApps] = useState<VenuePartnerApplication[]>([]);
 
   const [draftMeta, setDraftMeta] = useState<PartnerMeta>({
     commissionRate: 10,
@@ -64,6 +69,18 @@ export default function AdminPartnersManager({
     bankInfo: '',
     note: '',
   });
+
+  // 수동 파트너 등록 입력
+  const [newPartnerName, setNewPartnerName] = useState('');
+  const [newPartnerEmail, setNewPartnerEmail] = useState('');
+  const [newPartnerCode, setNewPartnerCode] = useState('');
+  const [newPartnerChannel, setNewPartnerChannel] = useState('');
+
+  // 신규 제휴 식당 등록 입력
+  const [newVenueName, setNewVenueName] = useState('');
+  const [newVenueCity, setNewVenueCity] = useState('SEOUL_SEONGSU');
+  const [newVenueBudget, setNewVenueBudget] = useState<BudgetTier>('$$');
+  const [newVenueTables, setNewVenueTables] = useState(3);
 
   const boxCls = isLight
     ? 'border border-zinc-200 bg-white shadow-sm'
@@ -88,16 +105,18 @@ export default function AdminPartnersManager({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [a, m, ev, po] = await Promise.all([
+      const [a, m, ev, po, va] = await Promise.all([
         fetchAffiliateApplications(),
         fetchPartnerMetaMap(),
         fetchAffiliateEvents(),
         fetchAffiliatePayouts(),
+        fetchVenueApplications(),
       ]);
       setApps(a);
       setMetaMap(m);
       setEvents(ev);
       setPayouts(po);
+      setVenueApps(va);
     } catch (e: any) {
       notify(`불러오기 실패: ${e?.message || e}`);
     } finally {
@@ -138,27 +157,110 @@ export default function AdminPartnersManager({
   };
 
   const handleStatus = async (a: AffiliateApplicationRow, status: 'APPROVED' | 'REJECTED' | 'SUSPENDED') => {
-    await updateAffiliateStatusAndPromo(a, status, draftMeta);
+    const cleanedNote = (draftMeta.note || '').replace(/^\[정지\]\s*/g, '').trim();
+    const syncedDraft: PartnerMeta = {
+      ...draftMeta,
+      note: status === 'SUSPENDED' ? (cleanedNote ? `[정지] ${cleanedNote}` : '[정지]') : cleanedNote,
+    };
+    setDraftMeta(syncedDraft);
+    await updateAffiliateStatusAndPromo(a, status, syncedDraft);
     notify(`${a.partnerName} → ${status}`);
+    load();
+  };
+
+  const handleAddPartner = async () => {
+    const res = await createAffiliateApplication({
+      partnerName: newPartnerName,
+      contactEmail: newPartnerEmail,
+      channelUrl: newPartnerChannel,
+      code: newPartnerCode,
+      status: 'APPROVED',
+    });
+    if (!res.ok) {
+      notify(res.error || '파트너 추가 실패');
+      return;
+    }
+    setNewPartnerName('');
+    setNewPartnerEmail('');
+    setNewPartnerCode('');
+    setNewPartnerChannel('');
+    notify('파트너 추가 완료');
+    load();
+  };
+
+  const handleDeletePartner = async (a: AffiliateApplicationRow) => {
+    await deleteAffiliateApplication(a);
+    setOpenId(null);
+    notify(`${a.partnerName} 삭제`);
     load();
   };
 
   const handlePayout = async (a: AffiliateApplicationRow, balance: number) => {
     if (balance <= 0) return notify('지급할 정산 잔액이 없습니다.');
-    const meta = metaMap[a.code];
+    const bankInfo = metaMap[a.code]?.bankInfo?.trim();
+    if (!bankInfo) {
+      return notify('파트너 탭에서 정산 계좌를 먼저 등록해 주세요.');
+    }
     const rec: AffiliatePayoutRecord = {
       id: `PAY_${Date.now()}`,
       code: a.code,
       partnerName: a.partnerName,
       amountKrw: balance,
-      bankInfo: meta?.bankInfo || '계좌 미등록',
+      bankInfo,
       note: `${a.code} 정산 지급`,
       paidAt: new Date().toISOString(),
     };
     const next = [rec, ...payouts];
     setPayouts(next);
     await saveAffiliatePayouts(next);
+    await clearCreatorPayoutRequest(a.code);
     notify(`${a.partnerName} ₩${balance.toLocaleString()} 지급 확정`);
+    void load();
+  };
+
+  const handleApproveVenueApp = async (va: VenuePartnerApplication) => {
+    const createdVenueId = `VEN_PARTNER_${Date.now().toString().slice(-5)}`;
+    onAddVenue?.({
+      venueId: createdVenueId,
+      name: va.venueName,
+      cityCode: va.cityCode,
+      budgetTier: va.budgetTier,
+      supportedDietary: va.supportedDietary,
+      vibeThemes: ['WINE_BISTRO', 'CASUAL_DINING'],
+      maxTablesPerNight: va.maxTablesPerNight,
+    });
+    const next = await updateVenueApplicationStatus(va.applicationId, 'APPROVED', createdVenueId);
+    setVenueApps(next);
+    notify(`${va.venueName} 승인`);
+  };
+
+  const handleRejectVenueApp = async (va: VenuePartnerApplication) => {
+    const next = await updateVenueApplicationStatus(va.applicationId, 'REJECTED');
+    setVenueApps(next);
+    notify(`${va.venueName} 반려`);
+  };
+
+  const handleCancelPayout = async (payoutId: string) => {
+    const next = await deleteAffiliatePayout(payoutId);
+    setPayouts(next);
+    notify('지급 이력 취소');
+  };
+
+  const handleCreateVenue = () => {
+    if (!newVenueName.trim() || !onAddVenue) return notify('식당명을 입력해 주세요.');
+    const created: PartnerVenue = {
+      venueId: `VEN_PARTNER_${Date.now().toString().slice(-5)}`,
+      name: newVenueName.trim(),
+      cityCode: newVenueCity,
+      budgetTier: newVenueBudget,
+      supportedDietary: ['NONE', 'ALCOHOL_FREE'],
+      vibeThemes: ['WINE_BISTRO', 'CASUAL_DINING'],
+      maxTablesPerNight: Math.max(1, newVenueTables),
+    };
+    onAddVenue(created);
+    setNewVenueName('');
+    setNewVenueTables(3);
+    notify(`${created.name} 추가`);
   };
 
   const renderHeader = (title: string, count?: number, right?: React.ReactNode) => (
@@ -185,6 +287,34 @@ export default function AdminPartnersManager({
     return (
       <div className="space-y-3">
         {renderHeader(TITLES.AFFILIATE, apps.length, refreshBtn)}
+        <div className={`p-3 ${boxCls} grid grid-cols-1 sm:grid-cols-5 gap-2`}>
+          <input
+            className={inputCls}
+            placeholder="파트너명"
+            value={newPartnerName}
+            onChange={(e) => setNewPartnerName(e.target.value)}
+          />
+          <input
+            className={inputCls}
+            placeholder="이메일"
+            value={newPartnerEmail}
+            onChange={(e) => setNewPartnerEmail(e.target.value)}
+          />
+          <input
+            className={inputCls}
+            placeholder="코드"
+            value={newPartnerCode}
+            onChange={(e) => setNewPartnerCode(e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, ''))}
+          />
+          <input
+            className={inputCls}
+            placeholder="채널 URL"
+            value={newPartnerChannel}
+            onChange={(e) => setNewPartnerChannel(e.target.value)}
+          />
+          <button type="button" className={btnCls} onClick={handleAddPartner}>추가</button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {apps.map((a) => {
             const key = a.id || a.code;
@@ -199,6 +329,7 @@ export default function AdminPartnersManager({
                     <div className={`text-sm font-mono truncate ${subTextCls}`}>{a.code} · {a.contactEmail}</div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
+                    {meta.payoutRequestedAt && <span className={badgeCls}>출금요청</span>}
                     <span className={badgeCls}>수수료 {meta.commissionRate}%</span>
                     <span className={badgeCls}>{isSuspended ? 'SUSPENDED' : a.status}</span>
                   </div>
@@ -251,6 +382,7 @@ export default function AdminPartnersManager({
                       <button type="button" className={btnCls} onClick={() => handleStatus(a, 'APPROVED')}>승인</button>
                       <button type="button" className={btnCls} onClick={() => handleStatus(a, 'REJECTED')}>반려</button>
                       <button type="button" className={btnCls} onClick={() => handleStatus(a, 'SUSPENDED')}>정지</button>
+                      <button type="button" className={btnCls} onClick={() => handleDeletePartner(a)}>삭제</button>
                     </div>
                   </div>
                 )}
@@ -323,7 +455,7 @@ export default function AdminPartnersManager({
               .filter((p) => p.code === a.code)
               .reduce((s, p) => s + (p.amountKrw || 0), 0);
             const balance = Math.max(0, totalComm - paid);
-            const bank = metaMap[a.code]?.bankInfo || '계좌 미등록';
+            const bank = metaMap[a.code]?.bankInfo?.trim() || '계좌 미등록';
             return (
               <div key={a.id || a.code} className={`${rowCls} flex items-center justify-between gap-3`}>
                 <div className="min-w-0">
@@ -333,6 +465,7 @@ export default function AdminPartnersManager({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  {metaMap[a.code]?.payoutRequestedAt && <span className={badgeCls}>출금요청</span>}
                   <span className={badgeCls}>잔액 ₩{balance.toLocaleString()}</span>
                   <button type="button" className={btnCls} disabled={balance <= 0} onClick={() => handlePayout(a, balance)}>
                     지급
@@ -345,12 +478,15 @@ export default function AdminPartnersManager({
         {renderHeader('지급이력', payouts.length)}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {payouts.map((p) => (
-            <div key={p.id} className={rowCls}>
-              <div className="flex items-center justify-between gap-2">
-                <span className={`text-sm ${titleTextCls}`}>{p.partnerName} ({p.code})</span>
-                <span className={badgeCls}>₩{p.amountKrw.toLocaleString()}</span>
+            <div key={p.id} className={`${rowCls} flex items-center justify-between gap-3`}>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm truncate ${titleTextCls}`}>{p.partnerName} ({p.code})</span>
+                  <span className={badgeCls}>₩{p.amountKrw.toLocaleString()}</span>
+                </div>
+                <div className={`text-sm font-mono mt-1 truncate ${subTextCls}`}>{p.bankInfo} · {fmt(p.paidAt)}</div>
               </div>
-              <div className={`text-sm font-mono mt-1 ${subTextCls}`}>{p.bankInfo} · {fmt(p.paidAt)}</div>
+              <button type="button" className={btnCls} onClick={() => handleCancelPayout(p.id)}>취소</button>
             </div>
           ))}
         </div>
@@ -358,10 +494,71 @@ export default function AdminPartnersManager({
     );
   }
 
-  // 4. 제휴 식당 B2B 파트너
+  // 4. 제휴 식당 B2B 파트너 (입점 신청 심사 + 활성 영업 매장)
   return (
     <div className="space-y-3">
-      {renderHeader(TITLES.VENUE, partnerVenues.length, refreshBtn)}
+      {renderHeader('입점신청', venueApps.length, refreshBtn)}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+        {venueApps.map((va) => (
+          <div key={va.applicationId} className={`${rowCls} flex items-center justify-between gap-3`}>
+            <div className="min-w-0">
+              <div className={`text-sm truncate ${titleTextCls}`}>{va.venueName}</div>
+              <div className={`text-sm font-mono truncate ${subTextCls}`}>
+                {va.cityCode} · {va.budgetTier} · {va.maxTablesPerNight}테이블 · {va.contactEmail}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className={badgeCls}>{va.status}</span>
+              {va.status === 'PENDING' && (
+                <>
+                  <button type="button" className={btnCls} onClick={() => handleApproveVenueApp(va)}>승인</button>
+                  <button type="button" className={btnCls} onClick={() => handleRejectVenueApp(va)}>반려</button>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {renderHeader(TITLES.VENUE, partnerVenues.length)}
+      {onAddVenue && (
+        <div className={`p-3 ${boxCls} grid grid-cols-1 sm:grid-cols-5 gap-2`}>
+          <input
+            className={inputCls}
+            placeholder="식당명"
+            value={newVenueName}
+            onChange={(e) => setNewVenueName(e.target.value)}
+          />
+          <select
+            className={inputCls}
+            value={newVenueCity}
+            onChange={(e) => setNewVenueCity(e.target.value)}
+          >
+            <option value="SEOUL_SEONGSU">서울 성수</option>
+            <option value="SEOUL_GANGNAM">서울 강남</option>
+            <option value="BUSAN_HAEUNDAE">부산 해운대</option>
+            <option value="BUSAN_GWANGAN">부산 광안리</option>
+            <option value="BUSAN_JEONPO">부산 전포</option>
+          </select>
+          <select
+            className={inputCls}
+            value={newVenueBudget}
+            onChange={(e) => setNewVenueBudget(e.target.value as BudgetTier)}
+          >
+            <option value="$">$</option>
+            <option value="$$">$$</option>
+            <option value="$$$">$$$</option>
+          </select>
+          <input
+            type="number"
+            min={1}
+            className={inputCls}
+            value={newVenueTables}
+            onChange={(e) => setNewVenueTables(Number(e.target.value))}
+          />
+          <button type="button" className={btnCls} onClick={handleCreateVenue}>추가</button>
+        </div>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
         {partnerVenues.map((v) => {
           const open = openId === v.venueId;
@@ -375,8 +572,43 @@ export default function AdminPartnersManager({
                 <span className={badgeCls}>{v.maxTablesPerNight}테이블</span>
               </div>
               {open && (
-                <div className={`mt-3 pt-3 border-t ${dividerCls} text-sm font-mono ${subTextCls}`}>
-                  식단 지원: {(v.supportedDietary || ['NONE']).join(', ')} · 무드: {(v.vibeThemes || []).join(', ') || '-'}
+                <div className={`mt-3 pt-3 border-t ${dividerCls} flex flex-wrap items-center justify-between gap-3`}>
+                  <div className={`text-sm font-mono ${subTextCls}`}>
+                    식단 지원: {(v.supportedDietary || ['NONE']).join(', ')} · 무드: {(v.vibeThemes || []).join(', ') || '-'}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {onUpdateVenue && (
+                      <>
+                        <button
+                          type="button"
+                          className={btnCls}
+                          onClick={() => onUpdateVenue({ ...v, maxTablesPerNight: Math.max(1, v.maxTablesPerNight - 1) })}
+                        >
+                          -1
+                        </button>
+                        <button
+                          type="button"
+                          className={btnCls}
+                          onClick={() => onUpdateVenue({ ...v, maxTablesPerNight: v.maxTablesPerNight + 1 })}
+                        >
+                          +1
+                        </button>
+                      </>
+                    )}
+                    {onDeleteVenue && (
+                      <button
+                        type="button"
+                        className={btnCls}
+                        onClick={() => {
+                          onDeleteVenue(v.venueId);
+                          setOpenId(null);
+                          notify(`${v.name} 삭제`);
+                        }}
+                      >
+                        삭제
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

@@ -268,11 +268,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.5.1',
+    releaseTitle: '파트너스 범용 모듈화(src/modules/partners) · 이용자/파트너 계정·포털·심사 완전 분리',
+    releaseDate: '2026-11-18',
+    summary: '일반 이용회원(/auth · /dashboard)과 파트너스 회원(크리에이터 · 제휴 식당 B2B)의 계정·비밀번호 인증·입점 심사·전용 대시보드(/partners/dashboard)를 완전히 분리하고, 어필리에이트·B2B 공급사 정산/추적/인증 코어를 도메인 무관 범용 모듈(src/modules/partners/core.ts, types.ts)과 나도솔로 프리셋(presets/nadosolo.preset.ts)으로 분리 패키징',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2511',
+        category: 'ADMIN',
+        categoryLabel: '계정분리',
+        title: '파트너스 전용 로그인·대시보드(/partners/dashboard) 및 식당 입점 심사 분리',
+        beforeSummary: '일반 회원 세션 공유, 비인증 공개 실적 조회, 제휴 식당 신청 즉시 활성',
+        afterSummary: '파트너 독립 세션(nadosolo_partner_session_v1), 비밀번호 인증, 출금 요청, 식당 PENDING 심사·승인 연동',
+        impactLabel: '일반 회원 풀과 파트너스 B2B/크리에이터 보안·운영 체계 분리 완결',
+        status: 'APPLIED',
+        affectedRoutes: ['/affiliate', '/partners', '/partners/dashboard', '/admin'],
+      },
+      {
+        id: 'CHG-2512',
+        category: 'CONSTITUTION',
+        categoryLabel: '범용모듈',
+        title: '파트너스 실용형 범용 코어 엔진(src/modules/partners) 및 나도솔로 프리셋 분리',
+        beforeSummary: '나도솔로 전용 단어와 DB 로직이 affiliateDb.ts에 직접 결합',
+        afterSummary: 'core.ts·types.ts 범용 코어 + nadosolo.preset.ts 프리셋·드라이버 분리로 타 프로젝트 즉시 재활용 가능',
+        impactLabel: '타 사업 아이템 이식 및 유지보수 응집도 극대화',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/affiliate', '/partners', '/partners/dashboard', '/meetup', '/payment/success'],
+      },
+    ],
+  },
+  {
     version: 'v2.5.0',
     releaseTitle: '파트너스 4대 관제(어필리에이트·성과·정산·식당) 신설 및 관리자 대시보드 실시간 버전 연동',
     releaseDate: '2026-11-18',
     summary: '관리자(/admin)에 파트너스 카테고리(파트너 심사/개별 수수료·할인율, 클릭→결제 퍼널 성과, 정산 원장·지급 확정, 제휴 식당 B2B) 4대 탭을 신설하고, ?ref= 클릭 추적·결제 어트리뷰션·자기추천(Self-Referral) 자동 차단·/affiliate 파트너 본인 실적 조회 포털·관리자 헤더/보고서 최신 버전 자동 동적 연동을 완결',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2501',

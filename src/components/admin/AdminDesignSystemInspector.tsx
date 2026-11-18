@@ -94,6 +94,7 @@ const TIMELEFT_TRANSPLANT_PAGES: PageStructureMap[] = [
   mkPage('ABOUT', '소개', '/about', '서비스 본질·브랜드 소개', '소개', '시작'),
   mkPage('AFFILIATE', '어필리에이트', '/affiliate', '제휴 코드 신청', '어필리에이트', '신청'),
   mkPage('PARTNERS', '파트너', '/partners', '제휴 식당 입점 신청', '파트너', '등록'),
+  mkPage('PARTNER_DASH', '파트너스 대시보드', '/partners/dashboard', '크리에이터·제휴 식당 전용 로그인 및 정산·배정 포털', '파트너스 포털', '로그인'),
   mkPage('SAFETY', '안전', '/safety', '안전·차단·노쇼 규율', '안전', '신고'),
   mkPage('TERMS', '약관', '/terms', '이용약관', '약관', '확인'),
   mkPage('PRIVACY', '개인정보', '/privacy', '개인정보 처리방침', '개인정보', '확인'),

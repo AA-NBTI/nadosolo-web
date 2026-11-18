@@ -160,7 +160,15 @@ export default function CheckoutModal({
 
       const orderId = `order_${event.eventId}_${Date.now()}`;
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(event.title)}${appliedPromo ? `&promo=${encodeURIComponent(appliedPromo.code)}` : ''}`;
+      const trackingPromo = (
+        appliedPromo?.code ||
+        initialPromoCode ||
+        (typeof window !== 'undefined' ? localStorage.getItem('nadosolo_referral_code') : '') ||
+        ''
+      )
+        .trim()
+        .toUpperCase();
+      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(event.title)}${trackingPromo ? `&promo=${encodeURIComponent(trackingPromo)}` : ''}`;
       const failUrl = `${origin}/payment/fail`;
 
       // 선택된 결제수단에 맞춰 토스페이먼츠 결제창 호출
