@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { getAppConfig } from '@/lib/appConfigDb';
 import {
@@ -11,7 +10,7 @@ import {
   computeUserAxisProfile,
   AdaptiveAnswer,
 } from '@/engine';
-import { ArrowLeft, Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles } from 'lucide-react';
 
 export default function SoloTestPage() {
   const router = useRouter();
@@ -76,10 +75,24 @@ export default function SoloTestPage() {
   const totalQuestions = questions.length;
   const currentAnswer = currentQ ? localAnswers[currentQ.id] : undefined;
 
-  const handleModeSwitch = (mode: 'TIMELEFT_A' | 'B_EXTENDED' | 'PULSE') => {
-    setQuizMode(mode);
-    setCurrentIdx(0);
-    setIsCompleted(false);
+  const selectedTokens = useMemo(() => {
+    if (!currentAnswer) return [];
+    return String(currentAnswer)
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+  }, [currentAnswer]);
+
+  const customToken = selectedTokens.find((t) => t.startsWith('CUSTOM:'));
+  const customInputValue = customToken ? customToken.slice(7) : '';
+
+  const goNextStep = (nextAnswers: Record<string, string>) => {
+    if (currentIdx < totalQuestions - 1) {
+      setCurrentIdx((prev) => prev + 1);
+    } else {
+      saveSurveyAnswers(nextAnswers);
+      setIsCompleted(true);
+    }
   };
 
   const handleSelectValue = (val: string) => {
@@ -95,6 +108,42 @@ export default function SoloTestPage() {
       saveSurveyAnswers(nextAnswers);
       setIsCompleted(true);
     }
+  };
+
+  const handleToggleMulti = (optId: string) => {
+    if (!currentQ) return;
+    const withoutCustom = selectedTokens.filter((t) => !t.startsWith('CUSTOM:'));
+    let nextIds: string[];
+
+    if (optId === 'NONE') {
+      nextIds = withoutCustom.includes('NONE') ? [] : ['NONE'];
+    } else {
+      const cleaned = withoutCustom.filter((id) => id !== 'NONE');
+      nextIds = cleaned.includes(optId)
+        ? cleaned.filter((id) => id !== optId)
+        : [...cleaned, optId];
+    }
+
+    const nextTokens = customToken && optId !== 'NONE' ? [...nextIds, customToken] : nextIds;
+    const nextVal = nextTokens.join(',');
+    const nextAnswers = { ...localAnswers };
+    if (nextVal) nextAnswers[currentQ.id] = nextVal;
+    else delete nextAnswers[currentQ.id];
+    setLocalAnswers(nextAnswers);
+  };
+
+  const handleCustomInputChange = (rawText: string) => {
+    if (!currentQ) return;
+    const trimmed = rawText.replace(/,/g, ' ');
+    const baseTokens = selectedTokens.filter((t) => !t.startsWith('CUSTOM:') && t !== 'NONE');
+    const nextTokens = trimmed.trim()
+      ? [...baseTokens, `CUSTOM:${trimmed}`]
+      : baseTokens;
+    const nextVal = nextTokens.join(',');
+    const nextAnswers = { ...localAnswers };
+    if (nextVal) nextAnswers[currentQ.id] = nextVal;
+    else delete nextAnswers[currentQ.id];
+    setLocalAnswers(nextAnswers);
   };
 
   const computedProfile = useMemo(() => {
@@ -131,55 +180,8 @@ export default function SoloTestPage() {
 
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col justify-between selection:bg-[#f04f74] selection:text-white">
-      {/* 1. 상단 네비게이션 */}
-      <header className="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between">
-        <Link
-          href={currentUser ? '/dashboard' : '/'}
-          className="flex items-center gap-2 text-sm font-mono text-zinc-300 hover:text-white transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{currentUser ? '대시보드' : '홈'}</span>
-        </Link>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handleModeSwitch('TIMELEFT_A')}
-            className={`px-3 py-1 text-sm font-mono border transition-colors cursor-pointer ${
-              quizMode === 'TIMELEFT_A'
-                ? 'border-white/40 bg-white/15 text-white font-semibold'
-                : 'border-white/10 bg-[#0c0d12] text-zinc-400 hover:text-white'
-            }`}
-          >
-            A안 표준 ({baseQuestions.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => handleModeSwitch('B_EXTENDED')}
-            className={`px-3 py-1 text-sm font-mono border transition-colors cursor-pointer ${
-              quizMode === 'B_EXTENDED'
-                ? 'border-white/40 bg-white/15 text-white font-semibold'
-                : 'border-white/10 bg-[#0c0d12] text-zinc-400 hover:text-white'
-            }`}
-          >
-            B안 확장 ({activeQuestions.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => handleModeSwitch('PULSE')}
-            className={`px-3 py-1 text-sm font-mono border transition-colors cursor-pointer ${
-              quizMode === 'PULSE'
-                ? 'border-white/40 bg-white/15 text-white font-semibold'
-                : 'border-white/10 bg-[#0c0d12] text-zinc-400 hover:text-white'
-            }`}
-          >
-            컨디션 ({pulseQuestions.length})
-          </button>
-        </div>
-      </header>
-
-      {/* 2. 본문 컨테이너 */}
-      <main className="flex-1 max-w-xl w-full mx-auto px-5 py-8 flex flex-col justify-center">
+      {/* 1. 본문 컨테이너 */}
+      <main className="flex-1 max-w-xl w-full mx-auto px-5 py-10 flex flex-col justify-center">
         {!isCompleted && currentQ ? (
           <div className="space-y-6">
             {/* 프로그레스 바 */}
@@ -212,26 +214,33 @@ export default function SoloTestPage() {
                 </h2>
               </div>
 
-              {/* 입력 유형별 분기: SINGLE vs SCALE_1_5 */}
-              {currentQ.inputType === 'SINGLE' && currentQ.options ? (
+              {/* 입력 유형별 분기: SINGLE | MULTI vs SCALE_1_5 */}
+              {(currentQ.inputType === 'SINGLE' || currentQ.inputType === 'MULTI') && currentQ.options ? (
                 <div className="space-y-2.5 pt-2">
                   {currentQ.options.map((opt, idx) => {
-                    const isSelected = currentAnswer === opt.id;
+                    const isSelected =
+                      currentQ.inputType === 'MULTI'
+                        ? selectedTokens.includes(opt.id)
+                        : currentAnswer === opt.id;
                     return (
                       <button
                         key={opt.id}
                         type="button"
-                        onClick={() => handleSelectValue(opt.id)}
+                        onClick={() =>
+                          currentQ.inputType === 'MULTI'
+                            ? handleToggleMulti(opt.id)
+                            : handleSelectValue(opt.id)
+                        }
                         className={`w-full text-left p-4 border transition-all cursor-pointer flex items-center gap-3.5 ${
                           isSelected
-                            ? 'bg-white/15 border-white/40 text-white'
+                            ? 'bg-white/15 border-[#f04f74]/70 text-white'
                             : 'bg-[#08090d] border-white/10 hover:border-white/30 text-zinc-200 hover:text-white'
                         }`}
                       >
                         <span
                           className={`w-6 h-6 border text-sm font-mono flex items-center justify-center shrink-0 ${
                             isSelected
-                              ? 'border-white/50 bg-white/20 text-white font-bold'
+                              ? 'border-[#f04f74] bg-[#f04f74] text-white font-bold'
                               : 'border-white/20 text-zinc-400'
                           }`}
                         >
@@ -243,6 +252,21 @@ export default function SoloTestPage() {
                       </button>
                     );
                   })}
+
+                  {currentQ.allowCustomInput && (
+                    <div className="p-4 border border-white/15 bg-[#08090d] space-y-2">
+                      <label className="block text-xs font-mono text-zinc-400">
+                        원하는 항목이 없을 경우 직접 입력 (선택)
+                      </label>
+                      <input
+                        type="text"
+                        value={customInputValue}
+                        onChange={(e) => handleCustomInputChange(e.target.value)}
+                        placeholder={currentQ.customPlaceholder || '직접 입력해 주세요'}
+                        className="w-full px-3 py-2.5 bg-[#0c0d12] border border-white/15 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#f04f74]"
+                      />
+                    </div>
+                  )}
                 </div>
               ) : currentQ.inputType === 'SCALE_1_5' && currentQ.scaleConfig ? (
                 <div className="space-y-4 pt-3">
@@ -287,13 +311,17 @@ export default function SoloTestPage() {
               ) : (
                 <div />
               )}
-              {currentAnswer !== undefined && currentIdx < totalQuestions - 1 && (
+              {currentAnswer !== undefined && (
                 <button
                   type="button"
-                  onClick={() => setCurrentIdx((p) => p + 1)}
-                  className="px-3 py-1.5 border border-white/25 bg-white/10 text-sm font-mono text-white cursor-pointer"
+                  onClick={() => goNextStep(localAnswers)}
+                  className="px-4 py-2 border border-[#f04f74] bg-[#f04f74] hover:bg-[#d93a5e] text-sm font-mono font-bold text-white cursor-pointer transition-colors"
                 >
-                  다음
+                  {currentIdx < totalQuestions - 1
+                    ? currentQ.inputType === 'MULTI'
+                      ? '선택 완료 →'
+                      : '다음'
+                    : '진단 완료'}
                 </button>
               )}
             </div>

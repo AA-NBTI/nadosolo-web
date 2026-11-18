@@ -268,11 +268,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.6.4',
+    releaseTitle: '성향 퀴즈 다중선택/수동입력 구조 확장 및 타임레프트 1~5순위 전주기(D-1 지도·체크인·Connect·2차 라운지) 완결',
+    releaseDate: '2026-11-18',
+    summary: '성향 퀴즈 직업/식단/언어/관심사의 다중선택(MULTI) 및 수동 직접입력(CUSTOM:...) 구조 신설 및 DB/관리자 동기화, 타임레프트 1~5순위 UX(D-1 식당 네이버/카카오 지도 길찾기 및 동석자 힌트 요약, 당일 현장 도착 체크인, 사후 다중 Connect, 세부 권역 필터, 2차 애프터 라운지 Last Drink) 전면 구축 완료',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2641',
+        category: 'PROCESS',
+        categoryLabel: '성향퀴즈',
+        title: '성향 퀴즈 다중선택 및 기타 직접입력 허용 구조 확장',
+        beforeSummary: '단일 선택(SINGLE) 및 5점 척도 고정, 기타 직접 입력 불가',
+        afterSummary: 'MULTI 다중 선택 및 allowCustomInput 직접 기입 지원, Supabase profiles(dietary, job_title, survey_answers) 즉시 동기화',
+        impactLabel: '비건·논알콜 동시 제약 및 다양한 직업·취향의 정밀 매칭 무결성 확보',
+        status: 'APPLIED',
+        affectedRoutes: ['/test', '/dashboard', '/admin'],
+      },
+      {
+        id: 'CHG-2642',
+        category: 'PROCESS',
+        categoryLabel: '현장사후UX',
+        title: '타임레프트 1~5순위 전주기(지도·체크인·Connect·권역·2차 라운지) 완결',
+        beforeSummary: 'D-1 단순 식당명 노출, 현장 도착 알림 부재, 1인 이성 투표만 존재, 2차 라운지 부재',
+        afterSummary: '네이버/카카오 지도 링크, 동석자 힌트 요약, 당일 도착 체크인, 성별 무관 다중 Connect, 21:30 2차 애프터 라운지 완비',
+        impactLabel: '타임레프트 현장·사후 사용자 경험 100% 흡수 및 소셜 다이닝 완결성 달성',
+        status: 'APPLIED',
+        affectedRoutes: ['/dashboard', '/meetup'],
+      },
+    ],
+  },
+  {
     version: 'v2.6.3',
     releaseTitle: '3단 가격 티어(세번은 만나봐야) · 결제 직전 업셀 알림 · 다회권 환불 기준(1회가 기준 차감/2회 초과시 마지막 1회 환불 불가) 적용',
     releaseDate: '2026-11-18',
     summary: '1회(₩30,000)/2회(₩50,000)/세번은 만나봐야(₩60,000) 상품 체계 및 혜택 표현 통일, 결제 모달 내 3회권 업셀 알림 배너 탑재, billing 코어에 다회권 환불 계산(1회 정상가 ₩30,000 기준 차감 및 2회 초과 시 마지막 1회 환불 불가) 반영',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2631',

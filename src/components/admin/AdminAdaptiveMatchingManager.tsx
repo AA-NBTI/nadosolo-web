@@ -574,7 +574,17 @@ export default function AdminAdaptiveMatchingManager({
 
                 {isExpanded && (
                   <div className="p-4 border-t border-white/10 bg-[#08090d] space-y-2 text-sm font-mono text-zinc-300">
-                    <div>식별자: {q.id} ({q.inputType})</div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>식별자: {q.id}</span>
+                      <span className="px-2 py-0.5 border border-white/15 bg-white/5 text-white">
+                        {q.inputType === 'MULTI' ? '다중선택' : q.inputType === 'SCALE_1_5' ? '5점척도' : '단일선택'}
+                      </span>
+                      {q.allowCustomInput && (
+                        <span className="px-2 py-0.5 border border-[#f04f74]/50 text-[#f04f74]">
+                          기타 직접입력 허용
+                        </span>
+                      )}
+                    </div>
                     {q.options && (
                       <div>
                         선택지: {q.options.map((o) => o.label).join(' / ')}

@@ -14,7 +14,8 @@ import {
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import ProcessGateLockedCard from '@/components/dashboard/ProcessGateLockedCard';
 import { nadoSoloSupabaseService } from '@/lib/supabase/service';
-import { KeyRound, UserX, AlertCircle, CheckCircle2, ShieldAlert, Phone, Mail, Bell } from 'lucide-react';
+import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
+import { KeyRound, UserX, AlertCircle, CheckCircle2, ShieldAlert, Phone, Mail, Bell, MapPin, Clock, Wine, Users, ExternalLink } from 'lucide-react';
 
 const DIETARY_LABELS: Record<DietaryRestriction, string> = {
   NONE: '없음 (다 잘 먹어요)',
@@ -227,6 +228,47 @@ function MemberDashboardContent() {
     'FRIEND' | 'RESET' | 'TASTE' | 'ROMANCE'
   >(currentUser?.preferredPurpose ?? 'RESET');
   const [saveNotice, setSaveNotice] = useState<string | null>(null);
+
+  // [타임레프트 현장·사후 UX 상태: 도착 체크인 · 다중 Connect · 2차 애프터 라운지]
+  const [checkinStatus, setCheckinStatus] = useState<'NONE' | 'ON_THE_WAY' | 'LATE_10' | 'ARRIVED'>('NONE');
+  const [connectTargets, setConnectTargets] = useState<string[]>([]);
+  const [afterPartyRsvp, setAfterPartyRsvp] = useState<'NONE' | 'JOIN' | 'PASS'>('NONE');
+
+  useEffect(() => {
+    if (!currentUser?.userId) return;
+    getAppConfig<{
+      checkin?: 'NONE' | 'ON_THE_WAY' | 'LATE_10' | 'ARRIVED';
+      connects?: string[];
+      afterParty?: 'NONE' | 'JOIN' | 'PASS';
+    }>(
+      `member_live_ux_${currentUser.userId}`,
+      `nadosolo_live_ux_${currentUser.userId}`,
+      {}
+    ).then((data) => {
+      if (data?.checkin) setCheckinStatus(data.checkin);
+      if (Array.isArray(data?.connects)) setConnectTargets(data.connects);
+      if (data?.afterParty) setAfterPartyRsvp(data.afterParty);
+    });
+  }, [currentUser?.userId]);
+
+  const persistLiveUxState = (patch: {
+    checkin?: 'NONE' | 'ON_THE_WAY' | 'LATE_10' | 'ARRIVED';
+    connects?: string[];
+    afterParty?: 'NONE' | 'JOIN' | 'PASS';
+  }) => {
+    if (!currentUser?.userId) return;
+    const nextCheckin = patch.checkin ?? checkinStatus;
+    const nextConnects = patch.connects ?? connectTargets;
+    const nextAfterParty = patch.afterParty ?? afterPartyRsvp;
+    if (patch.checkin !== undefined) setCheckinStatus(patch.checkin);
+    if (patch.connects !== undefined) setConnectTargets(patch.connects);
+    if (patch.afterParty !== undefined) setAfterPartyRsvp(patch.afterParty);
+    void saveAppConfig(
+      `member_live_ux_${currentUser.userId}`,
+      `nadosolo_live_ux_${currentUser.userId}`,
+      { checkin: nextCheckin, connects: nextConnects, afterParty: nextAfterParty }
+    );
+  };
 
   // currentUser가 변경(관리자 뷰어 모드 회원 전환 등)될 때 로컬 폼 상태 동기화
   useEffect(() => {
@@ -863,20 +905,107 @@ function MemberDashboardContent() {
                     </button>
                   </div>
 
-                  {/* 식당 안내 */}
-                  <div className="p-6 rounded-none bg-white/[0.015] border border-white/[0.08] flex flex-wrap items-center justify-between gap-4">
+                  {/* 식당 안내 + 지도 길찾기 */}
+                  <div className="p-6 rounded-none bg-white/[0.015] border border-white/[0.08] space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="space-y-1.5">
+                        <span className="text-sm text-[#f04f74] font-mono">제휴 식당 확정</span>
+                        <h4 className="font-serif-editorial text-lg font-normal text-white">
+                          {primaryEv?.venueNameOverride || assignedVenue?.name || '제휴 프라이빗 다이닝'}
+                        </h4>
+                        <p className="text-sm text-zinc-400 font-light flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4 text-[#f04f74] shrink-0" />
+                          <span>
+                            {`${primaryEv?.regionName || '서울'} ${primaryEv?.districtName || '강남구'} 제휴 살롱 (상세 주소 D-1 19:00 안내)`}
+                          </span>
+                        </p>
+                        <p className="text-xs text-zinc-400 font-mono">
+                          일정: {primaryEv?.dateText || '확정 일정'} · 현장 1/N 실비 정산 (인당 예상 3~5만원대)
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <span className="text-sm text-zinc-300 font-mono bg-white/5 px-3 py-1.5 rounded-none border border-white/10">
+                          예약자명: 나도솔로
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`https://map.naver.com/p/search/${encodeURIComponent(primaryEv?.venueNameOverride || assignedVenue?.name || '강남 파인다이닝')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/15 text-xs font-mono text-white inline-flex items-center gap-1"
+                          >
+                            <span>네이버지도</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                          <a
+                            href={`https://map.kakao.com/link/search/${encodeURIComponent(primaryEv?.venueNameOverride || assignedVenue?.name || '강남 파인다이닝')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-3 py-1.5 border border-white/20 bg-white/5 hover:bg-white/15 text-xs font-mono text-white inline-flex items-center gap-1"
+                          >
+                            <span>카카오맵</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 익명 동석자 힌트 요약 (직군 · 연령대 · 성비) */}
+                    <div className="pt-3 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-mono">
+                      <div className="p-3 bg-[#08090d] border border-white/10">
+                        <span className="text-zinc-400 block mb-1">동석자 직군 힌트</span>
+                        <span className="text-white font-semibold">IT · 디자인 · 전문직 · 창업</span>
+                      </div>
+                      <div className="p-3 bg-[#08090d] border border-white/10">
+                        <span className="text-zinc-400 block mb-1">평균 연령대 · 균형</span>
+                        <span className="text-white font-semibold">30대 초중반 · 3:3 균형</span>
+                      </div>
+                      <div className="p-3 bg-[#08090d] border border-white/10">
+                        <span className="text-zinc-400 block mb-1">테이블 대화 결</span>
+                        <span className="text-white font-semibold">깊이 중상 · 한국어 중심</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 당일 현장 도착 체크인 (사전 DM 없이 원클릭 상태 공유) */}
+                  <div className="p-5 bg-[#08090d] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
-                      <span className="text-sm text-[#f04f74] font-mono">제휴 식당 확정</span>
-                      <h4 className="font-serif-editorial text-lg font-normal text-white">
-                        {primaryEv?.venueNameOverride || assignedVenue?.name || '제휴 프라이빗 다이닝'}
-                      </h4>
-                      <p className="text-sm text-zinc-400 font-light">
-                        {primaryEv?.regionName || '서울'} · {primaryEv?.dateText || '확정 일정'}
+                      <div className="flex items-center gap-2 text-sm font-mono font-bold text-white">
+                        <Clock className="w-4 h-4 text-[#f04f74]" />
+                        <span>당일 도착 체크인</span>
+                      </div>
+                      <p className="text-xs text-zinc-400">
+                        개인 연락처 공개 없이 테이블 동석자에게 도착/지연 상태를 즉시 알립니다.
                       </p>
                     </div>
-                    <span className="text-sm text-zinc-300 font-mono bg-white/5 px-3 py-1.5 rounded-none border border-white/10">
-                      예약자명: 나도솔로
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      {(
+                        [
+                          { id: 'ON_THE_WAY', label: '출발 중' },
+                          { id: 'LATE_10', label: '10분 늦어요' },
+                          { id: 'ARRIVED', label: '도착했어요!' },
+                        ] as const
+                      ).map((st) => {
+                        const active = checkinStatus === st.id;
+                        return (
+                          <button
+                            key={st.id}
+                            type="button"
+                            onClick={() => {
+                              persistLiveUxState({ checkin: st.id });
+                              showToast(`현장 상태가 [${st.label}]로 테이블에 공유되었습니다.`);
+                            }}
+                            className={`px-3.5 py-2 border text-xs font-mono cursor-pointer transition-all ${
+                              active
+                                ? 'border-[#f04f74] bg-[#f04f74] text-white font-bold'
+                                : 'border-white/20 bg-white/5 hover:bg-white/10 text-zinc-200'
+                            }`}
+                          >
+                            {st.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* 좌석 배치도 시각화 */}
@@ -1057,6 +1186,128 @@ function MemberDashboardContent() {
                         ✓ 투표가 등록되었습니다. 자정(24:00) 이후 상호 매칭 결과가 대시보드에 공개됩니다.
                       </p>
                     )}
+                  </div>
+
+                  {/* 사후 다중 Connect (성별 무관 · 계속 교류하고 싶은 동석자 선택) */}
+                  <div className="p-6 rounded-none bg-white/[0.015] border border-white/[0.08] space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <h4 className="font-serif-editorial text-base font-normal text-white flex items-center gap-2">
+                          <Users className="w-4 h-4 text-[#f04f74]" />
+                          <span>계속 교류하고 싶은 멤버 선택 (다중 Connect)</span>
+                        </h4>
+                        <p className="text-xs text-zinc-400 mt-1">
+                          성별과 무관하게 친구·커리어·취향 교류를 이어가고 싶은 분을 선택하세요. 쌍방 선택 시에만 연락 채널이 열립니다.
+                        </p>
+                      </div>
+                      <span className="text-xs font-mono text-zinc-300 border border-white/15 px-2.5 py-1">
+                        {connectTargets.length}명 선택됨
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                      {tablePeers.map((peer) => {
+                        const isConnected = connectTargets.includes(peer.userId);
+                        return (
+                          <button
+                            key={`conn-${peer.userId}`}
+                            type="button"
+                            onClick={() => {
+                              const next = isConnected
+                                ? connectTargets.filter((id) => id !== peer.userId)
+                                : [...connectTargets, peer.userId];
+                              persistLiveUxState({ connects: next });
+                              showToast(
+                                isConnected
+                                  ? `${peer.nickname}님 Connect 선택 해제`
+                                  : `${peer.nickname}님 Connect 요청 저장`
+                              );
+                            }}
+                            className={`p-3 border text-left transition-all cursor-pointer ${
+                              isConnected
+                                ? 'border-[#f04f74] bg-[#f04f74]/15 text-white'
+                                : 'border-white/10 bg-[#08090d] text-zinc-300 hover:border-white/25 hover:text-white'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-medium">{peer.nickname}</span>
+                              {isConnected && <CheckCircle2 className="w-4 h-4 text-[#f04f74]" />}
+                            </div>
+                            <span className="text-xs text-zinc-400 font-mono">
+                              {peer.gender === 'F' ? '여성' : '남성'} · {peer.birthYear}년생
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* 디너 후 2차 애프터 라운지 (Last Drink) 공개 */}
+                  <div className="p-6 rounded-none bg-[#08090d] border border-white/15 space-y-4">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <Wine className="w-4 h-4 text-[#f04f74]" />
+                          <span className="text-xs font-mono text-[#f04f74] font-bold">
+                            21:30 OPEN · AFTER-PARTY LOUNGE
+                          </span>
+                        </div>
+                        <h4 className="font-serif-editorial text-lg font-normal text-white">
+                          2차 애프터 라운지 (Last Drink)
+                        </h4>
+                        <p className="text-sm text-zinc-400 font-light">
+                          식사 종료 후 같은 지역의 다른 나도솔로 테이블 멤버들과 가볍게 한 잔(또는 논알콜 티) 더 나누는 자율 합류 공간입니다.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            persistLiveUxState({ afterParty: 'JOIN' });
+                            showToast('2차 애프터 라운지 참석 의사가 등록되었습니다.');
+                          }}
+                          className={`px-4 py-2 border text-xs font-mono font-bold cursor-pointer transition-all ${
+                            afterPartyRsvp === 'JOIN'
+                              ? 'border-[#f04f74] bg-[#f04f74] text-white'
+                              : 'border-white/20 bg-white/5 hover:bg-white/10 text-white'
+                          }`}
+                        >
+                          참석할게요
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            persistLiveUxState({ afterParty: 'PASS' });
+                            showToast('오늘은 1차 식사로 마무리합니다.');
+                          }}
+                          className={`px-4 py-2 border text-xs font-mono cursor-pointer transition-all ${
+                            afterPartyRsvp === 'PASS'
+                              ? 'border-white/40 bg-white/15 text-white font-bold'
+                              : 'border-white/15 bg-transparent text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          이번엔 패스
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-[#0c0d12] border border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+                      <div>
+                        <span className="text-zinc-400 block">오늘의 제휴 라운지</span>
+                        <span className="text-white font-bold text-sm">
+                          {currentUser?.residenceCity === '부산'
+                            ? '전포 살롱 바 루프탑 (서면역 8번 출구 도보 5분)'
+                            : '바 아틀리에 라운지 (강남역 11번 출구 도보 4분)'}
+                        </span>
+                      </div>
+                      <a
+                        href={`https://map.naver.com/p/search/${encodeURIComponent(currentUser?.residenceCity === '부산' ? '부산 서면 라운지 바' : '강남 라운지 바')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 border border-white/20 text-white hover:bg-white/10 inline-flex items-center gap-1"
+                      >
+                        <span>라운지 위치</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                   </div>
 
                   {/* 노쇼 신고 & 영구 재매칭 차단 */}

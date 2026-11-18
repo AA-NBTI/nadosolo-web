@@ -23,7 +23,7 @@ export type AxisMatchStrategy =
   | 'DIVERSITY';
 
 export type QuestionLayer = 'BASE' | 'PULSE';
-export type QuestionInputType = 'SINGLE' | 'SCALE_1_5';
+export type QuestionInputType = 'SINGLE' | 'MULTI' | 'SCALE_1_5';
 
 export type PurposeCode = 'RESET' | 'FRIEND' | 'TASTE' | 'ROMANCE';
 export type DiningTrack = 'VEGAN' | 'NON_ALCOHOL' | 'ALCOHOL';
@@ -78,8 +78,11 @@ export interface AdaptiveQuestionSpec {
     maxLabel: string;
     axisWeights: Record<string, { weight: number; invert?: boolean }>;
   };
-  /** SINGLE일 때 선택지 */
+  /** SINGLE/MULTI일 때 선택지 */
   options?: AdaptiveQuestionOption[];
+  /** 원하는 답이 없을 때 수동 기입("기타") 허용 여부 */
+  allowCustomInput?: boolean;
+  customPlaceholder?: string;
 }
 
 export interface AdaptiveAnswer {
@@ -449,8 +452,10 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'BASE',
     categoryLabel: '현황',
-    questionText: '현재 주로 몸담고 있는 분야를 선택해 주세요.',
-    inputType: 'SINGLE',
+    questionText: '현재 주로 몸담고 있는 분야를 선택해 주세요. (복수 선택 · 직접 입력 가능)',
+    inputType: 'MULTI',
+    allowCustomInput: true,
+    customPlaceholder: '예: 항공승무원, 건축가, 프리랜서 등 직접 입력',
     isActive: true,
     options: [
       { id: 'IT_TECH', label: 'IT · 테크 · 엔지니어링', metaTag: { industry: 'IT_TECH' } },
@@ -460,7 +465,6 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
       { id: 'COMMERCE', label: '마케팅 · 유통 · 브랜드', metaTag: { industry: 'COMMERCE' } },
       { id: 'FOUNDER', label: '창업 · 경영 · 자영업', metaTag: { industry: 'FOUNDER' } },
       { id: 'EDU_PUBLIC', label: '교육 · 연구 · 공공', metaTag: { industry: 'EDU_PUBLIC' } },
-      { id: 'OTHER', label: '기타 자유 분야', metaTag: { industry: 'OTHER' } },
     ],
   },
   {
@@ -527,8 +531,8 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'BASE',
     categoryLabel: '기질',
-    questionText: '내가 가장 편안하게 느끼는 대화의 결은 무엇인가요?',
-    inputType: 'SINGLE',
+    questionText: '내가 가장 편안하게 느끼는 대화의 결은 무엇인가요? (복수 선택)',
+    inputType: 'MULTI',
     isActive: true,
     options: [
       { id: 'WIT', label: '위트 있고 유쾌한 티키타카', axisScores: { DEPTH: 25, ENERGY: 75 } },
@@ -572,8 +576,10 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'BASE',
     categoryLabel: '경계',
-    questionText: '식탁에서 가장 즐겁게 이야기할 수 있는 관심 분야는?',
-    inputType: 'SINGLE',
+    questionText: '식탁에서 가장 즐겁게 이야기할 수 있는 관심 분야는? (복수 선택 · 직접 입력 가능)',
+    inputType: 'MULTI',
+    allowCustomInput: true,
+    customPlaceholder: '예: 골프, 클래식, 반려동물 등 직접 입력',
     isActive: true,
     options: [
       { id: 'REST', label: '여행 · 쉼 · 소소한 라이프스타일', axisScores: { THEME: 15 } },
@@ -601,8 +607,10 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'BASE',
     categoryLabel: '식단',
-    questionText: '식단 제한이나 선호하는 음료 스타일이 있으신가요?',
-    inputType: 'SINGLE',
+    questionText: '식단 제한이나 선호하는 음료 스타일이 있으신가요? (복수 선택 · 직접 입력 가능)',
+    inputType: 'MULTI',
+    allowCustomInput: true,
+    customPlaceholder: '예: 견과류/갑각류 알레르기, 글루텐 프리 등 직접 입력',
     isActive: true,
     options: [
       { id: 'NONE', label: '제한 없음 (모두 잘 먹어요)', metaTag: { dietary: 'NONE' } },
@@ -617,8 +625,10 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'BASE',
     categoryLabel: '언어',
-    questionText: '테이블에서 선호하는 대화 언어는 무엇인가요?',
-    inputType: 'SINGLE',
+    questionText: '테이블에서 선호하는 대화 언어는 무엇인가요? (복수 선택 · 직접 입력 가능)',
+    inputType: 'MULTI',
+    allowCustomInput: true,
+    customPlaceholder: '예: 일본어, 중국어, 프랑스어 등 직접 입력',
     isActive: true,
     options: [
       { id: 'KO', label: '한국어 중심 테이블', metaTag: { language: 'KO' } },
@@ -788,38 +798,58 @@ export function computeUserAxisProfile(
         sums[axisId] = (sums[axisId] ?? 0) + score * cfg.weight;
         weights[axisId] = (weights[axisId] ?? 0) + cfg.weight;
       }
-    } else if (q.inputType === 'SINGLE' && q.options) {
-      const opt = q.options.find((o) => o.id === String(ans.value));
-      if (!opt) continue;
+    } else if ((q.inputType === 'SINGLE' || q.inputType === 'MULTI') && q.options) {
+      const tokens = String(ans.value)
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (tokens.length === 0) continue;
 
-      if (opt.metaTag) {
-        if (opt.metaTag.relationshipStatus) {
-          relationshipStatus = opt.metaTag.relationshipStatus as RelationshipStatus;
+      const dietaryTokens: string[] = [];
+      for (const token of tokens) {
+        if (token.startsWith('CUSTOM:')) {
+          const customText = token.slice(7).trim();
+          if (q.id === 'Q13_DIETARY' && customText) {
+            dietaryTokens.push(customText);
+          }
+          continue;
         }
-        if (opt.metaTag.industry) {
-          industry = opt.metaTag.industry as IndustryGroup;
+        const opt = q.options.find((o) => o.id === token);
+        if (!opt) continue;
+
+        if (opt.metaTag) {
+          if (opt.metaTag.relationshipStatus) {
+            relationshipStatus = opt.metaTag.relationshipStatus as RelationshipStatus;
+          }
+          if (opt.metaTag.industry) {
+            industry = opt.metaTag.industry as IndustryGroup;
+          }
+          if (opt.metaTag.purpose) {
+            purpose = opt.metaTag.purpose as PurposeCode;
+          }
+          if (opt.metaTag.budgetTier) {
+            budgetTier = opt.metaTag.budgetTier as '$' | '$$' | '$$$';
+            hasBudgetInput = true;
+          }
+          if (opt.metaTag.dietary) {
+            dietaryTokens.push(opt.metaTag.dietary);
+          }
+          if (opt.metaTag.targetCity) {
+            surveyTargetCity = opt.metaTag.targetCity;
+          }
         }
-        if (opt.metaTag.purpose) {
-          purpose = opt.metaTag.purpose as PurposeCode;
-        }
-        if (opt.metaTag.budgetTier) {
-          budgetTier = opt.metaTag.budgetTier as '$' | '$$' | '$$$';
-          hasBudgetInput = true;
-        }
-        if (opt.metaTag.dietary) {
-          surveyDietary = opt.metaTag.dietary;
-        }
-        if (opt.metaTag.targetCity) {
-          surveyTargetCity = opt.metaTag.targetCity;
+
+        if (opt.axisScores) {
+          const w = q.layer === 'PULSE' ? 1.5 : 1.0;
+          for (const [axisId, s] of Object.entries(opt.axisScores)) {
+            sums[axisId] = (sums[axisId] ?? 0) + s * w;
+            weights[axisId] = (weights[axisId] ?? 0) + w;
+          }
         }
       }
 
-      if (opt.axisScores) {
-        const w = q.layer === 'PULSE' ? 1.5 : 1.0;
-        for (const [axisId, s] of Object.entries(opt.axisScores)) {
-          sums[axisId] = (sums[axisId] ?? 0) + s * w;
-          weights[axisId] = (weights[axisId] ?? 0) + w;
-        }
+      if (dietaryTokens.length > 0) {
+        surveyDietary = dietaryTokens.join(',');
       }
     }
   }

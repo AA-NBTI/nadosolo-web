@@ -1206,6 +1206,27 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   const saveSurveyAnswers = (answers: Record<string, string>) => {
     setSurveyAnswers(answers);
+    const quizDietary = answers['Q13_DIETARY'];
+    const resolvedDietary = quizDietary && quizDietary.trim() ? quizDietary.trim() : dietary;
+    if (quizDietary) {
+      const firstToken = quizDietary.split(',')[0]?.trim();
+      if (
+        firstToken === 'NONE' ||
+        firstToken === 'VEGAN' ||
+        firstToken === 'HALAL' ||
+        firstToken === 'NO_PORK' ||
+        firstToken === 'ALCOHOL_FREE'
+      ) {
+        setDietary(firstToken);
+      }
+    }
+    const quizIndustry = answers['Q03_INDUSTRY'] || '';
+    const customJobToken = quizIndustry
+      .split(',')
+      .map((t) => t.trim())
+      .find((t) => t.startsWith('CUSTOM:'));
+    const resolvedJob = customJobToken ? customJobToken.slice(7).trim() : currentUser?.jobTitle;
+
     if (typeof window !== 'undefined') {
       const uId = currentUser?.userId ?? 'guest';
       localStorage.setItem(`nadosolo_survey_${uId}`, JSON.stringify(answers));
@@ -1219,8 +1240,8 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
         birth_year: currentUser.birthYear,
         email: currentUser.email,
         phone: currentUser.phone,
-        job_title: currentUser.jobTitle,
-        dietary: dietary,
+        job_title: resolvedJob,
+        dietary: resolvedDietary,
         interests: interests,
         self_domain_scores: selfDomainScores100,
         survey_answers: answers,

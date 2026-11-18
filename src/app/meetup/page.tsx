@@ -43,6 +43,7 @@ function MeetupSlotBookingContent() {
   const [selectedRegion, setSelectedRegion] = useState<string>(() =>
     qRegion ? normalizeRegionCity(qRegion) : 'ALL'
   );
+  const [selectedZone, setSelectedZone] = useState<string>('전체 권역');
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [ticketCredits, setTicketCredits] = useState(0);
@@ -182,42 +183,74 @@ function MeetupSlotBookingContent() {
         />
 
         {/* 도시 선택 */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            {regions.map((reg) => {
-              const active = selectedRegion === reg;
-              return (
-                <button
-                  key={reg}
-                  type="button"
-                  onClick={() => setSelectedRegion(reg)}
-                  className={`px-4 py-2 text-sm font-mono border transition-colors cursor-pointer ${
-                    active
-                      ? 'border-white/40 bg-white/15 text-white font-semibold'
-                      : 'border-white/10 bg-[#0c0d12] text-zinc-400 hover:text-white hover:border-white/25'
-                  }`}
-                >
-                  {reg === 'ALL' ? '전체 도시' : reg}
-                </button>
-              );
-            })}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              {regions.map((reg) => {
+                const active = selectedRegion === reg;
+                return (
+                  <button
+                    key={reg}
+                    type="button"
+                    onClick={() => {
+                      setSelectedRegion(reg);
+                      setSelectedZone('전체 권역');
+                    }}
+                    className={`px-4 py-2 text-sm font-mono border transition-colors cursor-pointer ${
+                      active
+                        ? 'border-white/40 bg-white/15 text-white font-semibold'
+                        : 'border-white/10 bg-[#0c0d12] text-zinc-400 hover:text-white hover:border-white/25'
+                    }`}
+                  >
+                    {reg === 'ALL' ? '전체 도시' : reg}
+                  </button>
+                );
+              })}
+            </div>
+            {currentUser && (
+              <div className="flex items-center gap-2 text-sm font-mono">
+                {ticketCredits > 0 && (
+                  <span className="px-3 py-1.5 border border-[#f04f74]/50 bg-[#f04f74]/15 text-white">
+                    보유 참가권 {ticketCredits}매
+                  </span>
+                )}
+                {!hasCompletedQuiz && (
+                  <Link
+                    href="/test"
+                    prefetch={true}
+                    className="px-3 py-1.5 border border-white/25 bg-white/10 text-white hover:bg-white/20"
+                  >
+                    성향 퀴즈 먼저 완료하기 →
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
-          {currentUser && (
-            <div className="flex items-center gap-2 text-sm font-mono">
-              {ticketCredits > 0 && (
-                <span className="px-3 py-1.5 border border-[#f04f74]/50 bg-[#f04f74]/15 text-white">
-                  보유 참가권 {ticketCredits}매
-                </span>
-              )}
-              {!hasCompletedQuiz && (
-                <Link
-                  href="/test"
-                  prefetch={true}
-                  className="px-3 py-1.5 border border-white/25 bg-white/10 text-white hover:bg-white/20"
-                >
-                  성향 퀴즈 먼저 완료하기 →
-                </Link>
-              )}
+
+          {/* 도시 내 세부 생활권 선택 (타임레프트 권역 표준) */}
+          {selectedRegion !== 'ALL' && (
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs font-mono text-zinc-400 mr-1">세부 권역:</span>
+              {(selectedRegion === '부산'
+                ? ['전체 권역', '전포·서면', '해운대·센텀', '광안리']
+                : ['전체 권역', '강남·역삼', '성수·건대', '한남·이태원', '홍대·합정']
+              ).map((zone) => {
+                const active = selectedZone === zone;
+                return (
+                  <button
+                    key={zone}
+                    type="button"
+                    onClick={() => setSelectedZone(zone)}
+                    className={`px-3 py-1 text-xs font-mono border transition-colors cursor-pointer ${
+                      active
+                        ? 'border-[#f04f74] bg-[#f04f74]/15 text-white font-semibold'
+                        : 'border-white/10 bg-[#0c0d12] text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    {zone}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -270,8 +303,16 @@ function MeetupSlotBookingContent() {
 
                 <div className="pt-2 border-t border-white/[0.08] space-y-1.5 text-sm font-mono text-zinc-400">
                   <div className="flex justify-between">
-                    <span>장소 · 동석자</span>
-                    <span className="text-white">D-1 19:00 비공개 공개</span>
+                    <span>예약 마감 · 공개</span>
+                    <span className="text-white">D-2 자정 마감 · D-1 19:00 공개</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>희망 생활권</span>
+                    <span className="text-[#f04f74]">
+                      {selectedRegion === slot.regionName && selectedZone !== '전체 권역'
+                        ? `${slot.regionName} ${selectedZone}`
+                        : `${slot.regionName} 전체 권역`}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>테이블 정원</span>
@@ -326,7 +367,10 @@ function MeetupSlotBookingContent() {
                       dateText: slot.dateText,
                       priceKrw: slot.priceKrw,
                       initialTicketCount: qTickets,
-                      districtName: slot.regionName,
+                      districtName:
+                        selectedRegion === slot.regionName && selectedZone !== '전체 권역'
+                          ? `${slot.regionName} ${selectedZone}`
+                          : slot.regionName,
                       mealNote: '식당 및 동석자 정보는 D-1 19:00에 비공개 공개되며 식음료는 현장 1/N 결제입니다.',
                     });
                     setIsCheckoutOpen(true);
