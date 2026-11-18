@@ -30,6 +30,7 @@ import AdminPreMatchPage from './pre-match/page';
 import AdminTimeleftManager from '@/components/admin/AdminTimeleftManager';
 import AdminPartnersManager from '@/components/admin/AdminPartnersManager';
 import { ARCHITECTURE_RELEASES } from '@/engine/architectureAuditRegistry';
+import { isAdminAccount, isTesterAccount } from '@/modules/identity';
 import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
@@ -120,6 +121,7 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
     groupTitle: '타임레프트',
     items: [
       { key: 'TL_SLOT', label: '슬롯' },
+      { key: 'PRE_MATCH', label: '가매칭' },
       { key: 'TL_NOTIFY', label: '알림' },
       { key: 'TL_SANCTION', label: '제재' },
       { key: 'TL_TICKET', label: '참가권' },
@@ -133,15 +135,6 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'PT_FUNNEL', label: '성과' },
       { key: 'PT_PAYOUT', label: '정산' },
       { key: 'PT_VENUE', label: '식당' },
-    ],
-  },
-  {
-    groupTitle: '모임',
-    items: [
-      { key: 'EVENT_CREATE', label: '개설' },
-      { key: 'EVENT_LIST', label: '목록' },
-      { key: 'PRE_MATCH', label: '가매칭' },
-      { key: 'EVENT_GATE', label: '관제' },
     ],
   },
   {
@@ -168,7 +161,6 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
     groupTitle: '공간',
     items: [
       { key: 'REGION', label: '지역' },
-      { key: 'VENUE', label: '매장' },
       { key: 'DECK', label: '카드' },
     ],
   },
@@ -194,6 +186,15 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'REPORT_PLAN', label: '계획' },
       { key: 'REPORT_CHECKLIST', label: '항목' },
       { key: 'REPORT_APPROVAL', label: '승인' },
+    ],
+  },
+  {
+    groupTitle: '아카이브',
+    items: [
+      { key: 'EVENT_CREATE', label: '방개설' },
+      { key: 'EVENT_LIST', label: '방목록' },
+      { key: 'EVENT_GATE', label: '방관제' },
+      { key: 'VENUE', label: '구매장' },
     ],
   },
 ];
@@ -312,13 +313,14 @@ export default function AdminOperationsDashboardPage() {
         nadoSoloSupabaseService.getAllProfiles(),
         nadoSoloSupabaseService.getAllEventApplications(),
       ]);
-      setLiveDbProfiles(data);
+      const memberProfiles = data.filter((p) => !isAdminAccount(p));
+      setLiveDbProfiles(memberProfiles);
       setLiveEventApplications(apps);
 
       // DB 영속화된 가매칭/확정 상태 복원
       const nextPreMatched: Record<string, string> = {};
       const nextConfirmed: Record<string, string> = {};
-      for (const p of data) {
+      for (const p of memberProfiles) {
         if (p.matching_stage === 'CONFIRMED') {
           nextConfirmed[p.id] = p.confirmed_event_id || 'DB_CONFIRMED';
         } else if (p.matching_stage === 'PRE_MATCHED') {
@@ -1165,7 +1167,7 @@ export default function AdminOperationsDashboardPage() {
                     </div>
                   </div>
                   <span className="px-2 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white shrink-0">
-                    {ARCHITECTURE_RELEASES[0]?.version || 'v2.5.0'}
+                    {ARCHITECTURE_RELEASES[0]?.version || 'v2.6.0'}
                   </span>
                 </div>
               </button>
@@ -1463,7 +1465,7 @@ export default function AdminOperationsDashboardPage() {
 
                             <button
                               type="button"
-                              onClick={() => handleSelectTab('EVENT_LIST')}
+                              onClick={() => handleSelectTab('TL_SLOT')}
                               className="p-4 border border-white/10 bg-[#0c0d12] hover:border-[#f04f74]/50 text-left space-y-1 cursor-pointer"
                             >
                               <div className="flex items-center justify-between text-sm text-zinc-400">
@@ -1553,10 +1555,10 @@ export default function AdminOperationsDashboardPage() {
                                 <span className="text-white font-bold">개설 모임방</span>
                                 <button
                                   type="button"
-                                  onClick={() => handleSelectTab('EVENT_LIST')}
+                                  onClick={() => handleSelectTab('TL_SLOT')}
                                   className="text-blue-300 hover:underline cursor-pointer"
                                 >
-                                  목록이동
+                                  슬롯이동
                                 </button>
                               </div>
                               {activeEvents.length === 0 ? (
@@ -2875,7 +2877,7 @@ export default function AdminOperationsDashboardPage() {
                       ) : (
                         pagedMembers.map((m) => {
                           const isExpanded = expandedMemberId === m.id;
-                          const isVirtual = m.id === 'aaa' || m.id === 'bbb' || m.handle === '@aaa' || m.handle === '@bbb';
+                          const isVirtual = isTesterAccount(m);
                           const createdStr = m.created_at
                             ? new Date(m.created_at).toLocaleDateString('ko-KR', {
                                 month: '2-digit',
@@ -2934,14 +2936,8 @@ export default function AdminOperationsDashboardPage() {
                                   <span>{createdStr}</span>
                                 </div>
                                 <div className="col-span-1">
-                                  <span
-                                    className={`px-1.5 py-0.5 border ${
-                                      m.id === 'ADMIN_01'
-                                        ? 'border-[#3b82f6]/50 bg-[#3b82f6]/15 text-blue-200'
-                                        : 'border-white/20 bg-white/5 text-white'
-                                    }`}
-                                  >
-                                    {m.id === 'ADMIN_01' ? '관리' : isVirtual ? '가상' : '회원'}
+                                  <span className="px-1.5 py-0.5 border border-white/20 bg-white/5 text-white">
+                                    {isVirtual ? '가상' : '실회원'}
                                   </span>
                                 </div>
                                 <div className="col-span-1 md:col-span-2 font-bold text-white truncate">
@@ -3468,6 +3464,18 @@ export default function AdminOperationsDashboardPage() {
               ---------------------------------------------------------- */}
           {activeTab === 'VENUE' && (
             <section className="space-y-4">
+              <div className={`p-3 border flex items-center justify-between gap-3 ${isLight ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#0c0d12] border-white/10'}`}>
+                <span className={`text-sm font-mono ${isLight ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                  아카이브 (구매장) — 표준 식당 입점 심사·관리는 파트너스 &gt; 식당 탭에서 운영합니다.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('PT_VENUE')}
+                  className={`px-3 py-1 text-sm font-mono border shrink-0 cursor-pointer ${isLight ? 'border-zinc-300 bg-zinc-50 text-zinc-900' : 'border-white/25 bg-white/10 text-white hover:bg-white/20'}`}
+                >
+                  식당
+                </button>
+              </div>
               <AdminSectionCard
                 title="매장"
                 badge={`${partnerVenues.length}건`}
@@ -3556,6 +3564,18 @@ export default function AdminOperationsDashboardPage() {
               ---------------------------------------------------------- */}
           {(activeTab === 'EVENT_CREATE' || activeTab === 'EVENT_LIST' || activeTab === 'EVENT_GATE') && (
             <section className="space-y-4">
+              <div className={`p-3 border flex items-center justify-between gap-3 ${isLight ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#0c0d12] border-white/10'}`}>
+                <span className={`text-sm font-mono ${isLight ? 'text-zinc-700' : 'text-zinc-300'}`}>
+                  아카이브 (구형 방 개설형) — 표준 블라인드 슬롯 운영은 타임레프트 &gt; 슬롯 탭에서 운영합니다.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleSelectTab('TL_SLOT')}
+                  className={`px-3 py-1 text-sm font-mono border shrink-0 cursor-pointer ${isLight ? 'border-zinc-300 bg-zinc-50 text-zinc-900' : 'border-white/25 bg-white/10 text-white hover:bg-white/20'}`}
+                >
+                  슬롯
+                </button>
+              </div>
               {/* 상단 컴팩트 컨트롤 바 (표준 테두리 박스 컨테이너) */}
               <div
                 className={`p-3 border flex items-center justify-between gap-3 ${

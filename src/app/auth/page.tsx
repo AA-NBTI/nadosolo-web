@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useNadoSoloEngine } from '@/engine';
 import { nadoSoloSupabaseService } from '@/lib/supabase/service';
+import { isReservedAdminIdentifier } from '@/modules/identity';
 
 function AuthPageContent() {
   const router = useRouter();
@@ -41,9 +42,9 @@ function AuthPageContent() {
     }
     setErrorMsg(null);
 
-    // 시스템 관리자 계정만 예약어 차단
-    if (raw === 'admin') {
-      setErrorMsg('관리자 아이디는 사용할 수 없습니다.');
+    // 시스템 관리자 예약어 차단
+    if (isReservedAdminIdentifier(raw)) {
+      setErrorMsg('관리자 예약 아이디는 사용할 수 없습니다.');
       setHandleCheckStatus('DUPLICATE');
       return;
     }
@@ -78,6 +79,26 @@ function AuthPageContent() {
     // 전 계정 비밀번호 규격: aa1111
     if (password !== 'aa1111') {
       setErrorMsg('비밀번호가 올바르지 않습니다.');
+      return;
+    }
+
+    // 관리자 계정은 일반 회원 DB 조회 없이 전용 관리자 세션으로 분리 로그인
+    if (trimmedId.toLowerCase() === 'admin' || trimmedId === '관리자') {
+      loginAsUser({
+        userId: 'ADMIN_01',
+        handle: '@admin',
+        role: 'ADMIN',
+        email: 'admin@nadosolo.com',
+        nickname: '관리자',
+        phone: '010-0000-0000',
+        jobTitle: '시스템 총괄',
+        gender: 'M',
+        birthYear: 1990,
+        authProvider: 'EMAIL',
+        verifiedBadge: 'ADMIN',
+        sessionCount: 99,
+      });
+      router.push('/admin');
       return;
     }
 
@@ -123,6 +144,10 @@ function AuthPageContent() {
     }
     if (!handleInput.trim()) {
       setErrorMsg('아이디를 입력해 주세요.');
+      return;
+    }
+    if (isReservedAdminIdentifier(handleInput)) {
+      setErrorMsg('관리자 예약 아이디는 회원가입할 수 없습니다.');
       return;
     }
     if (handleCheckStatus !== 'AVAILABLE') {

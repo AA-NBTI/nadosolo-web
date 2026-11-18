@@ -1,4 +1,5 @@
 import { createClient } from './client';
+import { nadosoloBillingEngine } from '@/modules/billing';
 import {
   ConditionalEventItem,
   CriterionCode,
@@ -274,28 +275,16 @@ export const nadoSoloSupabaseService = {
    * 보유 참가권(이월 티켓) 수량 조회
    */
   async getTicketCredits(userId: string): Promise<number> {
-    const existing = await this.getProfile(userId);
-    const raw = (existing?.self_domain_scores as Record<string, any> | undefined)?._ticket_credits;
-    return typeof raw === 'number' && raw > 0 ? raw : 0;
+    return nadosoloBillingEngine.getCreditBalance(userId);
   },
 
   /**
    * 보유 참가권(이월 티켓) 증감
    */
   async adjustTicketCredits(userId: string, delta: number): Promise<number> {
-    const existing = await this.getProfile(userId);
-    if (!existing) return 0;
-    const prevScores = (existing.self_domain_scores || {}) as Record<string, any>;
-    const current = typeof prevScores._ticket_credits === 'number' ? prevScores._ticket_credits : 0;
-    const next = Math.max(0, current + delta);
-    await this.upsertProfile({
-      ...existing,
-      self_domain_scores: {
-        ...prevScores,
-        _ticket_credits: next,
-      },
+    return nadosoloBillingEngine.adjustCredits(userId, delta, {
+      reason: 'ADMIN_ADJUST',
     });
-    return next;
   },
 
   /**
@@ -333,21 +322,10 @@ export const nadoSoloSupabaseService = {
     action: 'CANCEL' | 'ROLLOVER',
     eventDateStr?: string
   ): Promise<{ ok: boolean; policyNote: string; ticketCredits?: number }> {
-    let policyNote = action === 'ROLLOVER' ? '다음 회차 이월(참가권 1매 보존)' : '무료 취소(참가권 1매 보존)';
-    let grantCredit = true;
-    if (eventDateStr) {
-      const targetMs = new Date(eventDateStr).getTime();
-      if (!Number.isNaN(targetMs)) {
-        const hoursLeft = (targetMs - Date.now()) / (1000 * 60 * 60);
-        if (hoursLeft < 24) {
-          policyNote = '24시간 이내 임박 취소(참가권 미보존)';
-          grantCredit = false;
-        } else if (hoursLeft < 48) {
-          policyNote = action === 'ROLLOVER' ? '48시간 이내 이월(참가권 1매 보존)' : '48시간 이내 취소';
-          grantCredit = action === 'ROLLOVER';
-        }
-      }
-    }
+    const { grantCredit, policyNote } = nadosoloBillingEngine.evaluateCancellationPolicy(
+      action,
+      eventDateStr
+    );
 
     try {
       const supabase = createClient();
@@ -362,21 +340,21 @@ export const nadoSoloSupabaseService = {
       }
 
       const existing = await this.getProfile(userId);
-      let nextCredits = 0;
       if (existing) {
-        const prevScores = (existing.self_domain_scores || {}) as Record<string, any>;
-        const curCredits = typeof prevScores._ticket_credits === 'number' ? prevScores._ticket_credits : 0;
-        nextCredits = grantCredit ? curCredits + 1 : curCredits;
         await this.upsertProfile({
           ...existing,
           matching_stage: 'READY',
           confirmed_event_id: undefined,
-          self_domain_scores: {
-            ...prevScores,
-            _ticket_credits: nextCredits,
-          },
         });
       }
+
+      const nextCredits = grantCredit
+        ? await nadosoloBillingEngine.adjustCredits(userId, 1, {
+            reason: action === 'ROLLOVER' ? 'ROLLOVER' : 'CANCEL_REFUND',
+            itemId: eventId,
+            note: policyNote,
+          })
+        : await nadosoloBillingEngine.getCreditBalance(userId);
 
       await this.createNotification({
         userId,

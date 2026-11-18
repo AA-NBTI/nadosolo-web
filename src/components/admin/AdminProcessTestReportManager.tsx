@@ -27,7 +27,7 @@ export default function AdminProcessTestReportManager() {
 
   // 최고관리자 버전 선택 (기본값: 최신 릴리즈 자동 선택)
   const [selectedVersion, setSelectedVersion] = useState<string>(
-    () => ARCHITECTURE_RELEASES[0]?.version || 'v2.5.0'
+    () => ARCHITECTURE_RELEASES[0]?.version || 'v2.6.0'
   );
   const [expandedChangeId, setExpandedChangeId] = useState<string | null>(null);
 

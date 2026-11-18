@@ -1,5 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import {
+  classifyAccountProfile,
+  filterMatchingEligibleProfiles,
+} from '@/modules/identity';
+import {
   AdaptiveAnswer,
   computeUserAxisProfile,
   DEFAULT_MATCHING_AXES,
@@ -11,6 +15,7 @@ export interface AutoMatchRequestBody {
   mode?: 'DRY_RUN' | 'EXECUTE';
   requirePaid?: boolean;
   coreCount?: 3 | 4;
+  excludeTesters?: boolean;
 }
 
 export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
@@ -49,6 +54,16 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
   }));
 
   const rawProfiles = profilesRes.data ?? [];
+  const eligibleProfiles = filterMatchingEligibleProfiles(rawProfiles, {
+    excludeTesters: body.excludeTesters,
+  });
+  const realMemberCount = eligibleProfiles.filter(
+    (p) => classifyAccountProfile(p) === 'REAL_MEMBER'
+  ).length;
+  const testerCount = eligibleProfiles.filter(
+    (p) => classifyAccountProfile(p) === 'TESTER'
+  ).length;
+
   const paidUserIds = new Set(
     (appsRes.data ?? [])
       .filter((a: any) => a.status === 'APPLIED' || a.status === 'CONFIRMED')
@@ -59,7 +74,7 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
   );
 
   const profileIdByLabel = new Map<string, string>();
-  const participants = rawProfiles.map((p: any) => {
+  const participants = eligibleProfiles.map((p: any) => {
     const scores = (p.self_domain_scores || {}) as Record<string, any>;
     const surveyObj = (p.survey_answers || scores._survey_answers || {}) as Record<string, string>;
     const answers: AdaptiveAnswer[] = Object.entries(surveyObj).map(([qId, val]) => ({
@@ -229,6 +244,8 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
     tableHealth,
     stats: {
       totalProfiles: participants.length,
+      realMemberCount,
+      testerCount,
       paidCount: participants.filter((p) => p.isPaid).length,
       unpaidCount: participants.filter((p) => !p.isPaid).length,
       roomCount: pipeline.grouping.rooms.length,

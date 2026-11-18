@@ -5,6 +5,11 @@ import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import { buildMeetupSeoSlug } from '@/lib/seoSlug';
 import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
 import {
+  ADMIN_SESSION_STORAGE_KEY,
+  filterMatchingEligibleProfiles,
+  isAdminAccount,
+} from '@/modules/identity';
+import {
   ADAPTIVE_DINING_PLAYBOOK,
   CityLocaleConfig,
   ConditionalEventItem,
@@ -714,6 +719,14 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
               localStorage.removeItem('nadosolo_admin_origin');
               if (isMounted) setCurrentUser(localUser);
             }
+          } else if (!localUser && window.location.pathname.startsWith('/admin')) {
+            const savedAdminSession = localStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+            if (savedAdminSession) {
+              try {
+                localUser = JSON.parse(savedAdminSession);
+                if (localUser && isMounted) setCurrentUser(localUser);
+              } catch {}
+            }
           }
           if (isMounted) setAdminOriginUser(adminOrigin);
         }
@@ -728,7 +741,9 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
             nadoSoloSupabaseService.getEvents(),
           ]);
           if (isMounted && allDbProfiles && allDbProfiles.length > 0) {
-            setParticipantsPool(allDbProfiles.map(mapDbProfileToParticipant));
+            setParticipantsPool(
+              filterMatchingEligibleProfiles(allDbProfiles).map(mapDbProfileToParticipant)
+            );
           }
           if (isMounted && allDbEvents && allDbEvents.length > 0) {
             setConditionalEvents(allDbEvents);
@@ -913,7 +928,16 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.setItem('nadosolo_current_user', JSON.stringify(user));
       localStorage.removeItem('nadosolo_admin_origin');
+      if (isAdminAccount(user)) {
+        localStorage.setItem(ADMIN_SESSION_STORAGE_KEY, JSON.stringify(user));
+      }
     }
+
+    // 관리자 계정은 일반 회원 DB(profiles) 및 매칭 풀(participantsPool)에 혼입하지 않는다
+    if (isAdminAccount(user)) {
+      return;
+    }
+
     // Supabase DB 자동 upsert (새 가입자 및 로그인 계정 영구 보존)
     nadoSoloSupabaseService.upsertProfile({
       id: user.userId,
@@ -1095,6 +1119,7 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('nadosolo_current_user');
       localStorage.removeItem('nadosolo_admin_origin');
+      localStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
     }
   };
 

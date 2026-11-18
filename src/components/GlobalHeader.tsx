@@ -13,13 +13,23 @@ export default function GlobalHeader() {
   const { currentUser, logout } = useNadoSoloEngine();
   const { config } = useSiteConfig();
 
-  // 타임레프트 표준 단일 퍼널 네비게이션 (밋업 · 도시 · 성향 퀴즈 · 이용 안내)
-  const navItems = [
-    { id: 'meetup', label: '밋업', href: '/meetup' },
-    { id: 'locations', label: '도시', href: '/locations' },
-    { id: 'test', label: '성향 퀴즈', href: '/test' },
-    { id: 'guide', label: '이용 안내', href: '/guide' },
-  ];
+  const isPartnersRoute =
+    pathname.startsWith('/partners') || pathname.startsWith('/affiliate');
+
+  // 일반 이용자(타임레프트) vs 파트너스(크리에이터 · 식당) 네비게이션 분리
+  const navItems = isPartnersRoute
+    ? [
+        { id: 'affiliate', label: '크리에이터', href: '/affiliate' },
+        { id: 'partners', label: '식당 입점', href: '/partners' },
+        { id: 'partner-portal', label: '파트너스 포털', href: '/partners/dashboard' },
+        { id: 'home', label: '다이닝 홈', href: '/' },
+      ]
+    : [
+        { id: 'meetup', label: '밋업', href: '/meetup' },
+        { id: 'locations', label: '도시', href: '/locations' },
+        { id: 'test', label: '성향 퀴즈', href: '/test' },
+        { id: 'guide', label: '이용 안내', href: '/guide' },
+      ];
 
   const handleLogout = () => {
     logout();
@@ -93,11 +103,29 @@ export default function GlobalHeader() {
           })}
         </nav>
 
-        {/* [우측] 프로필/로그인 */}
+        {/* [우측] 프로필/로그인 (파트너스 영역은 전용 포털 버튼 표시) */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-
-          {/* 로그인 / 프로필 / 관리자 버튼 */}
-          {currentUser ? (
+          {isPartnersRoute ? (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/partners/dashboard"
+                prefetch={true}
+                className="px-4 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-white text-xs font-mono tracking-wider uppercase transition-colors"
+              >
+                파트너스 포털
+              </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  prefetch={true}
+                  className="w-8 h-8 rounded-none bg-transparent hover:bg-white/[0.05] border border-white/20 hover:border-[#f04f74] text-zinc-300 hover:text-[#f04f74] flex items-center justify-center transition-all"
+                  title="최고 관리자 대시보드"
+                >
+                  <ShieldCheck className="w-4 h-4 text-[#f04f74]" />
+                </Link>
+              )}
+            </div>
+          ) : currentUser ? (
             <div className="flex items-center gap-2">
               <Link
                 href="/dashboard"

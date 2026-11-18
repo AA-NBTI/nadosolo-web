@@ -5,17 +5,8 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
-import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
+import { nadosoloBillingEngine } from '@/modules/billing';
 import { trackAffiliatePurchase } from '@/lib/affiliateDb';
-
-interface PromoUsageLog {
-  orderId: string;
-  eventId: string;
-  promo: string;
-  amount: string;
-  userId: string;
-  at: string;
-}
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
@@ -35,22 +26,12 @@ function PaymentSuccessContent() {
       applyForConditionalEvent(eventId);
     }
     if (promo) {
-      getAppConfig<PromoUsageLog[]>('promo_usage_logs', 'nadosolo_promo_usage_logs_v1', []).then((logs) => {
-        const list = Array.isArray(logs) ? logs : [];
-        if (!list.some((x) => x.orderId === orderId && x.promo === promo)) {
-          const next: PromoUsageLog[] = [
-            {
-              orderId,
-              eventId,
-              promo,
-              amount,
-              userId: currentUser?.userId || 'GUEST',
-              at: new Date().toISOString(),
-            },
-            ...list,
-          ].slice(0, 200);
-          void saveAppConfig('promo_usage_logs', 'nadosolo_promo_usage_logs_v1', next);
-        }
+      void nadosoloBillingEngine.recordPromoUsage({
+        orderId,
+        eventId,
+        promo,
+        amount,
+        userId: currentUser?.userId,
       });
       void trackAffiliatePurchase({
         code: promo,
