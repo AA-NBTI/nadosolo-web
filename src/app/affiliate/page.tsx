@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Copy, Check, Users, Sparkles, ArrowRight } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
+import { createClient } from '@/lib/supabase/client';
 
 export default function AffiliateProgramPage() {
   const { currentUser } = useNadoSoloEngine();
@@ -25,19 +26,30 @@ export default function AffiliateProgramPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!partnerName.trim() || !contactEmail.trim()) return;
+    const payload = {
+      partnerName: partnerName.trim(),
+      channelUrl: channelUrl.trim(),
+      contactEmail: contactEmail.trim(),
+      code: (customCode.trim() || 'NADO10').toUpperCase(),
+      createdAt: new Date().toISOString(),
+    };
     try {
       const prev = JSON.parse(localStorage.getItem('nadosolo_affiliate_apps_v1') || '[]');
-      prev.push({
-        partnerName: partnerName.trim(),
-        channelUrl: channelUrl.trim(),
-        contactEmail: contactEmail.trim(),
-        code: customCode.trim() || 'NADO10',
-        createdAt: new Date().toISOString(),
-      });
+      prev.push(payload);
       localStorage.setItem('nadosolo_affiliate_apps_v1', JSON.stringify(prev));
+    } catch {}
+    try {
+      const supabase = createClient();
+      await supabase.from('affiliate_applications').insert({
+        partner_name: payload.partnerName,
+        channel_url: payload.channelUrl,
+        contact_email: payload.contactEmail,
+        code: payload.code,
+        status: 'PENDING',
+      });
     } catch {}
     setSubmitted(true);
   };

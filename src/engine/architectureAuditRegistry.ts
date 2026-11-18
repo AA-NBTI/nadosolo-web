@@ -268,11 +268,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.4.2',
+    releaseTitle: '타임레프트 관제 1~3단계 완결 · DB 영구 저장 및 전주기 연동',
+    releaseDate: '2026-11-18',
+    summary: '1단계(/meetup 마감 슬롯 차단, D-1 공개 잠금 해제 연동, 이월 처리·알림, 크론 인증 충돌 보완, 라이트모드 지원), 2단계(app_configs·affiliate_applications 테이블 신설 및 프로모션·어필리에이트 승인·제휴 식당·A/B 실험·자동화 로그 DB 영구 저장 전환), 3단계(PAGE_CMS 타임레프트 10개 페이지 등록·DB 저장 및 6대 테이블 전주기 헬스체크 확장) 완결',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2421',
+        category: 'DATABASE',
+        categoryLabel: 'DB영구화',
+        title: 'app_configs·affiliate_applications 신설 및 5대 영역·CMS DB 영구 저장 전환',
+        beforeSummary: '프로모션·어필리에이트·제휴식당·A/B·자동화 로그·CMS 페이지가 localStorage/메모리에 격리',
+        afterSummary: 'Supabase app_configs 및 affiliate_applications 실시간 영구 저장 및 어필리에이트 승인 시 프로모션 자동 활성화',
+        impactLabel: '다중 기기·관리자 간 데이터 일관성 100% 확보',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/meetup', '/affiliate', '/partners', '/test'],
+      },
+      {
+        id: 'CHG-2422',
+        category: 'ADMIN',
+        categoryLabel: '관제완결',
+        title: '슬롯 마감·D-1 공개·이월 알림 연동 및 6대 테이블 통합 점검 확장',
+        beforeSummary: 'CLOSED 슬롯 예약 가능, 공개 버튼과 대시보드 잠금 해제 단절, 4대 테이블 점검',
+        afterSummary: '/meetup 마감 차단, D-1 Reveal 즉시 해제, 이월 알림 발송 및 6대 테이블 전주기 점검 PASS',
+        impactLabel: '타임레프트 운영 사이클 무결성 검증 완료',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/meetup', '/dashboard'],
+      },
+    ],
+  },
+  {
     version: 'v2.4.1',
     releaseTitle: '관리자 타임레프트 6대 관제 탭 신설 및 프로모션·페이지 사전 연동',
     releaseDate: '2026-11-18',
     summary: '관리자 화면(/admin)에 타임레프트 전용 관제 그룹(슬롯·알림·제재·참가권·제휴·자동화 6대 탭) 신설, Supabase 실시간 연동(meetups, notifications, user_blocks), 프로모션 코드 모듈 분리(promoCodes.ts) 및 CheckoutModal 연동, 사이트 10개 핵심 페이지 소통 사전(SITE_PAGE_STRUCTURES) 등록 완료',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2411',

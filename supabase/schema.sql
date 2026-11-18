@@ -234,6 +234,40 @@ DROP POLICY IF EXISTS "Public insert/update user_blocks" ON public.user_blocks;
 CREATE POLICY "Public insert/update user_blocks" ON public.user_blocks FOR ALL USING (true);
 
 -- ============================================================================
+-- 14. 전역 시스템 설정 및 영구 저장소 (App Configs: 프로모션·A/B·식당·자동화 로그)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.app_configs (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.app_configs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read app_configs" ON public.app_configs;
+CREATE POLICY "Public read app_configs" ON public.app_configs FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public write app_configs" ON public.app_configs;
+CREATE POLICY "Public write app_configs" ON public.app_configs FOR ALL USING (true);
+
+-- ============================================================================
+-- 15. 어필리에이트 제휴 신청 원장 (Affiliate Applications)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.affiliate_applications (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  partner_name TEXT NOT NULL,
+  channel_url TEXT NOT NULL,
+  contact_email TEXT NOT NULL,
+  code TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.affiliate_applications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read affiliate_applications" ON public.affiliate_applications;
+CREATE POLICY "Public read affiliate_applications" ON public.affiliate_applications FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public write affiliate_applications" ON public.affiliate_applications;
+CREATE POLICY "Public write affiliate_applications" ON public.affiliate_applications FOR ALL USING (true);
+
+-- ============================================================================
 -- 10. 시드 데이터 (Seed Data)
 -- ============================================================================
 INSERT INTO public.profiles (id, handle, email, phone, nickname, gender, birth_year, job_title, dietary, interests)

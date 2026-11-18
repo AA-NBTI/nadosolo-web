@@ -28,6 +28,7 @@ import AdminGovernanceManager from '@/components/admin/AdminGovernanceManager';
 import AdminAdaptiveMatchingManager from '@/components/admin/AdminAdaptiveMatchingManager';
 import AdminPreMatchPage from './pre-match/page';
 import AdminTimeleftManager from '@/components/admin/AdminTimeleftManager';
+import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
 import { SAMPLE_STALLED_USER_CASES } from '@/engine/processGateEngine';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import { buildMeetupSeoSlug } from '@/lib/seoSlug';
@@ -255,6 +256,12 @@ export default function AdminOperationsDashboardPage() {
     return DEFAULT_AB_EXPERIMENTS;
   });
 
+  useEffect(() => {
+    getAppConfig<AbExperimentSpec[]>('ab_experiments', 'nadosolo_ab_experiments_v1', DEFAULT_AB_EXPERIMENTS).then((list) => {
+      if (Array.isArray(list) && list.length > 0) setAbExperiments(list);
+    });
+  }, []);
+
   const handleUpdateAbMode = (
     experimentId: string,
     mode: 'A_ONLY' | 'AB_SPLIT' | 'B_ONLY'
@@ -263,9 +270,7 @@ export default function AdminOperationsDashboardPage() {
       const next = prev.map((e) =>
         e.experimentId === experimentId ? { ...e, activeMode: mode } : e
       );
-      try {
-        localStorage.setItem('nadosolo_ab_experiments_v1', JSON.stringify(next));
-      } catch {}
+      void saveAppConfig('ab_experiments', 'nadosolo_ab_experiments_v1', next);
       return next;
     });
     notify(`A/B 실험 모드 변경: ${mode}`);
@@ -3060,12 +3065,12 @@ export default function AdminOperationsDashboardPage() {
           {/* ----------------------------------------------------------
               [시스템/테스트] 프로세스 점검 보고서 & 이용자 동선 검증
               ---------------------------------------------------------- */}
-          {activeTab === 'TL_SLOT' && <AdminTimeleftManager section="SLOT" onNotify={notify} />}
-          {activeTab === 'TL_NOTIFY' && <AdminTimeleftManager section="NOTIFY" onNotify={notify} />}
-          {activeTab === 'TL_SANCTION' && <AdminTimeleftManager section="SANCTION" onNotify={notify} />}
-          {activeTab === 'TL_TICKET' && <AdminTimeleftManager section="TICKET" onNotify={notify} />}
-          {activeTab === 'TL_PARTNER' && <AdminTimeleftManager section="PARTNER" partnerVenues={partnerVenues} onNotify={notify} />}
-          {activeTab === 'TL_AUTOMATION' && <AdminTimeleftManager section="AUTOMATION" onNotify={notify} />}
+          {activeTab === 'TL_SLOT' && <AdminTimeleftManager section="SLOT" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'TL_NOTIFY' && <AdminTimeleftManager section="NOTIFY" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'TL_SANCTION' && <AdminTimeleftManager section="SANCTION" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'TL_TICKET' && <AdminTimeleftManager section="TICKET" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'TL_PARTNER' && <AdminTimeleftManager section="PARTNER" isLight={isLight} partnerVenues={partnerVenues} onNotify={notify} />}
+          {activeTab === 'TL_AUTOMATION' && <AdminTimeleftManager section="AUTOMATION" isLight={isLight} onNotify={notify} />}
 
           {activeTab === 'PROCESS_TEST_REPORT' && (
             <AdminProcessTestReportManager />

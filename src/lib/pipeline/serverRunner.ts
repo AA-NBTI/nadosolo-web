@@ -20,12 +20,14 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
 
   const supabase = await createClient();
 
-  const [profilesRes, appsRes, meetupsRes, blocksRes, notifProbeRes] = await Promise.all([
+  const [profilesRes, appsRes, meetupsRes, blocksRes, notifProbeRes, cfgProbeRes, affProbeRes] = await Promise.all([
     supabase.from('profiles').select('*').order('created_at', { ascending: true }),
     supabase.from('event_applications').select('user_id, event_id, status'),
     supabase.from('meetups').select('meetup_id, title'),
     supabase.from('user_blocks').select('from_user_id, blocked_user_id'),
     supabase.from('notifications').select('id').limit(1),
+    supabase.from('app_configs').select('key').limit(1),
+    supabase.from('affiliate_applications').select('id').limit(1),
   ]);
 
   if (profilesRes.error) {
@@ -37,6 +39,8 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
     meetups: !meetupsRes.error,
     notifications: !notifProbeRes.error,
     user_blocks: !blocksRes.error,
+    app_configs: !cfgProbeRes.error,
+    affiliate_applications: !affProbeRes.error,
   };
 
   const blockedPairs = (blocksRes.data ?? []).map((b: any) => ({

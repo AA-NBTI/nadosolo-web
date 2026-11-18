@@ -4,7 +4,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ShieldCheck, CreditCard, Smartphone, AlertCircle } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
-import { resolvePromo } from '@/lib/promoCodes';
+import {
+  DEFAULT_PROMO_CODES,
+  PromoCode,
+  fetchPromoCodes,
+  resolvePromoFromList,
+} from '@/lib/promoCodes';
 
 export interface CheckoutEventData {
   eventId: string;
@@ -39,8 +44,14 @@ export default function CheckoutModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState('');
+  const [promoList, setPromoList] = useState<PromoCode[]>(DEFAULT_PROMO_CODES);
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountKrw: number } | null>(null);
   const [promoNotice, setPromoNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetchPromoCodes().then((list) => setPromoList(list));
+  }, [isOpen]);
 
   // 신청 직전 필수 매칭 조건 로컬 보완 상태
   const [gateCity, setGateCity] = useState(currentUser?.residenceCity || '서울');
@@ -90,7 +101,7 @@ export default function CheckoutModal({
   const handleApplyPromo = () => {
     const code = promoCode.trim().toUpperCase();
     if (!code) return;
-    const resolved = resolvePromo(code, basePrice);
+    const resolved = resolvePromoFromList(code, basePrice, promoList);
     if (resolved) {
       setAppliedPromo({ code, discountKrw: resolved.discountKrw });
       setPromoNotice(resolved.notice);

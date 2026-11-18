@@ -86,6 +86,7 @@ export default function MeetupSlotBookingPage() {
       } else {
         existing.poolCount += 1;
         if (appliedHere) existing.isApplied = true;
+        if (ev.status === 'RECRUITING') existing.status = 'RECRUITING';
       }
     }
 
@@ -232,7 +233,7 @@ export default function MeetupSlotBookingPage() {
                     )}
                   </div>
                   <span className="text-sm font-mono text-zinc-400">
-                    {slot.isApplied ? '예약완료' : '예약가능'}
+                    {slot.isApplied ? '예약완료' : slot.status === 'CLOSED' ? '모집마감' : '예약가능'}
                   </span>
                 </div>
 
@@ -266,9 +267,9 @@ export default function MeetupSlotBookingPage() {
 
                 <button
                   type="button"
-                  disabled={slot.isApplied}
+                  disabled={slot.isApplied || slot.status === 'CLOSED'}
                   onClick={async () => {
-                    if (slot.isApplied) return;
+                    if (slot.isApplied || slot.status === 'CLOSED') return;
                     if (!currentUser) {
                       router.push(`/auth?next=${encodeURIComponent('/meetup')}`);
                       return;
@@ -303,13 +304,15 @@ export default function MeetupSlotBookingPage() {
                     setIsCheckoutOpen(true);
                   }}
                   className={`px-5 py-2.5 text-sm font-mono transition-colors ${
-                    slot.isApplied
+                    slot.isApplied || slot.status === 'CLOSED'
                       ? 'border border-white/10 text-zinc-500 cursor-not-allowed'
                       : 'border border-[#f04f74] bg-[#f04f74] hover:opacity-90 text-white font-semibold cursor-pointer'
                   }`}
                 >
                   {slot.isApplied
                     ? '예약됨'
+                    : slot.status === 'CLOSED'
+                    ? '마감'
                     : ticketCredits > 0
                     ? '참가권 예약'
                     : !hasCompletedQuiz && currentUser

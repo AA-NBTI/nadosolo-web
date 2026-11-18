@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import { buildMeetupSeoSlug } from '@/lib/seoSlug';
+import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
 import {
   ADAPTIVE_DINING_PLAYBOOK,
   CityLocaleConfig,
@@ -167,6 +168,106 @@ const INITIAL_CMS_PAGES: CmsPageConfig[] = [
       '외모 · 스타일 · 음성 · 대화 · 매너 5대 영역과 정돈 · 조화 · 센스 · 안정 · 호감 5대 기준으로 분석한 독점 코칭 자산입니다.',
     heroImage:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuDUJfjbffBQl2kZ4567cjeJkI4qL95CmH-zCAj3cePtOSvSqDfzkL1qluQx--znKzww8gszKU3Z_1brYJye92iBMCQZY_9ItYYmVYLLGt3hgWTGQzOkVyMHfX2UlAzEiGEayoTPSjDovFQaRYy2qv8svCeZSeNXqL6J78I4CFQEIOtldn_eMQsMtYYwdpyL5ivD6UhRsDlPTGwfWilvlfhyfPzBdgw2DUsUSwKufSY',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_BUSAN',
+    route: '/busan',
+    title: '부산 다이닝',
+    badgeText: 'BUSAN PRIVATE DINING',
+    headline: '부산 해운대·광안·전포 프라이빗 6인 식탁',
+    subheadline: '기존 다크 럭셔리 부산 다이닝 예약(레퍼런스 A안)',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_MEETUP',
+    route: '/meetup',
+    title: '블라인드 슬롯 예약',
+    badgeText: 'BLIND SLOT BOOKING',
+    headline: '도시와 요일만 고르면 나머지는 매칭 엔진이 설계합니다',
+    subheadline: 'D-1 19:00 식당·동석자 비공개 공개, 48시간 전 무료 취소/이월',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_LOCATIONS',
+    route: '/locations',
+    title: '운영 도시',
+    badgeText: 'CITIES & DISTRICTS',
+    headline: '서울 · 부산 핵심 생활권 소셜 다이닝',
+    subheadline: '성수·강남·해운대·광안 등 검증된 제휴 비스트로에서 만납니다.',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_PRICING',
+    route: '/pricing',
+    title: '요금 및 참가권',
+    badgeText: 'PRICING & TICKETS',
+    headline: '다면 관찰 엔진 라이선스 ₩30,000',
+    subheadline: '식음료 비용은 현장에서 1/N 직접 결제하며 수수료를 받지 않습니다.',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_ABOUT',
+    route: '/about',
+    title: '브랜드 소개',
+    badgeText: 'ABOUT NADOSOLO',
+    headline: '그렇다, 인간은 누구나 솔로다',
+    subheadline: '타인의 시선으로 나의 소통 역량을 발견하는 소셜 메타인지 플랫폼',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_AFFILIATE',
+    route: '/affiliate',
+    title: '어필리에이트',
+    badgeText: 'AFFILIATE PARTNER',
+    headline: '나도솔로 프렌즈 제휴 파트너 프로그램',
+    subheadline: '전용 추천 코드 발급 및 제휴 수익 공유',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_PARTNERS',
+    route: '/partners',
+    title: '제휴 식당 입점',
+    badgeText: 'PARTNER RESTAURANTS',
+    headline: '마케팅 비용 0원 · 매주 6인 확정 테이블 송객',
+    subheadline: '당일 1/N 매장 직접 결제, 식음료 수수료 없음',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_SAFETY',
+    route: '/safety',
+    title: '안전 · 에티켓 규율',
+    badgeText: 'SAFETY & TRUST',
+    headline: '절대 익명성 · 영구 재매칭 차단 · 노쇼 방지 규율',
+    subheadline: '건강하고 안전한 6인 테이블을 위한 5대 보호 장치',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_GUIDE',
+    route: '/guide',
+    title: '이용 가이드',
+    badgeText: 'USER GUIDE',
+    headline: '나도솔로 다이닝 가이드 & 에티켓 헌장',
+    subheadline: '퀴즈부터 D-1 Reveal, 1/N 정산, 상호 평가까지 전 과정 안내',
+    heroImage: '',
+    status: 'PUBLISHED',
+  },
+  {
+    pageId: 'PAGE_TEST',
+    route: '/test',
+    title: '성향 · 소통 퀴즈',
+    badgeText: 'PERSONALITY QUIZ',
+    headline: '나와 결이 맞는 6인 테이블을 찾는 성향 진단',
+    subheadline: '15문항(A안) 또는 19문항(B안) 기반 동적 매칭 프로파일 생성',
+    heroImage: '',
     status: 'PUBLISHED',
   },
 ];
@@ -521,6 +622,14 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   const [partnerVenues, setPartnerVenues] = useState<PartnerVenue[]>(
     SAMPLE_PARTNER_VENUES
   );
+
+  useEffect(() => {
+    getAppConfig<PartnerVenue[]>('partner_venues', 'nadosolo_partner_venues_v1', SAMPLE_PARTNER_VENUES).then((list) => {
+      if (Array.isArray(list) && list.length > 0) {
+        setPartnerVenues(list);
+      }
+    });
+  }, []);
   const [standbyReplacementLog, setStandbyReplacementLog] = useState<
     string | null
   >(null);
@@ -533,6 +642,17 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
 
   // CMS 관리 상태
   const [cmsPages, setCmsPages] = useState<CmsPageConfig[]>(INITIAL_CMS_PAGES);
+
+  useEffect(() => {
+    getAppConfig<CmsPageConfig[]>('cms_pages', 'nadosolo_cms_pages_v1', INITIAL_CMS_PAGES).then((saved) => {
+      if (Array.isArray(saved) && saved.length > 0) {
+        const savedMap = new Map(saved.map((p) => [p.pageId, p]));
+        const merged = INITIAL_CMS_PAGES.map((def) => savedMap.get(def.pageId) ?? def);
+        const extras = saved.filter((p) => !INITIAL_CMS_PAGES.some((d) => d.pageId === p.pageId));
+        setCmsPages([...merged, ...extras]);
+      }
+    });
+  }, []);
   const [cmsAtmospheres, setCmsAtmospheres] = useState<CmsAtmosphereItem[]>(
     INITIAL_CMS_ATMOSPHERES
   );
@@ -1642,17 +1762,25 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addPartnerVenue = (v: PartnerVenue) => {
-    setPartnerVenues((prev) => [v, ...prev]);
+    setPartnerVenues((prev) => {
+      const next = [v, ...prev];
+      void saveAppConfig('partner_venues', 'nadosolo_partner_venues_v1', next);
+      return next;
+    });
   };
   const updatePartnerVenue = (v: PartnerVenue) => {
-    setPartnerVenues((prev) =>
-      prev.map((item) => (item.venueId === v.venueId ? v : item))
-    );
+    setPartnerVenues((prev) => {
+      const next = prev.map((item) => (item.venueId === v.venueId ? v : item));
+      void saveAppConfig('partner_venues', 'nadosolo_partner_venues_v1', next);
+      return next;
+    });
   };
   const deletePartnerVenue = (venueId: string) => {
-    setPartnerVenues((prev) =>
-      prev.filter((item) => item.venueId !== venueId)
-    );
+    setPartnerVenues((prev) => {
+      const next = prev.filter((item) => item.venueId !== venueId);
+      void saveAppConfig('partner_venues', 'nadosolo_partner_venues_v1', next);
+      return next;
+    });
   };
 
   const addPlaybookCard = (card: PlaybookCard) => {
@@ -1668,15 +1796,25 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateCmsPage = (page: CmsPageConfig) => {
-    setCmsPages((prev) =>
-      prev.map((p) => (p.pageId === page.pageId ? page : p))
-    );
+    setCmsPages((prev) => {
+      const next = prev.map((p) => (p.pageId === page.pageId ? page : p));
+      void saveAppConfig('cms_pages', 'nadosolo_cms_pages_v1', next);
+      return next;
+    });
   };
   const addCmsPage = (page: CmsPageConfig) => {
-    setCmsPages((prev) => [...prev, page]);
+    setCmsPages((prev) => {
+      const next = [...prev, page];
+      void saveAppConfig('cms_pages', 'nadosolo_cms_pages_v1', next);
+      return next;
+    });
   };
   const deleteCmsPage = (pageId: string) => {
-    setCmsPages((prev) => prev.filter((p) => p.pageId !== pageId));
+    setCmsPages((prev) => {
+      const next = prev.filter((p) => p.pageId !== pageId);
+      void saveAppConfig('cms_pages', 'nadosolo_cms_pages_v1', next);
+      return next;
+    });
   };
 
   const addCmsAtmosphere = (item: CmsAtmosphereItem) => {

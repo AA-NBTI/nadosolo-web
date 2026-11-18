@@ -55,7 +55,7 @@ async function main() {
     `API/Cron: auto-match(${data.ok ? 'OK' : 'FAIL'}) · daily-match(${cronData.ok ? 'OK' : 'FAIL'})`
   );
   console.log(
-    `DB 테이블: profiles(${t.profiles ? 'OK' : 'MISSING'}) · meetups(${t.meetups ? 'OK' : 'MISSING'}) · notifications(${t.notifications ? 'OK' : 'MISSING'}) · user_blocks(${t.user_blocks ? 'OK' : 'MISSING'})`
+    `DB 테이블: profiles(${t.profiles ? 'OK' : 'MISSING'}) · meetups(${t.meetups ? 'OK' : 'MISSING'}) · notifications(${t.notifications ? 'OK' : 'MISSING'}) · user_blocks(${t.user_blocks ? 'OK' : 'MISSING'}) · app_configs(${t.app_configs ? 'OK' : 'MISSING'}) · affiliate_applications(${t.affiliate_applications ? 'OK' : 'MISSING'})`
   );
   console.log(`회원: 총 ${s.totalProfiles ?? 0}명 (입금 ${s.paidCount ?? 0} / 미입금 ${s.unpaidCount ?? 0})`);
   console.log(
@@ -66,7 +66,9 @@ async function main() {
     console.log(`  - ${c.caseId} [${c.status}]: ${c.title}`);
   }
 
-  const dbOk = Boolean(t.profiles && t.meetups && t.notifications && t.user_blocks);
+  const dbOk = Boolean(
+    t.profiles && t.meetups && t.notifications && t.user_blocks && t.app_configs && t.affiliate_applications
+  );
   if (!data.ok || !cronData.ok || !data.allAuditPassed || !dbOk || routeSummary.failures.length > 0) {
     process.exit(1);
   }

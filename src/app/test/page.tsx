@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getAppConfig } from '@/lib/appConfigDb';
 import {
   useNadoSoloEngine,
   DEFAULT_ADAPTIVE_QUESTIONS,
@@ -51,6 +52,15 @@ export default function SoloTestPage() {
     return 'TIMELEFT_A';
   });
   const [currentIdx, setCurrentIdx] = useState(0);
+
+  useEffect(() => {
+    if (hasExistingBase) return;
+    getAppConfig<Array<{ experimentId: string; activeMode: string }>>('ab_experiments', 'nadosolo_ab_experiments_v1', []).then((list) => {
+      const exp = Array.isArray(list) ? list.find((e) => e.experimentId === 'EXP_QUIZ_ONBOARDING') : undefined;
+      if (exp?.activeMode === 'B_ONLY') setQuizMode('B_EXTENDED');
+      else if (exp?.activeMode === 'A_ONLY') setQuizMode('TIMELEFT_A');
+    });
+  }, [hasExistingBase]);
   const [localAnswers, setLocalAnswers] = useState<Record<string, string>>(() => ({
     ...surveyAnswers,
   }));

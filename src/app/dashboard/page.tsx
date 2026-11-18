@@ -359,6 +359,7 @@ function MemberDashboardContent() {
   const [notifications, setNotifications] = useState<
     Array<{
       id: string;
+      event_id?: string;
       type: string;
       title: string;
       message: string;
@@ -781,8 +782,14 @@ function MemberDashboardContent() {
                 const hoursUntilEvent = primaryEv?.eventDate
                   ? (new Date(primaryEv.eventDate).getTime() - Date.now()) / (1000 * 60 * 60)
                   : Number.POSITIVE_INFINITY;
+                const hasRevealNotif = notifications.some(
+                  (n) =>
+                    n.type === 'D1_REVEAL' &&
+                    (!primaryEv || !n.event_id || n.event_id === primaryEv.eventId)
+                );
                 const isRevealed =
                   primaryEv?.status === 'CONFIRMED' ||
+                  hasRevealNotif ||
                   (!Number.isNaN(hoursUntilEvent) && hoursUntilEvent <= 24);
 
                 if (!isRevealed) {

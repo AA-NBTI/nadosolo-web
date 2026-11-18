@@ -1,3 +1,5 @@
+import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
+
 export interface PromoCode {
   code: string;
   type: 'PERCENT' | 'FIXED';
@@ -6,6 +8,7 @@ export interface PromoCode {
 }
 
 export const PROMO_STORAGE_KEY = 'nadosolo_promo_codes_v1';
+const PROMO_CONFIG_KEY = 'promo_codes';
 
 export const DEFAULT_PROMO_CODES: PromoCode[] = [
   { code: 'NADOSOLO10', type: 'PERCENT', value: 10, active: true },
@@ -26,14 +29,27 @@ export function getPromoCodes(): PromoCode[] {
 }
 
 export function savePromoCodes(list: PromoCode[]) {
-  localStorage.setItem(PROMO_STORAGE_KEY, JSON.stringify(list));
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(PROMO_STORAGE_KEY, JSON.stringify(list));
+  }
+  void saveAppConfig(PROMO_CONFIG_KEY, PROMO_STORAGE_KEY, list);
 }
 
-export function resolvePromo(
+export async function fetchPromoCodes(): Promise<PromoCode[]> {
+  const list = await getAppConfig<PromoCode[]>(PROMO_CONFIG_KEY, PROMO_STORAGE_KEY, DEFAULT_PROMO_CODES);
+  return Array.isArray(list) && list.length > 0 ? list : DEFAULT_PROMO_CODES;
+}
+
+export async function savePromoCodesDb(list: PromoCode[]): Promise<boolean> {
+  return saveAppConfig(PROMO_CONFIG_KEY, PROMO_STORAGE_KEY, list);
+}
+
+export function resolvePromoFromList(
   code: string,
-  basePrice: number
+  basePrice: number,
+  list: PromoCode[]
 ): { discountKrw: number; notice: string } | null {
-  const hit = getPromoCodes().find((p) => p.active && p.code === code.trim().toUpperCase());
+  const hit = list.find((p) => p.active && p.code === code.trim().toUpperCase());
   if (!hit) return null;
   const discountKrw = hit.type === 'PERCENT' ? Math.round((basePrice * hit.value) / 100) : hit.value;
   const notice =
@@ -41,4 +57,11 @@ export function resolvePromo(
       ? `${hit.value}% 할인 (-₩${discountKrw.toLocaleString()}) 적용`
       : `₩${discountKrw.toLocaleString()} 할인 적용`;
   return { discountKrw, notice };
+}
+
+export function resolvePromo(
+  code: string,
+  basePrice: number
+): { discountKrw: number; notice: string } | null {
+  return resolvePromoFromList(code, basePrice, getPromoCodes());
 }
