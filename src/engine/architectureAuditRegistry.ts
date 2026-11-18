@@ -268,11 +268,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.6.1',
+    releaseTitle: '메인 페이지 Timeleft 코랄 오렌지 컬러의 공식 브랜드 핑크 포인트(#f04f74) 전면 통일',
+    releaseDate: '2026-11-18',
+    summary: '메인 페이지(src/app/page.tsx)의 selection, 헤로 이탤릭 강조, 메인 CTA 버튼, D-1 공개 라벨, HOW IT WORKS 파스텔 카드 및 뱃지, 3대 안전 보증 아이콘, 5성급 후기 별점, 파트너십 입점 버튼 등 기존 코랄 오렌지(#FF5A36) 코드를 나도솔로 공식 브랜드 포인트 컬러(#f04f74, #d93a5e, #FFF1F4)로 완전 통일',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2611',
+        category: 'CONSTITUTION',
+        categoryLabel: '디자인표준',
+        title: '메인 페이지 공식 브랜드 핑크 포인트 컬러(#f04f74) 전면 동기화',
+        beforeSummary: 'Timeleft 레퍼런스 이식 과정의 코랄 오렌지(#FF5A36, #FFF0E5, #e84b28) 혼용',
+        afterSummary: '나도솔로 헌법 제5조 공식 브랜드 포인트(#f04f74, hover:#d93a5e, bg:#FFF1F4)로 완전 일원화',
+        impactLabel: '브랜드 아이덴티티 시각적 통일성 및 디자인 헌법 100% 준수',
+        status: 'APPLIED',
+        affectedRoutes: ['/'],
+      },
+    ],
+  },
+  {
     version: 'v2.6.0',
     releaseTitle: '전 시스템 4대 범용 모듈화(identity·partners·billing·mirror) 및 아카이브/헤더 동선 완전 분리',
     releaseDate: '2026-11-18',
     summary: '1순위(identity: 관리자·가상테스터·실회원 분리 및 매칭풀 관리자 제외), 2순위(billing: 결제·프로모션 쿠폰·크레딧 지갑·48h/24h 취소이월 범용 모듈화), 3순위(mirror: 단일 명사 다면관찰·상호주의 해금·100점 정규화 리포트 범용 모듈화), 4순위(관리자 타임레프트/아카이브 분리 및 글로벌 헤더 일반/파트너스 동선 분리) 완결',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2601',

@@ -37,7 +37,7 @@ const BANNER_SLIDES = [
 const HOW_IT_WORKS = [
   {
     step: '01',
-    bg: 'bg-[#FFF0E5]',
+    bg: 'bg-[#FFF1F4]',
     title: '짧은 성향 퀴즈',
     desc: '대화 에너지, 깊이, 관심사, 예산, 식단 제한을 1분 만에 선택합니다.',
   },
@@ -98,14 +98,14 @@ export default function TimeleftEditorialHomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FAF6F0] text-[#18181B] flex flex-col font-sans selection:bg-[#FF5A36] selection:text-white">
+    <div className="min-h-screen bg-[#FAF6F0] text-[#18181B] flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
       {/* 1. 타임레프트 시그니처 웜 크림 + 일러스트 Hero */}
       <section className="w-full py-12 sm:py-20 bg-[#FAF6F0]">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
             <div className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-black/10 shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-[#FF5A36]" />
+                <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
                 <span className="text-xs font-semibold tracking-wide text-[#18181B]">
                   매주 금·토 저녁, 낯선 6인의 따뜻한 식탁
                 </span>
@@ -113,7 +113,7 @@ export default function TimeleftEditorialHomePage() {
 
               <h1 className="font-serif-editorial text-4xl sm:text-5xl lg:text-[58px] font-normal text-[#18181B] tracking-tight leading-[1.15]">
                 <span className="block">{heroSector?.headlineTitle || '나도솔로 — 이유있는 만남,'}</span>
-                <span className="block font-light italic text-[#FF5A36] mt-2 whitespace-pre-line">
+                <span className="block font-light italic text-[#f04f74] mt-2 whitespace-pre-line">
                   {heroSector?.headlineHighlight || '직진은 NO!\n같은 방향을 바라보다'}
                 </span>
               </h1>
@@ -126,7 +126,7 @@ export default function TimeleftEditorialHomePage() {
                 <Link
                   href="/test"
                   prefetch={true}
-                  className="px-7 py-4 rounded-full bg-[#FF5A36] hover:bg-[#e84b28] text-white text-sm font-semibold inline-flex items-center gap-2 shadow-lg shadow-[#FF5A36]/25 transition-all"
+                  className="px-7 py-4 rounded-full bg-[#f04f74] hover:bg-[#d93a5e] text-white text-sm font-semibold inline-flex items-center gap-2 shadow-lg shadow-[#f04f74]/25 transition-all"
                 >
                   <span>내 자리 예약하기</span>
                   <ArrowRight className="w-4 h-4" />
@@ -151,7 +151,7 @@ export default function TimeleftEditorialHomePage() {
                 />
                 <div className="mt-3 px-3 pb-1 flex items-center justify-between text-xs font-medium text-zinc-600">
                   <span>6인 성향 맞춤 테이블 · 사전 1:1 DM 차단</span>
-                  <span className="text-[#FF5A36] font-semibold">D-1 19:00 식당 공개</span>
+                  <span className="text-[#f04f74] font-semibold">D-1 19:00 식당 공개</span>
                 </div>
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function TimeleftEditorialHomePage() {
       <section className="w-full py-16 sm:py-24 bg-white border-y border-black/[0.06]">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="inline-block px-3.5 py-1 rounded-full bg-[#FFF0E5] text-[#FF5A36] text-xs font-bold tracking-wider uppercase">
+            <span className="inline-block px-3.5 py-1 rounded-full bg-[#FFF1F4] text-[#f04f74] text-xs font-bold tracking-wider uppercase">
               HOW IT WORKS
             </span>
             <h2 className="font-serif-editorial text-3xl sm:text-5xl text-[#18181B] font-normal">
@@ -189,7 +189,7 @@ export default function TimeleftEditorialHomePage() {
                 <Link
                   href={item.step === '01' ? '/test' : '/meetup'}
                   prefetch={true}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#18181B] hover:text-[#FF5A36]"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#18181B] hover:text-[#f04f74]"
                 >
                   <span>바로 가기</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ export default function TimeleftEditorialHomePage() {
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="space-y-2">
-              <span className="text-xs font-bold tracking-widest text-[#FF5A36] uppercase block">
+              <span className="text-xs font-bold tracking-widest text-[#f04f74] uppercase block">
                 REAL ATMOSPHERE
               </span>
               <h2 className="font-serif-editorial text-3xl sm:text-4xl text-white font-normal">
@@ -287,7 +287,7 @@ export default function TimeleftEditorialHomePage() {
             </div>
 
             <div className="lg:col-span-6 space-y-5">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white border border-black/10 text-xs font-bold text-[#FF5A36]">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white border border-black/10 text-xs font-bold text-[#f04f74]">
                 <MapPin className="w-3.5 h-3.5" />
                 <span>CITIES &amp; FORMATS</span>
               </div>
@@ -320,7 +320,7 @@ export default function TimeleftEditorialHomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="p-6 rounded-3xl bg-white border border-black/[0.06] space-y-2">
               <div className="flex items-center gap-2 font-semibold text-[#18181B]">
-                <ShieldCheck className="w-5 h-5 text-[#FF5A36]" />
+                <ShieldCheck className="w-5 h-5 text-[#f04f74]" />
                 <span>공공 제휴 식당 100% · 사전 DM 차단</span>
               </div>
               <p className="text-sm text-zinc-600 leading-relaxed">
@@ -329,7 +329,7 @@ export default function TimeleftEditorialHomePage() {
             </div>
             <div className="p-6 rounded-3xl bg-white border border-black/[0.06] space-y-2">
               <div className="flex items-center gap-2 font-semibold text-[#18181B]">
-                <CheckCircle2 className="w-5 h-5 text-[#FF5A36]" />
+                <CheckCircle2 className="w-5 h-5 text-[#f04f74]" />
                 <span>노쇼 제재 &amp; 영구 재매칭 차단</span>
               </div>
               <p className="text-sm text-zinc-600 leading-relaxed">
@@ -338,7 +338,7 @@ export default function TimeleftEditorialHomePage() {
             </div>
             <div className="p-6 rounded-3xl bg-white border border-black/[0.06] space-y-2">
               <div className="flex items-center gap-2 font-semibold text-[#18181B]">
-                <CreditCard className="w-5 h-5 text-[#FF5A36]" />
+                <CreditCard className="w-5 h-5 text-[#f04f74]" />
                 <span>48시간 전 무료 취소 · 참가권 보존</span>
               </div>
               <p className="text-sm text-zinc-600 leading-relaxed">
@@ -366,9 +366,9 @@ export default function TimeleftEditorialHomePage() {
                 key={idx}
                 className="p-7 rounded-3xl bg-white border border-black/[0.06] shadow-sm flex flex-col justify-between space-y-4"
               >
-                <div className="flex items-center gap-1 text-[#FF5A36]">
+                <div className="flex items-center gap-1 text-[#f04f74]">
                   {[0, 1, 2, 3, 4].map((s) => (
-                    <Star key={s} className="w-4 h-4 fill-[#FF5A36]" />
+                    <Star key={s} className="w-4 h-4 fill-[#f04f74]" />
                   ))}
                 </div>
                 <p className="text-sm text-zinc-800 leading-relaxed">{rv.quote}</p>
@@ -384,7 +384,7 @@ export default function TimeleftEditorialHomePage() {
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-14">
           <div className="p-8 rounded-[2rem] bg-[#18181B] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-2 max-w-xl">
-              <span className="text-xs font-bold tracking-widest text-[#FF5A36] uppercase block">
+              <span className="text-xs font-bold tracking-widest text-[#f04f74] uppercase block">
                 PARTNERS &amp; AFFILIATES
               </span>
               <h3 className="font-serif-editorial text-2xl sm:text-3xl font-normal">
@@ -405,7 +405,7 @@ export default function TimeleftEditorialHomePage() {
               <Link
                 href="/partners"
                 prefetch={true}
-                className="px-6 py-3 rounded-full bg-[#FF5A36] text-white text-xs font-bold"
+                className="px-6 py-3 rounded-full bg-[#f04f74] hover:bg-[#d93a5e] text-white text-xs font-bold transition-colors"
               >
                 제휴식당 입점
               </Link>
