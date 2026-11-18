@@ -127,15 +127,13 @@ function ChecklistContent() {
     else delete nextAnswers[currentQ.id];
     setLocalAnswers(nextAnswers);
 
-    // 1) '제한 없음(NONE)' 선택 시 단일 선택처럼 250ms 후 다음 문항 자동 이동
-    if (isAdding && optId === 'NONE') {
-      setTimeout(() => {
-        goNextStep(nextAnswers);
-      }, 250);
+    // 회장님 지시: 마지막 문항(24번 식단 제약 등)에서는 자동 넘김을 제거하고 본인 확인 후 [완료] 버튼으로 직접 확정
+    const isLastQuestion = currentIdx === totalQuestions - 1;
+    if (isLastQuestion) {
       return;
     }
 
-    // 2) 최대 선택 개수(예: 2개)가 모두 선택되면 350ms 후 자동으로 다음 문항 자동 이동!
+    // 중간 복수 선택 문항(최대 2개 제한)에서만 2개 모두 선택 시 350ms 후 자동 다음 문항 이동
     if (isAdding && maxCount !== undefined && nextTokens.length >= maxCount) {
       setTimeout(() => {
         goNextStep(nextAnswers);
@@ -195,7 +193,8 @@ function ChecklistContent() {
 
   const handleModifyAnswers = () => {
     setIsCompleted(false);
-    setCurrentIdx(0);
+    // 회장님 지시: 1번이 아니라 마지막 문항(24번 또는 모드별 마지막 문항)으로 이동하여 [이전] 버튼으로 역순 탐색 가능
+    setCurrentIdx(Math.max(0, totalQuestions - 1));
   };
 
   // 모드별 명칭
@@ -366,7 +365,7 @@ function ChecklistContent() {
                     ? currentQ.inputType === 'MULTI'
                       ? '선택 완료 →'
                       : '다음'
-                    : '진단 완료'}
+                    : '완료'}
                 </button>
               )}
             </div>

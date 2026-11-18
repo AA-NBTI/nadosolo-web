@@ -1364,9 +1364,6 @@ export default function AdminAdaptiveMatchingManager({
                                           ...prev,
                                           [currentQ.id]: next.join(','),
                                         }));
-                                        if (next.length > 0 && safeIdx < totalCount - 1) {
-                                          setTimeout(() => setSimulatorStepIdx(safeIdx + 1), 250);
-                                        }
                                         return;
                                       }
                                       const cleaned = tokens.filter((t) => t !== 'NONE');
