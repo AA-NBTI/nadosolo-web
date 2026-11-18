@@ -268,11 +268,53 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.6.8',
+    releaseTitle: '관리자 체크리스트 시험 테스트(인터랙티브 시뮬레이터·5종 페르소나 자동응답·4대 축 실시간 산출·실제 유저화면 연동) 완결',
+    releaseDate: '2026-11-18',
+    summary: '관리자가 체크리스트(사전 BASE 8문항, 결제후 DEEP 24문항, 컨디션 PULSE 4문항 = 총 36문항)를 인터랙티브하게 시험 테스트할 수 있는 내장 시뮬레이터 구축. IT기획자/디자이너/창업리더/비건웰니스/랜덤 5종 가상 페르소나 1초 자동 응답, 문항별 스텝 이동 및 5점척도/단일/복수(최대2개제약)/직접입력 풀기, 4대 동적 축(목적, 심도, 테마, 에너지) 점수 및 매칭 적합도 실시간 산출 패널, 실제 온보딩 유저 화면(/test, /test?mode=DEEP, /test?mode=PULSE) 새 창 직결 제공.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2681',
+        category: 'ADMIN',
+        categoryLabel: '시뮬레이터',
+        title: '체크리스트 36문항 인터랙티브 시험 테스트 시뮬레이터 구축',
+        beforeSummary: '관리자가 실제 문항을 인터랙티브하게 풀어보고 가중치 정규화 공식을 시뮬레이션할 수 있는 도구 부재',
+        afterSummary: 'AdminAdaptiveMatchingManager 내 시뮬레이터 모달 구축. 사전(8)/결제후(24)/컨디션(4)/전체(36) 모드 지원, 5점 척도/선택지/복수선택(최대 2개 제약)/직접입력 입력기 및 문항 번호 칩 빠른 이동 지원',
+        impactLabel: '운영자가 체크리스트 문항 품질과 UX 제약 조건을 실시간 점검 가능',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/components/admin/AdminAdaptiveMatchingManager'],
+      },
+      {
+        id: 'CHG-2682',
+        category: 'EVALUATION',
+        categoryLabel: '페르소나엔진',
+        title: '5종 가상 페르소나 1초 원클릭 자동 응답 및 4대 축 점수 실시간 산출',
+        beforeSummary: '테스트 시 36개 문항을 매번 일일이 수동 클릭해야 하는 피로도 존재',
+        afterSummary: 'IT 기획자, 디자이너, 창업 리더, 비건/웰니스, 랜덤 등 5대 페르소나 원클릭 자동 응답 바 구축 및 우측 패널에서 4대 축(목적, 심도, 테마, 에너지) 점수(0~100)와 매칭 목적(FRIEND, CAREER, TASTE, RESET) 실시간 디코딩 시각화',
+        impactLabel: '매칭 알고리즘과 가중치 정규화 무결성을 1초 만에 검증 완료',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/engine/dynamicMatchingEngine'],
+      },
+      {
+        id: 'CHG-2683',
+        category: 'PROCESS',
+        categoryLabel: '유저화면직결',
+        title: '실제 온보딩 유저 화면(/test) 새 창 원클릭 바로가기 지원',
+        beforeSummary: '관리자 화면에서 실제 유저 온보딩 URL을 찾기 어려움',
+        afterSummary: '상단 및 시뮬레이터 내부에 /test(사전 8문항), /test?mode=DEEP(결제후 24문항), /test?mode=PULSE(컨디션 4문항) 새 창 열기 버튼 배치',
+        impactLabel: '관리자 관점과 실제 유저 관점의 체크리스트 UX 교차 점검 편의 극대화',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/test'],
+      },
+    ],
+  },
+  {
     version: 'v2.6.7',
     releaseTitle: '관리자 대시보드 전 회원 사전/사후 체크리스트 전수 열람 및 디코더 관제 시스템 구축',
     releaseDate: '2026-11-18',
     summary: '관리자 대시보드(/admin)의 회원 영역에 [체크리스트] 전용 관제 탭을 신설하여, 전 회원의 결제 전 사전 체크리스트(BASE 8) 및 결제 후 심층 체크리스트(DEEP 24), 컨디션(PULSE 4) 응답 전수를 0.1초 만에 열람 가능하도록 구축. 회원 카드 2열 그리드와 클릭 시 전체폭(col-span-full) 상세 펼침, 검색, 결제/심층완료 필터, 한국어 응답 디코더 완비.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2671',
