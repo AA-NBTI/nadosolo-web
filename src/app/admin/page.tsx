@@ -59,6 +59,7 @@ type AdminTabKey =
   | 'MEMBER_EVAL'
   | 'MEMBER_MGMT'
   | 'MEMBER_DOSSIER'
+  | 'CHECKLIST_AUDIT'
   | 'PROCESS_TEST_REPORT'
   | 'SINGLE_AUDIT_REPORT'
   | 'PIPELINE_ENGINE'
@@ -141,6 +142,7 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
     groupTitle: '회원',
     items: [
       { key: 'MEMBER_MGMT', label: '정보' },
+      { key: 'CHECKLIST_AUDIT', label: '체크리스트' },
       { key: 'MEMBER_EVAL', label: '평가' },
       { key: 'BADGE', label: '뱃지' },
     ],
@@ -3175,6 +3177,17 @@ export default function AdminOperationsDashboardPage() {
                 onNotify={notify}
               />
             </div>
+          )}
+
+          {/* ----------------------------------------------------------
+              [체크리스트 전수 관제] 회원별 사전/결제후 심층/컨디션 체크리스트 전수 열람
+              ---------------------------------------------------------- */}
+          {activeTab === 'CHECKLIST_AUDIT' && (
+            <AdminAdaptiveMatchingManager
+              isLight={isLight}
+              onNotify={notify}
+              defaultPerspective="CHECKLIST"
+            />
           )}
 
           {/* ----------------------------------------------------------

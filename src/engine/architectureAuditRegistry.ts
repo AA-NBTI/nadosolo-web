@@ -268,11 +268,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.6.7',
+    releaseTitle: '관리자 대시보드 전 회원 사전/사후 체크리스트 전수 열람 및 디코더 관제 시스템 구축',
+    releaseDate: '2026-11-18',
+    summary: '관리자 대시보드(/admin)의 회원 영역에 [체크리스트] 전용 관제 탭을 신설하여, 전 회원의 결제 전 사전 체크리스트(BASE 8) 및 결제 후 심층 체크리스트(DEEP 24), 컨디션(PULSE 4) 응답 전수를 0.1초 만에 열람 가능하도록 구축. 회원 카드 2열 그리드와 클릭 시 전체폭(col-span-full) 상세 펼침, 검색, 결제/심층완료 필터, 한국어 응답 디코더 완비.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2671',
+        category: 'ADMIN',
+        categoryLabel: '체크리스트관제',
+        title: '관리자 전 회원 사전·사후 체크리스트 전수 열람 및 디코더 시스템',
+        beforeSummary: '관리자가 개별 회원의 결제 전/후 체크리스트 세부 응답 내용을 확인할 수 있는 전용 뷰 부재',
+        afterSummary: 'AdminAdaptiveMatchingManager 내 CHECKLIST 탭 신설 및 사이드바 [회원 > 체크리스트] 직결 연동. 회원별 결제 상태, 사전(8)/심층(24)/컨디션(4) 진행률 및 전 문항 한국어 라벨 디코딩 상세 뷰 완비',
+        impactLabel: '운영자가 D-1 테이블 편성 및 매칭 품질을 100% 투명하게 교차 검증 가능',
+        status: 'APPLIED',
+        affectedRoutes: ['/admin', '/components/admin/AdminAdaptiveMatchingManager'],
+      },
+    ],
+  },
+  {
     version: 'v2.6.6',
     releaseTitle: '사전 체크 8문항 슬림화(돌싱 분리·최대2개제한·가격대4분할·식단 결제후 이전) 및 결제창 개설지역 동적 연동',
     releaseDate: '2026-11-18',
     summary: '사전 체크리스트의 관계 상태에서 돌싱과 기타를 명확히 분리하고, 직업/언어/유머/취향 복수 선택을 최대 2개로 제한. 식단 문항을 결제 전에서 제외하여 결제 후 D-1 정밀 체크([필수 제약] vs [보조 취향])로 이전. 1인 예산대를 4개(3만원 이하/7만원 이하/10만원 이하/상관없음)로 개편하고 완료 버튼을 핑크 포인트 컬러로 강화. 참가 신청 결제 모달 매칭 지역을 실제 개설된 방이 있는 지역만 노출되도록 동적 연동 완료.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2661',

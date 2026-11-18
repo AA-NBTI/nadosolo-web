@@ -14,21 +14,56 @@ import {
 } from '@/engine/dynamicMatchingEngine';
 import { nadoSoloSupabaseService, DbProfile } from '@/lib/supabase/service';
 import { useNadoSoloEngine, ConditionalEventItem } from '@/engine';
-import { ChevronDown, ChevronUp, Sliders, Users, Activity, Layers, RefreshCw } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Sliders,
+  Users,
+  Activity,
+  Layers,
+  RefreshCw,
+  FileText,
+  Search,
+  CheckCircle2,
+  AlertCircle,
+  Filter,
+} from 'lucide-react';
+
+function decodeAnswerText(q: AdaptiveQuestionSpec, rawVal?: string): string {
+  if (!rawVal || rawVal.trim() === '') return '미입력';
+  if (q.inputType === 'SCALE_1_5' && q.scaleConfig) {
+    const num = Number(rawVal);
+    if (isNaN(num)) return rawVal;
+    if (num <= 2) return `${num}점 (${q.scaleConfig.minLabel})`;
+    if (num >= 4) return `${num}점 (${q.scaleConfig.maxLabel})`;
+    return `${num}점 (균형)`;
+  }
+  const tokens = rawVal.split(',').map((t) => t.trim()).filter(Boolean);
+  const labels = tokens.map((token) => {
+    if (token.startsWith('CUSTOM:')) {
+      return `직접입력: ${token.slice(7)}`;
+    }
+    const opt = q.options?.find((o) => o.id === token);
+    return opt ? opt.label : token;
+  });
+  return labels.length > 0 ? labels.join(' · ') : '미입력';
+}
 
 interface AdminAdaptiveMatchingManagerProps {
   isLight?: boolean;
   onNotify?: (msg: string) => void;
+  defaultPerspective?: ViewPerspective;
 }
 
-type ViewPerspective = 'ROOMS' | 'CALIBRATION' | 'AXES' | 'QUESTIONS';
+type ViewPerspective = 'ROOMS' | 'CHECKLIST' | 'CALIBRATION' | 'AXES' | 'QUESTIONS';
 
 export default function AdminAdaptiveMatchingManager({
   isLight = false,
   onNotify,
+  defaultPerspective = 'ROOMS',
 }: AdminAdaptiveMatchingManagerProps) {
   const { conditionalEvents, addConditionalEvent } = useNadoSoloEngine();
-  const [perspective, setPerspective] = useState<ViewPerspective>('ROOMS');
+  const [perspective, setPerspective] = useState<ViewPerspective>(defaultPerspective);
   const [dbProfiles, setDbProfiles] = useState<DbProfile[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -45,6 +80,10 @@ export default function AdminAdaptiveMatchingManager({
   const [expandedQuestionId, setExpandedQuestionId] = useState<string | null>(null);
   const [expandedCalId, setExpandedCalId] = useState<string | null>(null);
   const [questionLayerFilter, setQuestionLayerFilter] = useState<'ALL' | 'BASE' | 'DEEP' | 'PULSE'>('ALL');
+  const [checklistFilter, setChecklistFilter] = useState<'ALL' | 'PAID' | 'DEEP_DONE' | 'BASE_ONLY' | 'NONE'>('ALL');
+  const [checklistSearch, setChecklistSearch] = useState<string>('');
+  const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null);
+  const [checklistSubLayer, setChecklistSubLayer] = useState<'ALL' | 'BASE' | 'DEEP' | 'PULSE'>('ALL');
 
   const loadLiveProfiles = useCallback(async () => {
     setIsLoading(true);
@@ -206,9 +245,10 @@ export default function AdminAdaptiveMatchingManager({
           {(
             [
               { key: 'ROOMS', label: '부합도', icon: Users },
-              { key: 'CALIBRATION', label: '사후비교', icon: Activity },
-              { key: 'AXES', label: '축설정', icon: Sliders },
+              { key: 'CHECKLIST', label: '체크리스트', icon: FileText },
               { key: 'QUESTIONS', label: '질문지', icon: Layers },
+              { key: 'AXES', label: '축설정', icon: Sliders },
+              { key: 'CALIBRATION', label: '사후비교', icon: Activity },
             ] as const
           ).map((tab) => {
             const active = perspective === tab.key;
@@ -389,7 +429,274 @@ export default function AdminAdaptiveMatchingManager({
         </div>
       )}
 
-      {/* 2. 사전 예측 vs 사후 평가 비교 (실데이터 기반) */}
+      {/* 2. 전 회원 사전/결제후 체크리스트 전수 관제 */}
+      {perspective === 'CHECKLIST' && (() => {
+        const baseQuestions = questions.filter((q) => q.layer === 'BASE');
+        const deepQuestions = questions.filter((q) => q.layer === 'DEEP');
+        const pulseQuestions = questions.filter((q) => q.layer === 'PULSE');
+
+        const enrichedProfiles = dbProfiles.map((p) => {
+          const rawSurvey = p.survey_answers ?? {};
+          const isPaid = p.verified_badge === 'PAID' || Boolean(p.session_count && p.session_count > 0);
+          const baseCount = baseQuestions.filter((q) => rawSurvey[q.id] !== undefined || (q.id === 'BASE_06_BUDGET' && rawSurvey['Q12_BUDGET'] !== undefined)).length;
+          const deepCount = deepQuestions.filter((q) => rawSurvey[q.id] !== undefined).length;
+          const pulseCount = pulseQuestions.filter((q) => rawSurvey[q.id] !== undefined).length;
+          const isDeepDone = deepCount >= 18;
+          const isBaseDone = baseCount >= 6;
+          return {
+            profile: p,
+            rawSurvey,
+            isPaid,
+            baseCount,
+            deepCount,
+            pulseCount,
+            isDeepDone,
+            isBaseDone,
+          };
+        });
+
+        const filtered = enrichedProfiles.filter((item) => {
+          if (checklistFilter === 'PAID' && !item.isPaid) return false;
+          if (checklistFilter === 'DEEP_DONE' && !item.isDeepDone) return false;
+          if (checklistFilter === 'BASE_ONLY' && (item.isDeepDone || !item.isBaseDone)) return false;
+          if (checklistFilter === 'NONE' && (item.baseCount > 0 || item.deepCount > 0)) return false;
+
+          if (checklistSearch.trim()) {
+            const query = checklistSearch.trim().toLowerCase();
+            const p = item.profile;
+            const matchName = (p.nickname || '').toLowerCase().includes(query);
+            const matchHandle = (p.handle || '').toLowerCase().includes(query);
+            const matchEmail = (p.email || '').toLowerCase().includes(query);
+            const matchCity = (p.residence_city || '').toLowerCase().includes(query);
+            const matchJob = (p.job_title || '').toLowerCase().includes(query);
+            return matchName || matchHandle || matchEmail || matchCity || matchJob;
+          }
+          return true;
+        });
+
+        const totalPaidCount = enrichedProfiles.filter((i) => i.isPaid).length;
+        const totalDeepCount = enrichedProfiles.filter((i) => i.isDeepDone).length;
+        const totalBaseCount = enrichedProfiles.filter((i) => i.isBaseDone).length;
+
+        return (
+          <div className="space-y-3">
+            {/* 상단 컨트롤 바 */}
+            <div className="p-3 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                <h3 className="font-serif-editorial text-lg font-normal text-white">체크리스트 전수 관제</h3>
+                <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-300">
+                  전체 {enrichedProfiles.length}명 · 결제 {totalPaidCount}명 · 심층완료 {totalDeepCount}명 · 사전완료 {totalBaseCount}명
+                </span>
+              </div>
+
+              {/* 검색창 */}
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={checklistSearch}
+                  onChange={(e) => setChecklistSearch(e.target.value)}
+                  placeholder="이름, 핸들, 이메일, 지역 검색"
+                  className="w-full pl-9 pr-3 py-1.5 bg-[#08090d] border border-white/15 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-[#f04f74]"
+                />
+              </div>
+            </div>
+
+            {/* 필터 탭 바 */}
+            <div className="flex flex-wrap items-center gap-1.5 p-2 bg-[#0c0d12] border border-white/10">
+              {[
+                { id: 'ALL', label: `전체 (${enrichedProfiles.length})` },
+                { id: 'PAID', label: `결제완료 (${totalPaidCount})` },
+                { id: 'DEEP_DONE', label: `심층완료 (${totalDeepCount})` },
+                { id: 'BASE_ONLY', label: `사전만완료 (${enrichedProfiles.filter((i) => i.isBaseDone && !i.isDeepDone).length})` },
+                { id: 'NONE', label: `미작성 (${enrichedProfiles.filter((i) => i.baseCount === 0 && i.deepCount === 0).length})` },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setChecklistFilter(tab.id as any)}
+                  className={`px-3 py-1 text-sm font-mono transition-colors cursor-pointer ${
+                    checklistFilter === tab.id
+                      ? 'border border-white/40 bg-white/15 text-white font-bold'
+                      : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 회원 목록 2열 그리드 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              {filtered.length === 0 ? (
+                <div className="col-span-full p-6 border border-white/10 bg-[#0c0d12] text-sm font-mono text-zinc-300 text-center">
+                  조건에 일치하는 회원이 없습니다.
+                </div>
+              ) : (
+                filtered.map((item) => {
+                  const p = item.profile;
+                  const isExpanded = expandedProfileId === p.id;
+                  return (
+                    <div
+                      key={p.id}
+                      className={`border border-white/10 bg-[#0c0d12] transition-colors ${
+                        isExpanded ? 'col-span-full border-white/30' : ''
+                      }`}
+                    >
+                      {/* 회원 카드 요약 헤더 */}
+                      <div className="p-3.5 flex flex-wrap items-center justify-between gap-3">
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                            <span className="text-sm font-bold text-white">
+                              {p.nickname || p.handle}
+                            </span>
+                            <span className="text-sm font-mono text-zinc-400">
+                              {p.gender === 'M' ? '남성' : '여성'} · {p.birth_year ? `${p.birth_year}년생` : '연령미상'} · {p.residence_city || '지역미입력'}
+                            </span>
+                            <span className={`px-2 py-0.5 border text-xs font-mono font-bold ${
+                              item.isPaid
+                                ? 'border-white/40 bg-white/15 text-white'
+                                : 'border-white/10 bg-white/5 text-zinc-400'
+                            }`}>
+                              {item.isPaid ? '결제완료' : '미결제'}
+                            </span>
+                          </div>
+
+                          {/* 체크리스트 완성도 배지 바 */}
+                          <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs font-mono">
+                            <span className={`px-2 py-0.5 border ${
+                              item.isBaseDone
+                                ? 'border-white/20 bg-white/10 text-white font-medium'
+                                : 'border-white/10 text-zinc-400'
+                            }`}>
+                              사전 체크: {item.baseCount} / {baseQuestions.length}
+                            </span>
+                            <span className={`px-2 py-0.5 border ${
+                              item.isDeepDone
+                                ? 'border-[#f04f74]/50 bg-[#f04f74]/15 text-white font-bold'
+                                : item.deepCount > 0
+                                ? 'border-white/20 bg-white/5 text-zinc-200'
+                                : 'border-white/10 text-zinc-500'
+                            }`}>
+                              결제후 심층: {item.deepCount} / {deepQuestions.length} {item.isDeepDone ? '(100%)' : ''}
+                            </span>
+                            {item.pulseCount > 0 && (
+                              <span className="px-2 py-0.5 border border-white/20 text-zinc-300">
+                                컨디션: {item.pulseCount} / {pulseQuestions.length}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setExpandedProfileId(isExpanded ? null : p.id)}
+                          className={`px-3 py-1.5 border text-sm font-mono font-medium transition-colors cursor-pointer shrink-0 ${
+                            isExpanded
+                              ? 'border-white/50 bg-white/20 text-white font-bold'
+                              : 'border-white/20 bg-white/5 hover:bg-white/15 text-zinc-200 hover:text-white'
+                          }`}
+                        >
+                          {isExpanded ? '접기' : '열람'}
+                        </button>
+                      </div>
+
+                      {/* 펼쳐진 상세 뷰 (col-span-full) */}
+                      {isExpanded && (
+                        <div className="p-4 sm:p-5 border-t border-white/10 bg-[#08090d] space-y-4">
+                          {/* 서브 탭: 전체 / 사전 / 결제후 심층 / 컨디션 */}
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {[
+                                { id: 'ALL', label: `전체 문항 (${questions.length})` },
+                                { id: 'BASE', label: `사전 체크 (8)` },
+                                { id: 'DEEP', label: `결제 후 심층 (24)` },
+                                { id: 'PULSE', label: `컨디션 (4)` },
+                              ].map((st) => (
+                                <button
+                                  key={st.id}
+                                  type="button"
+                                  onClick={() => setChecklistSubLayer(st.id as any)}
+                                  className={`px-2.5 py-1 text-xs font-mono transition-colors cursor-pointer ${
+                                    checklistSubLayer === st.id
+                                      ? 'border border-white/40 bg-white/15 text-white font-bold'
+                                      : 'border border-white/10 bg-black/40 text-zinc-400 hover:text-white'
+                                  }`}
+                                >
+                                  {st.label}
+                                </button>
+                              ))}
+                            </div>
+                            <span className="text-xs font-mono text-zinc-400">
+                              이메일: {p.email || '없음'} • 전화: {p.phone || '없음'}
+                            </span>
+                          </div>
+
+                          {/* 문항별 응답 목록 2열 그리드 */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {questions
+                              .filter((q) => checklistSubLayer === 'ALL' || q.layer === checklistSubLayer)
+                              .map((q, idx) => {
+                                const rawVal = item.rawSurvey[q.id] ?? (q.id === 'BASE_06_BUDGET' ? item.rawSurvey['Q12_BUDGET'] : undefined);
+                                const isAnswered = rawVal !== undefined && String(rawVal).trim() !== '';
+                                const decoded = decodeAnswerText(q, rawVal);
+                                const layerLabel =
+                                  q.layer === 'DEEP'
+                                    ? '심층'
+                                    : q.layer === 'PULSE'
+                                    ? '컨디션'
+                                    : '사전';
+
+                                return (
+                                  <div
+                                    key={q.id}
+                                    className={`p-3 border transition-colors ${
+                                      isAnswered
+                                        ? 'border-white/15 bg-white/[0.03]'
+                                        : 'border-white/5 bg-black/30'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between gap-2 text-xs font-mono mb-1">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="px-1.5 py-0.5 border border-white/10 bg-white/5 text-zinc-300">
+                                          {layerLabel} · {q.categoryLabel}
+                                        </span>
+                                        <span className="text-zinc-500">{q.id}</span>
+                                      </div>
+                                      <span className={isAnswered ? 'text-white font-bold' : 'text-zinc-500'}>
+                                        {isAnswered ? '응답완료' : '미응답'}
+                                      </span>
+                                    </div>
+
+                                    <p className="text-sm text-zinc-300 font-light line-clamp-1 mb-2">
+                                      {q.questionText}
+                                    </p>
+
+                                    <div className={`p-2 border text-sm font-mono ${
+                                      isAnswered
+                                        ? 'border-white/20 bg-white/5 text-white font-medium'
+                                        : 'border-white/5 text-zinc-500 italic'
+                                    }`}>
+                                      {decoded}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 3. 사전 예측 vs 사후 평가 비교 (실데이터 기반) */}
       {perspective === 'CALIBRATION' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {groupingResult.rooms.length === 0 ? (
