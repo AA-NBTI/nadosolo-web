@@ -27,6 +27,7 @@ interface CheckoutModalProps {
   onClose: () => void;
   event: CheckoutEventData | null;
   onSuccessPayment: (eventId: string) => void;
+  initialPromoCode?: string;
 }
 
 type PayMethod = 'CARD' | 'TOSS_PAY' | 'KAKAO_PAY' | 'NAVER_PAY';
@@ -36,6 +37,7 @@ export default function CheckoutModal({
   onClose,
   event,
   onSuccessPayment,
+  initialPromoCode,
 }: CheckoutModalProps) {
   const { currentUser, updateCurrentUser, surveyAnswers } = useNadoSoloEngine();
   const [payMethod, setPayMethod] = useState<PayMethod>('CARD');
@@ -50,8 +52,25 @@ export default function CheckoutModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    fetchPromoCodes().then((list) => setPromoList(list));
-  }, [isOpen]);
+    const refCandidate =
+      (initialPromoCode ||
+        (typeof window !== 'undefined' ? localStorage.getItem('nadosolo_referral_code') : '') ||
+        '')
+        .trim()
+        .toUpperCase();
+
+    fetchPromoCodes().then((list) => {
+      setPromoList(list);
+      if (refCandidate && event) {
+        const resolved = resolvePromoFromList(refCandidate, event.priceKrw, list);
+        if (resolved) {
+          setPromoCode(refCandidate);
+          setAppliedPromo({ code: refCandidate, discountKrw: resolved.discountKrw });
+          setPromoNotice(`추천 코드 자동 적용: ${resolved.notice}`);
+        }
+      }
+    });
+  }, [isOpen, initialPromoCode, event]);
 
   // 신청 직전 필수 매칭 조건 로컬 보완 상태
   const [gateCity, setGateCity] = useState(currentUser?.residenceCity || '서울');

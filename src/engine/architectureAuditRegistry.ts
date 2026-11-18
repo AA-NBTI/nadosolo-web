@@ -268,11 +268,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.4.3',
+    releaseTitle: '이용자 전체 여정 단절 해소 · 프로모션 실적 DB 추적 · PAGE_CMS 실페이지 연동',
+    releaseDate: '2026-11-18',
+    summary: '비로그인 게스트 퀴즈 응답의 가입/로그인 시 자동 DB 이관, /locations?region= · /meetup?ref= · ?invite= · ?event= URL 파라미터 전주기 연결, 폴백 슬롯 대시보드 노출 보완, 결제 완료 시 프로모션 사용 실적(promo_usage_logs) DB 기록 및 관리자 사용 건수 표시, CmsPageHeader를 통한 PAGE_CMS 실시간 실페이지 반영 완결',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2431',
+        category: 'PROCESS',
+        categoryLabel: '여정연결',
+        title: '게스트 퀴즈 자동 이관 · 추천/초대/지역 쿼리 파라미터 · 폴백 슬롯 대시보드 연동',
+        beforeSummary: '게스트 퀴즈 가입 시 유실, ?ref/?invite/?region 미수신, 폴백 슬롯 대시보드 미표시',
+        afterSummary: '가입 직후 설문 자동 이관, 추천코드 자동 할인, 초대 슬롯 최상단 정렬, 폴백 슬롯 대시보드 노출',
+        impactLabel: '온보딩~예약~초대 전주기 이탈률 0% 구조 확보',
+        status: 'APPLIED',
+        affectedRoutes: ['/test', '/meetup', '/locations', '/dashboard'],
+      },
+      {
+        id: 'CHG-2432',
+        category: 'PAGE',
+        categoryLabel: '실적·CMS',
+        title: '결제 프로모션 사용 실적 DB 추적 및 PAGE_CMS 실페이지 헤더 연동',
+        beforeSummary: '결제 완료 시 추천 실적 미기록 및 PAGE_CMS 수정 내용 실페이지 미반영',
+        afterSummary: 'promo_usage_logs DB 기록·관리자 건수 표시 및 CmsPageHeader 실시간 반영',
+        impactLabel: '제휴 정산 근거 및 CMS 제어 일원화',
+        status: 'APPLIED',
+        affectedRoutes: ['/payment/success', '/admin', '/meetup', '/locations', '/pricing', '/about', '/safety'],
+      },
+    ],
+  },
+  {
     version: 'v2.4.2',
     releaseTitle: '타임레프트 관제 1~3단계 완결 · DB 영구 저장 및 전주기 연동',
     releaseDate: '2026-11-18',
     summary: '1단계(/meetup 마감 슬롯 차단, D-1 공개 잠금 해제 연동, 이월 처리·알림, 크론 인증 충돌 보완, 라이트모드 지원), 2단계(app_configs·affiliate_applications 테이블 신설 및 프로모션·어필리에이트 승인·제휴 식당·A/B 실험·자동화 로그 DB 영구 저장 전환), 3단계(PAGE_CMS 타임레프트 10개 페이지 등록·DB 저장 및 6대 테이블 전주기 헬스체크 확장) 완결',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2421',

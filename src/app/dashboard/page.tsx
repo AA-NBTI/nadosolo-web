@@ -162,13 +162,32 @@ function MemberDashboardContent() {
 
   const [cancelledEventIds, setCancelledEventIds] = useState<string[]>([]);
 
-  const myAppliedEvents = useMemo(
-    () =>
-      conditionalEvents.filter(
-        (ev) => appliedEventIds.includes(ev.eventId) && !cancelledEventIds.includes(ev.eventId)
-      ),
-    [conditionalEvents, appliedEventIds, cancelledEventIds]
-  );
+  const myAppliedEvents = useMemo(() => {
+    const activeIds = appliedEventIds.filter((id) => !cancelledEventIds.includes(id));
+    const matched = conditionalEvents.filter((ev) => activeIds.includes(ev.eventId));
+    const matchedIds = new Set(matched.map((ev) => ev.eventId));
+    const fallbacks = activeIds
+      .filter((id) => !matchedIds.has(id))
+      .map((id): (typeof conditionalEvents)[number] => {
+        const isBusan = id.includes('BUSAN');
+        const isSat = id.includes('SAT');
+        return {
+          eventId: id,
+          title: `${isBusan ? '부산' : '서울'} · ${isSat ? '이번 주 토요일 19:30' : '이번 주 금요일 19:30'} 프라이빗 다이닝`,
+          districtId: isBusan ? 'DIST_JEONPO' : 'DIST_SEONGSU',
+          regionName: isBusan ? '부산' : '서울',
+          venueId: 'DIRECT',
+          dateText: isSat ? '이번 주 토요일 19:30' : '이번 주 금요일 19:30',
+          mode: '블라인드 슬롯',
+          priceKrw: 30000,
+          status: 'RECRUITING',
+          requiredBadgeIds: [],
+          minTotalScore100: 0,
+          activePresetSubIds: [],
+        };
+      });
+    return [...matched, ...fallbacks];
+  }, [conditionalEvents, appliedEventIds, cancelledEventIds]);
 
   // [P01 계정정보 & P02 기본프로필] 로컬 폼 상태
   const [editHandle, setEditHandle] = useState(

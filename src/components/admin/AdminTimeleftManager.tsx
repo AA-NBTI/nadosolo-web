@@ -47,6 +47,7 @@ export default function AdminTimeleftManager({
   const [blocks, setBlocks] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [promos, setPromos] = useState<PromoCode[]>([]);
+  const [promoUsage, setPromoUsage] = useState<Record<string, number>>({});
   const [affiliates, setAffiliates] = useState<any[]>([]);
   const [runLog, setRunLog] = useState<any[]>([]);
 
@@ -95,12 +96,20 @@ export default function AdminTimeleftManager({
         const b = await supabase.from('user_blocks').select('*').order('created_at', { ascending: false }).limit(100);
         setBlocks(b.data || []);
       } else if (section === 'TICKET') {
-        const [p, promoList] = await Promise.all([
+        const [p, promoList, usageLogs] = await Promise.all([
           supabase.from('profiles').select('id,nickname,handle,self_domain_scores').limit(200),
           fetchPromoCodes(),
+          getAppConfig<Array<{ promo?: string }>>('promo_usage_logs', 'nadosolo_promo_usage_logs_v1', []),
         ]);
         setProfiles(p.data || []);
         setPromos(promoList);
+        const counts: Record<string, number> = {};
+        if (Array.isArray(usageLogs)) {
+          for (const u of usageLogs) {
+            if (u.promo) counts[u.promo] = (counts[u.promo] || 0) + 1;
+          }
+        }
+        setPromoUsage(counts);
       } else if (section === 'PARTNER') {
         const { data, error } = await supabase
           .from('affiliate_applications')
@@ -428,7 +437,9 @@ export default function AdminTimeleftManager({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {promos.map((p) => (
             <div key={p.code} className={`${rowCls} flex items-center justify-between gap-2`}>
-              <span className={`text-sm font-mono ${titleTextCls}`}>{p.code} · {p.type === 'PERCENT' ? `${p.value}%` : `₩${p.value.toLocaleString()}`}</span>
+              <span className={`text-sm font-mono ${titleTextCls}`}>
+                {p.code} · {p.type === 'PERCENT' ? `${p.value}%` : `₩${p.value.toLocaleString()}`} · 사용 {promoUsage[p.code] || 0}건
+              </span>
               <div className="flex gap-2">
                 <button type="button" className={btnCls} onClick={() => persistPromos(promos.map((x) => (x.code === p.code ? { ...x, active: !x.active } : x)))}>
                   {p.active ? 'ON' : 'OFF'}

@@ -1,15 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
+import CmsPageHeader from '@/components/CmsPageHeader';
 
 export default function SafetyPage() {
   return (
     <main className="min-h-screen bg-[#07080a] text-[#f5f2eb] py-16 px-5 sm:px-8">
       <div className="max-w-[860px] mx-auto space-y-8">
-        <header className="border-b border-white/10 pb-6 space-y-2">
-          <span className="text-xs font-mono tracking-widest text-[#f04f74] uppercase">SAFETY &amp; COMMUNITY</span>
-          <h1 className="font-serif-editorial text-3xl text-white font-normal">안전 및 커뮤니티 가이드라인</h1>
-          <p className="text-sm text-zinc-400">낯선 사람과의 오프라인 식사가 가장 안전하도록 설계된 5대 안전 장치</p>
-        </header>
+        <CmsPageHeader
+          pageId="PAGE_SAFETY"
+          defaultBadge="SAFETY & COMMUNITY"
+          defaultTitle="안전 및 커뮤니티 가이드라인"
+          defaultSub="낯선 사람과의 오프라인 식사가 가장 안전하도록 설계된 5대 안전 장치"
+        />
 
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-zinc-300 leading-relaxed">
           <div className="p-5 border border-white/10 bg-[#0c0d12] space-y-2">

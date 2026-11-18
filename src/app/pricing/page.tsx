@@ -1,22 +1,18 @@
 import React from 'react';
 import Link from 'next/link';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
+import CmsPageHeader from '@/components/CmsPageHeader';
 
 export default function PricingPage() {
   return (
     <main className="min-h-screen bg-[#07080a] text-[#f5f2eb] py-16 px-5 sm:px-8">
       <div className="max-w-[1050px] mx-auto space-y-12">
-        <header className="border-b border-white/10 pb-8 space-y-3">
-          <span className="text-xs font-mono tracking-[0.25em] text-[#f04f74] uppercase font-semibold block">
-            TICKETS &amp; PASSES
-          </span>
-          <h1 className="font-serif-editorial text-3xl sm:text-5xl text-white font-normal">
-            참가권 및 이용 구조 안내
-          </h1>
-          <p className="text-sm sm:text-base text-zinc-300 font-light max-w-2xl">
-            온라인 참가비는 알고리즘 매칭·제휴 식당 예약·다면 관찰 리포트 발행 라이선스이며, 음식과 주류는 당일 매장에서 1/N 실비로 직접 결제합니다.
-          </p>
-        </header>
+        <CmsPageHeader
+          pageId="PAGE_PRICING"
+          defaultBadge="TICKETS & PASSES"
+          defaultTitle="참가권 및 이용 구조 안내"
+          defaultSub="온라인 참가비는 알고리즘 매칭·제휴 식당 예약·다면 관찰 리포트 발행 라이선스이며, 음식과 주류는 당일 매장에서 1/N 실비로 직접 결제합니다."
+        />
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[

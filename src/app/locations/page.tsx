@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { MapPin, ArrowRight } from 'lucide-react';
+import CmsPageHeader from '@/components/CmsPageHeader';
 
 const ACTIVE_CITIES = [
   {
@@ -30,17 +31,12 @@ export default function LocationsPage() {
   return (
     <main className="min-h-screen bg-[#07080a] text-[#f5f2eb] py-16 px-5 sm:px-8">
       <div className="max-w-[1100px] mx-auto space-y-12">
-        <header className="border-b border-white/10 pb-8 space-y-3">
-          <span className="text-xs font-mono tracking-[0.25em] text-[#f04f74] uppercase font-semibold block">
-            CITIES &amp; NEIGHBORHOODS
-          </span>
-          <h1 className="font-serif-editorial text-3xl sm:text-5xl text-white font-normal">
-            운영 도시 및 생활권 안내
-          </h1>
-          <p className="text-sm sm:text-base text-zinc-300 font-light max-w-2xl">
-            타임레프트 표준 방식에 따라 도시와 일정만 선택하면, 해당 지역 내 검증된 제휴 식당을 D-1 19:00에 배정해 드립니다.
-          </p>
-        </header>
+        <CmsPageHeader
+          pageId="PAGE_LOCATIONS"
+          defaultBadge="CITIES & NEIGHBORHOODS"
+          defaultTitle="운영 도시 및 생활권 안내"
+          defaultSub="타임레프트 표준 방식에 따라 도시와 일정만 선택하면, 해당 지역 내 검증된 제휴 식당을 D-1 19:00에 배정해 드립니다."
+        />
 
         <section className="space-y-4">
           <h2 className="font-serif-editorial text-2xl text-white font-normal">현재 운영 도시</h2>
@@ -66,7 +62,7 @@ export default function LocationsPage() {
                 <div className="pt-3 border-t border-white/10 flex items-center justify-between text-sm">
                   <span className="font-mono text-zinc-400">{item.schedule}</span>
                   <Link
-                    href="/meetup"
+                    href={`/meetup?region=${encodeURIComponent(item.city)}`}
                     prefetch={true}
                     className="inline-flex items-center gap-1.5 text-white font-mono hover:text-[#f04f74]"
                   >

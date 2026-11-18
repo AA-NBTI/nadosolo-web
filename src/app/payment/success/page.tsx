@@ -5,15 +5,26 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CheckCircle2 } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
+import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
+
+interface PromoUsageLog {
+  orderId: string;
+  eventId: string;
+  promo: string;
+  amount: string;
+  userId: string;
+  at: string;
+}
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || '-';
   const amount = searchParams.get('amount') || '';
   const eventId = searchParams.get('eventId') || '';
+  const promo = (searchParams.get('promo') || '').trim().toUpperCase();
   const title = searchParams.get('title') || '나도솔로 참가권';
 
-  const { applyForConditionalEvent, appliedEventIds } = useNadoSoloEngine();
+  const { currentUser, applyForConditionalEvent, appliedEventIds } = useNadoSoloEngine();
   const [synced, setSynced] = useState(false);
 
   // 결제 성공 리다이렉트 진입 시 해당 모임 ID 신청 상태를 엔진 + Supabase DB에 자동 확정 동기화
@@ -22,8 +33,27 @@ function PaymentSuccessContent() {
     if (!appliedEventIds.includes(eventId)) {
       applyForConditionalEvent(eventId);
     }
+    if (promo) {
+      getAppConfig<PromoUsageLog[]>('promo_usage_logs', 'nadosolo_promo_usage_logs_v1', []).then((logs) => {
+        const list = Array.isArray(logs) ? logs : [];
+        if (!list.some((x) => x.orderId === orderId && x.promo === promo)) {
+          const next: PromoUsageLog[] = [
+            {
+              orderId,
+              eventId,
+              promo,
+              amount,
+              userId: currentUser?.userId || 'GUEST',
+              at: new Date().toISOString(),
+            },
+            ...list,
+          ].slice(0, 200);
+          void saveAppConfig('promo_usage_logs', 'nadosolo_promo_usage_logs_v1', next);
+        }
+      });
+    }
     setSynced(true);
-  }, [eventId, synced, appliedEventIds, applyForConditionalEvent]);
+  }, [eventId, synced, appliedEventIds, applyForConditionalEvent, promo, orderId, amount, currentUser?.userId]);
 
   return (
     <div className="w-full max-w-md bg-[#12151e] border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl text-center space-y-6">
@@ -50,6 +80,12 @@ function PaymentSuccessContent() {
           <span>주문 번호</span>
           <span className="font-mono text-zinc-300">{orderId}</span>
         </div>
+        {promo && (
+          <div className="flex justify-between text-zinc-400">
+            <span>프로모션 코드</span>
+            <span className="font-mono text-white font-semibold">{promo}</span>
+          </div>
+        )}
         {amount && (
           <div className="flex justify-between text-zinc-400 pt-2 border-t border-white/5">
             <span>결제 금액</span>

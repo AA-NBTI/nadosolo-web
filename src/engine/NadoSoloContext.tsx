@@ -1098,36 +1098,75 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 사용자별 성향 자가진단 답변 동기화
+  // 사용자별 성향 자가진단 답변 동기화 (비로그인 게스트 응답 자동 이관 포함)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const uId = currentUser?.userId;
-      if (uId) {
-        const stored = localStorage.getItem(`nadosolo_survey_${uId}`);
-        if (stored) {
-          try {
-            setSurveyAnswers(JSON.parse(stored));
-            return;
-          } catch (e) {
-            console.warn('[LocalStorage] survey parse error:', e);
-          }
+    if (typeof window === 'undefined') return;
+    const uId = currentUser?.userId;
+    if (uId) {
+      let existing: Record<string, string> | null = null;
+      const stored = localStorage.getItem(`nadosolo_survey_${uId}`);
+      if (stored) {
+        try {
+          existing = JSON.parse(stored);
+        } catch (e) {
+          console.warn('[LocalStorage] survey parse error:', e);
         }
-        if (uId === 'user_jisoo' || uId === 'aa' || uId === 'bb') {
-          setSurveyAnswers({
-            Q1_COMM_PACE: 'Q1_A',
-            Q2_SILENCE_COPING: 'Q2_B',
-            Q3_DINING_VIBE: 'Q3_A',
-            Q4_SOLO_PURPOSE: 'Q4_A',
-            Q5_FEEDBACK_STYLE: 'Q5_B',
-          });
-          return;
-        }
-        setSurveyAnswers({});
-      } else {
-        setSurveyAnswers({});
       }
+
+      const guestRaw = localStorage.getItem('nadosolo_survey_guest');
+      if (guestRaw) {
+        try {
+          const guestParsed = JSON.parse(guestRaw) as Record<string, string>;
+          if (guestParsed && Object.keys(guestParsed).length > 0) {
+            const merged = { ...(existing || {}), ...guestParsed };
+            localStorage.setItem(`nadosolo_survey_${uId}`, JSON.stringify(merged));
+            localStorage.removeItem('nadosolo_survey_guest');
+            setSurveyAnswers(merged);
+            if (currentUser) {
+              nadoSoloSupabaseService.upsertProfile({
+                id: currentUser.userId,
+                handle: currentUser.handle,
+                nickname: currentUser.nickname,
+                gender: currentUser.gender,
+                birth_year: currentUser.birthYear,
+                email: currentUser.email,
+                phone: currentUser.phone,
+                job_title: currentUser.jobTitle,
+                survey_answers: merged,
+              });
+            }
+            return;
+          }
+        } catch {}
+      }
+
+      if (existing && Object.keys(existing).length > 0) {
+        setSurveyAnswers(existing);
+        return;
+      }
+
+      if (uId === 'user_jisoo' || uId === 'aa' || uId === 'bb') {
+        setSurveyAnswers({
+          Q1_COMM_PACE: 'Q1_A',
+          Q2_SILENCE_COPING: 'Q2_B',
+          Q3_DINING_VIBE: 'Q3_A',
+          Q4_SOLO_PURPOSE: 'Q4_A',
+          Q5_FEEDBACK_STYLE: 'Q5_B',
+        });
+        return;
+      }
+      setSurveyAnswers({});
+    } else {
+      const guestRaw = localStorage.getItem('nadosolo_survey_guest');
+      if (guestRaw) {
+        try {
+          setSurveyAnswers(JSON.parse(guestRaw));
+          return;
+        } catch {}
+      }
+      setSurveyAnswers({});
     }
-  }, [currentUser?.userId]);
+  }, [currentUser]);
 
   const setSurveyAnswer = (questionId: string, optionId: string) => {
     setSurveyAnswers((prev) => {

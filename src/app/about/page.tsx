@@ -1,21 +1,17 @@
 import React from 'react';
 import Link from 'next/link';
+import CmsPageHeader from '@/components/CmsPageHeader';
 
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-[#07080a] text-[#f5f2eb] py-16 px-5 sm:px-8">
       <div className="max-w-[900px] mx-auto space-y-10">
-        <header className="border-b border-white/10 pb-8 space-y-3">
-          <span className="text-xs font-mono tracking-[0.25em] text-[#f04f74] uppercase font-semibold block">
-            ABOUT NADOSOLO
-          </span>
-          <h1 className="font-serif-editorial text-3xl sm:text-5xl text-white font-normal">
-            “그렇다, 인간은 누구나 솔로다”
-          </h1>
-          <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed">
-            나도솔로는 타임레프트가 검증한 글로벌 블라인드 소셜 다이닝 구조 위에, 타인의 시선으로 나의 소통과 매너를 객관적으로 발견하는 다면 관찰 메타인지 플랫폼을 결합했습니다.
-          </p>
-        </header>
+        <CmsPageHeader
+          pageId="PAGE_ABOUT"
+          defaultBadge="ABOUT NADOSOLO"
+          defaultTitle="“그렇다, 인간은 누구나 솔로다”"
+          defaultSub="나도솔로는 타임레프트가 검증한 글로벌 블라인드 소셜 다이닝 구조 위에, 타인의 시선으로 나의 소통과 매너를 객관적으로 발견하는 다면 관찰 메타인지 플랫폼을 결합했습니다."
+        />
 
         <section className="space-y-5 text-sm text-zinc-300 leading-relaxed">
           <div className="p-6 border border-white/10 bg-[#0c0d12] space-y-2">

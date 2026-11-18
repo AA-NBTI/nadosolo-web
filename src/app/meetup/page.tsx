@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useNadoSoloEngine, normalizeRegionCity } from '@/engine';
 import { nadoSoloSupabaseService } from '@/lib/supabase/service';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
+import CmsPageHeader from '@/components/CmsPageHeader';
 
 interface BlindSlot {
   slotKey: string;
@@ -19,8 +20,14 @@ interface BlindSlot {
   status: string;
 }
 
-export default function MeetupSlotBookingPage() {
+function MeetupSlotBookingContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const qRegion = searchParams.get('region') || '';
+  const qRef = (searchParams.get('ref') || '').trim().toUpperCase();
+  const qInvite = searchParams.get('invite') || '';
+  const qEvent = searchParams.get('event') || '';
+
   const {
     currentUser,
     conditionalEvents,
@@ -30,11 +37,23 @@ export default function MeetupSlotBookingPage() {
     surveyAnswers,
   } = useNadoSoloEngine();
 
-  const [selectedRegion, setSelectedRegion] = useState<string>('ALL');
+  const [selectedRegion, setSelectedRegion] = useState<string>(() =>
+    qRegion ? normalizeRegionCity(qRegion) : 'ALL'
+  );
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [ticketCredits, setTicketCredits] = useState(0);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (qRegion) setSelectedRegion(normalizeRegionCity(qRegion));
+  }, [qRegion]);
+
+  useEffect(() => {
+    if (qRef && typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_referral_code', qRef);
+    }
+  }, [qRef]);
 
   useEffect(() => {
     if (!currentUser?.userId) return;
@@ -124,47 +143,39 @@ export default function MeetupSlotBookingPage() {
   }, [blindSlots]);
 
   const filteredSlots = useMemo(() => {
-    if (selectedRegion === 'ALL') return blindSlots;
-    return blindSlots.filter((s) => s.regionName === selectedRegion);
-  }, [blindSlots, selectedRegion]);
+    const base = selectedRegion === 'ALL' ? blindSlots : blindSlots.filter((s) => s.regionName === selectedRegion);
+    if (!qEvent) return base;
+    return [...base].sort((a, b) => Number(b.representativeEventId === qEvent) - Number(a.representativeEventId === qEvent));
+  }, [blindSlots, selectedRegion, qEvent]);
 
   return (
     <main className="min-h-screen bg-[#07080a] text-[#f5f2eb] selection:bg-[#f04f74] selection:text-white">
       <div className="max-w-[1100px] mx-auto px-5 sm:px-8 py-14 sm:py-20 space-y-10">
-        {/* 상단 헤더 */}
-        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-white/10 pb-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-              <span className="text-sm font-mono tracking-widest text-zinc-300 uppercase">
-                BLIND SLOT BOOKING
-              </span>
-            </div>
-            <h1 className="font-serif-editorial text-3xl sm:text-4xl font-normal text-white">
-              일정 예약
-            </h1>
-            <p className="text-sm text-zinc-400 font-light">
-              도시와 요일만 선택하세요. 성향에 맞는 6인 테이블과 제휴 식당은 모임 전날(D-1) 19:00에 비공개 공개됩니다.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/test"
-              prefetch={true}
-              className="px-4 py-2 border border-white/20 text-sm font-mono text-zinc-200 hover:text-white hover:border-white/40 transition-colors"
-            >
-              성향 퀴즈
-            </Link>
-            <Link
-              href={currentUser ? '/dashboard' : '/auth'}
-              prefetch={true}
-              className="px-4 py-2 border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-mono text-white font-semibold transition-colors"
-            >
-              {currentUser ? '내 모임' : '로그인'}
-            </Link>
-          </div>
-        </header>
+        {/* 상단 헤더 (PAGE_CMS 실시간 연동) */}
+        <CmsPageHeader
+          pageId="PAGE_MEETUP"
+          defaultBadge="BLIND SLOT BOOKING"
+          defaultTitle="일정 예약"
+          defaultSub="도시와 요일만 선택하세요. 성향에 맞는 6인 테이블과 제휴 식당은 모임 전날(D-1) 19:00에 비공개 공개됩니다."
+          rightSlot={
+            <>
+              <Link
+                href="/test"
+                prefetch={true}
+                className="px-4 py-2 border border-white/20 text-sm font-mono text-zinc-200 hover:text-white hover:border-white/40 transition-colors"
+              >
+                성향 퀴즈
+              </Link>
+              <Link
+                href={currentUser ? '/dashboard' : '/auth'}
+                prefetch={true}
+                className="px-4 py-2 border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-mono text-white font-semibold transition-colors"
+              >
+                {currentUser ? '내 모임' : '로그인'}
+              </Link>
+            </>
+          }
+        />
 
         {/* 도시 선택 */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -207,6 +218,13 @@ export default function MeetupSlotBookingPage() {
           )}
         </div>
 
+        {(qRef || qInvite) && (
+          <div className="p-3.5 border border-[#f04f74]/40 bg-[#f04f74]/10 text-sm font-mono text-white">
+            {qRef && `제휴 추천 코드 [${qRef}] 적용됨 — 결제 시 자동 할인됩니다. `}
+            {qInvite && `동반 +1 초대 링크로 접속했습니다.${qEvent ? ' (초대 회차 우선 정렬)' : ''}`}
+          </div>
+        )}
+
         {statusNotice && (
           <div className="p-3 border border-white/20 bg-[#0c0d12] text-sm font-mono text-white">
             {statusNotice}
@@ -229,6 +247,11 @@ export default function MeetupSlotBookingPage() {
                     {slot.isRecommended && (
                       <span className="px-2.5 py-0.5 text-sm font-mono border border-[#f04f74]/60 bg-[#f04f74]/15 text-white">
                         내 지역
+                      </span>
+                    )}
+                    {qEvent && slot.representativeEventId === qEvent && (
+                      <span className="px-2.5 py-0.5 text-sm font-mono border border-white/30 bg-white/10 text-white">
+                        초대 슬롯
                       </span>
                     )}
                   </div>
@@ -329,6 +352,7 @@ export default function MeetupSlotBookingPage() {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         event={checkoutEvent}
+        initialPromoCode={qRef || undefined}
         onSuccessPayment={(eventId) => {
           applyForConditionalEvent(eventId);
           setIsCheckoutOpen(false);
@@ -336,5 +360,13 @@ export default function MeetupSlotBookingPage() {
         }}
       />
     </main>
+  );
+}
+
+export default function MeetupSlotBookingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#07080a]" />}>
+      <MeetupSlotBookingContent />
+    </Suspense>
   );
 }
