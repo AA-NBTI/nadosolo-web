@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ShieldCheck, CreditCard, Smartphone, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
@@ -46,7 +46,7 @@ export default function CheckoutModal({
   onSuccessPayment,
   initialPromoCode,
 }: CheckoutModalProps) {
-  const { currentUser, updateCurrentUser, surveyAnswers } = useNadoSoloEngine();
+  const { currentUser, updateCurrentUser, surveyAnswers, conditionalEvents, regionDistricts } = useNadoSoloEngine();
   const [payMethod, setPayMethod] = useState<PayMethod>('CARD');
   const [agreeRefund, setAgreeRefund] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
@@ -86,6 +86,26 @@ export default function CheckoutModal({
     });
   }, [isOpen, initialPromoCode, event]);
 
+  // 개설된 모임이 실제로 존재하는 지역만 동적 추출
+  const availableCities = useMemo(() => {
+    const citySet = new Set<string>();
+    for (const ev of conditionalEvents || []) {
+      if (ev.status === 'CANCELLED_MIN' || ev.status === 'COMPLETED') continue;
+      if (ev.regionName?.trim()) {
+        citySet.add(ev.regionName.trim());
+      } else if (ev.districtId) {
+        const dist = regionDistricts?.find((d) => d.districtId === ev.districtId);
+        if (dist?.regionName?.trim()) {
+          citySet.add(dist.regionName.trim());
+        }
+      }
+      if (ev.title?.includes('부산') || ev.districtId?.includes('BUSAN')) citySet.add('부산');
+      if (ev.title?.includes('서울') || ev.districtId?.includes('SEOUL')) citySet.add('서울');
+    }
+    if (citySet.size === 0) return ['서울', '부산'];
+    return Array.from(citySet);
+  }, [conditionalEvents, regionDistricts]);
+
   // 신청 직전 필수 매칭 조건 로컬 보완 상태
   const [gateCity, setGateCity] = useState(currentUser?.residenceCity || '서울');
   const [gateDistrict, setGateDistrict] = useState(currentUser?.residenceDistrict || '');
@@ -100,7 +120,15 @@ export default function CheckoutModal({
 
   useEffect(() => {
     if (currentUser) {
-      setGateCity(currentUser.residenceCity || '서울');
+      const preferredCity = event?.districtName?.includes('부산')
+        ? '부산'
+        : event?.districtName?.includes('서울')
+        ? '서울'
+        : currentUser.residenceCity && availableCities.includes(currentUser.residenceCity)
+        ? currentUser.residenceCity
+        : availableCities[0] || '서울';
+
+      setGateCity(preferredCity);
       setGateDistrict(currentUser.residenceDistrict || '');
       setGateDong(currentUser.residenceDong || '');
       setGatePhone(
@@ -108,7 +136,7 @@ export default function CheckoutModal({
       );
       setGatePurpose(currentUser.preferredPurpose || 'RESET');
     }
-  }, [currentUser, isOpen]);
+  }, [currentUser, isOpen, event, availableCities]);
 
   if (!isOpen || !event) return null;
 
@@ -403,8 +431,10 @@ export default function CheckoutModal({
                         onChange={(e) => setGateCity(e.target.value)}
                         className="px-2.5 py-2 bg-[#0d1018] border border-white/15 text-xs text-white"
                       >
-                        {['서울', '부산', '대구', '인천', '광주', '대전', '울산', '세종', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'].map((c) => (
-                          <option key={c} value={c}>{c}</option>
+                        {availableCities.map((c: string) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
                         ))}
                       </select>
                       <input

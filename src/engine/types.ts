@@ -7,7 +7,7 @@ export type Gender = 'M' | 'F';
 export type SocialMode = 'ROMANCE' | 'PLATONIC' | 'THEME';
 export type LanguageCode = 'ko' | 'en' | 'ja' | 'es';
 export type FluencyLevel = 'BASIC' | 'CONVERSATIONAL' | 'FLUENT' | 'NATIVE';
-export type BudgetTier = '$' | '$$' | '$$$';
+export type BudgetTier = '$' | '$$' | '$$$' | 'ANY';
 export type DietaryRestriction = 'NONE' | 'VEGAN' | 'HALAL' | 'NO_PORK' | 'ALCOHOL_FREE';
 export type CultureTag = 'KR' | 'US_EU' | 'JP' | 'GLOBAL';
 

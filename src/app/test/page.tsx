@@ -47,6 +47,7 @@ function ChecklistContent() {
     ...surveyAnswers,
   }));
   const [isCompleted, setIsCompleted] = useState(false);
+  const [limitWarning, setLimitWarning] = useState<string | null>(null);
 
   // 모드별 문항 목록
   const questions = useMemo(() => {
@@ -97,15 +98,23 @@ function ChecklistContent() {
   const handleToggleMulti = (optId: string) => {
     if (!currentQ) return;
     const withoutCustom = selectedTokens.filter((t) => !t.startsWith('CUSTOM:'));
+    const maxCount = currentQ.maxSelectCount ?? 2;
     let nextIds: string[];
 
     if (optId === 'NONE') {
       nextIds = withoutCustom.includes('NONE') ? [] : ['NONE'];
     } else {
       const cleaned = withoutCustom.filter((id) => id !== 'NONE');
-      nextIds = cleaned.includes(optId)
-        ? cleaned.filter((id) => id !== optId)
-        : [...cleaned, optId];
+      if (cleaned.includes(optId)) {
+        nextIds = cleaned.filter((id) => id !== optId);
+      } else {
+        if (cleaned.length >= maxCount) {
+          setLimitWarning(`최대 ${maxCount}개까지만 선택할 수 있습니다.`);
+          setTimeout(() => setLimitWarning(null), 2500);
+          return;
+        }
+        nextIds = [...cleaned, optId];
+      }
     }
 
     const nextTokens = customToken && optId !== 'NONE' ? [...nextIds, customToken] : nextIds;
@@ -202,16 +211,26 @@ function ChecklistContent() {
             {/* 질문 카드 */}
             <div className="bg-[#0c0d12] border border-white/15 p-6 sm:p-8 space-y-6">
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-block px-2.5 py-0.5 text-sm font-mono bg-white/5 text-zinc-200 border border-white/15">
                     {currentQ.categoryLabel}
                   </span>
+                  {currentQ.inputType === 'MULTI' && (
+                    <span className="text-xs font-mono text-[#f04f74] border border-[#f04f74]/30 px-2 py-0.5 bg-[#f04f74]/10">
+                      최대 {currentQ.maxSelectCount ?? 2}개 선택
+                    </span>
+                  )}
                   {checklistMode === 'DEEP' && (
                     <span className="text-xs font-mono text-zinc-400">
                       심층 분석
                     </span>
                   )}
                 </div>
+                {limitWarning && (
+                  <div className="p-2.5 border border-[#f04f74] bg-[#f04f74]/20 text-white text-xs font-mono animate-pulse">
+                    ⚠️ {limitWarning}
+                  </div>
+                )}
                 <h2 className="font-serif-editorial text-xl sm:text-2xl font-normal text-white leading-snug">
                   {currentQ.questionText}
                 </h2>
@@ -384,14 +403,14 @@ function ChecklistContent() {
               <button
                 type="button"
                 onClick={handleFinishAndProceed}
-                className="w-full py-3.5 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-mono font-semibold text-sm transition-all cursor-pointer text-center flex items-center justify-center gap-2"
+                className="w-full py-4 border border-[#f04f74] bg-[#f04f74] hover:bg-[#d93a5e] text-white font-mono font-bold text-sm tracking-wide shadow-lg shadow-[#f04f74]/25 transition-all cursor-pointer text-center flex items-center justify-center gap-2"
               >
                 <span>
                   {checklistMode === 'DEEP' || checklistMode === 'PULSE'
                     ? '대시보드로 이동'
                     : currentUser
-                    ? '일정 예약'
-                    : '저장 후 일정 예약'}
+                    ? '일정 예약하기'
+                    : '저장 후 일정 예약하기'}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -402,7 +421,7 @@ function ChecklistContent() {
 
       {/* 3. 푸터 */}
       <footer className="px-6 py-4 border-t border-white/[0.06] text-center text-sm font-mono text-zinc-400">
-        NADOSOLO ADAPTIVE MATCHING • 2단계 프로그레시브 체크리스트 (BASE 9 · DEEP 22 · PULSE 4)
+        NADOSOLO ADAPTIVE MATCHING • 2단계 프로그레시브 체크리스트 (사전 BASE 8 · 심층 DEEP 24 · 컨디션 PULSE 4)
       </footer>
     </div>
   );

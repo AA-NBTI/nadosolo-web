@@ -268,11 +268,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.6.6',
+    releaseTitle: '사전 체크 8문항 슬림화(돌싱 분리·최대2개제한·가격대4분할·식단 결제후 이전) 및 결제창 개설지역 동적 연동',
+    releaseDate: '2026-11-18',
+    summary: '사전 체크리스트의 관계 상태에서 돌싱과 기타를 명확히 분리하고, 직업/언어/유머/취향 복수 선택을 최대 2개로 제한. 식단 문항을 결제 전에서 제외하여 결제 후 D-1 정밀 체크([필수 제약] vs [보조 취향])로 이전. 1인 예산대를 4개(3만원 이하/7만원 이하/10만원 이하/상관없음)로 개편하고 완료 버튼을 핑크 포인트 컬러로 강화. 참가 신청 결제 모달 매칭 지역을 실제 개설된 방이 있는 지역만 노출되도록 동적 연동 완료.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2661',
+        category: 'PROCESS',
+        categoryLabel: '사전체크',
+        title: '사전 체크리스트 8문항 슬림화 및 정밀도 향상',
+        beforeSummary: '돌싱·기타 통합, 복수 선택 무제한, 식단 사전체크 포함, 3단계 예산, 완료 버튼 무채색',
+        afterSummary: '돌싱(DIVORCED) 독립 분리, 복수선택 최대 2개 제한, 식단 결제후 심층([필수제약]vs[보조취향]) 이전, 4단계 예산(상관없음 추가), 피드백 첫문항 문구 개선, 완료 버튼 브랜드 핑크 적용',
+        impactLabel: '결제 전 이탈률 0% 수렴 및 식당 예약 필수 제약의 명확한 전달',
+        status: 'APPLIED',
+        affectedRoutes: ['/test', '/meetup'],
+      },
+      {
+        id: 'CHG-2662',
+        category: 'PROCESS',
+        categoryLabel: '결제창연동',
+        title: '참가 신청 결제창 매칭 지역 개설 방 동적 필터링 연동',
+        beforeSummary: '전국 17개 시도가 하드코딩되어 개설되지 않은 지역도 선택 가능',
+        afterSummary: 'conditionalEvents 및 regionDistricts 기반 실제 개설된 방이 존재하는 도시만 동적 필터링 노출',
+        impactLabel: '사용자의 미개설 지역 오선택 방지 및 전환율 극대화',
+        status: 'APPLIED',
+        affectedRoutes: ['/components/CheckoutModal'],
+      },
+    ],
+  },
+  {
     version: 'v2.6.5',
     releaseTitle: '타임레프트 30문항 전수 흡수 2단계 프로그레시브 체크리스트(BASE 9 + DEEP 22 + PULSE 4) 완결',
     releaseDate: '2026-11-18',
     summary: '타임레프트의 질문 체계(Big Five 심층 16문항 + 취향·2차 4문항)를 결제 후 D-1 정밀 배정 체크리스트(DEEP 22)로 100% 빠짐없이 완전 흡수하고, 결제 전 필수 체크리스트(BASE 9)와 분리하여 이탈률 0%와 95% 이상의 심층 응답률을 동시 달성. 나도솔로 5대 명사 소셜 미러 결합 및 결제 완료·대시보드·관리자 패널 연동 완료.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2651',

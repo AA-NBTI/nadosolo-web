@@ -12,7 +12,7 @@
  */
 
 import { SAMPLE_PARTNER_VENUES } from './presets';
-import { PartnerVenue } from './types';
+import { BudgetTier, PartnerVenue } from './types';
 
 export type ConstraintTier = 'HARD' | 'CORE' | 'FINE';
 export type AxisMatchStrategy =
@@ -27,7 +27,7 @@ export type QuestionInputType = 'SINGLE' | 'MULTI' | 'SCALE_1_5';
 
 export type PurposeCode = 'RESET' | 'FRIEND' | 'TASTE' | 'ROMANCE';
 export type DiningTrack = 'VEGAN' | 'NON_ALCOHOL' | 'ALCOHOL';
-export type RelationshipStatus = 'SINGLE' | 'DATING' | 'MARRIED' | 'OTHER';
+export type RelationshipStatus = 'SINGLE' | 'DATING' | 'MARRIED' | 'DIVORCED' | 'OTHER';
 export type IndustryGroup =
   | 'IT_TECH'
   | 'FINANCE'
@@ -72,6 +72,8 @@ export interface AdaptiveQuestionSpec {
   questionText: string;
   inputType: QuestionInputType;
   isActive: boolean;
+  /** 복수 선택(MULTI) 시 최대 선택 가능 개수 */
+  maxSelectCount?: number;
   /** SCALE_1_5일 때 1점/5점 라벨 및 연결 축 */
   scaleConfig?: {
     minLabel: string;
@@ -102,7 +104,7 @@ export interface MeetupApplicationIntent {
   targetDistrict?: string;
   targetScheduleSlot: string;
   targetPurpose?: PurposeCode;
-  targetBudgetTier?: '$' | '$$' | '$$$';
+  targetBudgetTier?: BudgetTier;
   /** 추후 신규 필수 조건 추가 시 스키마 변경 없이 수용하는 확장 맵 */
   extraConditions?: Record<string, string | number | boolean>;
 }
@@ -118,7 +120,7 @@ export interface UserAxisProfile {
   relationshipStatus: RelationshipStatus;
   industry: IndustryGroup;
   purpose: PurposeCode;
-  budgetTier: '$' | '$$' | '$$$';
+  budgetTier: BudgetTier;
   dietary: string;
   /** 개인 취향 체크: 비건 여부 */
   isVegan: boolean;
@@ -243,7 +245,7 @@ export interface DynamicMatchedRoom {
   /** 배정된 제휴 식당 1순위 */
   assignedVenueId?: string;
   assignedVenueName?: string;
-  assignedVenueBudgetTier?: '$' | '$$' | '$$$';
+  assignedVenueBudgetTier?: BudgetTier;
   assignedVenueSupportsVegan?: boolean;
   /** 대체 제휴 식당 2순위 */
   backupVenueId?: string;
@@ -446,7 +448,8 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
       { id: 'SINGLE', label: '미혼 · 싱글', metaTag: { relationshipStatus: 'SINGLE' } },
       { id: 'DATING', label: '연애 중', metaTag: { relationshipStatus: 'DATING' } },
       { id: 'MARRIED', label: '기혼', metaTag: { relationshipStatus: 'MARRIED' } },
-      { id: 'OTHER', label: '돌싱 · 기타', metaTag: { relationshipStatus: 'OTHER' } },
+      { id: 'DIVORCED', label: '돌싱', metaTag: { relationshipStatus: 'DIVORCED' } },
+      { id: 'OTHER', label: '기타', metaTag: { relationshipStatus: 'OTHER' } },
     ],
   },
   {
@@ -469,8 +472,9 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'BASE',
     categoryLabel: '직업',
-    questionText: '현재 주로 몸담고 있는 분야를 선택해 주세요. (복수 선택 · 직접 입력 가능)',
+    questionText: '현재 주로 몸담고 있는 분야를 선택해 주세요. (최대 2개 · 직접 입력 가능)',
     inputType: 'MULTI',
+    maxSelectCount: 2,
     allowCustomInput: true,
     customPlaceholder: '예: 항공승무원, 건축가, 프리랜서 등 직접 입력',
     isActive: true,
@@ -485,24 +489,6 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     ],
   },
   {
-    id: 'BASE_05_DIETARY',
-    version: 1,
-    layer: 'BASE',
-    categoryLabel: '식단',
-    questionText: '식단 제한이나 선호하는 음료 스타일이 있으신가요? (복수 선택 · 직접 입력 가능)',
-    inputType: 'MULTI',
-    allowCustomInput: true,
-    customPlaceholder: '예: 견과류/갑각류 알레르기, 글루텐 프리 등 직접 입력',
-    isActive: true,
-    options: [
-      { id: 'NONE', label: '제한 없음 (모두 잘 먹어요)', metaTag: { dietary: 'NONE' } },
-      { id: 'ALCOHOL_FREE', label: '논알콜 (술 없이 식사 중심)', metaTag: { dietary: 'ALCOHOL_FREE' } },
-      { id: 'VEGAN', label: '비건 · 채식 메뉴 필요', metaTag: { dietary: 'VEGAN' } },
-      { id: 'NO_PORK', label: '돼지고기 제외', metaTag: { dietary: 'NO_PORK' } },
-      { id: 'HALAL', label: '할랄 식단', metaTag: { dietary: 'HALAL' } },
-    ],
-  },
-  {
     id: 'BASE_06_BUDGET',
     version: 1,
     layer: 'BASE',
@@ -511,9 +497,10 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     inputType: 'SINGLE',
     isActive: true,
     options: [
-      { id: '$', label: '3만원대 캐주얼 다이닝', metaTag: { budgetTier: '$' } },
-      { id: '$$', label: '5~7만원대 비스트로 · 와인바', metaTag: { budgetTier: '$$' } },
-      { id: '$$$', label: '10만원 이상 파인 다이닝', metaTag: { budgetTier: '$$$' } },
+      { id: '$', label: '3만원 이하 (캐주얼 다이닝)', metaTag: { budgetTier: '$' } },
+      { id: '$$', label: '7만원 이하 (비스트로 · 펍)', metaTag: { budgetTier: '$$' } },
+      { id: '$$$', label: '10만원 이하 (파인 다이닝 · 와인바)', metaTag: { budgetTier: '$$$' } },
+      { id: 'ANY', label: '상관없음 (모든 가격대 수용 가능)', metaTag: { budgetTier: 'ANY' } },
     ],
   },
   {
@@ -521,8 +508,9 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'BASE',
     categoryLabel: '언어',
-    questionText: '테이블에서 선호하는 대화 언어는 무엇인가요? (복수 선택 · 직접 입력 가능)',
+    questionText: '테이블에서 선호하는 대화 언어는 무엇인가요? (최대 2개 · 직접 입력 가능)',
     inputType: 'MULTI',
+    maxSelectCount: 2,
     allowCustomInput: true,
     customPlaceholder: '예: 일본어, 중국어, 프랑스어 등 직접 입력',
     isActive: true,
@@ -555,7 +543,7 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     inputType: 'SINGLE',
     isActive: true,
     options: [
-      { id: 'OBJECTIVE', label: '성장을 위한 솔직·객관적 리포트', axisScores: { DEPTH: 80 } },
+      { id: 'OBJECTIVE', label: '성장을 위한 솔직한 표현 가능', axisScores: { DEPTH: 80 } },
       { id: 'BALANCED', label: '객관적 시선과 따뜻한 격려의 균형', axisScores: { DEPTH: 55 } },
       { id: 'WARM', label: '나의 고유한 매력을 짚어주는 응원', axisScores: { DEPTH: 35 } },
     ],
@@ -732,8 +720,9 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'DEEP',
     categoryLabel: '친화',
-    questionText: '테이블에서 가장 즐기는 유머와 티키타카 결은 무엇인가요? (복수 선택)',
+    questionText: '테이블에서 가장 즐기는 유머와 티키타카 결은 무엇인가요? (최대 2개 선택)',
     inputType: 'MULTI',
+    maxSelectCount: 2,
     isActive: true,
     options: [
       { id: 'WIT', label: '위트 있고 재치 넘치는 티키타카', axisScores: { DEPTH: 25, ENERGY: 75 } },
@@ -809,8 +798,9 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
     version: 1,
     layer: 'DEEP',
     categoryLabel: '취향',
-    questionText: '평소 주말과 퇴근 후 가장 많은 시간을 보내는 관심 분야는? (복수 선택 · 직접 입력 가능)',
+    questionText: '평소 주말과 퇴근 후 가장 많은 시간을 보내는 관심 분야는? (최대 2개 · 직접 입력 가능)',
     inputType: 'MULTI',
+    maxSelectCount: 2,
     allowCustomInput: true,
     customPlaceholder: '예: 골프, 러닝, 반려동물, 재테크 등 직접 입력',
     isActive: true,
@@ -896,6 +886,41 @@ export const DEFAULT_ADAPTIVE_QUESTIONS: AdaptiveQuestionSpec[] = [
       maxLabel: '알면 알수록 반전 매력이 매우 큼',
       axisWeights: { DEPTH: { weight: 0.6 } },
     },
+  },
+
+  // --- [식단 및 음료 제약/취향 (모임 전 필수/보조 영역)] ---
+  {
+    id: 'DEEP_D01_DIETARY_RESTRICTIONS',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '식단',
+    questionText: '[필수 제약] 식당 배정 시 필수 반영해야 할 식단 제한이나 알레르기가 있으신가요? (복수 선택 · 직접 입력 가능)',
+    inputType: 'MULTI',
+    allowCustomInput: true,
+    customPlaceholder: '예: 견과류/갑각류 알레르기, 글루텐 프리 등 직접 입력',
+    isActive: true,
+    options: [
+      { id: 'NONE', label: '제한 없음 (모두 잘 먹어요)', metaTag: { dietary: 'NONE' } },
+      { id: 'VEGAN', label: '비건 · 채식 메뉴 필수', metaTag: { dietary: 'VEGAN' } },
+      { id: 'NO_PORK', label: '돼지고기 제외', metaTag: { dietary: 'NO_PORK' } },
+      { id: 'HALAL', label: '할랄 식단', metaTag: { dietary: 'HALAL' } },
+    ],
+  },
+  {
+    id: 'DEEP_D02_BEVERAGE_PREFERENCE',
+    version: 1,
+    layer: 'DEEP',
+    categoryLabel: '취향',
+    questionText: '[보조 취향] 테이블 선호 음료 및 다이닝 스타일은 무엇인가요? (최대 2개 선택)',
+    inputType: 'MULTI',
+    maxSelectCount: 2,
+    isActive: true,
+    options: [
+      { id: 'ALCOHOL_FREE', label: '논알콜 (술 없이 식사 중심)', metaTag: { dietary: 'ALCOHOL_FREE' } },
+      { id: 'LIGHT_DRINK', label: '가볍게 맥주 · 하이볼 1~2잔' },
+      { id: 'WINE_LOVER', label: '와인 · 칵테일 페어링 환영' },
+      { id: 'LOW_SUGAR', label: '저당 · 헬시 라이프스타일' },
+    ],
   },
 
   // ==========================================================================
@@ -1001,7 +1026,7 @@ export function computeUserAxisProfile(
     scheduleSlot?: string;
     dietary?: string;
     purpose?: PurposeCode;
-    budgetTier?: '$' | '$$' | '$$$';
+    budgetTier?: BudgetTier;
     isPaid?: boolean;
     memberStage?: 'UNQUALIFIED' | 'READY' | 'APPLIED' | 'PRE_MATCHED' | 'CONFIRMED';
   },
@@ -1020,7 +1045,7 @@ export function computeUserAxisProfile(
   let relationshipStatus: RelationshipStatus = 'SINGLE';
   let industry: IndustryGroup = 'OTHER';
   let purpose: PurposeCode = baseInfo.purpose ?? 'RESET';
-  let budgetTier: '$' | '$$' | '$$$' = baseInfo.budgetTier ?? '$$';
+  let budgetTier: BudgetTier = baseInfo.budgetTier ?? '$$';
   let hasBudgetInput = Boolean(baseInfo.budgetTier);
   let hasPulseUpdate = false;
   let answeredQuestionCount = 0;
@@ -1034,11 +1059,12 @@ export function computeUserAxisProfile(
     BASE_02_RELATIONSHIP: ['Q01_RELATIONSHIP'],
     BASE_03_PURPOSE: ['Q04_PURPOSE', 'Q02_THIRST'],
     BASE_04_INDUSTRY: ['Q03_INDUSTRY'],
-    BASE_05_DIETARY: ['Q13_DIETARY'],
     BASE_06_BUDGET: ['Q12_BUDGET'],
     BASE_07_LANGUAGE: ['Q14_LANGUAGE'],
     BASE_08_ENERGY: ['Q05_BASE_ENERGY'],
     BASE_09_FEEDBACK_TONE: ['Q10_FEEDBACK_TONE'],
+    DEEP_D01_DIETARY_RESTRICTIONS: ['BASE_05_DIETARY', 'Q13_DIETARY'],
+    DEEP_D02_BEVERAGE_PREFERENCE: ['P04_TODAY_DRINK'],
   };
 
   for (const q of questions) {
@@ -1102,7 +1128,7 @@ export function computeUserAxisProfile(
             purpose = opt.metaTag.purpose as PurposeCode;
           }
           if (opt.metaTag.budgetTier) {
-            budgetTier = opt.metaTag.budgetTier as '$' | '$$' | '$$$';
+            budgetTier = opt.metaTag.budgetTier as BudgetTier;
             hasBudgetInput = true;
           }
           if (opt.metaTag.dietary) {
@@ -1351,11 +1377,15 @@ export function scoreUserAgainstRoom(
       const sameIndustryCount = others.filter((m) => m.industry === user.industry).length;
       ratio = sameIndustryCount === 0 ? 1.0 : sameIndustryCount === 1 ? 0.65 : 0.25;
     } else if (factor.id === 'BUDGET') {
-      const tiers = ['$', '$$', '$$$'];
-      const diff = Math.abs(
-        tiers.indexOf(user.budgetTier) - tiers.indexOf(roomSpec.targetBudgetTier)
-      );
-      ratio = diff === 0 ? 1.0 : diff === 1 ? 0.6 : 0.2;
+      if (user.budgetTier === 'ANY') {
+        ratio = 1.0;
+      } else {
+        const tiers = ['$', '$$', '$$$'];
+        const userIdx = tiers.indexOf(user.budgetTier);
+        const roomIdx = tiers.indexOf(roomSpec.targetBudgetTier);
+        const diff = Math.abs((userIdx >= 0 ? userIdx : 1) - (roomIdx >= 0 ? roomIdx : 1));
+        ratio = diff === 0 ? 1.0 : diff === 1 ? 0.6 : 0.2;
+      }
     }
 
     totalWeight += weight;
@@ -1525,7 +1555,7 @@ export function matchDynamicTables(
         scheduleSlot: clusterSlot,
         purpose: seedPurpose,
         targetBirthYear: seed.birthYear || 1992,
-        targetBudgetTier: seed.budgetTier || '$$',
+        targetBudgetTier: (!seed.budgetTier || seed.budgetTier === 'ANY') ? '$$' : seed.budgetTier,
         diningTrack: 'ALCOHOL',
         isAlcoholRoom: true,
         supportsVegan: false,
@@ -1608,7 +1638,9 @@ export function matchDynamicTables(
       );
       const budgetCounts = new Map<'$' | '$$' | '$$$', number>();
       for (const m of selected) {
-        budgetCounts.set(m.budgetTier, (budgetCounts.get(m.budgetTier) ?? 0) + 1);
+        if (m.budgetTier && m.budgetTier !== 'ANY') {
+          budgetCounts.set(m.budgetTier, (budgetCounts.get(m.budgetTier) ?? 0) + 1);
+        }
       }
       const targetBudgetTier =
         Array.from(budgetCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '$$';
