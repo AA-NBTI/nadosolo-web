@@ -732,7 +732,7 @@ function MemberDashboardContent() {
                   {/* D-1 정밀 배정 프로파일러 완성도 배너 (Timeleft Big Five 심층 체크리스트) */}
                   {(() => {
                     const deepCount = Object.keys(surveyAnswers).filter((k) => k.startsWith('DEEP_')).length;
-                    const isDeepComplete = deepCount >= 18;
+                    const isDeepComplete = deepCount >= 20;
                     return (
                       <div className="p-4 border border-white/15 bg-white/[0.03] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="space-y-1">
@@ -741,13 +741,13 @@ function MemberDashboardContent() {
                             <span className="text-sm font-mono font-bold text-white">
                               {isDeepComplete
                                 ? 'D-1 정밀 매칭 프로필 완료 (100%)'
-                                : `D-1 정밀 매칭 프로필 미완성 (${deepCount}/22)`}
+                                : `D-1 정밀 매칭 프로필 미완성 (${deepCount}/24)`}
                             </span>
                           </div>
                           <p className="text-sm text-zinc-300 font-light leading-relaxed">
                             {isDeepComplete
                               ? '타임레프트 Big Five 심층 성향과 가치관 분석이 완료되어 나에게 최적화된 6인 테이블이 자동 배정됩니다.'
-                              : '모임 전 심층 22문항을 작성하면 나와 가치관·대화 결이 꼭 맞는 동석자가 우선 배정됩니다.'}
+                              : '모임 전 심층 24문항을 작성하면 나와 가치관·대화 결이 꼭 맞는 동석자가 우선 배정됩니다.'}
                           </p>
                         </div>
                         <Link
@@ -755,7 +755,7 @@ function MemberDashboardContent() {
                           prefetch={true}
                           className="px-3.5 py-1.5 border border-white/20 bg-white/10 hover:bg-white/20 text-white text-sm font-mono font-medium transition-colors shrink-0"
                         >
-                          {isDeepComplete ? '답변 수정' : '정밀 체크 시작 →'}
+                          {isDeepComplete ? '수정하기' : '정밀 체크 시작 →'}
                         </Link>
                       </div>
                     );

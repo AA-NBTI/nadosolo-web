@@ -9,7 +9,7 @@ import {
   computeUserAxisProfile,
   AdaptiveAnswer,
 } from '@/engine';
-import { Check, Sparkles, ArrowRight } from 'lucide-react';
+import { Check, Sparkles, ArrowRight, RotateCcw } from 'lucide-react';
 
 function ChecklistContent() {
   const router = useRouter();
@@ -180,17 +180,22 @@ function ChecklistContent() {
     );
   }, [activeQuestions, localAnswers, currentUser]);
 
-  const handleFinishAndProceed = () => {
+  const handleFinishAndProceed = (target: 'DASHBOARD' | 'MEETUP' = 'DASHBOARD') => {
     saveSurveyAnswers(localAnswers);
-    if (checklistMode === 'DEEP' || checklistMode === 'PULSE') {
-      router.push('/dashboard');
-    } else {
+    if (target === 'MEETUP') {
       if (currentUser) {
         router.push('/meetup');
       } else {
         router.push('/auth?next=/meetup');
       }
+      return;
     }
+    router.push('/dashboard');
+  };
+
+  const handleModifyAnswers = () => {
+    setIsCompleted(false);
+    setCurrentIdx(0);
   };
 
   // 모드별 명칭
@@ -412,26 +417,45 @@ function ChecklistContent() {
 
               <div className="p-4 bg-white/[0.03] border border-white/10 text-sm text-zinc-300 font-light leading-relaxed">
                 {checklistMode === 'DEEP'
-                  ? '타임레프트 검증 Big Five 성향 및 가치관 22문항 분석이 정밀 저장되었습니다. D-1 화요일 18:00에 나와 가장 결이 맞는 6인 테이블과 식당이 배정 및 공개됩니다.'
+                  ? '타임레프트 검증 Big Five 성향 및 가치관 24문항 분석이 정밀 저장되었습니다. D-1 화요일 18:00에 나와 가장 결이 맞는 6인 테이블과 식당이 배정 및 공개됩니다.'
                   : checklistMode === 'PULSE'
                   ? '오늘 밤 식탁에서 나눌 대화 에너지와 음료 취향이 모임 테이블에 실시간 반영되었습니다.'
                   : '입력하신 기본 정보(도시, 예산, 식단, 기질)가 안전하게 저장되었습니다. 원하는 일정 슬롯을 예약해 주세요. 결제 완료 후 D-1 정밀 배정을 위한 심층 체크리스트가 이어집니다.'}
               </div>
 
-              <button
-                type="button"
-                onClick={handleFinishAndProceed}
-                className="w-full py-4 border border-[#f04f74] bg-[#f04f74] hover:bg-[#d93a5e] text-white font-mono font-bold text-sm tracking-wide shadow-lg shadow-[#f04f74]/25 transition-all cursor-pointer text-center flex items-center justify-center gap-2"
-              >
-                <span>
-                  {checklistMode === 'DEEP' || checklistMode === 'PULSE'
-                    ? '대시보드로 이동'
-                    : currentUser
-                    ? '일정 예약하기'
-                    : '저장 후 일정 예약하기'}
-                </span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {/* 회장님 지시: 최종 2개 버튼 [수정하기] & [대시보드] */}
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleModifyAnswers}
+                  className="w-full py-3.5 border border-white/20 bg-white/5 hover:bg-white/10 text-white font-mono text-sm transition-all cursor-pointer text-center flex items-center justify-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4 text-zinc-400" />
+                  <span>수정하기</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleFinishAndProceed('DASHBOARD')}
+                  className="w-full py-3.5 border border-[#f04f74] bg-[#f04f74] hover:bg-[#d93a5e] text-white font-mono font-bold text-sm tracking-wide shadow-lg shadow-[#f04f74]/25 transition-all cursor-pointer text-center flex items-center justify-center gap-2"
+                >
+                  <span>대시보드</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* 사전 체크(BASE)인 경우 즉시 일정 예약으로 갈 수 있는 보조 안내 링크 */}
+              {checklistMode === 'BASE' && (
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleFinishAndProceed('MEETUP')}
+                    className="text-xs font-mono text-zinc-400 hover:text-white underline underline-offset-4 cursor-pointer"
+                  >
+                    대시보드 대신 바로 일정 예약하러 가기 →
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
