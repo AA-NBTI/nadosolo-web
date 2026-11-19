@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSiteConfig } from '@/engine/siteConfigEngine';
+import { useNadoSoloEngine } from '@/engine';
 import {
   ArrowRight,
   ShieldCheck,
@@ -82,6 +83,8 @@ const FAQS = [
 
 export default function NadoSoloEditorialHomePage() {
   const { config } = useSiteConfig();
+  const { surveyAnswers } = useNadoSoloEngine();
+  const hasCompletedQuiz = Object.keys(surveyAnswers || {}).length > 0;
   const heroSector = config?.mainSectors?.find((s) => s.id === 'sector-hero');
   const [bannerIdx, setBannerIdx] = useState(0);
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
@@ -120,11 +123,11 @@ export default function NadoSoloEditorialHomePage() {
 
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <Link
-                  href="/test"
+                  href={hasCompletedQuiz ? '/meetup' : '/test'}
                   prefetch={true}
                   className="px-7 py-4 rounded-full bg-[#f04f74] hover:bg-[#d93a5e] text-white text-sm font-semibold inline-flex items-center gap-2 shadow-lg shadow-[#f04f74]/20 transition-all cursor-pointer"
                 >
-                  <span>내 자리 예약하기</span>
+                  <span>{hasCompletedQuiz ? '일정 예약하기' : '내 자리 예약하기'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link

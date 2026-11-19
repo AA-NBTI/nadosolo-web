@@ -894,6 +894,9 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
           }
           if (dbProfile.survey_answers && Object.keys(dbProfile.survey_answers).length > 0) {
             setSurveyAnswers(dbProfile.survey_answers);
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`nadosolo_survey_${dbProfile.id}`, JSON.stringify(dbProfile.survey_answers));
+            }
           }
         }
 
@@ -1139,57 +1142,62 @@ export function NadoSoloProvider({ children }: { children: React.ReactNode }) {
       }
 
       const guestRaw = localStorage.getItem('nadosolo_survey_guest');
+      let guestParsed: Record<string, string> | null = null;
       if (guestRaw) {
         try {
-          const guestParsed = JSON.parse(guestRaw) as Record<string, string>;
-          if (guestParsed && Object.keys(guestParsed).length > 0) {
-            const merged = { ...(existing || {}), ...guestParsed };
-            localStorage.setItem(`nadosolo_survey_${uId}`, JSON.stringify(merged));
-            localStorage.removeItem('nadosolo_survey_guest');
-            setSurveyAnswers(merged);
-            if (currentUser) {
-              nadoSoloSupabaseService.upsertProfile({
-                id: currentUser.userId,
-                handle: currentUser.handle,
-                nickname: currentUser.nickname,
-                gender: currentUser.gender,
-                birth_year: currentUser.birthYear,
-                email: currentUser.email,
-                phone: currentUser.phone,
-                job_title: currentUser.jobTitle,
-                survey_answers: merged,
-              });
-            }
-            return;
-          }
+          guestParsed = JSON.parse(guestRaw) as Record<string, string>;
         } catch {}
       }
 
-      if (existing && Object.keys(existing).length > 0) {
-        setSurveyAnswers(existing);
-        return;
-      }
+      setSurveyAnswers((prev) => {
+        const combined = {
+          ...(existing || {}),
+          ...(guestParsed && Object.keys(guestParsed).length > 0 ? guestParsed : {}),
+          ...(Object.keys(prev || {}).length > 0 ? prev : {}),
+        };
 
-      if (uId === 'user_jisoo' || uId === 'aa' || uId === 'bb') {
-        setSurveyAnswers({
-          Q1_COMM_PACE: 'Q1_A',
-          Q2_SILENCE_COPING: 'Q2_B',
-          Q3_DINING_VIBE: 'Q3_A',
-          Q4_SOLO_PURPOSE: 'Q4_A',
-          Q5_FEEDBACK_STYLE: 'Q5_B',
-        });
-        return;
-      }
-      setSurveyAnswers({});
+        if (Object.keys(combined).length > 0) {
+          localStorage.setItem(`nadosolo_survey_${uId}`, JSON.stringify(combined));
+          if (guestRaw) localStorage.removeItem('nadosolo_survey_guest');
+          if (currentUser) {
+            nadoSoloSupabaseService.upsertProfile({
+              id: currentUser.userId,
+              handle: currentUser.handle,
+              nickname: currentUser.nickname,
+              gender: currentUser.gender,
+              birth_year: currentUser.birthYear,
+              email: currentUser.email,
+              phone: currentUser.phone,
+              job_title: currentUser.jobTitle,
+              survey_answers: combined,
+            });
+          }
+          return combined;
+        }
+
+        if (uId === 'user_jisoo' || uId === 'aa' || uId === 'bb') {
+          return {
+            Q1_COMM_PACE: 'Q1_A',
+            Q2_SILENCE_COPING: 'Q2_B',
+            Q3_DINING_VIBE: 'Q3_A',
+            Q4_SOLO_PURPOSE: 'Q4_A',
+            Q5_FEEDBACK_STYLE: 'Q5_B',
+          };
+        }
+        return {};
+      });
     } else {
       const guestRaw = localStorage.getItem('nadosolo_survey_guest');
       if (guestRaw) {
         try {
-          setSurveyAnswers(JSON.parse(guestRaw));
-          return;
+          const guestParsed = JSON.parse(guestRaw);
+          if (guestParsed && Object.keys(guestParsed).length > 0) {
+            setSurveyAnswers(guestParsed);
+            return;
+          }
         } catch {}
       }
-      setSurveyAnswers({});
+      setSurveyAnswers((prev) => (Object.keys(prev || {}).length > 0 ? prev : {}));
     }
   }, [currentUser]);
 

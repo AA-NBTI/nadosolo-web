@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo, Suspense } from 'react';
+import React, { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   useNadoSoloEngine,
@@ -42,6 +42,9 @@ function ChecklistContent() {
       ? 'PULSE'
       : 'BASE';
 
+  const isForceEdit = searchParams.get('edit') === 'true';
+  const hasAutoCompletedRef = useRef(false);
+
   const [currentIdx, setCurrentIdx] = useState(0);
   const [localAnswers, setLocalAnswers] = useState<Record<string, string>>(() => ({
     ...surveyAnswers,
@@ -49,12 +52,39 @@ function ChecklistContent() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [limitWarning, setLimitWarning] = useState<string | null>(null);
 
+  // surveyAnswers가 외부/DB에서 로드되었을 때 localAnswers와 병합 동기화
+  useEffect(() => {
+    if (surveyAnswers && Object.keys(surveyAnswers).length > 0) {
+      setLocalAnswers((prev) => ({
+        ...surveyAnswers,
+        ...prev,
+      }));
+    }
+  }, [surveyAnswers]);
+
   // 모드별 문항 목록
   const questions = useMemo(() => {
     if (checklistMode === 'DEEP') return deepQuestions;
     if (checklistMode === 'PULSE') return pulseQuestions;
     return baseQuestions;
   }, [checklistMode, deepQuestions, pulseQuestions, baseQuestions]);
+
+  // 이미 해당 모드의 체크리스트를 완료한 경우, 진입 시 즉시 완료 화면(4대 축 결과)을 띄움
+  useEffect(() => {
+    if (isForceEdit || hasAutoCompletedRef.current) return;
+    if (!questions || questions.length === 0) return;
+
+    const merged = { ...surveyAnswers, ...localAnswers };
+    const answeredCount = questions.filter((q) => {
+      const val = merged[q.id];
+      return val !== undefined && String(val).trim().length > 0;
+    }).length;
+
+    if (answeredCount >= questions.length && questions.length > 0) {
+      setIsCompleted(true);
+      hasAutoCompletedRef.current = true;
+    }
+  }, [questions, surveyAnswers, localAnswers, isForceEdit]);
 
   const currentQ = questions[currentIdx];
   const totalQuestions = questions.length;
