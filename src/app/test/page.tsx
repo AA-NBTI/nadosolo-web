@@ -2,14 +2,12 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface TestItem {
   id: string;
   badge: string;
   title: string;
-  timeEstimate: string;
-  questionCount: string;
   desc: string;
   features: string[];
   route: string;
@@ -21,8 +19,6 @@ const TEST_LIST: TestItem[] = [
     id: 'solotest-v1',
     badge: '순간과 결',
     title: '1분 솔로테스트',
-    timeEstimate: '약 1분',
-    questionCount: '8문항',
     desc: '나는 어떤 순간에 혼자라고 느끼며, 식탁에서 어떤 대화 결을 지닌 사람일까요?',
     features: [
       '일상의 6가지 순간과 나만의 대화 스타일 확인',
@@ -36,8 +32,6 @@ const TEST_LIST: TestItem[] = [
     id: 'loneliness-9',
     badge: '관계와 연결',
     title: '외로움 유형 테스트',
-    timeEstimate: '약 1.5분',
-    questionCount: '9문항',
     desc: '요즘 내 마음에 필요한 연결은 속마음일까요, 함께할 일상일까요?',
     features: [
       '정서적 연결과 사회적 연결의 필요를 담백하게 성찰',
@@ -58,39 +52,16 @@ export default function SoloTestHubPage() {
     );
   };
 
-  const handleToggleAll = () => {
-    if (openIds.length === TEST_LIST.length) {
-      setOpenIds([]);
-    } else {
-      setOpenIds(TEST_LIST.map((item) => item.id));
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
-      <main className="flex-1 max-w-4xl w-full mx-auto px-5 sm:px-8 py-10 sm:py-16 space-y-8">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-5 sm:px-8 py-10 sm:py-16 space-y-6">
         {/* 상단 컨트롤 바 */}
         <section className="p-5 sm:p-6 border border-white/10 bg-[#0c0d12] space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-              <h1 className="font-serif-editorial text-2xl sm:text-3xl font-normal text-white">
-                솔로테스트 모음
-              </h1>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 text-xs font-mono border border-white/10 bg-white/5 text-zinc-400">
-                {TEST_LIST.length}개 테스트
-              </span>
-              <button
-                type="button"
-                onClick={handleToggleAll}
-                className="px-2.5 py-1 text-xs font-mono border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors cursor-pointer"
-              >
-                {openIds.length === TEST_LIST.length ? '전체 접기' : '전체 펼치기'}
-              </button>
-            </div>
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+            <h1 className="font-serif-editorial text-2xl sm:text-3xl font-normal text-white">
+              솔로테스트 모음
+            </h1>
           </div>
 
           <p className="text-sm text-zinc-300 font-light leading-relaxed">
@@ -98,7 +69,7 @@ export default function SoloTestHubPage() {
           </p>
         </section>
 
-        {/* 2열 컴팩트 그리드 (닫힘 ➔ 클릭 시 열림) */}
+        {/* 2열 컴팩트 그리드 (테마버튼과 제목 한 줄 구성 ➔ 클릭 시 열림) */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {TEST_LIST.map((item) => {
             const isOpen = openIds.includes(item.id);
@@ -112,30 +83,23 @@ export default function SoloTestHubPage() {
                     : 'border-white/10 hover:border-white/20'
                 }`}
               >
-                {/* 닫힌 기본 헤더 바 */}
+                {/* 닫힌 기본 헤더 바: 테마버튼과 제목 한 줄 가로 배치 */}
                 <button
                   type="button"
                   onClick={() => toggleOpen(item.id)}
-                  className="w-full text-left p-5 flex items-start justify-between gap-3 cursor-pointer group select-none"
+                  className="w-full text-left p-5 flex items-center justify-between gap-3 cursor-pointer group select-none"
                 >
-                  <div className="space-y-2 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-mono border border-white/10 bg-white/5 text-zinc-300">
-                        <span>{item.badge}</span>
-                      </span>
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="inline-flex items-center px-2.5 py-1 text-xs font-mono border border-white/10 bg-white/5 text-zinc-300 shrink-0">
+                      {item.badge}
+                    </span>
 
-                      <span className="text-xs font-mono text-zinc-400">
-                        {item.timeEstimate} · {item.questionCount}
-                      </span>
-                    </div>
-
-                    <h2 className="font-serif-editorial text-lg sm:text-xl font-normal text-white group-hover:text-zinc-200 transition-colors">
+                    <h2 className="font-serif-editorial text-lg sm:text-xl font-normal text-white group-hover:text-zinc-200 transition-colors truncate">
                       {item.title}
                     </h2>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 group-hover:text-white shrink-0 pt-1">
-                    <span>{isOpen ? '접기' : '상세보기'}</span>
+                  <div className="shrink-0 text-zinc-400 group-hover:text-white pl-2">
                     {isOpen ? (
                       <ChevronUp className="w-4 h-4 text-zinc-300" />
                     ) : (
