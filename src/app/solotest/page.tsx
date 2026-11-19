@@ -17,7 +17,6 @@ import {
   Bell,
   Clock,
 } from 'lucide-react';
-import GlobalHeader from '@/components/GlobalHeader';
 import {
   SOLOTEST_QUESTIONS,
   SOLOTEST_COPY,
@@ -327,8 +326,6 @@ function SoloTestInner() {
 
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
-      <GlobalHeader />
-
       {/* 복사 완료 토스트 피드백 */}
       {copyToast && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-white text-zinc-900 text-sm font-medium rounded-none shadow-xl border border-zinc-200 animate-in fade-in slide-in-from-top-2">
@@ -360,8 +357,8 @@ function SoloTestInner() {
               1분 솔로테스트로 내가 어떤 순간의 솔로인지 확인해 보세요.
             </p>
 
-            {/* 인트로 액션 버튼 2개 */}
-            <div className="pt-4 flex flex-col gap-3 max-w-sm mx-auto">
+            {/* 인트로 액션 버튼 (테스트 시작 단일 집중) */}
+            <div className="pt-4 max-w-sm mx-auto">
               <button
                 type="button"
                 onClick={handleStartTest}
@@ -369,14 +366,6 @@ function SoloTestInner() {
               >
                 <span>1분 솔로테스트 시작</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
-
-              <button
-                type="button"
-                onClick={handleViewOpenRoomsDirectly}
-                className="w-full py-3.5 border border-white/20 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white font-medium text-sm transition-all cursor-pointer"
-              >
-                이번 주 열린 모임 보기
               </button>
             </div>
 
@@ -855,7 +844,19 @@ function SoloTestInner() {
             </button>
           </section>
 
-          {/* 6. 하단 안내 (고정 Footer) */}
+          {/* 6. 이번 주 열린 모임 보기 (결과 최하단 배치) */}
+          <section className="pt-1">
+            <Link
+              href="/meetup"
+              onClick={() => trackEvent('room_browse_direct')}
+              className="w-full py-4 border border-white/25 bg-white/5 hover:bg-white/10 text-white font-mono text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <span>이번 주 열린 모임 보기</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </section>
+
+          {/* 7. 하단 안내 (고정 Footer) */}
           <footer className="pt-6 border-t border-white/10 space-y-2 text-xs font-mono text-zinc-500 leading-relaxed">
             {SOLOTEST_COPY.footer.map((text, idx) => (
               <p key={idx} className="flex items-start gap-1.5">

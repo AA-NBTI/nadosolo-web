@@ -1,18 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Sparkles,
   ArrowRight,
-  Heart,
-  CheckCircle2,
-  Users,
-  Compass,
   Clock,
-  HelpCircle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
-import GlobalHeader from '@/components/GlobalHeader';
 
 interface TestItem {
   id: string;
@@ -100,13 +96,28 @@ const TEST_HUB_LIST: TestItem[] = [
 ];
 
 export default function TestHubPage() {
+  // 클릭 시 열림(Click-to-Reveal) 상태 관리: 기본 모두 닫힘 상태
+  const [openIds, setOpenIds] = useState<string[]>([]);
+
+  const toggleOpen = (id: string) => {
+    setOpenIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleToggleAll = () => {
+    if (openIds.length === TEST_HUB_LIST.length) {
+      setOpenIds([]);
+    } else {
+      setOpenIds(TEST_HUB_LIST.map((item) => item.id));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
-      <GlobalHeader />
-
-      <main className="flex-1 max-w-5xl w-full mx-auto px-5 sm:px-8 py-12 sm:py-16 space-y-10">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-5 sm:px-8 py-10 sm:py-14 space-y-8">
         {/* 상단 컨트롤 바 헤더 (표준 테두리 박스 컨테이너 규격 준수) */}
-        <section className="p-6 border border-white/10 bg-[#0c0d12] space-y-3">
+        <section className="p-5 sm:p-6 border border-white/10 bg-[#0c0d12] space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
@@ -114,91 +125,127 @@ export default function TestHubPage() {
                 나도솔로 테스트 & 진단 허브
               </h1>
             </div>
-            <span className="px-2.5 py-1 text-xs font-mono border border-white/10 bg-white/5 text-zinc-400">
-              총 4종 테스트 라인업
-            </span>
+
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 text-xs font-mono border border-white/10 bg-white/5 text-zinc-400">
+                총 {TEST_HUB_LIST.length}종 테스트
+              </span>
+              <button
+                type="button"
+                onClick={handleToggleAll}
+                className="px-2.5 py-1 text-xs font-mono border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+              >
+                {openIds.length === TEST_HUB_LIST.length ? '전체 접기' : '전체 펼치기'}
+              </button>
+            </div>
           </div>
 
           <p className="text-sm text-zinc-300 font-light leading-relaxed max-w-2xl">
-            가벼운 공감 퀴즈부터 학술 척도 기반의 외로움 성찰, 실제 3:3 테이블 매칭 엔진, 그리고 모임 후 다면 관찰 피드백까지 — 나에게 맞는 테스트를 자유롭게 선택해 보세요.
+            가벼운 공감 퀴즈부터 학술 척도 기반의 외로움 성찰, 실제 3:3 테이블 매칭 엔진, 그리고 모임 후 다면 관찰 피드백까지 — 항목을 클릭하여 세부 내용을 확인하고 바로 시작해 보세요.
           </p>
         </section>
 
-        {/* 2열 컴팩트 그리드 (관리자 및 유저 2-Column Compact Grid 철칙 준수) */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {TEST_HUB_LIST.map((item) => (
-            <div
-              key={item.id}
-              className="p-6 border border-white/10 bg-[#0c0d12] hover:border-white/20 transition-all flex flex-col justify-between space-y-6"
-            >
-              <div className="space-y-4">
-                {/* 상단 배지 & 소요 시간 */}
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-mono border ${
-                      item.badgePoint
-                        ? 'border-[#f04f74]/40 bg-[#f04f74]/15 text-white'
-                        : 'border-white/10 bg-white/5 text-zinc-300'
-                    }`}
-                  >
-                    {item.badgePoint && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                    )}
-                    <span>{item.badge}</span>
-                  </span>
+        {/* 리스트 우선 조망 ➔ 클릭 시 상세 노출 (2-Column Compact Grid 규격) */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {TEST_HUB_LIST.map((item) => {
+            const isOpen = openIds.includes(item.id);
 
-                  <div className="flex items-center gap-2 text-xs font-mono text-zinc-400">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{item.timeEstimate}</span>
-                    <span>•</span>
-                    <span>{item.questionCount}</span>
-                  </div>
-                </div>
-
-                {/* 타이틀 및 목적 */}
-                <div className="space-y-1.5">
-                  <h2 className="font-serif-editorial text-xl sm:text-2xl font-normal text-white">
-                    {item.title}
-                  </h2>
-                  <p className="text-xs font-mono text-zinc-400">
-                    대상: {item.targetAudience}
-                  </p>
-                  <p className="text-sm text-zinc-200 font-light leading-relaxed pt-1">
-                    {item.purpose}
-                  </p>
-                </div>
-
-                {/* 핵심 특징 리스트 */}
-                <div className="pt-3 border-t border-white/10 space-y-1.5 text-xs font-light text-zinc-300 leading-relaxed">
-                  {item.features.map((ft, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
-                      <span className="text-[#f04f74] font-mono shrink-0">✓</span>
-                      <span>{ft}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 하단 CTA 버튼 */}
-              <div className="pt-2">
-                <Link
-                  href={item.route}
-                  className={`w-full py-3.5 text-sm font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    item.badgePoint
-                      ? 'bg-[#f04f74] hover:bg-[#d93a5e] text-white shadow-lg shadow-[#f04f74]/20'
-                      : 'border border-white/20 bg-white/5 hover:bg-white/10 text-white'
-                  }`}
+            return (
+              <div
+                key={item.id}
+                className={`border transition-all duration-200 bg-[#0c0d12] ${
+                  isOpen
+                    ? 'border-white/30 shadow-xl'
+                    : 'border-white/10 hover:border-white/20'
+                }`}
+              >
+                {/* 1. 닫힌 기본 헤더 바 (항상 노출, 클릭 시 토글) */}
+                <button
+                  type="button"
+                  onClick={() => toggleOpen(item.id)}
+                  className="w-full text-left p-5 flex items-start justify-between gap-3 cursor-pointer group select-none"
                 >
-                  <span>{item.buttonLabel}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+                  <div className="space-y-2 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-mono border ${
+                          item.badgePoint
+                            ? 'border-[#f04f74]/50 bg-[#f04f74]/15 text-white'
+                            : 'border-white/10 bg-white/5 text-zinc-300'
+                        }`}
+                      >
+                        {item.badgePoint && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                        )}
+                        <span>{item.badge}</span>
+                      </span>
+
+                      <span className="text-xs font-mono text-zinc-400">
+                        {item.timeEstimate} · {item.questionCount}
+                      </span>
+                    </div>
+
+                    <h2 className="font-serif-editorial text-lg sm:text-xl font-normal text-white group-hover:text-zinc-200 transition-colors">
+                      {item.title}
+                    </h2>
+                  </div>
+
+                  {/* 우측 펼침/접힘 인디케이터 버튼 */}
+                  <div className="flex items-center gap-1.5 text-xs font-mono text-zinc-400 group-hover:text-white shrink-0 pt-1">
+                    <span>{isOpen ? '접기' : '상세보기'}</span>
+                    {isOpen ? (
+                      <ChevronUp className="w-4 h-4 text-zinc-300" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-zinc-400 group-hover:text-white" />
+                    )}
+                  </div>
+                </button>
+
+                {/* 2. 클릭 시 열리는 상세 영역 (Click-to-Reveal) */}
+                {isOpen && (
+                  <div className="px-5 pb-5 pt-1 space-y-4 border-t border-white/10 animate-in fade-in duration-200">
+                    <div className="space-y-1 pt-2">
+                      <span className="text-xs font-mono text-zinc-400 block">
+                        대상: {item.targetAudience}
+                      </span>
+                      <p className="text-sm text-zinc-200 font-light leading-relaxed">
+                        {item.purpose}
+                      </p>
+                    </div>
+
+                    {/* 핵심 특징 리스트 */}
+                    <div className="p-3.5 bg-[#08090d] border border-white/10 space-y-1.5 text-xs font-light text-zinc-300 leading-relaxed">
+                      {item.features.map((ft, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <span className="text-[#f04f74] font-mono shrink-0">✓</span>
+                          <span>{ft}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 바로가기 액션 버튼 */}
+                    <div className="pt-1">
+                      <Link
+                        href={item.route}
+                        className={`w-full py-3 text-sm font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                          item.badgePoint
+                            ? 'bg-[#f04f74] hover:bg-[#d93a5e] text-white shadow-lg shadow-[#f04f74]/20'
+                            : 'border border-white/20 bg-white/5 hover:bg-white/10 text-white'
+                        }`}
+                      >
+                        <span>{item.buttonLabel}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </section>
 
         {/* 하단 운영 원칙 안내 */}
-        <section className="p-6 border border-white/10 bg-[#08090d] space-y-2 text-xs font-mono text-zinc-400 leading-relaxed">
+        <section className="p-5 sm:p-6 border border-white/10 bg-[#08090d] space-y-2 text-xs font-mono text-zinc-400 leading-relaxed">
           <span className="text-white font-semibold block">나도솔로 테스트 운영 원칙</span>
           <p>• 입구 테스트(솔로테스트, 외로움 유형)는 점수/지수를 사용자에게 노출하지 않으며, 단정이 아닌 공감과 재미를 목적으로 합니다.</p>
           <p>• 가입 없이 브라우저에서 진행되며, 다른 사용자에게 응답이 공개되지 않습니다.</p>

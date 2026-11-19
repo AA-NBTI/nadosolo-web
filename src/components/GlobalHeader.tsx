@@ -25,10 +25,10 @@ export default function GlobalHeader() {
         { id: 'home', label: '다이닝 홈', href: '/' },
       ]
     : [
-        { id: 'meetup', label: '밋업', href: '/meetup' },
-        { id: 'locations', label: '도시', href: '/locations' },
+        { id: 'solotest', label: '솔로테스트', href: '/test' },
         { id: 'checklist', label: '체크리스트', href: '/checklist' },
-        { id: 'guide', label: '이용 안내', href: '/guide' },
+        { id: 'guide', label: '이용안내', href: '/guide' },
+        { id: 'meetup', label: '밋업', href: '/meetup' },
       ];
 
   const handleLogout = () => {

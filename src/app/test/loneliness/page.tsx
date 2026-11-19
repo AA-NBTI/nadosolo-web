@@ -12,7 +12,6 @@ import {
   Heart,
   ExternalLink,
 } from 'lucide-react';
-import GlobalHeader from '@/components/GlobalHeader';
 import {
   LONELINESS_QUESTIONS,
   LONELINESS_TYPES,
@@ -76,8 +75,6 @@ export default function LonelinessTestPage() {
 
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
-      <GlobalHeader />
-
       {/* 1. 인트로 */}
       {step === 'INTRO' && (
         <main className="flex-1 max-w-xl w-full mx-auto px-6 py-16 sm:py-24 flex flex-col justify-center text-center">
