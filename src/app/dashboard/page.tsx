@@ -751,7 +751,7 @@ function MemberDashboardContent() {
                           </p>
                         </div>
                         <Link
-                          href="/test?mode=DEEP"
+                          href="/checklist?mode=DEEP"
                           prefetch={true}
                           className="px-3.5 py-1.5 border border-white/20 bg-white/10 hover:bg-white/20 text-white text-sm font-mono font-medium transition-colors shrink-0"
                         >
@@ -1711,7 +1711,7 @@ function MemberDashboardContent() {
                   </p>
                 </div>
                 <Link
-                  href="/test"
+                  href="/checklist"
                   prefetch={true}
                   className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-mono transition-colors shrink-0"
                 >

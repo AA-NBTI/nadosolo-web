@@ -84,7 +84,7 @@ export default function GuidePage() {
   const [openFaqIdx, setOpenFaqIdx] = useState<number | null>(0);
 
   const handleApplyClick = () => {
-    router.push('/test');
+    router.push('/checklist');
   };
 
   const handlePaymentSuccess = (eventId: string) => {

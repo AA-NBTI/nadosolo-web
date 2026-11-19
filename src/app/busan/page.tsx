@@ -192,14 +192,14 @@ export default function PurchaseMainPage() {
     return slots.length > 0 ? slots : DINING_TABLES;
   }, [conditionalEvents, partnerVenues]);
 
-  // 테이블 신청 클릭 시: 성향 퀴즈 미완료 시 /test 먼저, 완료 시 결제창 오픈
+  // 테이블 신청 클릭 시: 성향 퀴즈 미완료 시 /checklist 먼저, 완료 시 결제창 오픈
   const handleOpenCheckout = (table: DiningTableItem) => {
     if (!currentUser) {
       router.push('/auth?next=/');
       return;
     }
     if (Object.keys(surveyAnswers || {}).length === 0) {
-      router.push('/test');
+      router.push('/checklist');
       return;
     }
     setCheckoutEvent({
@@ -349,7 +349,7 @@ export default function PurchaseMainPage() {
               {/* 핵심 행동 CTA (Timeleft형 즉시 진입 동선) */}
               <div className="pt-3 flex flex-wrap items-center gap-3">
                 <Link
-                  href="/test"
+                  href="/checklist"
                   prefetch={true}
                   className="px-6 py-3 bg-[#f04f74] hover:opacity-90 text-white text-sm font-mono font-semibold tracking-wider transition-all inline-flex items-center gap-2"
                 >

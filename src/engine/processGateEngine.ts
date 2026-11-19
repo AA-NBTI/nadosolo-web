@@ -157,8 +157,8 @@ export function evaluateProcessGate(
         guideMessage: hasAnswers
           ? '소통 성향 자가진단이 완료되었습니다.'
           : '3:3 매칭 및 소셜 리포트 기준선 측정을 위해 자가진단을 완료해 주세요.',
-        actionLabel: '자가진단 작성',
-        actionRoute: '/test',
+        actionLabel: '체크리스트 작성',
+        actionRoute: '/checklist',
       };
     }
 
@@ -173,13 +173,13 @@ export function evaluateProcessGate(
         ? '모임 신청하기'
         : p2Result.missingRequirements.length > 0
         ? '연락처/프로필 등록'
-        : '자가진단 작성';
+        : '체크리스트 작성';
 
       const actionRoute = allowed
         ? '/dashboard'
         : p2Result.missingRequirements.length > 0
         ? '/dashboard'
-        : '/test';
+        : '/checklist';
 
       return {
         stepId,

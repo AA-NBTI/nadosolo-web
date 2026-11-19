@@ -123,7 +123,7 @@ export default function NadoSoloEditorialHomePage() {
 
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <Link
-                  href={hasCompletedQuiz ? '/meetup' : '/test'}
+                  href={hasCompletedQuiz ? '/meetup' : '/checklist'}
                   prefetch={true}
                   className="px-7 py-4 rounded-full bg-[#f04f74] hover:bg-[#d93a5e] text-white text-sm font-semibold inline-flex items-center gap-2 shadow-lg shadow-[#f04f74]/20 transition-all cursor-pointer"
                 >
@@ -186,7 +186,7 @@ export default function NadoSoloEditorialHomePage() {
                   <p className="text-sm text-zinc-400 leading-relaxed">{item.desc}</p>
                 </div>
                 <Link
-                  href={item.step === '01' ? '/test' : '/meetup'}
+                  href={item.step === '01' ? '/checklist' : '/meetup'}
                   prefetch={true}
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-300 hover:text-[#f04f74] transition-colors"
                 >

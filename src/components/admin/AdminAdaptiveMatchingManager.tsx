@@ -584,7 +584,7 @@ export default function AdminAdaptiveMatchingManager({
                 {/* 실제 유저 화면 새 창 링크 */}
                 <button
                   type="button"
-                  onClick={() => window.open('/test', '_blank')}
+                  onClick={() => window.open('/checklist', '_blank')}
                   className="px-2.5 py-1.5 border border-white/15 bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white text-sm font-mono flex items-center gap-1.5 cursor-pointer transition-colors"
                   title="실제 온보딩 유저 체크리스트 새 창 열기"
                 >
@@ -962,7 +962,7 @@ export default function AdminAdaptiveMatchingManager({
 
               <button
                 type="button"
-                onClick={() => window.open('/test', '_blank')}
+                onClick={() => window.open('/checklist', '_blank')}
                 className="px-2.5 py-1.5 border border-white/15 bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white text-sm font-mono flex items-center gap-1.5 cursor-pointer transition-colors"
                 title="실제 온보딩 유저 체크리스트 새 창 열기"
               >
@@ -1101,7 +1101,7 @@ export default function AdminAdaptiveMatchingManager({
                   <span className="text-zinc-500">실제화면:</span>
                   <button
                     type="button"
-                    onClick={() => window.open('/test', '_blank')}
+                    onClick={() => window.open('/checklist', '_blank')}
                     className="px-2 py-1 border border-white/15 bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-1 cursor-pointer"
                   >
                     <span>사전(8)</span>
@@ -1109,7 +1109,7 @@ export default function AdminAdaptiveMatchingManager({
                   </button>
                   <button
                     type="button"
-                    onClick={() => window.open('/test?mode=DEEP', '_blank')}
+                    onClick={() => window.open('/checklist?mode=DEEP', '_blank')}
                     className="px-2 py-1 border border-white/15 bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-1 cursor-pointer"
                   >
                     <span>결제후(24)</span>
@@ -1117,7 +1117,7 @@ export default function AdminAdaptiveMatchingManager({
                   </button>
                   <button
                     type="button"
-                    onClick={() => window.open('/test?mode=PULSE', '_blank')}
+                    onClick={() => window.open('/checklist?mode=PULSE', '_blank')}
                     className="px-2 py-1 border border-white/15 bg-white/5 hover:bg-white/10 text-zinc-200 hover:text-white flex items-center gap-1 cursor-pointer"
                   >
                     <span>컨디션(4)</span>

@@ -266,9 +266,9 @@ const INITIAL_CMS_PAGES: CmsPageConfig[] = [
     status: 'PUBLISHED',
   },
   {
-    pageId: 'PAGE_TEST',
-    route: '/test',
-    title: '성향 · 소통 퀴즈',
+    pageId: 'PAGE_CHECKLIST',
+    route: '/checklist',
+    title: '성향 · 소통 체크리스트',
     badgeText: 'PERSONALITY QUIZ',
     headline: '나와 결이 맞는 6인 테이블을 찾는 성향 진단',
     subheadline: '15문항(A안) 또는 19문항(B안) 기반 동적 매칭 프로파일 생성',

@@ -27,7 +27,7 @@ export default function GlobalHeader() {
     : [
         { id: 'meetup', label: '밋업', href: '/meetup' },
         { id: 'locations', label: '도시', href: '/locations' },
-        { id: 'test', label: '체크리스트', href: '/test' },
+        { id: 'checklist', label: '체크리스트', href: '/checklist' },
         { id: 'guide', label: '이용 안내', href: '/guide' },
       ];
 

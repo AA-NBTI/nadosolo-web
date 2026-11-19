@@ -891,21 +891,21 @@ const BASE_PAGE_STRUCTURES: PageStructureMap[] = [
     ],
   },
   // --------------------------------------------------------------------------
-  // 5-1. 솔로 소통 성향 자가진단 (/test)
+  // 5-1. 온보딩 2단계 프로그레시브 체크리스트 (/checklist)
   // --------------------------------------------------------------------------
   {
-    pageId: 'PAGE_TEST',
-    pageTitle: '솔로 소통 성향 자가진단',
-    routePath: '/test',
-    desc: '5개 문항 기반 소통 템포, 식탁 취향, 만남 목적 진단 및 아키타입 기준선 측정',
+    pageId: 'PAGE_CHECKLIST',
+    pageTitle: '2단계 프로그레시브 체크리스트',
+    routePath: '/checklist',
+    desc: '사전 8문항 · 심층 24문항 · 컨디션 4문항 기반 4대 동적 축(목적·심도·테마·에너지) 진단',
     sections: [
       {
-        secId: 'SEC-TEST-01',
+        secId: 'SEC-CHECKLIST-01',
         secNumber: '01',
         categoryName: '인터랙티브 진단 카드',
-        title: '소통 성향 5문항 카드 컨테이너',
+        title: '체크리스트 카드 컨테이너',
         desc: '모바일 반응형 1문항 1카드 선택지 및 진행도 프로그레스',
-        componentPath: 'src/app/test/page.tsx',
+        componentPath: 'src/app/checklist/page.tsx',
         items: [
           {
             id: 'SEC-TEST-01-A',

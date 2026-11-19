@@ -113,14 +113,14 @@ export default function AdminProcessTestReportManager() {
     {
       stepNo: 'STEP 03',
       processId: 'P04_PROFILE',
-      name: '5대 소통 성향 자가진단 (/test)',
+      name: '체크리스트 (/checklist)',
       status: 'VERIFIED',
-      route: '/test',
+      route: '/checklist',
       summary: '대화 템포, 정적 대처 등 5개 질문지 응답 후 아키타입 및 4대 앵커 도출',
       inputs: { '질문지 5문항': '소통 템포, 식탁 취향, 만남 목적' },
       outputs: { '아키타입': '여백을 품은 경청자 (#경청, #여백, #환기, #배려)' },
       reproductionGuide: [
-        '1. /test 접속 후 1문항 1카드 선택',
+        '1. /checklist 접속 후 1문항 1카드 선택',
         '2. 5문항 완료 후 아키타입 리포트 확인',
         '3. [모임 신청으로 이동] 클릭 시 P04 게이트 통과',
       ],
@@ -189,11 +189,11 @@ export default function AdminProcessTestReportManager() {
 
         <div className="flex items-center gap-2.5 shrink-0">
           <Link
-            href="/test"
+            href="/checklist"
             prefetch={true}
             className="px-4 py-2.5 border border-white/15 bg-white/[0.03] hover:border-white/30 text-sm font-medium text-zinc-200 hover:text-white transition-colors"
           >
-            테스트 ↗
+            체크리스트 ↗
           </Link>
           <Link
             href="/dashboard"

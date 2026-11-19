@@ -483,13 +483,13 @@ export default function CheckoutModal({
 
                 {!hasSurvey && (
                   <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
-                    <span className="text-xs text-zinc-300">소통 성향 진단(5문항) 미완료</span>
+                    <span className="text-xs text-zinc-300">체크리스트 미완료</span>
                     <Link
-                      href="/test"
+                      href="/checklist"
                       onClick={onClose}
                       className="px-3 py-1.5 bg-[#f04f74] text-white text-xs font-mono font-bold"
                     >
-                      성향 진단 →
+                      체크리스트 →
                     </Link>
                   </div>
                 )}

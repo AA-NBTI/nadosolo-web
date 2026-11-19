@@ -29,8 +29,8 @@ export default function AboutPage() {
         </section>
 
         <div className="flex flex-wrap gap-3">
-          <Link href="/test" prefetch={true} className="px-5 py-2.5 bg-[#f04f74] text-sm font-mono text-white font-semibold">
-            성향 퀴즈 시작
+          <Link href="/checklist" prefetch={true} className="px-5 py-2.5 bg-[#f04f74] text-sm font-mono text-white font-semibold">
+            체크리스트 시작
           </Link>
           <Link href="/meetup" prefetch={true} className="px-5 py-2.5 border border-white/25 text-sm font-mono text-white">
             밋업 일정 보기

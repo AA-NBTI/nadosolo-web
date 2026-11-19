@@ -119,7 +119,7 @@ function PaymentSuccessContent() {
           나와 가치관·대화 결이 100% 꼭 맞는 동석자 배정을 위해, 타임레프트 심층 22문항 체크리스트를 작성해 주세요.
         </p>
         <Link
-          href="/test?mode=DEEP"
+          href="/checklist?mode=DEEP"
           className="block w-full py-2.5 mt-2 text-center border border-[#f04f74] bg-[#f04f74] hover:bg-[#d93a5e] text-white text-xs font-mono font-bold transition-colors"
         >
           정밀 체크리스트 시작하기 (22문항) →
