@@ -29,6 +29,7 @@ import AdminAdaptiveMatchingManager from '@/components/admin/AdminAdaptiveMatchi
 import AdminPreMatchPage from './pre-match/page';
 import AdminTimeleftManager from '@/components/admin/AdminTimeleftManager';
 import AdminPartnersManager from '@/components/admin/AdminPartnersManager';
+import AdminTestAnalyticsManager from '@/components/admin/AdminTestAnalyticsManager';
 import { ARCHITECTURE_RELEASES } from '@/engine/architectureAuditRegistry';
 import { isAdminAccount, isTesterAccount } from '@/modules/identity';
 import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
@@ -60,6 +61,7 @@ type AdminTabKey =
   | 'MEMBER_MGMT'
   | 'MEMBER_DOSSIER'
   | 'CHECKLIST_AUDIT'
+  | 'TEST_ANALYTICS'
   | 'PROCESS_TEST_REPORT'
   | 'SINGLE_AUDIT_REPORT'
   | 'PIPELINE_ENGINE'
@@ -142,6 +144,7 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
     groupTitle: '회원',
     items: [
       { key: 'MEMBER_MGMT', label: '정보' },
+      { key: 'TEST_ANALYTICS', label: '진단테스트' },
       { key: 'CHECKLIST_AUDIT', label: '체크리스트' },
       { key: 'MEMBER_EVAL', label: '평가' },
       { key: 'BADGE', label: '뱃지' },
@@ -3187,6 +3190,16 @@ export default function AdminOperationsDashboardPage() {
               isLight={isLight}
               onNotify={notify}
               defaultPerspective="CHECKLIST"
+            />
+          )}
+
+          {/* ----------------------------------------------------------
+              [진단테스트 명세 및 시뮬레이터] 4종 진단테스트(UCLA, 외로움, 솔로테스트, 체크리스트)
+              ---------------------------------------------------------- */}
+          {activeTab === 'TEST_ANALYTICS' && (
+            <AdminTestAnalyticsManager
+              isLight={isLight}
+              onNotify={notify}
             />
           )}
 
