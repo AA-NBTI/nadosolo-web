@@ -3,26 +3,37 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  ChevronDown,
-  ChevronUp,
   ExternalLink,
   RotateCcw,
   Sparkles,
   Check,
   ShieldAlert,
+  Heart,
+  Phone,
+  ArrowRight,
+  Share2,
+  Copy,
+  Eye,
+  Sliders,
+  Layers,
 } from 'lucide-react';
 import {
   UCLA_QUESTIONS,
   UCLA_TYPES,
   UCLA_DOMAIN_DETAILS,
-  computeUCLAResult,
   UCLATypeCode,
+  UCLALonelinessDomain,
+  UCLAScoringOutput,
+  computeUCLAResult,
+  UCLA_COUNSELING_HOTLINES,
 } from '@/lib/solotest/uclaData';
 import {
   LONELINESS_QUESTIONS,
   LONELINESS_TYPES,
-  computeLonelinessResult,
   LonelinessTypeCode,
+  LonelinessScoringOutput,
+  computeLonelinessResult,
+  COUNSELING_HOTLINES,
 } from '@/lib/solotest/lonelinessData';
 import {
   SOLOTEST_QUESTIONS,
@@ -37,678 +48,585 @@ interface AdminTestAnalyticsManagerProps {
   onNotify?: (msg: string, type?: 'info' | 'success' | 'warn' | 'error') => void;
 }
 
+type SelectedTestKey = 'UCLA_20' | 'LONELINESS_9' | 'SOLO_8';
+
 export default function AdminTestAnalyticsManager({
   isLight = false,
   onNotify,
 }: AdminTestAnalyticsManagerProps) {
-  // 열려 있는 테스트 카드 ID
-  const [openCardIds, setOpenCardIds] = useState<string[]>(['ucla-v3']);
+  // 선택된 테스트
+  const [activeTest, setActiveTest] = useState<SelectedTestKey>('UCLA_20');
 
-  // UCLA 시뮬레이터 원점수 상태 (20 ~ 80)
-  const [uclaSimScore, setUclaSimScore] = useState<number>(45);
+  // 1. UCLA 테스트 프리뷰 상태
+  const [uclaType, setUclaType] = useState<UCLATypeCode>('B');
+  const [uclaTopDomain, setUclaTopDomain] = useState<UCLALonelinessDomain>('intimacy');
 
-  // 9문항 외로움 시뮬레이터 상태 (정서 0~3, 사회 0~3, 빈도 3~9)
-  const [simEmotionalScore, setSimEmotionalScore] = useState<number>(2);
-  const [simSocialScore, setSimSocialScore] = useState<number>(1);
-  const [simDegreeScore, setSimDegreeScore] = useState<number>(6);
+  // 2. 9문항 외로움 테스트 프리뷰 상태
+  const [lonelinessType, setLonelinessType] = useState<LonelinessTypeCode>('C');
 
-  // 1분 솔로테스트 시뮬레이터 상태 (맥락 1, 결 1)
-  const [simContextKey, setSimContextKey] = useState<string>('after_work');
-  const [simStyleScore, setSimStyleScore] = useState<number>(1);
+  // 3. 1분 솔로테스트 프리뷰 상태
+  const [soloContext, setSoloContext] = useState<string>('after_work');
+  const [soloStyle, setSoloStyle] = useState<string>('mood');
+  const [soloNeed, setSoloNeed] = useState<string>('wide');
 
-  const toggleCard = (id: string) => {
-    setOpenCardIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
+  // UCLA 결과 객체 생성
+  const currentUCLAResult: UCLAScoringOutput = useMemo(() => {
+    // 유형별 대표 점수 (A: 26점 / B: 42점 / C: 58점 / D: 74점)
+    const targetRaw =
+      uclaType === 'A' ? 26 : uclaType === 'B' ? 42 : uclaType === 'C' ? 58 : 74;
 
-  const toggleAll = () => {
-    if (openCardIds.length === 4) {
-      setOpenCardIds([]);
-    } else {
-      setOpenCardIds(['solo-8', 'loneliness-9', 'ucla-v3', 'checklist-36']);
-    }
-  };
-
-  // UCLA 시뮬레이션 계산
-  const uclaSimResult = useMemo(() => {
-    // 가상 응답 생성 (평균 uclaSimScore에 맞춤)
-    const avgPerQ = uclaSimScore / 20;
     const dummyAnswers: Record<string, number> = {};
-    UCLA_QUESTIONS.forEach((q, idx) => {
-      // 대략적인 배분
-      const baseVal = Math.max(1, Math.min(4, Math.round(avgPerQ + (idx % 2 === 0 ? 0.3 : -0.3))));
-      dummyAnswers[q.id] = q.isReverse ? 5 - baseVal : baseVal;
+    const avgScore = targetRaw / 20;
+
+    UCLA_QUESTIONS.forEach((q) => {
+      let val = Math.round(avgScore);
+      // 선택된 결핍 도메인의 문항은 약간 높게 부여
+      if (q.domain === uclaTopDomain) {
+        val = Math.min(4, val + 1);
+      }
+      val = Math.max(1, Math.min(4, val));
+      dummyAnswers[q.id] = q.isReverse ? 5 - val : val;
     });
+
     return computeUCLAResult(dummyAnswers);
-  }, [uclaSimScore]);
+  }, [uclaType, uclaTopDomain]);
 
-  // 9문항 외로움 시뮬레이션 계산
-  const lonelinessSimResult = useMemo(() => {
-    let type: LonelinessTypeCode = 'A';
-    const isEHigh = simEmotionalScore >= 2;
-    const isSHigh = simSocialScore >= 2;
+  // 9문항 결과 객체 생성
+  const currentLonelinessResult: LonelinessScoringOutput = useMemo(() => {
+    const dummyAnswers: Record<string, number> = {};
+    // 파트 1 정도
+    dummyAnswers.L1 = lonelinessType === 'D' ? 3 : lonelinessType === 'A' ? 1 : 2;
+    dummyAnswers.L2 = dummyAnswers.L1;
+    dummyAnswers.L3 = dummyAnswers.L1;
 
-    if (!isEHigh && !isSHigh) type = 'A';
-    else if (isEHigh && !isSHigh) type = 'B';
-    else if (!isEHigh && isSHigh) type = 'C';
-    else type = 'D';
+    // 파트 2 정서/사회
+    if (lonelinessType === 'A') {
+      dummyAnswers.L4 = 0; dummyAnswers.L5 = 0; dummyAnswers.L6 = 0;
+      dummyAnswers.L7 = 0; dummyAnswers.L8 = 0; dummyAnswers.L9 = 0;
+    } else if (lonelinessType === 'B') {
+      dummyAnswers.L4 = 1; dummyAnswers.L5 = 1; dummyAnswers.L6 = 0;
+      dummyAnswers.L7 = 0; dummyAnswers.L8 = 0; dummyAnswers.L9 = 0;
+    } else if (lonelinessType === 'C') {
+      dummyAnswers.L4 = 0; dummyAnswers.L5 = 0; dummyAnswers.L6 = 0;
+      dummyAnswers.L7 = 1; dummyAnswers.L8 = 1; dummyAnswers.L9 = 1;
+    } else {
+      dummyAnswers.L4 = 1; dummyAnswers.L5 = 1; dummyAnswers.L6 = 1;
+      dummyAnswers.L7 = 1; dummyAnswers.L8 = 1; dummyAnswers.L9 = 1;
+    }
 
-    return {
-      type,
-      typeInfo: LONELINESS_TYPES[type],
-    };
-  }, [simEmotionalScore, simSocialScore]);
+    return computeLonelinessResult(dummyAnswers);
+  }, [lonelinessType]);
+
+  const activeLonelinessInfo = LONELINESS_TYPES[lonelinessType];
+  const activeSoloContextCopy = SOLOTEST_COPY.context[soloContext] || SOLOTEST_COPY.context.after_work;
+  const activeSoloStyleCopy = SOLOTEST_COPY.style[soloStyle] || SOLOTEST_COPY.style.mood;
+  const activeSoloNeedCopy = SOLOTEST_COPY.need[soloNeed] || SOLOTEST_COPY.need.wide;
 
   return (
-    <div className="space-y-4">
-      {/* 1. 상단 컨트롤 바 (GEMINI.md 원칙 6 표준 테두리 박스 컨테이너) */}
+    <div className="space-y-5">
+      {/* 1. 상단 컨트롤 바 */}
       <section className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
           <h1 className="font-serif-editorial text-lg text-white font-normal">
-            진단테스트
+            진단테스트 결과 화면 뷰어
           </h1>
           <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
-            4건
+            사용자 실물 화면 열람
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleAll}
-            className="px-2.5 py-1 text-sm font-mono border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+        <div className="flex items-center gap-2 text-xs font-mono">
+          <Link
+            href="/test"
+            target="_blank"
+            className="px-2.5 py-1 border border-white/10 bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
           >
-            {openCardIds.length === 4 ? '접기' : '펼치기'}
-          </button>
+            <span>허브 열기</span>
+            <ExternalLink className="w-3.5 h-3.5 text-zinc-400" />
+          </Link>
         </div>
       </section>
 
-      {/* 2. 2열 컴팩트 그리드 (GEMINI.md 원칙 5 준수, 클릭 시 col-span-full 확장) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-        {/* ========================================================
-            CARD 1: UCLA 외로움 척도 자가진단 (20문항)
-            ======================================================== */}
-        <div
-          className={`border transition-all bg-[#0c0d12] ${
-            openCardIds.includes('ucla-v3')
-              ? 'border-white/30 col-span-full'
-              : 'border-white/10 hover:border-white/20'
+      {/* 2. 테스트 선택 상단 탭 (3대 테스트 1클릭 전환) */}
+      <div className="flex border border-white/10 bg-[#0c0d12] p-1 gap-1">
+        <button
+          type="button"
+          onClick={() => setActiveTest('UCLA_20')}
+          className={`flex-1 py-2.5 px-3 text-sm font-mono transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeTest === 'UCLA_20'
+              ? 'bg-white/15 text-white font-bold border border-white/20 shadow-md'
+              : 'text-zinc-400 hover:text-white hover:bg-white/5'
           }`}
         >
-          {/* 헤더 바 */}
-          <button
-            type="button"
-            onClick={() => toggleCard('ucla-v3')}
-            className="w-full text-left p-4 flex items-center justify-between gap-3 cursor-pointer group"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-              <span className="px-2 py-0.5 text-xs font-mono border border-white/10 bg-white/5 text-zinc-300">
-                학술 표준
-              </span>
-              <h2 className="font-serif-editorial text-base sm:text-lg text-white font-normal truncate">
-                UCLA 외로움 척도 자가진단 (20문항)
-              </h2>
-              <span className="text-xs font-mono text-zinc-400 hidden sm:inline">
-                Russell(1996) v3
-              </span>
-            </div>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+          <span>1. UCLA 외로움 척도 (20문항)</span>
+        </button>
 
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="text-xs font-mono text-zinc-400">
-                {openCardIds.includes('ucla-v3') ? '상세 접기' : '상세 보기'}
-              </span>
-              {openCardIds.includes('ucla-v3') ? (
-                <ChevronUp className="w-4 h-4 text-zinc-300" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-zinc-500 group-hover:text-white" />
-              )}
-            </div>
-          </button>
+        <button
+          type="button"
+          onClick={() => setActiveTest('LONELINESS_9')}
+          className={`flex-1 py-2.5 px-3 text-sm font-mono transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeTest === 'LONELINESS_9'
+              ? 'bg-white/15 text-white font-bold border border-white/20 shadow-md'
+              : 'text-zinc-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+          <span>2. 외로움 유형 테스트 (9문항)</span>
+        </button>
 
-          {/* 세부 명세 펼침 */}
-          {openCardIds.includes('ucla-v3') && (
-            <div className="p-4 sm:p-5 border-t border-white/10 space-y-5 text-sm">
-              {/* 기본 명세 요약 */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">척도 및 채점</span>
-                  <p className="text-white font-medium">4점 리커트 (1~4점)</p>
-                  <p className="text-xs font-mono text-zinc-400">정채점 11개 / 역채점 9개</p>
-                </div>
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">점수 범위 & 환산</span>
-                  <p className="text-white font-medium">원점수 20~80점 ➔ 100점 환산</p>
-                  <p className="text-xs font-mono text-zinc-400">POMP 공식: (raw-20)/60*100</p>
-                </div>
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">공개 주소</span>
-                  <Link
-                    href="/test/ucla"
-                    target="_blank"
-                    className="text-white hover:underline flex items-center gap-1 font-mono text-xs"
+        <button
+          type="button"
+          onClick={() => setActiveTest('SOLO_8')}
+          className={`flex-1 py-2.5 px-3 text-sm font-mono transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeTest === 'SOLO_8'
+              ? 'bg-white/15 text-white font-bold border border-white/20 shadow-md'
+              : 'text-zinc-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+          <span>3. 1분 솔로테스트 (8문항)</span>
+        </button>
+      </div>
+
+      {/* 3. 각 테스트별 결과 유형 전환 컨트롤 바 */}
+      <div className="p-4 bg-[#0c0d12] border border-white/10 space-y-3">
+        {activeTest === 'UCLA_20' && (
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+              <span className="text-sm font-medium text-white flex items-center gap-1.5">
+                <Eye className="w-4 h-4 text-[#f04f74]" />
+                <span>열람할 외로움 유형 선택:</span>
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { code: 'A', name: '유형 A. 건강한 독립형', scoreRange: '0~25점' },
+                  { code: 'B', name: '유형 B. 새로운 자극 탐색형', scoreRange: '26~50점' },
+                  { code: 'C', name: '유형 C. 군중 속의 고독형', scoreRange: '51~75점' },
+                  { code: 'D', name: '유형 D. 관계 에너지 방전형', scoreRange: '76~100점' },
+                ].map((item) => (
+                  <button
+                    key={item.code}
+                    type="button"
+                    onClick={() => setUclaType(item.code as UCLATypeCode)}
+                    className={`px-3 py-1.5 text-xs font-mono border transition-all cursor-pointer ${
+                      uclaType === item.code
+                        ? 'border-white bg-white/20 text-white font-bold shadow'
+                        : 'border-white/10 bg-[#08090d] text-zinc-400 hover:text-white hover:border-white/20'
+                    }`}
                   >
-                    <span>/test/ucla</span>
-                    <ExternalLink className="w-3 h-3 text-zinc-400" />
-                  </Link>
-                  <p className="text-xs font-mono text-zinc-400">결과: 4대 유형 × 3대 영역</p>
-                </div>
+                    <span>{item.name}</span>
+                    <span className="text-zinc-500 ml-1">({item.scoreRange})</span>
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* 4대 유형 분기 기준표 */}
-              <div className="space-y-2">
-                <span className="text-xs font-mono text-zinc-400 block">
-                  4대 외로움 유형 판별 및 모임 연결 정책
-                </span>
-                <div className="border border-white/10 overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-white/5 border-b border-white/10 text-zinc-300">
-                      <tr>
-                        <th className="p-2.5">유형</th>
-                        <th className="p-2.5">원점수</th>
-                        <th className="p-2.5">100점 환산</th>
-                        <th className="p-2.5">진단 등급</th>
-                        <th className="p-2.5">핵심 처방 요약</th>
-                        <th className="p-2.5">모임 연결 정책</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5 text-zinc-300">
-                      {Object.values(UCLA_TYPES).map((t) => (
-                        <tr key={t.code} className="hover:bg-white/[0.02]">
-                          <td className="p-2.5 font-medium text-white">{t.name}</td>
-                          <td className="p-2.5">{t.rawRangeText}</td>
-                          <td className="p-2.5 text-white">{t.finalRangeText}</td>
-                          <td className="p-2.5">
-                            <span className="px-1.5 py-0.5 border border-white/10 bg-white/5 text-zinc-200">
-                              {t.grade}
-                            </span>
-                          </td>
-                          <td className="p-2.5 max-w-xs truncate">{t.prescription}</td>
-                          <td className="p-2.5">
-                            {t.recommendMeetup ? (
-                              <span className="text-white font-medium">수요일 사교클럽 노출</span>
-                            ) : (
-                              <span className="text-zinc-500">모임 권유 미노출</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono text-zinc-400">
+              <span>1순위 결핍 영역 전환:</span>
+              <div className="flex gap-1.5">
+                {[
+                  { key: 'intimacy', label: '정서적 친밀감 결핍' },
+                  { key: 'belonging', label: '사회적 소속감 결핍' },
+                  { key: 'isolation', label: '관계적 고립감 결핍' },
+                ].map((dom) => (
+                  <button
+                    key={dom.key}
+                    type="button"
+                    onClick={() => setUclaTopDomain(dom.key as UCLALonelinessDomain)}
+                    className={`px-2.5 py-1 border transition-all cursor-pointer ${
+                      uclaTopDomain === dom.key
+                        ? 'border-white bg-white/15 text-white font-semibold'
+                        : 'border-white/10 bg-[#08090d] text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    {dom.label}
+                  </button>
+                ))}
               </div>
+            </div>
+          </div>
+        )}
 
-              {/* 3대 세부 평가 영역 */}
-              <div className="space-y-2">
-                <span className="text-xs font-mono text-zinc-400 block">
-                  3대 하위 결핍 차원 (리포트 심층 분석)
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {Object.entries(UCLA_DOMAIN_DETAILS).map(([key, dom]) => (
-                    <div key={key} className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-white font-medium text-sm">{dom.label}</span>
-                        <span className="text-xs font-mono text-zinc-500">
-                          {key === 'intimacy' ? '8문항' : '6문항'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-300 font-light leading-relaxed">
-                        {dom.interpretation}
-                      </p>
+        {activeTest === 'LONELINESS_9' && (
+          <div className="space-y-2">
+            <span className="text-sm font-medium text-white flex items-center gap-1.5">
+              <Eye className="w-4 h-4 text-[#f04f74]" />
+              <span>열람할 4대 연결 유형 선택:</span>
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { code: 'A', name: '유형 A (충분한 연결)' },
+                { code: 'B', name: '유형 B (마음 나눌 사람 그리움)' },
+                { code: 'C', name: '유형 C (어울릴 사람 그리움)' },
+                { code: 'D', name: '유형 D (전반적 연결 멈춤)' },
+              ].map((item) => (
+                <button
+                  key={item.code}
+                  type="button"
+                  onClick={() => setLonelinessType(item.code as LonelinessTypeCode)}
+                  className={`p-2.5 text-xs font-mono border text-left transition-all cursor-pointer ${
+                    lonelinessType === item.code
+                      ? 'border-white bg-white/20 text-white font-bold shadow'
+                      : 'border-white/10 bg-[#08090d] text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  <span className="block font-bold">{item.code}</span>
+                  <span className="text-zinc-300 truncate block">{item.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTest === 'SOLO_8' && (
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <span className="text-xs font-mono text-zinc-400 block">1. 솔로의 순간 (맥락 6종):</span>
+              <div className="grid grid-cols-2 sm:grid-cols-6 gap-1.5 text-xs font-mono">
+                {Object.entries(SOLOTEST_COPY.context).map(([k, c]: [string, ContextResultCopy]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setSoloContext(k)}
+                    className={`p-2 border text-center transition-colors cursor-pointer ${
+                      soloContext === k
+                        ? 'border-white bg-white/20 text-white font-bold'
+                        : 'border-white/10 bg-[#08090d] text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="text-xs font-mono text-zinc-400 block">2. 대화의 결 (5종):</span>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-xs font-mono">
+                {Object.entries(SOLOTEST_COPY.style).map(([k, s]: [string, StyleResultCopy]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setSoloStyle(k)}
+                    className={`p-2 border text-center transition-colors cursor-pointer ${
+                      soloStyle === k
+                        ? 'border-white bg-white/20 text-white font-bold'
+                        : 'border-white/10 bg-[#08090d] text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 4. 사용자가 실제로 보게 되는 실물 결과 화면 (Real Preview Frame) */}
+      <section className="space-y-2">
+        <div className="flex items-center justify-between text-xs font-mono text-zinc-400 px-1">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+            <strong className="text-white font-medium">사용자 실제 결과 화면 렌더링 프레임</strong>
+          </span>
+          <span>모바일/데스크톱 100% 동일 출력</span>
+        </div>
+
+        {/* ========================================================
+            4-1. UCLA 20문항 실제 결과 화면
+            ======================================================== */}
+        {activeTest === 'UCLA_20' && (
+          <div className="border border-white/20 bg-[#07080a] p-5 sm:p-8 space-y-8 max-w-2xl mx-auto shadow-2xl">
+            {/* 고위험/방전형 시 상단 배너 */}
+            {currentUCLAResult.hasCrisisFlag && (
+              <div className="p-4 border border-white/20 bg-white/5 space-y-2">
+                <div className="flex items-center gap-2 text-white font-medium text-sm">
+                  <ShieldAlert className="w-4 h-4 text-[#f04f74]" />
+                  <span>마음이 버거울 때는 언제든 도움을 요청하세요</span>
+                </div>
+                <p className="text-xs text-zinc-300 font-light leading-relaxed">
+                  사회적 연결감이 크게 방전되어 혼자 견디기 힘든 상태일 수 있습니다. 언제든 무료로 이야기 나눌 수 있는 전문 공공 상담 전화가 큰 힘이 됩니다.
+                </p>
+                <div className="grid grid-cols-3 gap-2 pt-1 text-xs font-mono">
+                  {UCLA_COUNSELING_HOTLINES.map((h) => (
+                    <div key={h.tel} className="p-2 bg-[#0c0d12] border border-white/10 text-center">
+                      <span className="text-zinc-400 block text-[11px]">{h.name}</span>
+                      <span className="text-white font-bold block">{h.tel}</span>
                     </div>
                   ))}
                 </div>
               </div>
+            )}
 
-              {/* 실시간 시뮬레이터 (Simulator) */}
-              <div className="p-4 bg-[#08090d] border border-white/15 space-y-3">
+            {/* 상단 점수 카드 */}
+            <div className="bg-[#0c0d12] border border-white/15 p-6 space-y-5">
+              <div className="space-y-3 border-b border-white/10 pb-5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#f04f74]" />
-                    <span className="text-sm font-medium text-white">
-                      UCLA 실시간 점수 시뮬레이터
-                    </span>
-                  </div>
-                  <span className="text-xs font-mono text-zinc-400">
-                    점수 조절 시 사용자 화면 출력 즉시 확인
+                  <span className="text-xs font-mono text-zinc-400 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                    <span>UCLA 척도 표준 진단 결과</span>
+                  </span>
+                  <span className="px-2.5 py-1 text-xs font-mono border border-white/20 bg-white/5 text-zinc-200">
+                    {currentUCLAResult.typeInfo.grade}
                   </span>
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-zinc-300">원점수 조절 (20 ~ 80점)</span>
-                    <span className="text-white font-bold text-sm">
-                      {uclaSimScore}점 ➔ 100점 환산: {Math.round(((uclaSimScore - 20) / 60) * 100)}점
+                <div className="pt-1">
+                  <div className="text-xs font-mono text-zinc-400 mb-1">나의 외로움 지수</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl sm:text-5xl font-mono font-bold text-white">
+                      {currentUCLAResult.finalScore}
                     </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={20}
-                    max={80}
-                    value={uclaSimScore}
-                    onChange={(e) => setUclaSimScore(Number(e.target.value))}
-                    className="w-full accent-[#f04f74] cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[11px] font-mono text-zinc-500">
-                    <span>20점 (최저)</span>
-                    <span>35점 (A구간)</span>
-                    <span>50점 (B구간)</span>
-                    <span>65점 (C구간)</span>
-                    <span>80점 (최고 D)</span>
+                    <span className="text-sm font-mono text-zinc-400">/ 100점</span>
+                    <span className="text-xs font-mono text-zinc-500 ml-2">
+                      (원점수: {currentUCLAResult.rawScore}점)
+                    </span>
                   </div>
                 </div>
 
-                {/* 시뮬레이션 결과 프리뷰 박스 */}
-                <div className="p-3 bg-[#0c0d12] border border-white/10 space-y-2 text-xs font-mono">
-                  <div className="flex items-center justify-between pb-1 border-b border-white/10">
-                    <span className="text-zinc-400">도출 유형:</span>
-                    <span className="text-white font-bold text-sm">
-                      {uclaSimResult.typeInfo.name} ({uclaSimResult.typeInfo.grade})
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400">모임 연결 카드:</span>
-                    <span className="text-zinc-200">
-                      {uclaSimResult.typeInfo.recommendMeetup ? '노출 (사교클럽 둘러보기)' : '미노출 (선택적 영감 안내)'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-400">위기 상담 배너:</span>
-                    <span className={uclaSimScore >= 66 ? 'text-white font-bold' : 'text-zinc-500'}>
-                      {uclaSimScore >= 66 ? '최상단 우선 노출' : '하단 일반 안내'}
-                    </span>
-                  </div>
-                  <div className="pt-1 text-zinc-300 font-sans text-xs">
-                    "{uclaSimResult.typeInfo.message}"
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* ========================================================
-            CARD 2: 외로움 유형 테스트 (9문항)
-            ======================================================== */}
-        <div
-          className={`border transition-all bg-[#0c0d12] ${
-            openCardIds.includes('loneliness-9')
-              ? 'border-white/30 col-span-full'
-              : 'border-white/10 hover:border-white/20'
-          }`}
-        >
-          {/* 헤더 바 */}
-          <button
-            type="button"
-            onClick={() => toggleCard('loneliness-9')}
-            className="w-full text-left p-4 flex items-center justify-between gap-3 cursor-pointer group"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-              <span className="px-2 py-0.5 text-xs font-mono border border-white/10 bg-white/5 text-zinc-300">
-                관계와 연결
-              </span>
-              <h2 className="font-serif-editorial text-base sm:text-lg text-white font-normal truncate">
-                외로움 유형 테스트 (9문항)
-              </h2>
-              <span className="text-xs font-mono text-zinc-400 hidden sm:inline">
-                Hughes & De Jong Gierveld
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="text-xs font-mono text-zinc-400">
-                {openCardIds.includes('loneliness-9') ? '상세 접기' : '상세 보기'}
-              </span>
-              {openCardIds.includes('loneliness-9') ? (
-                <ChevronUp className="w-4 h-4 text-zinc-300" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-zinc-500 group-hover:text-white" />
-              )}
-            </div>
-          </button>
-
-          {/* 세부 명세 펼침 */}
-          {openCardIds.includes('loneliness-9') && (
-            <div className="p-4 sm:p-5 border-t border-white/10 space-y-5 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">척도 구성</span>
-                  <p className="text-white font-medium">파트1(정도 3) + 파트2(유형 6)</p>
-                  <p className="text-xs font-mono text-zinc-400">Hughes(2004) + De Jong(2006)</p>
-                </div>
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">핵심 분류 축</span>
-                  <p className="text-white font-medium">정서적 외로움 vs 사회적 외로움</p>
-                  <p className="text-xs font-mono text-zinc-400">친밀감 결핍 vs 네트워크 결핍</p>
-                </div>
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">공개 주소</span>
-                  <Link
-                    href="/test/loneliness"
-                    target="_blank"
-                    className="text-white hover:underline flex items-center gap-1 font-mono text-xs"
-                  >
-                    <span>/test/loneliness</span>
-                    <ExternalLink className="w-3 h-3 text-zinc-400" />
-                  </Link>
-                  <p className="text-xs font-mono text-zinc-400">약 1.5분 소요 간이 테스트</p>
-                </div>
+                <h2 className="font-serif-editorial text-2xl sm:text-3xl text-white font-normal pt-1">
+                  {currentUCLAResult.typeInfo.name}
+                </h2>
+                <p className="text-sm sm:text-base text-zinc-200 font-light leading-relaxed">
+                  {currentUCLAResult.typeInfo.message}
+                </p>
               </div>
 
-              {/* 4대 유형 기준표 */}
-              <div className="space-y-2">
-                <span className="text-xs font-mono text-zinc-400 block">
-                  4대 유형 판별 조건 및 모임 추천 우선순위
+              {/* 핵심 처방 가이드 */}
+              <div className="p-4 bg-[#08090d] border border-white/10 space-y-1">
+                <span className="text-xs font-mono text-zinc-400 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#f04f74]" />
+                  <span>심리학적 처방 가이드</span>
                 </span>
-                <div className="border border-white/10 overflow-x-auto">
-                  <table className="w-full text-left text-xs font-mono">
-                    <thead className="bg-white/5 border-b border-white/10 text-zinc-300">
-                      <tr>
-                        <th className="p-2.5">유형 코드</th>
-                        <th className="p-2.5">유형 명칭</th>
-                        <th className="p-2.5">판별 조건</th>
-                        <th className="p-2.5">모임 추천 방식</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5 text-zinc-300">
-                      {Object.values(LONELINESS_TYPES).map((t) => (
-                        <tr key={t.code} className="hover:bg-white/[0.02]">
-                          <td className="p-2.5 font-bold text-white">유형 {t.code}</td>
-                          <td className="p-2.5 font-medium text-white">{t.name}</td>
-                          <td className="p-2.5 text-zinc-400">
-                            {t.code === 'A' && '정서 낮음 & 사회 낮음'}
-                            {t.code === 'B' && '정서 높음 (2점↑) & 사회 낮음'}
-                            {t.code === 'C' && '정서 낮음 & 사회 높음 (2점↑)'}
-                            {t.code === 'D' && '정서 높음 & 사회 높음'}
-                          </td>
-                          <td className="p-2.5">
-                            {t.meetupDisplayMode === 'TOP_PRIMARY' && '1순위 강력 추천 (6인 식탁)'}
-                            {t.meetupDisplayMode === 'STARTING_POINT' && '가벼운 시작점 안내'}
-                            {t.meetupDisplayMode === 'SUBTLE_ONE_LINE' && '은은한 1줄 텍스트 안내'}
-                            {t.meetupDisplayMode === 'WEAK_BOTTOM' && '상담 우선 + 보조 선택지'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <p className="text-sm text-zinc-200 font-light leading-relaxed">
+                  {currentUCLAResult.typeInfo.prescription}
+                </p>
               </div>
 
-              {/* 9문항 시뮬레이터 */}
-              <div className="p-4 bg-[#08090d] border border-white/15 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#f04f74]" />
-                    <span className="text-sm font-medium text-white">
-                      9문항 유형 시뮬레이터
-                    </span>
+              {/* 오늘 실천할 수 있는 작은 일 3가지 */}
+              <div className="space-y-2.5">
+                <span className="text-xs font-mono text-white font-medium flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-[#f04f74]" />
+                  <span>오늘 해 볼 수 있는 작은 행동 3가지</span>
+                </span>
+                <div className="space-y-2">
+                  {currentUCLAResult.typeInfo.dailyActions.map((action, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 bg-white/[0.02] border border-white/10 text-sm text-zinc-300 flex items-start gap-2.5"
+                    >
+                      <span className="text-zinc-500 font-mono shrink-0">{idx + 1}.</span>
+                      <span className="font-light leading-relaxed">{action}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 중단: 3대 하위 차원 심층 분석 & 1순위 결핍 영역 */}
+            <div className="bg-[#0c0d12] border border-white/15 p-6 space-y-5">
+              <div className="space-y-1">
+                <span className="text-xs font-mono text-zinc-400 block">3대 하위 차원 심층 분석</span>
+                <h3 className="font-serif-editorial text-xl text-white font-normal">
+                  관계 만족도 및 결핍 지표
+                </h3>
+              </div>
+
+              <div className="space-y-3.5 pt-1">
+                {Object.values(currentUCLAResult.domains).map((dom) => (
+                  <div key={dom.domain} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <span className="text-zinc-200">{dom.label}</span>
+                      <span className="text-zinc-400">
+                        {dom.score100}점 <span className="text-zinc-600">/ 100</span> (평균 {dom.avgScore}점)
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-white/[0.08] overflow-hidden">
+                      <div
+                        className="h-full bg-zinc-300 transition-all duration-300"
+                        style={{ width: `${dom.score100}%` }}
+                      />
+                    </div>
                   </div>
-                  <span className="text-xs font-mono text-zinc-400">
-                    점수별 유형 및 모임 노출 검증
+                ))}
+              </div>
+
+              {/* 1순위 결핍 영역 맞춤 리포트 */}
+              <div className="p-4 bg-[#08090d] border border-white/10 space-y-2.5 mt-2">
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <span className="text-xs font-mono text-white flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                    <span>
+                      1순위 결핍 영역: {currentUCLAResult.topDeficitDomain.label} ({currentUCLAResult.topDeficitDomain.score100}점)
+                    </span>
                   </span>
+                  <span className="text-xs font-mono text-zinc-500">집중 케어 필요</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs font-mono">
-                      <span>정서적 외로움 점수 (0~3점)</span>
-                      <span className="text-white font-bold">{simEmotionalScore}점</span>
-                    </div>
-                    <div className="flex gap-1.5">
-                      {[0, 1, 2, 3].map((val) => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => setSimEmotionalScore(val)}
-                          className={`flex-1 py-1.5 text-xs font-mono border transition-colors ${
-                            simEmotionalScore === val
-                              ? 'border-white bg-white/20 text-white font-bold'
-                              : 'border-white/10 bg-[#0c0d12] text-zinc-400'
-                          }`}
-                        >
-                          {val}점
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs font-mono">
-                      <span>사회적 외로움 점수 (0~3점)</span>
-                      <span className="text-white font-bold">{simSocialScore}점</span>
-                    </div>
-                    <div className="flex gap-1.5">
-                      {[0, 1, 2, 3].map((val) => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => setSimSocialScore(val)}
-                          className={`flex-1 py-1.5 text-xs font-mono border transition-colors ${
-                            simSocialScore === val
-                              ? 'border-white bg-white/20 text-white font-bold'
-                              : 'border-white/10 bg-[#0c0d12] text-zinc-400'
-                          }`}
-                        >
-                          {val}점
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-[#0c0d12] border border-white/10 space-y-1 text-xs font-mono">
-                  <div className="flex items-center justify-between pb-1 border-b border-white/10">
-                    <span className="text-zinc-400">도출 유형:</span>
-                    <span className="text-white font-bold text-sm">
-                      {lonelinessSimResult.typeInfo.name} (유형 {lonelinessSimResult.type})
-                    </span>
-                  </div>
-                  <p className="text-zinc-300 font-sans pt-1">
-                    {lonelinessSimResult.typeInfo.summary}
+                <div className="space-y-1.5 text-xs sm:text-sm font-light text-zinc-300 leading-relaxed">
+                  <p>
+                    <strong className="text-white font-medium">심리학적 해석: </strong>
+                    {currentUCLAResult.topDeficitDomain.interpretation}
+                  </p>
+                  <p>
+                    <strong className="text-white font-medium">일상 속 처방: </strong>
+                    {currentUCLAResult.topDeficitDomain.prescription}
                   </p>
                 </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* ========================================================
-            CARD 3: 1분 솔로테스트 (8문항)
-            ======================================================== */}
-        <div
-          className={`border transition-all bg-[#0c0d12] ${
-            openCardIds.includes('solo-8')
-              ? 'border-white/30 col-span-full'
-              : 'border-white/10 hover:border-white/20'
-          }`}
-        >
-          {/* 헤더 바 */}
-          <button
-            type="button"
-            onClick={() => toggleCard('solo-8')}
-            className="w-full text-left p-4 flex items-center justify-between gap-3 cursor-pointer group"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-              <span className="px-2 py-0.5 text-xs font-mono border border-white/10 bg-white/5 text-zinc-300">
-                순간과 결
+            {/* 하단 모임 연결 카드 */}
+            <div className="bg-[#0c0d12] border border-white/15 p-6 space-y-3.5">
+              <span className="text-xs font-mono text-zinc-400 block">
+                {currentUCLAResult.typeInfo.meetupBadge}
               </span>
-              <h2 className="font-serif-editorial text-base sm:text-lg text-white font-normal truncate">
-                1분 솔로테스트 (8문항)
-              </h2>
-              <span className="text-xs font-mono text-zinc-400 hidden sm:inline">
-                입구 퍼널 v0.1
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="text-xs font-mono text-zinc-400">
-                {openCardIds.includes('solo-8') ? '상세 접기' : '상세 보기'}
-              </span>
-              {openCardIds.includes('solo-8') ? (
-                <ChevronUp className="w-4 h-4 text-zinc-300" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-zinc-500 group-hover:text-white" />
-              )}
-            </div>
-          </button>
-
-          {/* 세부 명세 펼침 */}
-          {openCardIds.includes('solo-8') && (
-            <div className="p-4 sm:p-5 border-t border-white/10 space-y-5 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">설계 목적</span>
-                  <p className="text-white font-medium">가입 없는 1분 공감 입구</p>
-                  <p className="text-xs font-mono text-zinc-400">점수/지수 미표시 · 심리검사 아님</p>
-                </div>
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">출력 결과</span>
-                  <p className="text-white font-medium">맥락(6) + 결(5) + 테마식탁(3)</p>
-                  <p className="text-xs font-mono text-zinc-400">열린 모임 카드 및 대기 신청 연계</p>
-                </div>
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">공개 주소</span>
-                  <Link
-                    href="/solotest"
-                    target="_blank"
-                    className="text-white hover:underline flex items-center gap-1 font-mono text-xs"
-                  >
-                    <span>/solotest</span>
-                    <ExternalLink className="w-3 h-3 text-zinc-400" />
-                  </Link>
-                  <p className="text-xs font-mono text-zinc-400">모바일 최적화 1문항 진행</p>
+              <h3 className="font-serif-editorial text-xl sm:text-2xl text-white font-normal">
+                {currentUCLAResult.typeInfo.meetupHeadline}
+              </h3>
+              <p className="text-sm text-zinc-300 font-light leading-relaxed">
+                {currentUCLAResult.typeInfo.meetupBody}
+              </p>
+              <div className="pt-1">
+                <div className="w-full py-3.5 bg-white/10 border border-white/20 text-white font-mono text-sm font-semibold flex items-center justify-center gap-2">
+                  <span>이번 주 6인 식사 모임 둘러보기</span>
+                  <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
+            </div>
 
-              {/* 3대 추천 테마 식탁 매핑 */}
-              <div className="space-y-2">
-                <span className="text-xs font-mono text-zinc-400 block">
-                  결과별 3대 추천 테마 식탁 매핑
+            {/* 법적 푸터 */}
+            <div className="pt-4 border-t border-white/10 text-xs font-mono text-zinc-500 space-y-1">
+              <p>• 출처 표기: Russell(1996) UCLA Loneliness Scale v3 표준 척도 기반</p>
+              <p>• 면책 조항: 의학적 진단이 아니며, 자기 성찰을 위한 참고용 지표입니다.</p>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================
+            4-2. 외로움 9문항 실제 결과 화면
+            ======================================================== */}
+        {activeTest === 'LONELINESS_9' && (
+          <div className="border border-white/20 bg-[#07080a] p-5 sm:p-8 space-y-6 max-w-2xl mx-auto shadow-2xl">
+            <div className="bg-[#0c0d12] border border-white/15 p-6 space-y-5">
+              <div className="space-y-2 border-b border-white/10 pb-4">
+                <span className="text-xs font-mono text-zinc-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <span>외로움의 결 분석 리포트</span>
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
-                  {Object.entries(SOLOTEST_COPY.theme).map(([key, theme]: [string, ThemeResultCopy]) => (
-                    <div key={key} className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                      <span className="text-white font-bold block">{theme.name}</span>
-                      <p className="text-zinc-300 font-sans leading-relaxed">{theme.desc}</p>
-                      <span className="text-zinc-500 block pt-1">
-                        식탁 키: {key}
-                      </span>
+                <h2 className="font-serif-editorial text-2xl sm:text-3xl text-white font-normal">
+                  {activeLonelinessInfo.name}
+                </h2>
+                <p className="text-base text-zinc-200 font-light pt-1 leading-relaxed">
+                  {activeLonelinessInfo.summary}
+                </p>
+                <p className="text-xs font-mono text-zinc-400">
+                  {activeLonelinessInfo.conditionDescription}
+                </p>
+              </div>
+
+              <div className="p-4 bg-[#08090d] border border-white/10 space-y-1">
+                <span className="text-xs font-mono text-zinc-500 block">이런 때 흔히 나타나요</span>
+                <p className="text-sm text-zinc-300 font-light leading-relaxed">
+                  {activeLonelinessInfo.moments}
+                </p>
+              </div>
+
+              <div className="space-y-2.5">
+                <span className="text-xs font-mono text-white font-medium flex items-center gap-1.5">
+                  <Heart className="w-3.5 h-3.5 text-[#f04f74]" />
+                  <span>오늘 해 볼 수 있는 작은 일 3가지</span>
+                </span>
+                <div className="space-y-2">
+                  {activeLonelinessInfo.dailyActions.map((action, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 bg-white/[0.02] border border-white/10 text-xs sm:text-sm text-zinc-300 flex items-start gap-2.5"
+                    >
+                      <span className="text-zinc-500 font-mono shrink-0">{idx + 1}.</span>
+                      <span className="font-light leading-relaxed">{action}</span>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
 
-              {/* 맥락(6) 및 결(5) 도감 */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1.5">
-                  <span className="text-zinc-400 block font-bold">6가지 솔로의 순간 (Q1)</span>
-                  <div className="space-y-1">
-                    {Object.entries(SOLOTEST_COPY.context).map(([k, c]: [string, ContextResultCopy]) => (
-                      <div key={k} className="flex items-center justify-between text-zinc-300">
-                        <span className="text-white">{c.name}</span>
-                        <span className="text-zinc-500">{k}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1.5">
-                  <span className="text-zinc-400 block font-bold">5가지 대화의 결 (Q4~Q7)</span>
-                  <div className="space-y-1">
-                    {Object.entries(SOLOTEST_COPY.style).map(([k, s]: [string, StyleResultCopy]) => (
-                      <div key={k} className="flex items-center justify-between text-zinc-300">
-                        <span className="text-white">{s.name}</span>
-                        <span className="text-zinc-500">{k}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {/* 정직한 모임 안내 칸 */}
+            <div className="bg-[#0c0d12] border border-white/15 p-6 space-y-3">
+              <span className="text-xs font-mono text-zinc-400 block">
+                솔직한 안내: 나도솔로 모임이 맞는 경우와 아닌 경우
+              </span>
+              <p className="text-sm text-zinc-200 font-light leading-relaxed">
+                {activeLonelinessInfo.meetupFitNote}
+              </p>
+              <div className="pt-1 text-xs font-mono text-zinc-400">
+                표시 모드: <span className="text-white font-bold">{activeLonelinessInfo.meetupDisplayMode}</span>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* ========================================================
-            CARD 4: 정규 온보딩 체크리스트 (36문항)
+            4-3. 1분 솔로테스트 실제 결과 화면
             ======================================================== */}
-        <div
-          className={`border transition-all bg-[#0c0d12] ${
-            openCardIds.includes('checklist-36')
-              ? 'border-white/30 col-span-full'
-              : 'border-white/10 hover:border-white/20'
-          }`}
-        >
-          {/* 헤더 바 */}
-          <button
-            type="button"
-            onClick={() => toggleCard('checklist-36')}
-            className="w-full text-left p-4 flex items-center justify-between gap-3 cursor-pointer group"
-          >
-            <div className="flex items-center gap-2.5 min-w-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-              <span className="px-2 py-0.5 text-xs font-mono border border-white/10 bg-white/5 text-zinc-300">
-                정규 온보딩
-              </span>
-              <h2 className="font-serif-editorial text-base sm:text-lg text-white font-normal truncate">
-                정규 온보딩 체크리스트 (36문항)
-              </h2>
-              <span className="text-xs font-mono text-zinc-400 hidden sm:inline">
-                테이블 매칭 엔진 연동
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="text-xs font-mono text-zinc-400">
-                {openCardIds.includes('checklist-36') ? '상세 접기' : '상세 보기'}
-              </span>
-              {openCardIds.includes('checklist-36') ? (
-                <ChevronUp className="w-4 h-4 text-zinc-300" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-zinc-500 group-hover:text-white" />
-              )}
-            </div>
-          </button>
-
-          {/* 세부 명세 펼침 */}
-          {openCardIds.includes('checklist-36') && (
-            <div className="p-4 sm:p-5 border-t border-white/10 space-y-4 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">역할 및 성격</span>
-                  <p className="text-white font-medium">유료 신청자 필수 온보딩</p>
-                  <p className="text-xs font-mono text-zinc-400">테이블 자동 배정 100% 반영</p>
-                </div>
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">기반 모델</span>
-                  <p className="text-white font-medium">Big Five 성격 5요인 + 매너</p>
-                  <p className="text-xs font-mono text-zinc-400">6개 축 레이더 차트 프로파일</p>
-                </div>
-                <div className="p-3 bg-[#08090d] border border-white/10 space-y-1">
-                  <span className="text-xs font-mono text-zinc-400 block">공개 주소</span>
-                  <Link
-                    href="/checklist"
-                    target="_blank"
-                    className="text-white hover:underline flex items-center gap-1 font-mono text-xs"
-                  >
-                    <span>/checklist</span>
-                    <ExternalLink className="w-3 h-3 text-zinc-400" />
-                  </Link>
-                  <p className="text-xs font-mono text-zinc-400">완료 시 로컬/계정 자동 영구 보존</p>
-                </div>
+        {activeTest === 'SOLO_8' && (
+          <div className="border border-white/20 bg-[#07080a] p-5 sm:p-8 space-y-6 max-w-2xl mx-auto shadow-2xl">
+            {/* 유형 카드 */}
+            <div className="bg-[#0c0d12] border border-white/15 p-6 space-y-5">
+              <div className="space-y-2 border-b border-white/10 pb-4">
+                <span className="text-xs font-mono text-zinc-400 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <span>1분 솔로테스트 결과</span>
+                </span>
+                <h2 className="font-serif-editorial text-2xl sm:text-3xl text-white font-normal">
+                  {activeSoloContextCopy.name} × {activeSoloStyleCopy.name}
+                </h2>
+                <p className="text-base text-zinc-200 font-light pt-1 leading-relaxed">
+                  "{activeSoloContextCopy.empathy}"
+                </p>
               </div>
 
-              <div className="p-3 bg-[#08090d] border border-white/10 space-y-1 text-xs font-mono text-zinc-400">
-                <p>• 입구용 자가진단(1분 솔로테스트, UCLA 척도, 외로움 9문항) 응답은 정규 테이블 매칭에 일절 혼합되지 않습니다.</p>
-                <p>• 정규 매칭은 오직 본 36문항 체크리스트와 현장 관찰 평가(소셜미러) 엔진으로만 구동되어 데이터 왜곡을 차단합니다.</p>
+              <div className="p-4 bg-[#08090d] border border-white/10 space-y-1">
+                <span className="text-xs font-mono text-zinc-500 block">식탁에서의 대화 스타일</span>
+                <p className="text-sm text-zinc-300 font-light leading-relaxed">
+                  {activeSoloStyleCopy.line}
+                </p>
+                <p className="text-xs text-zinc-400 pt-1">
+                  💡 Tip: {activeSoloStyleCopy.tip}
+                </p>
+              </div>
+
+              <div className="p-4 bg-[#08090d] border border-white/10 space-y-1">
+                <span className="text-xs font-mono text-zinc-500 block">가벼운 첫걸음</span>
+                <p className="text-sm text-zinc-300 font-light leading-relaxed">
+                  {activeSoloContextCopy.first_step}
+                </p>
               </div>
             </div>
-          )}
-        </div>
-      </div>
+
+            {/* 추천 테마 식탁 */}
+            <div className="bg-[#0c0d12] border border-white/15 p-6 space-y-3">
+              <span className="text-xs font-mono text-zinc-400 block">
+                나와 어울리는 이번 주 추천 테마 식탁
+              </span>
+              <h3 className="font-serif-editorial text-xl text-white font-normal">
+                {SOLOTEST_COPY.theme.after_work_dinner.name}
+              </h3>
+              <p className="text-sm text-zinc-300 font-light leading-relaxed">
+                {SOLOTEST_COPY.theme.after_work_dinner.desc}
+              </p>
+              <div className="pt-2">
+                <div className="w-full py-3 bg-white/10 border border-white/20 text-white font-mono text-sm text-center">
+                  열린 식탁 둘러보기 및 대기 신청
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
