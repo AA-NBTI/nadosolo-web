@@ -92,7 +92,7 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
     const label = p.nickname || p.handle || p.id;
     profileIdByLabel.set(label, p.id);
 
-    return computeUserAxisProfile(
+    const baseProfile = computeUserAxisProfile(
       {
         userId: label,
         gender: p.gender === 'M' ? 'M' : 'F',
@@ -106,6 +106,12 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
       },
       answers
     );
+    return {
+      ...baseProfile,
+      tierCode: String(scores._tier_code || 'STANDARD'),
+      tierRank: typeof scores._tier_rank === 'number' ? scores._tier_rank : 0,
+      invitedByUserId: scores._invited_by ? String(scores._invited_by) : undefined,
+    };
   });
 
   const pipeline = runUnifiedMatchingPipeline({
@@ -213,6 +219,37 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
 
         newlyCommittedMembers += 1;
       }
+
+      // 확정 방의 실제 배정 로스터(동석자 힌트·좌석표·사후평가용) 영속 저장
+      const rosterMembers = room.members.map((m, idx) => {
+        const profileId = profileIdByLabel.get(m.userId) || m.userId;
+        const rawRow = rawProfiles.find((r: any) => r.id === profileId);
+        return {
+          userId: profileId,
+          nickname: rawRow?.nickname || m.userId,
+          gender: m.gender,
+          birthYear: m.birthYear,
+          jobTitle: rawRow?.job_title || m.industry,
+          seatNumber: idx + 1,
+          pairingReason: `${PURPOSE_LABELS[room.spec.purpose]} · ${m.axisLabels?.DEPTH || '균형'}`,
+        };
+      });
+      await supabase.from('app_configs').upsert(
+        {
+          key: `matched_room_roster_${eventId}`,
+          value: {
+            eventId,
+            title: room.spec.title,
+            venueName: room.assignedVenueName || '제휴 다이닝',
+            districtName: room.spec.districtName || room.spec.cityCode,
+            dateText: room.spec.scheduleSlot,
+            purpose: PURPOSE_LABELS[room.spec.purpose],
+            members: rosterMembers,
+          },
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
     }
 
     if (tableHealth.notifications) {

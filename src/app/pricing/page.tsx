@@ -1,7 +1,14 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Sparkles, Crown } from 'lucide-react';
 import CmsPageHeader from '@/components/CmsPageHeader';
+import {
+  DEFAULT_MEMBERSHIP_TIERS,
+  MembershipTierSpec,
+  fetchMembershipTiers,
+} from '@/lib/membershipTiers';
 
 const PRICING_PLANS = [
   {
@@ -55,16 +62,28 @@ const PRICING_PLANS = [
 ];
 
 export default function PricingPage() {
+  const [tiers, setTiers] = useState<MembershipTierSpec[]>(DEFAULT_MEMBERSHIP_TIERS);
+
+  useEffect(() => {
+    fetchMembershipTiers().then((list) => setTiers(list));
+  }, []);
+
+  const baroTier = tiers.find((t) => t.code === 'BARO') || DEFAULT_MEMBERSHIP_TIERS[1];
+  const clubTiers = tiers.filter((t) =>
+    ['PREMIUM', 'SIGNATURE', 'BLACK', 'BANDI'].includes(t.code)
+  );
+
   return (
     <main className="min-h-screen bg-[#07080a] text-[#f5f2eb] py-16 px-5 sm:px-8">
       <div className="max-w-[1050px] mx-auto space-y-12">
         <CmsPageHeader
           pageId="PAGE_PRICING"
-          defaultBadge="TICKETS & SETS"
-          defaultTitle="참가권 및 세트 요금 안내"
+          defaultBadge="TICKETS & MEMBERSHIP"
+          defaultTitle="참가권 · 바로클럽 · 프리미엄 클럽"
           defaultSub="온라인 참가비는 알고리즘 매칭·제휴 식당 예약·다면 관찰 리포트 발행 라이선스이며, 음식과 주류는 당일 매장에서 1/N 실비로 직접 결제합니다."
         />
 
+        {/* 1. 일반 회차권 (1~3회) */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {PRICING_PLANS.map((plan) => (
             <div
@@ -118,6 +137,85 @@ export default function PricingPage() {
               </Link>
             </div>
           ))}
+        </section>
+
+        {/* 2. 바로클럽 (BARO · 가입비 없는 1년 회원권) */}
+        <section className="p-7 border border-[#f04f74]/60 bg-[#0c0d12] flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
+              <span className="text-xs font-mono text-[#f04f74] font-bold tracking-wider uppercase">
+                BARO CLUB · 1 YEAR PASS
+              </span>
+            </div>
+            <h2 className="font-serif-editorial text-2xl sm:text-3xl text-white font-normal">
+              바로클럽 ({baroTier.code}) · 가입비 없는 1년 회원권
+            </h2>
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              {baroTier.summary}. 1년 동안 매주 열리는 나도솔로 일반 블라인드 슬롯을 추가 참가비 없이 자유롭게 예약하고 시계열 소셜 리포트를 누적하세요.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end gap-3 shrink-0">
+            <div className="text-left md:text-right">
+              <span className="text-xs font-mono text-zinc-400 block">연간 이용권 (1년)</span>
+              <span className="text-3xl font-bold font-mono text-white">
+                ₩{baroTier.priceKrw.toLocaleString()}
+              </span>
+            </div>
+            <Link
+              href="/meetup?plan=BARO"
+              prefetch={true}
+              className="px-6 py-3 bg-[#f04f74] hover:bg-[#d93a5e] text-white text-sm font-mono font-semibold inline-flex items-center gap-2 transition-colors"
+            >
+              <span>바로클럽 가입하기</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </section>
+
+        {/* 3. 4단계 프리미엄 클럽 (상위 등급은 하위 모든 클럽 모임 자유 참여) */}
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Crown className="w-4 h-4 text-[#f04f74]" />
+              <h2 className="font-serif-editorial text-2xl text-white font-normal">
+                4단계 프리미엄 클럽 멤버십
+              </h2>
+            </div>
+            <span className="text-xs font-mono text-zinc-400">
+              상위 등급은 하위 모든 클럽 모임 자유 참여 · 하위 등급은 상위 모임 입장 불가
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {clubTiers.map((tier) => (
+              <div
+                key={tier.code}
+                className="p-5 border border-white/15 bg-[#0c0d12] flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono text-zinc-400">{tier.code}</span>
+                    <span className="text-xs font-mono border border-white/20 px-2 py-0.5 text-white">
+                      Rank {tier.rank}
+                    </span>
+                  </div>
+                  <h3 className="font-serif-editorial text-xl text-white font-normal">{tier.name}</h3>
+                  <p className="text-xl font-bold font-mono text-white">
+                    ₩{tier.priceKrw.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-zinc-400 leading-relaxed">{tier.summary}</p>
+                </div>
+                <Link
+                  href="/auth?tab=signup"
+                  prefetch={true}
+                  className="w-full py-2.5 border border-white/25 bg-white/5 hover:bg-white/15 text-center text-xs font-mono text-white transition-colors"
+                >
+                  멤버십 입회 문의
+                </Link>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="p-6 border border-white/10 bg-[#0c0d12] space-y-2">

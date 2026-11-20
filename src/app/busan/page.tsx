@@ -192,25 +192,9 @@ export default function PurchaseMainPage() {
     return slots.length > 0 ? slots : DINING_TABLES;
   }, [conditionalEvents, partnerVenues]);
 
-  // 테이블 신청 클릭 시: 성향 퀴즈 미완료 시 /checklist 먼저, 완료 시 결제창 오픈
-  const handleOpenCheckout = (table: DiningTableItem) => {
-    if (!currentUser) {
-      router.push('/auth?next=/');
-      return;
-    }
-    if (Object.keys(surveyAnswers || {}).length === 0) {
-      router.push('/checklist');
-      return;
-    }
-    setCheckoutEvent({
-      eventId: table.id,
-      title: table.title,
-      dateText: table.schedule,
-      priceKrw: 30000,
-      districtName: table.districtLabel,
-      mealNote: '식당 및 동석자 정보는 D-1 19:00에 비공개 공개되며 식음료는 현장 1/N 결제입니다.',
-    });
-    setIsCheckoutOpen(true);
+  // 타임레프트 제0조 원칙: 개별 방·식당 선택 대신 부산 블라인드 슬롯 예약(/meetup?region=부산)으로 연결
+  const handleOpenCheckout = (_table: DiningTableItem) => {
+    router.push('/meetup?region=부산');
   };
 
   const handlePaymentSuccess = (eventId: string) => {

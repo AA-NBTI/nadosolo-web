@@ -149,6 +149,11 @@ export interface UserAxisProfile {
   rawSurveyMap: Record<string, string>;
   /** 입금·결제(참여 신청) 완료 여부 */
   isPaid: boolean;
+  /** 멤버십 티어 코드 & 랭크 (0:일반, 1:BARO, 2:프리미엄, 3:시그니처, 4:블랙, 5:반디) */
+  tierCode?: string;
+  tierRank?: number;
+  /** +1 동반 초대한 회원 ID (동일 테이블 우선 배정 가중치) */
+  invitedByUserId?: string;
   /** 회원 현재 여정 단계 */
   memberStage: 'UNQUALIFIED' | 'READY' | 'APPLIED' | 'PRE_MATCHED' | 'CONFIRMED';
 }
@@ -1469,6 +1474,7 @@ export function matchDynamicTables(
     enforceGenderBalance?: boolean;
     coreCount?: number;
     requirePaid?: boolean;
+    minTierRank?: number;
     venues?: PartnerVenue[];
     modules?: EngineFeatureModules;
     blockedPairs?: BlockedPair[];
@@ -1478,6 +1484,7 @@ export function matchDynamicTables(
   const enforceGender = options.enforceGenderBalance ?? true;
   const coreCount = Math.max(3, Math.min(4, options.coreCount ?? 4));
   const requirePaid = options.requirePaid ?? false;
+  const minTierRank = options.minTierRank ?? 0;
   const venues = options.venues ?? SAMPLE_PARTNER_VENUES;
   const modules = options.modules ?? DEFAULT_ENGINE_MODULES;
   const blockedSet = buildBlockedKeySet(options.blockedPairs);
@@ -1488,13 +1495,14 @@ export function matchDynamicTables(
   const venueUsage = new Map<string, number>();
   const veganNoVenueUserIds = new Set<string>();
 
-  // 1단계 Tier 1 클러스터링: 지역 + 일정 단위로 풀 분리 (requirePaid=true 시 미입금자 매칭 풀 진입 차단)
+  // 1단계 Tier 1 클러스터링: 지역 + 일정 단위로 풀 분리 (requirePaid=true 시 미입금자 매칭 풀 진입 차단, minTierRank 하향 호환 필터)
   const geoSlotPools = new Map<
     string,
     { cityCode: string; scheduleSlot: string; members: UserAxisProfile[] }
   >();
   for (const p of participants) {
     if (requirePaid && !p.isPaid) continue;
+    if ((p.tierRank ?? 0) < minTierRank) continue;
     const city = normalizeRegionCity(p.targetCity || p.cityCode);
     const slot = p.scheduleSlot || '2026-11-20 (금) 19:30';
     const key = `${city}|${slot}`;
@@ -1569,13 +1577,23 @@ export function matchDynamicTables(
         count: number,
         alreadyPicked: UserAxisProfile[]
       ) => {
+        const groupPool = [seed, ...alreadyPicked];
         const candidates = [...list]
-          .map((m) => ({
-            m,
-            sc: scoreUserAgainstRoom(m, seedSpec, [seed, ...alreadyPicked], axes, modules, blockedSet),
-          }))
+          .map((m) => {
+            const sc = scoreUserAgainstRoom(m, seedSpec, groupPool, axes, modules, blockedSet);
+            const hasInviteLink = groupPool.some(
+              (g) =>
+                (m.invitedByUserId && g.userId === m.invitedByUserId) ||
+                (g.invitedByUserId && g.invitedByUserId === m.userId)
+            );
+            return {
+              m,
+              sc,
+              rankScore: sc.score100 + (hasInviteLink ? 40 : 0),
+            };
+          })
           .filter((x) => !x.sc.blockedReason)
-          .sort((a, b) => b.sc.score100 - a.sc.score100);
+          .sort((a, b) => b.rankScore - a.rankScore);
         const picked: UserAxisProfile[] = [];
         for (const item of candidates) {
           if (picked.length >= count) break;

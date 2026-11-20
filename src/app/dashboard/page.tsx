@@ -233,6 +233,11 @@ function MemberDashboardContent() {
   const [checkinStatus, setCheckinStatus] = useState<'NONE' | 'ON_THE_WAY' | 'LATE_10' | 'ARRIVED'>('NONE');
   const [connectTargets, setConnectTargets] = useState<string[]>([]);
   const [afterPartyRsvp, setAfterPartyRsvp] = useState<'NONE' | 'JOIN' | 'PASS'>('NONE');
+  const [sessionLiveMap, setSessionLiveMap] = useState<
+    Record<string, { nickname?: string; checkin?: string; connects?: string[] }>
+  >({});
+
+  const activeSessionKey = myAppliedEvents[0]?.eventId || 'SES_DEFAULT';
 
   useEffect(() => {
     if (!currentUser?.userId) return;
@@ -249,7 +254,15 @@ function MemberDashboardContent() {
       if (Array.isArray(data?.connects)) setConnectTargets(data.connects);
       if (data?.afterParty) setAfterPartyRsvp(data.afterParty);
     });
-  }, [currentUser?.userId]);
+
+    getAppConfig<Record<string, { nickname?: string; checkin?: string; connects?: string[] }>>(
+      `session_live_ux_${activeSessionKey}`,
+      `nadosolo_session_live_ux_${activeSessionKey}`,
+      {}
+    ).then((mapData) => {
+      if (mapData && typeof mapData === 'object') setSessionLiveMap(mapData);
+    });
+  }, [currentUser?.userId, activeSessionKey]);
 
   const persistLiveUxState = (patch: {
     checkin?: 'NONE' | 'ON_THE_WAY' | 'LATE_10' | 'ARRIVED';
@@ -267,6 +280,20 @@ function MemberDashboardContent() {
       `member_live_ux_${currentUser.userId}`,
       `nadosolo_live_ux_${currentUser.userId}`,
       { checkin: nextCheckin, connects: nextConnects, afterParty: nextAfterParty }
+    );
+    const nextSessionMap = {
+      ...sessionLiveMap,
+      [currentUser.userId]: {
+        nickname: currentUser.nickname,
+        checkin: nextCheckin,
+        connects: nextConnects,
+      },
+    };
+    setSessionLiveMap(nextSessionMap);
+    void saveAppConfig(
+      `session_live_ux_${activeSessionKey}`,
+      `nadosolo_session_live_ux_${activeSessionKey}`,
+      nextSessionMap
     );
   };
 
@@ -374,13 +401,57 @@ function MemberDashboardContent() {
     () => (activeTable?.participants ?? []).filter((p) => p.userId !== (currentUser?.userId ?? '')),
     [activeTable, currentUser]
   );
+
+  // 실매칭 방 로스터 로드 (DB 확정 방 우선, 미확정 시 목업 폴백)
+  const [matchedRoster, setMatchedRoster] = useState<Awaited<
+    ReturnType<typeof nadoSoloSupabaseService.getMatchedRoomRoster>
+  >>(null);
+
+  useEffect(() => {
+    const targetId = myAppliedEvents[0]?.eventId;
+    if (!targetId) {
+      setMatchedRoster(null);
+      return;
+    }
+    nadoSoloSupabaseService
+      .getMatchedRoomRoster(targetId)
+      .then((roster) => setMatchedRoster(roster))
+      .catch(() => setMatchedRoster(null));
+  }, [myAppliedEvents]);
+
+  const effectivePeers = useMemo(() => {
+    if (matchedRoster && matchedRoster.members.length > 0) {
+      return matchedRoster.members.filter((m) => m.userId !== (currentUser?.userId ?? ''));
+    }
+    return tablePeers;
+  }, [matchedRoster, tablePeers, currentUser?.userId]);
+
+  const effectiveSeats = useMemo(() => {
+    if (matchedRoster && matchedRoster.members.length > 0) {
+      const base = matchedRoster.members.map((m, i) => ({
+        seatNumber: m.seatNumber || i + 1,
+        userId: m.userId,
+        nickname: m.nickname,
+        pairingReason: m.pairingReason || m.jobTitle || '성향 매칭 배정',
+      }));
+      if (!isSecondHalfRotated || base.length < 4) return base;
+      const rotated = [...base];
+      const temp = rotated[1];
+      rotated[1] = rotated[3];
+      rotated[3] = rotated[5] ?? temp;
+      if (rotated[5]) rotated[5] = temp;
+      return rotated.map((s, idx) => ({ ...s, seatNumber: idx + 1 }));
+    }
+    return currentSeats;
+  }, [matchedRoster, currentSeats, isSecondHalfRotated]);
+
   const [evalTargetUserId, setEvalTargetUserId] = useState<string>('');
 
   useEffect(() => {
-    if (!evalTargetUserId && tablePeers.length > 0) {
-      setEvalTargetUserId(tablePeers[0].userId);
+    if (!evalTargetUserId && effectivePeers.length > 0) {
+      setEvalTargetUserId(effectivePeers[0].userId);
     }
-  }, [evalTargetUserId, tablePeers]);
+  }, [evalTargetUserId, effectivePeers]);
   const activeEvalSubElements = useMemo(
     () => subElements.filter((s) => s.activeInCurrentProcess),
     [subElements]
@@ -474,10 +545,11 @@ function MemberDashboardContent() {
     reason: 'NO_SHOW' | 'UNCOMFORTABLE'
   ) => {
     if (!currentUser?.userId) return;
+    const activeSessionId = myAppliedEvents[0]?.eventId || 'SES_DEFAULT';
     const ok = await nadoSoloSupabaseService.blockUserPair(
       currentUser.userId,
       peerUserId,
-      'SES_BUSAN_01',
+      activeSessionId,
       reason
     );
     if (ok) {
@@ -982,21 +1054,46 @@ function MemberDashboardContent() {
                       </div>
                     </div>
 
-                    {/* 익명 동석자 힌트 요약 (직군 · 연령대 · 성비) */}
-                    <div className="pt-3 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-mono">
-                      <div className="p-3 bg-[#08090d] border border-white/10">
-                        <span className="text-zinc-400 block mb-1">동석자 직군 힌트</span>
-                        <span className="text-white font-semibold">IT · 디자인 · 전문직 · 창업</span>
-                      </div>
-                      <div className="p-3 bg-[#08090d] border border-white/10">
-                        <span className="text-zinc-400 block mb-1">평균 연령대 · 균형</span>
-                        <span className="text-white font-semibold">30대 초중반 · 3:3 균형</span>
-                      </div>
-                      <div className="p-3 bg-[#08090d] border border-white/10">
-                        <span className="text-zinc-400 block mb-1">테이블 대화 결</span>
-                        <span className="text-white font-semibold">깊이 중상 · 한국어 중심</span>
-                      </div>
-                    </div>
+                    {/* 익명 동석자 힌트 요약 (실매칭 방 동적 집계 우선, 미확정 시 폴백) */}
+                    {(() => {
+                      const rosterMembers = matchedRoster?.members || [];
+                      const jobs = Array.from(
+                        new Set(
+                          rosterMembers
+                            .map((m) => m.jobTitle)
+                            .filter((j): j is string => Boolean(j && j.trim()))
+                        )
+                      ).slice(0, 4);
+                      const ages = rosterMembers
+                        .map((m) => new Date().getFullYear() - m.birthYear)
+                        .filter((a) => a > 18 && a < 90);
+                      const avgAge = ages.length > 0 ? Math.round(ages.reduce((a, b) => a + b, 0) / ages.length) : 0;
+                      const mCount = rosterMembers.filter((m) => m.gender === 'M').length;
+                      const fCount = rosterMembers.filter((m) => m.gender === 'F').length;
+
+                      return (
+                        <div className="pt-3 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-mono">
+                          <div className="p-3 bg-[#08090d] border border-white/10">
+                            <span className="text-zinc-400 block mb-1">동석자 직군 힌트</span>
+                            <span className="text-white font-semibold">
+                              {jobs.length > 0 ? jobs.join(' · ') : 'IT · 디자인 · 전문직 · 창업'}
+                            </span>
+                          </div>
+                          <div className="p-3 bg-[#08090d] border border-white/10">
+                            <span className="text-zinc-400 block mb-1">평균 연령대 · 성비</span>
+                            <span className="text-white font-semibold">
+                              {avgAge > 0 ? `평균 ${avgAge}세 · ${fCount}:${mCount} 균형` : '30대 초중반 · 3:3 균형'}
+                            </span>
+                          </div>
+                          <div className="p-3 bg-[#08090d] border border-white/10">
+                            <span className="text-zinc-400 block mb-1">테이블 대화 결</span>
+                            <span className="text-white font-semibold">
+                              {matchedRoster?.purpose ? `${matchedRoster.purpose} 트랙 · 한국어 중심` : '깊이 중상 · 한국어 중심'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* 당일 현장 도착 체크인 (사전 DM 없이 원클릭 상태 공유) */}
@@ -1047,7 +1144,7 @@ function MemberDashboardContent() {
                         {isSecondHalfRotated ? '【 2부 디저트 & 와인 타임 - 대화 상대 회전 배치 】' : '【 1부 메인 다이닝 - 첫인상 좌석 배치 】'}
                       </div>
                       <div className="grid grid-cols-3 gap-3">
-                        {currentSeats.slice(0, 3).map((seat) => (
+                        {effectiveSeats.slice(0, 3).map((seat) => (
                           <div
                             key={seat.seatNumber}
                             className={`p-4 rounded-none border text-center space-y-1.5 transition-all ${
@@ -1071,7 +1168,7 @@ function MemberDashboardContent() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-3">
-                        {currentSeats.slice(3, 6).map((seat) => (
+                        {effectiveSeats.slice(3, 6).map((seat) => (
                           <div
                             key={seat.seatNumber}
                             className={`p-4 rounded-none border text-center space-y-1.5 transition-all ${
@@ -1192,7 +1289,9 @@ function MemberDashboardContent() {
                   <div className="p-6 rounded-none bg-white/[0.015] border border-white/[0.08] space-y-4">
                     <h4 className="font-serif-editorial text-base font-normal text-white">오늘 밤 가장 마음이 통했던 이성 1인 투표</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {tablePeers.filter((p) => p.gender === 'M').map((peer) => (
+                      {effectivePeers
+                        .filter((p) => p.gender !== (currentUser?.gender ?? 'F'))
+                        .map((peer) => (
                         <button
                           key={peer.userId}
                           type="button"
@@ -1237,8 +1336,13 @@ function MemberDashboardContent() {
                       </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                      {tablePeers.map((peer) => {
+                      {effectivePeers.map((peer) => {
                         const isConnected = connectTargets.includes(peer.userId);
+                        const peerWantsMe = Boolean(
+                          currentUser?.userId &&
+                            sessionLiveMap[peer.userId]?.connects?.includes(currentUser.userId)
+                        );
+                        const isMutualConnect = isConnected && peerWantsMe;
                         return (
                           <button
                             key={`conn-${peer.userId}`}
@@ -1255,14 +1359,20 @@ function MemberDashboardContent() {
                               );
                             }}
                             className={`p-3 border text-left transition-all cursor-pointer ${
-                              isConnected
+                              isMutualConnect
+                                ? 'border-emerald-400 bg-emerald-500/15 text-white'
+                                : isConnected
                                 ? 'border-[#f04f74] bg-[#f04f74]/15 text-white'
                                 : 'border-white/10 bg-[#08090d] text-zinc-300 hover:border-white/25 hover:text-white'
                             }`}
                           >
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-sm font-medium">{peer.nickname}</span>
-                              {isConnected && <CheckCircle2 className="w-4 h-4 text-[#f04f74]" />}
+                              {isMutualConnect ? (
+                                <span className="text-[11px] font-mono text-emerald-300 font-bold">쌍방 성사!</span>
+                              ) : (
+                                isConnected && <CheckCircle2 className="w-4 h-4 text-[#f04f74]" />
+                              )}
                             </div>
                             <span className="text-xs text-zinc-400 font-mono">
                               {peer.gender === 'F' ? '여성' : '남성'} · {peer.birthYear}년생
@@ -1351,7 +1461,7 @@ function MemberDashboardContent() {
                       <span className="text-sm font-mono text-zinc-400">차단 시 향후 영구 미배정</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {tablePeers.map((peer) => {
+                      {effectivePeers.map((peer) => {
                         const isBlocked = blockedPeerIds.includes(peer.userId);
                         return (
                           <div

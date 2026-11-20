@@ -1,5 +1,6 @@
 import { createClient } from './client';
 import { nadosoloBillingEngine } from '@/modules/billing';
+import { getTierRank, MembershipTierCode } from '@/lib/membershipTiers';
 import {
   ConditionalEventItem,
   CriterionCode,
@@ -34,12 +35,22 @@ export interface DbProfile {
   matching_stage?: 'UNQUALIFIED' | 'READY' | 'APPLIED' | 'PRE_MATCHED' | 'CONFIRMED';
   pre_matched_pool_id?: string;
   confirmed_event_id?: string;
+  tier_code?: MembershipTierCode;
+  tier_rank?: number;
+  tier_expires_at?: string;
   created_at?: string;
   updated_at?: string;
 }
 
 function normalizeDbProfile(raw: any): DbProfile {
   const scores = (raw.self_domain_scores || {}) as Record<string, any>;
+  const tierCode = (raw.tier_code || scores._tier_code || 'STANDARD') as MembershipTierCode;
+  const tierRank =
+    typeof raw.tier_rank === 'number'
+      ? raw.tier_rank
+      : typeof scores._tier_rank === 'number'
+      ? scores._tier_rank
+      : getTierRank(tierCode);
   return {
     ...raw,
     residence_city: raw.residence_city || scores._residence_city,
@@ -53,6 +64,9 @@ function normalizeDbProfile(raw: any): DbProfile {
     matching_stage: raw.matching_stage || scores._matching_stage,
     pre_matched_pool_id: raw.pre_matched_pool_id || scores._pre_matched_pool_id,
     confirmed_event_id: raw.confirmed_event_id || scores._confirmed_event_id,
+    tier_code: tierCode,
+    tier_rank: tierRank,
+    tier_expires_at: raw.tier_expires_at || scores._tier_expires_at,
   };
 }
 
@@ -136,7 +150,20 @@ export const nadoSoloSupabaseService = {
   async upsertProfile(profile: DbProfile): Promise<boolean> {
     try {
       const supabase = createClient();
+      // 기존 DB에 저장된 내부 메타 키(_password_hash, _ticket_credits 등) 유실 방지
+      const { data: existingRow } = await supabase
+        .from('profiles')
+        .select('self_domain_scores')
+        .eq('id', profile.id)
+        .maybeSingle();
+
+      const prevScores = (existingRow?.self_domain_scores || {}) as Record<string, any>;
+      const prevMetaEntries = Object.fromEntries(
+        Object.entries(prevScores).filter(([k]) => k.startsWith('_'))
+      );
+
       const domainScoresWithRegion = {
+        ...prevMetaEntries,
         ...(profile.self_domain_scores || {}),
         ...(profile.residence_city ? { _residence_city: profile.residence_city } : {}),
         ...(profile.residence_district ? { _residence_district: profile.residence_district } : {}),
@@ -149,6 +176,8 @@ export const nadoSoloSupabaseService = {
         ...(profile.matching_stage ? { _matching_stage: profile.matching_stage } : {}),
         ...(profile.pre_matched_pool_id ? { _pre_matched_pool_id: profile.pre_matched_pool_id } : {}),
         ...(profile.confirmed_event_id ? { _confirmed_event_id: profile.confirmed_event_id } : {}),
+        ...(profile.tier_code ? { _tier_code: profile.tier_code, _tier_rank: profile.tier_rank ?? getTierRank(profile.tier_code) } : {}),
+        ...(profile.tier_expires_at ? { _tier_expires_at: profile.tier_expires_at } : {}),
       };
 
       const rowPayload: Record<string, any> = {
@@ -285,6 +314,64 @@ export const nadoSoloSupabaseService = {
     return nadosoloBillingEngine.adjustCredits(userId, delta, {
       reason: 'ADMIN_ADJUST',
     });
+  },
+
+  /**
+   * 회원 멤버십 티어 조회 (만료 여부 포함)
+   */
+  async getMemberTierStatus(userId: string): Promise<{
+    tierCode: MembershipTierCode;
+    tierRank: number;
+    expiresAt?: string;
+    isBaroActive: boolean;
+  }> {
+    const profile = await this.getProfile(userId);
+    const tierCode = (profile?.tier_code || 'STANDARD') as MembershipTierCode;
+    const tierRank = profile?.tier_rank ?? getTierRank(tierCode);
+    const expiresAt = profile?.tier_expires_at;
+    const notExpired = !expiresAt || new Date(expiresAt).getTime() > Date.now();
+    const isBaroActive = tierRank >= 1 && notExpired;
+    return { tierCode, tierRank: notExpired ? tierRank : 0, expiresAt, isBaroActive };
+  },
+
+  /**
+   * 회원 멤버십 티어 갱신 (바로클럽 1년 / 프리미엄~반디)
+   */
+  async updateMemberTier(
+    userId: string,
+    tierCode: MembershipTierCode,
+    expiresAt?: string
+  ): Promise<boolean> {
+    const existing = await this.getProfile(userId);
+    if (!existing) return false;
+    return this.upsertProfile({
+      ...existing,
+      tier_code: tierCode,
+      tier_rank: getTierRank(tierCode),
+      tier_expires_at: expiresAt,
+    });
+  },
+
+  /**
+   * 바로클럽(Rank 1+) 회원권으로 추가 결제 없이 슬롯 즉시 예약
+   */
+  async redeemBaroMembershipForEvent(
+    userId: string,
+    eventId: string,
+    eventTitle: string
+  ): Promise<{ ok: boolean }> {
+    const status = await this.getMemberTierStatus(userId);
+    if (!status.isBaroActive) return { ok: false };
+    const applied = await this.applyForEvent(userId, eventId);
+    if (!applied) return { ok: false };
+    await this.createNotification({
+      userId,
+      eventId,
+      type: 'ROOM_CONFIRMED',
+      title: '바로클럽 회원권 슬롯 예약 완료',
+      message: `[${eventTitle}] ${status.tierCode} 멤버십으로 예약이 완료되었습니다.`,
+    });
+    return { ok: true };
   },
 
   /**
@@ -968,6 +1055,66 @@ export const nadoSoloSupabaseService = {
     } catch (e) {
       console.warn('[Supabase] upsertEvent(meetups) error:', e);
       return false;
+    }
+  },
+
+  /**
+   * 확정 매칭 방의 실배정 동석자 로스터 조회 (D-1 Reveal & 사후 평가 SSOT)
+   */
+  async getMatchedRoomRoster(eventId: string): Promise<{
+    eventId: string;
+    title: string;
+    venueName: string;
+    districtName: string;
+    dateText: string;
+    purpose: string;
+    members: Array<{
+      userId: string;
+      nickname: string;
+      gender: 'M' | 'F';
+      birthYear: number;
+      jobTitle?: string;
+      seatNumber: number;
+      pairingReason?: string;
+    }>;
+  } | null> {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('app_configs')
+        .select('value')
+        .eq('key', `matched_room_roster_${eventId}`)
+        .maybeSingle();
+      if (data?.value && Array.isArray((data.value as any).members)) {
+        return data.value as any;
+      }
+      // app_configs 로스터가 없는 경우 profiles._confirmed_event_id 기반 폴백 조회
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('id, nickname, gender, birth_year, job_title, self_domain_scores');
+      const matched = (profs || []).filter(
+        (p: any) => p.self_domain_scores?._confirmed_event_id === eventId
+      );
+      if (matched.length === 0) return null;
+      return {
+        eventId,
+        title: eventId,
+        venueName: '제휴 프라이빗 다이닝',
+        districtName: '강남/해운대',
+        dateText: '확정 일정',
+        purpose: 'RESET',
+        members: matched.map((p: any, idx: number) => ({
+          userId: String(p.id),
+          nickname: String(p.nickname || p.id),
+          gender: p.gender === 'M' ? 'M' : 'F',
+          birthYear: Number(p.birth_year || 1994),
+          jobTitle: p.job_title || undefined,
+          seatNumber: idx + 1,
+          pairingReason: '성향·목적 매칭 배정',
+        })),
+      };
+    } catch {
+      return null;
     }
   },
 

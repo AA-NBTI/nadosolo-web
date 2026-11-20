@@ -10,6 +10,7 @@ import {
   fetchPromoCodes,
   resolvePromoFromList,
 } from '@/lib/promoCodes';
+import { fetchMembershipTiers } from '@/lib/membershipTiers';
 
 export interface CheckoutEventData {
   eventId: string;
@@ -17,6 +18,7 @@ export interface CheckoutEventData {
   dateText: string;
   priceKrw: number;
   initialTicketCount?: 1 | 2 | 3;
+  initialPlanType?: 'TICKETS' | 'BARO';
   districtName?: string;
   mealNote?: string;
   refundPolicy?: string;
@@ -57,13 +59,22 @@ export default function CheckoutModal({
   const [appliedPromo, setAppliedPromo] = useState<{ code: string; discountKrw: number } | null>(null);
   const [promoNotice, setPromoNotice] = useState<string | null>(null);
   const [ticketCount, setTicketCount] = useState<1 | 2 | 3>(1);
+  const [planType, setPlanType] = useState<'TICKETS' | 'BARO'>('TICKETS');
+  const [baroPriceKrw, setBaroPriceKrw] = useState<number>(600000);
 
   useEffect(() => {
     if (!isOpen || !event) return;
+    const isBaro = event.initialPlanType === 'BARO' || event.eventId === 'MEMBERSHIP_BARO_1Y';
+    setPlanType(isBaro ? 'BARO' : 'TICKETS');
     const initCount: 1 | 2 | 3 =
       event.initialTicketCount ||
       (event.priceKrw === 60000 ? 3 : event.priceKrw === 50000 ? 2 : 1);
     setTicketCount(initCount);
+
+    fetchMembershipTiers().then((tierList) => {
+      const baro = tierList.find((t) => t.code === 'BARO');
+      if (baro && baro.priceKrw > 0) setBaroPriceKrw(baro.priceKrw);
+    });
 
     const refCandidate =
       (initialPromoCode ||
@@ -157,7 +168,8 @@ export default function CheckoutModal({
   const isFormValid = agreeRefund && agreePrivacy && !needsPreCheck;
 
   const selectedPlan = TICKET_PLANS[ticketCount];
-  const basePrice = selectedPlan.price;
+  const basePrice = planType === 'BARO' ? baroPriceKrw : selectedPlan.price;
+  const planDisplayLabel = planType === 'BARO' ? '바로클럽 (BARO · 1년)' : selectedPlan.label;
   const finalAmount = Math.max(1000, basePrice - (appliedPromo?.discountKrw ?? 0));
 
   const handleSelectTickets = (nextCount: 1 | 2 | 3) => {
@@ -223,9 +235,9 @@ export default function CheckoutModal({
       )
         .trim()
         .toUpperCase();
-      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(`${event.title} (${selectedPlan.label})`)}&tickets=${ticketCount}${trackingPromo ? `&promo=${encodeURIComponent(trackingPromo)}` : ''}`;
+      const successUrl = `${origin}/payment/success?eventId=${encodeURIComponent(event.eventId)}&title=${encodeURIComponent(`${event.title} (${planDisplayLabel})`)}&tickets=${ticketCount}${planType === 'BARO' ? '&tierCode=BARO' : ''}${trackingPromo ? `&promo=${encodeURIComponent(trackingPromo)}` : ''}`;
       const failUrl = `${origin}/payment/fail`;
-      const orderTitle = `${event.title} (${selectedPlan.label})`;
+      const orderTitle = `${event.title} (${planDisplayLabel})`;
 
       // 선택된 결제수단에 맞춰 토스페이먼츠 결제창 호출
       if (payMethod === 'CARD') {
@@ -318,13 +330,41 @@ export default function CheckoutModal({
                   <p className="text-xs text-zinc-400 mt-0.5">{event.dateText}</p>
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-xs text-zinc-400 font-medium">{selectedPlan.label}</span>
+                  <span className="text-xs text-zinc-400 font-medium">{planDisplayLabel}</span>
                   <p className="text-lg font-bold text-[#f04f74]">₩{finalAmount.toLocaleString()}</p>
                 </div>
               </div>
 
+              {/* 바로클럽 1년 회원권 vs 일반 참가권 선택 */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setPlanType('TICKETS')}
+                  className={`p-2 rounded-xl border text-xs font-semibold cursor-pointer ${
+                    planType === 'TICKETS'
+                      ? 'border-white/40 bg-white/10 text-white'
+                      : 'border-white/10 bg-[#10131c] text-zinc-400'
+                  }`}
+                >
+                  일반 회차권 (1~3회)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPlanType('BARO')}
+                  className={`p-2 rounded-xl border text-xs font-semibold cursor-pointer ${
+                    planType === 'BARO'
+                      ? 'border-[#f04f74] bg-[#f04f74]/15 text-white'
+                      : 'border-white/10 bg-[#10131c] text-zinc-400'
+                  }`}
+                >
+                  바로클럽 1년 (₩{baroPriceKrw.toLocaleString()})
+                </button>
+              </div>
+
+              {planType === 'TICKETS' ? (
+              <>
               {/* 참가권 티어 선택 (1회 3만 / 2회 5만 / 3회 6만) */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/10">
+              <div className="grid grid-cols-3 gap-2 pt-1">
                 {([1, 2, 3] as const).map((cnt) => {
                   const plan = TICKET_PLANS[cnt];
                   const active = ticketCount === cnt;
@@ -403,6 +443,13 @@ export default function CheckoutModal({
                 <div className="p-2.5 rounded-xl bg-white/5 border border-white/15 flex items-center gap-2 text-xs text-zinc-200">
                   <CheckCircle2 className="w-4 h-4 text-[#f04f74] shrink-0" />
                   <span>최대 할인 적용 중 · 이번 모임 1회 신청 후 잔여 2회권은 내 지갑에 자동 적립됩니다.</span>
+                </div>
+              )}
+              </>
+              ) : (
+                <div className="p-3 rounded-xl bg-[#f04f74]/10 border border-[#f04f74]/50 text-xs text-zinc-200 space-y-1">
+                  <p className="font-bold text-white">바로클럽 (BARO) · 가입비 없는 1년 회원권</p>
+                  <p className="text-zinc-300">결제 즉시 1년간 일반 블라인드 슬롯을 추가 참가비 없이 자유롭게 예약할 수 있습니다.</p>
                 </div>
               )}
 
@@ -661,7 +708,7 @@ export default function CheckoutModal({
                 {isProcessing ? (
                   <span>토스페이먼츠 결제 승인 중...</span>
                 ) : (
-                  <span>₩{finalAmount.toLocaleString()} 결제하기 ({selectedPlan.label})</span>
+                  <span>₩{finalAmount.toLocaleString()} 결제하기 ({planDisplayLabel})</span>
                 )}
               </button>
 

@@ -28,11 +28,13 @@ function MeetupSlotBookingContent() {
   const qRef = (searchParams.get('ref') || '').trim().toUpperCase();
   const qInvite = searchParams.get('invite') || '';
   const qEvent = searchParams.get('event') || '';
+  const qPlan = (searchParams.get('plan') || '').trim().toUpperCase();
   const rawTickets = Number(searchParams.get('tickets') || '1');
   const qTickets: 1 | 2 | 3 = rawTickets === 3 ? 3 : rawTickets === 2 ? 2 : 1;
 
   const {
     currentUser,
+    updateCurrentUser,
     conditionalEvents,
     regionDistricts,
     appliedEventIds,
@@ -47,6 +49,8 @@ function MeetupSlotBookingContent() {
   const [checkoutEvent, setCheckoutEvent] = useState<CheckoutEventData | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [ticketCredits, setTicketCredits] = useState(0);
+  const [isBaroActive, setIsBaroActive] = useState(false);
+  const [memberTierCode, setMemberTierCode] = useState<string>('STANDARD');
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,7 +62,10 @@ function MeetupSlotBookingContent() {
       localStorage.setItem('nadosolo_referral_code', qRef);
       void trackAffiliateClick(qRef, currentUser?.userId);
     }
-  }, [qRef, currentUser?.userId]);
+    if (qInvite && typeof window !== 'undefined') {
+      localStorage.setItem('nadosolo_inviter_user_id', qInvite);
+    }
+  }, [qRef, qInvite, currentUser?.userId]);
 
   useEffect(() => {
     if (!currentUser?.userId) return;
@@ -66,7 +73,32 @@ function MeetupSlotBookingContent() {
       .getTicketCredits(currentUser.userId)
       .then((c) => setTicketCredits(c))
       .catch(() => {});
+    nadoSoloSupabaseService
+      .getMemberTierStatus(currentUser.userId)
+      .then((st) => {
+        setIsBaroActive(st.isBaroActive);
+        setMemberTierCode(st.tierCode);
+      })
+      .catch(() => {});
   }, [currentUser?.userId]);
+
+  useEffect(() => {
+    if (qPlan !== 'BARO') return;
+    if (!currentUser) {
+      router.push(`/auth?next=${encodeURIComponent('/meetup?plan=BARO')}`);
+      return;
+    }
+    setCheckoutEvent({
+      eventId: 'MEMBERSHIP_BARO_1Y',
+      title: '바로클럽 (BARO) 1년 회원권',
+      dateText: '가입 즉시 1년 (365일)',
+      priceKrw: 600000,
+      initialPlanType: 'BARO',
+      districtName: '전국 모든 일반 슬롯',
+      mealNote: '가입비 없이 1년간 일반 블라인드 슬롯을 추가 참가비 없이 자유 예약할 수 있습니다.',
+    });
+    setIsCheckoutOpen(true);
+  }, [qPlan, currentUser, router]);
 
   const hasCompletedQuiz = Object.keys(surveyAnswers || {}).length > 0;
 
@@ -209,6 +241,11 @@ function MeetupSlotBookingContent() {
             </div>
             {currentUser && (
               <div className="flex items-center gap-2 text-sm font-mono">
+                {isBaroActive && (
+                  <span className="px-3 py-1.5 border border-[#f04f74] bg-[#f04f74]/15 text-white font-semibold">
+                    {memberTierCode} 멤버십 활성
+                  </span>
+                )}
                 {ticketCredits > 0 && (
                   <span className="px-3 py-1.5 border border-[#f04f74]/50 bg-[#f04f74]/15 text-white">
                     보유 참가권 {ticketCredits}매
@@ -346,6 +383,26 @@ function MeetupSlotBookingContent() {
                       router.push('/checklist');
                       return;
                     }
+                    if (selectedRegion !== 'ALL' && selectedZone !== '전체 권역' && currentUser) {
+                      updateCurrentUser({
+                        residenceCity: selectedRegion,
+                        residenceDistrict: selectedZone,
+                      });
+                    }
+                    if (isBaroActive) {
+                      const title = `${slot.regionName} · ${slot.dateText} 프라이빗 다이닝`;
+                      const baroRes = await nadoSoloSupabaseService.redeemBaroMembershipForEvent(
+                        currentUser.userId,
+                        slot.representativeEventId,
+                        title
+                      );
+                      if (baroRes.ok) {
+                        applyForConditionalEvent(slot.representativeEventId);
+                        setStatusNotice(`[${title}] ${memberTierCode} 회원권으로 예약 완료되었습니다.`);
+                        setTimeout(() => router.push('/dashboard'), 900);
+                        return;
+                      }
+                    }
                     if (ticketCredits > 0) {
                       const title = `${slot.regionName} · ${slot.dateText} 프라이빗 다이닝`;
                       const redeemed = await nadoSoloSupabaseService.redeemTicketForEvent(
@@ -385,6 +442,8 @@ function MeetupSlotBookingContent() {
                     ? '예약됨'
                     : slot.status === 'CLOSED'
                     ? '마감'
+                    : isBaroActive
+                    ? '멤버십 예약'
                     : ticketCredits > 0
                     ? '참가권 예약'
                     : !hasCompletedQuiz && currentUser

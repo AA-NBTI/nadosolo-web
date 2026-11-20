@@ -46,8 +46,8 @@ const CITIES_DATA: Record<string, CityMeta> = {
     code: 'seoul',
     nameKr: '서울',
     nameEn: 'SEOUL',
-    status: 'WAITLIST',
-    tagline: '성수동 감성 와인바와 강남·한남동 프라이빗 다이닝 사전 오픈 준비중',
+    status: 'ACTIVE',
+    tagline: '성수동 감성 와인바와 강남·한남동 프라이빗 다이닝 운영 중',
     districts: [
       {
         name: '성수 · 서울숲',
@@ -82,23 +82,8 @@ export default function CityLandingPage() {
   const [waitlistPhone, setWaitlistPhone] = useState('');
   const [waitlistDone, setWaitlistDone] = useState(false);
 
-  const handleApplyClick = (evId = 'EVT_JEONPO_FRI') => {
-    if (!currentUser) {
-      router.push(`/auth?next=/${city.code}`);
-      return;
-    }
-    const targetEv = conditionalEvents.find((e) => e.eventId === evId) || conditionalEvents[0];
-    if (targetEv) {
-      setCheckoutEvent({
-        eventId: targetEv.eventId,
-        title: targetEv.title.includes('부산') ? targetEv.title : `부산 ${targetEv.title}`,
-        dateText: targetEv.dateText,
-        priceKrw: targetEv.priceKrw || 30000,
-        districtName: city.nameKr,
-        mealNote: targetEv.mealNote,
-      });
-      setIsCheckoutOpen(true);
-    }
+  const handleApplyClick = () => {
+    router.push(`/meetup?region=${encodeURIComponent(city.nameKr)}`);
   };
 
   const handleWaitlistSubmit = (e: React.FormEvent) => {
@@ -138,7 +123,7 @@ export default function CityLandingPage() {
             <div className="pt-2 flex flex-wrap items-center gap-3">
               <button
                 type="button"
-                onClick={() => handleApplyClick('EVT_JEONPO_FRI')}
+                onClick={() => handleApplyClick()}
                 className="h-11 px-6 rounded-xl border border-[#f04f74] bg-transparent hover:bg-white/[0.04] text-[#f04f74] text-sm sm:text-[15px] font-semibold tracking-wide transition-all duration-300 cursor-pointer inline-flex items-center justify-center"
               >
                 신청하기

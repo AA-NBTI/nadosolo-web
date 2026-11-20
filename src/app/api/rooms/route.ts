@@ -13,100 +13,65 @@ export async function GET(request: NextRequest) {
     // 1. Supabase 이벤트 조회
     const dbEvents = await nadoSoloSupabaseService.getEvents();
 
-    // 2. 기본 방 목록 구성
-    let rooms = (dbEvents || []).map((ev) => {
-      const maxSeats = ev.maxCapacity || 6;
-      // 실제 신청자 수 (기본적으로 3~4명 모집 중 상태로 정원 내 잔여석 제공)
-      const current = Math.min(maxSeats - 1, Math.max(1, (ev.minConfirmCount || 4) - 1));
-      const remaining = Math.max(1, maxSeats - current);
+    // 2. 타임레프트 제0조 블라인드 슬롯 변환 (방 제목·식당 비공개, [도시 × 일정] 단위)
+    const slotMap = new Map<string, any>();
+    for (const ev of dbEvents || []) {
+      if (ev.status === 'CANCELLED_MIN' || ev.status === 'COMPLETED') continue;
+      const regionName = ev.regionName || '서울';
+      const dateText = ev.dateText || '이번 주 금요일 19:30';
+      const slotKey = `${regionName}|${dateText}`;
+      if (!slotMap.has(slotKey)) {
+        slotMap.set(slotKey, {
+          id: ev.eventId,
+          title: `${regionName} · ${dateText} 블라인드 슬롯`,
+          dateText,
+          area: regionName,
+          regionName,
+          districtName: 'D-1 19:00 공개',
+          timeSlot: dateText.includes('19:30') ? '저녁 19:30' : dateText.includes('19:00') ? '저녁 19:00' : '저녁',
+          priceKrw: ev.priceKrw || 30000,
+          maxSeats: 6,
+          currentParticipants: 0,
+          remainingSeats: 6,
+          status: ev.status || 'RECRUITING',
+          theme: 'blind_slot',
+        });
+      }
+    }
+    let rooms = Array.from(slotMap.values());
 
-      return {
-        id: ev.eventId,
-        title: ev.title || '6인 프라이빗 소셜 다이닝',
-        dateText: ev.dateText || '이번 주 금요일 19:30',
-        area: ev.districtName || ev.regionName || '서울',
-        regionName: ev.regionName || '서울',
-        districtName: ev.districtName || '강남',
-        timeSlot: ev.dateText?.includes('19:30')
-          ? '저녁 19:30'
-          : ev.dateText?.includes('19:00')
-          ? '저녁 19:00'
-          : '저녁',
-        priceKrw: ev.priceKrw || 30000,
-        maxSeats,
-        currentParticipants: current,
-        remainingSeats: remaining,
-        status: ev.status || 'RECRUITING',
-        theme: ev.title?.includes('맛집')
-          ? 'hidden_restaurant'
-          : ev.title?.includes('동네')
-          ? 'new_neighborhood'
-          : 'after_work_dinner',
-      };
-    });
-
-    // 3. 만약 DB에 이벤트가 없거나 적으면 기본 열린 모임 슬롯 제공
+    // 3. 만약 DB에 이벤트가 없거나 적으면 기본 열린 블라인드 슬롯 제공
     if (rooms.length === 0) {
       rooms = [
         {
-          id: 'ROOM_SEOUL_GANGNAM',
-          title: '퇴근 후 저녁 식탁 · 강남 살롱',
+          id: 'SLOT_SEOUL_FRI',
+          title: '서울 · 이번 주 금요일 19:30 블라인드 슬롯',
           dateText: '이번 주 금요일 19:30',
-          area: '강남',
+          area: '서울',
           regionName: '서울',
-          districtName: '강남',
+          districtName: 'D-1 19:00 공개',
           timeSlot: '금요일 19:30',
           priceKrw: 30000,
           maxSeats: 6,
-          currentParticipants: 4,
-          remainingSeats: 2,
+          currentParticipants: 0,
+          remainingSeats: 6,
           status: 'RECRUITING',
-          theme: 'after_work_dinner',
+          theme: 'blind_slot',
         },
         {
-          id: 'ROOM_SEOUL_SEONGSU',
-          title: '퇴근 후 저녁 식탁 · 성수 살롱',
-          dateText: '이번 주 토요일 19:00',
-          area: '성수',
-          regionName: '서울',
-          districtName: '성수',
-          timeSlot: '토요일 19:00',
-          priceKrw: 30000,
-          maxSeats: 6,
-          currentParticipants: 3,
-          remainingSeats: 3,
-          status: 'RECRUITING',
-          theme: 'after_work_dinner',
-        },
-        {
-          id: 'ROOM_BUSAN_JEONPO',
-          title: '이사 온 동네 첫 식탁 · 전포 아틀리에',
+          id: 'SLOT_BUSAN_FRI',
+          title: '부산 · 이번 주 금요일 19:30 블라인드 슬롯',
           dateText: '이번 주 금요일 19:30',
-          area: '전포·서면',
+          area: '부산',
           regionName: '부산',
-          districtName: '전포·서면',
+          districtName: 'D-1 19:00 공개',
           timeSlot: '금요일 19:30',
           priceKrw: 30000,
           maxSeats: 6,
-          currentParticipants: 5,
-          remainingSeats: 1,
+          currentParticipants: 0,
+          remainingSeats: 6,
           status: 'RECRUITING',
-          theme: 'new_neighborhood',
-        },
-        {
-          id: 'ROOM_BUSAN_HAEUNDAE',
-          title: '혼자는 못 가던 맛집 · 해운대 비스트로',
-          dateText: '이번 주 토요일 19:00',
-          area: '해운대',
-          regionName: '부산',
-          districtName: '해운대',
-          timeSlot: '토요일 19:00',
-          priceKrw: 30000,
-          maxSeats: 6,
-          currentParticipants: 4,
-          remainingSeats: 2,
-          status: 'RECRUITING',
-          theme: 'hidden_restaurant',
+          theme: 'blind_slot',
         },
       ];
     }

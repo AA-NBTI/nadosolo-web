@@ -45,12 +45,34 @@ function ChecklistContent() {
   const isForceEdit = searchParams.get('edit') === 'true';
   const hasAutoCompletedRef = useRef(false);
 
+  const draftStorageKey = `nadosolo_checklist_draft_${checklistMode}`;
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [localAnswers, setLocalAnswers] = useState<Record<string, string>>(() => ({
-    ...surveyAnswers,
-  }));
+  const [localAnswers, setLocalAnswers] = useState<Record<string, string>>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(`nadosolo_checklist_draft_${checklistMode}`);
+        if (raw) {
+          const parsed = JSON.parse(raw) as Record<string, string>;
+          if (parsed && typeof parsed === 'object') {
+            return { ...surveyAnswers, ...parsed };
+          }
+        }
+      } catch {}
+    }
+    return { ...surveyAnswers };
+  });
   const [isCompleted, setIsCompleted] = useState(false);
   const [limitWarning, setLimitWarning] = useState<string | null>(null);
+
+  // 문항 응답 변경 시마다 로컬 임시 저장 (새로고침 유실 방지)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (Object.keys(localAnswers).length > 0) {
+        localStorage.setItem(draftStorageKey, JSON.stringify(localAnswers));
+      }
+    } catch {}
+  }, [localAnswers, draftStorageKey]);
 
   // surveyAnswers가 외부/DB에서 로드되었을 때 localAnswers와 병합 동기화
   useEffect(() => {

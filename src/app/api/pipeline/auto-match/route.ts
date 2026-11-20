@@ -14,6 +14,14 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const adminSecret = process.env.ADMIN_API_SECRET;
+  if (adminSecret) {
+    const authHeader = request.headers.get('authorization');
+    const secretHeader = request.headers.get('x-admin-secret');
+    if (authHeader !== `Bearer ${adminSecret}` && secretHeader !== adminSecret) {
+      return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    }
+  }
   try {
     const body = (await request.json().catch(() => ({}))) as AutoMatchRequestBody;
     const result = await runPipelineOnServer(body);

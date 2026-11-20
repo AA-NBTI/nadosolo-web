@@ -7,6 +7,17 @@ import { useNadoSoloEngine } from '@/engine';
 import { nadoSoloSupabaseService } from '@/lib/supabase/service';
 import { isReservedAdminIdentifier } from '@/modules/identity';
 
+async function hashPasswordSha256(plain: string): Promise<string> {
+  if (typeof window !== 'undefined' && window.crypto?.subtle) {
+    const encoded = new TextEncoder().encode(`nadosolo_v1:${plain}`);
+    const digest = await window.crypto.subtle.digest('SHA-256', encoded);
+    return Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+  return `plain:${plain}`;
+}
+
 function AuthPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -76,14 +87,18 @@ function AuthPageContent() {
       return;
     }
 
-    // 전 계정 비밀번호 규격: aa1111
-    if (password !== 'aa1111') {
-      setErrorMsg('비밀번호가 올바르지 않습니다.');
+    if (!password) {
+      setErrorMsg('비밀번호를 입력해 주세요.');
       return;
     }
 
     // 관리자 계정은 일반 회원 DB 조회 없이 전용 관리자 세션으로 분리 로그인
     if (trimmedId.toLowerCase() === 'admin' || trimmedId === '관리자') {
+      const adminPass = process.env.NEXT_PUBLIC_ADMIN_PIN || 'aa1111';
+      if (password !== adminPass) {
+        setErrorMsg('관리자 비밀번호가 올바르지 않습니다.');
+        return;
+      }
       loginAsUser({
         userId: 'ADMIN_01',
         handle: '@admin',
@@ -102,11 +117,24 @@ function AuthPageContent() {
       return;
     }
 
-    // Supabase DB에 저장된 실제 프로필 존재 여부 조회 (순수 SSOT)
+    // Supabase DB에 저장된 실제 프로필 존재 여부 및 비밀번호 해시 검증 (순수 SSOT)
     try {
       const dbProfile = await nadoSoloSupabaseService.getProfileByIdOrHandle(trimmedId);
 
       if (dbProfile) {
+        const storedHash = (dbProfile.self_domain_scores as Record<string, any> | undefined)?._password_hash;
+        if (typeof storedHash === 'string' && storedHash.length > 0) {
+          const inputHash = await hashPasswordSha256(password);
+          if (inputHash !== storedHash) {
+            setErrorMsg('비밀번호가 올바르지 않습니다.');
+            return;
+          }
+        } else if (password !== 'aa1111') {
+          // 해시 미등록 레거시 시드 계정 호환 폴백
+          setErrorMsg('비밀번호가 올바르지 않습니다.');
+          return;
+        }
+
         const isAdmin = dbProfile.handle === '@admin' || dbProfile.id === 'ADMIN_01';
         loginAsUser({
           userId: dbProfile.id,
@@ -134,7 +162,7 @@ function AuthPageContent() {
     setErrorMsg('등록되지 않은 회원입니다. 회원가입을 먼저 진행해 주세요.');
   };
 
-  const handleSignupSubmit = (e: React.FormEvent) => {
+  const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
@@ -154,8 +182,8 @@ function AuthPageContent() {
       setErrorMsg('아이디 중복확인을 진행해 주세요.');
       return;
     }
-    if (!signupPassword) {
-      setErrorMsg('비밀번호를 입력해 주세요.');
+    if (!signupPassword || signupPassword.length < 4) {
+      setErrorMsg('비밀번호를 4자 이상 입력해 주세요.');
       return;
     }
     if (signupPassword !== confirmPassword) {
@@ -163,8 +191,29 @@ function AuthPageContent() {
       return;
     }
 
-    // 1기능 1모듈 원칙: 회원가입 모듈은 '계정 생성 및 로그인'만 수행 후 즉시 대시보드(프로필/테이블 모듈)로 이동
+    const passwordHash = await hashPasswordSha256(signupPassword);
     const memberUserId = `U_${handleInput.trim().replace(/^@/, '')}`;
+
+    await nadoSoloSupabaseService.upsertProfile({
+      id: memberUserId,
+      handle: normalizedHandle,
+      email: emailInput.trim(),
+      nickname: handleInput.trim().replace(/^@/, ''),
+      gender: 'F',
+      birth_year: 1995,
+      verified_badge: '회원가입 완료',
+      session_count: 1,
+      self_domain_scores: {
+        APPEARANCE: 80,
+        STYLE: 85,
+        VOICE: 80,
+        CONVERSATION: 90,
+        MANNER: 95,
+        _password_hash: passwordHash,
+      } as any,
+    });
+
+    // 1기능 1모듈 원칙: 회원가입 모듈은 '계정 생성 및 로그인'만 수행 후 즉시 대시보드(프로필/테이블 모듈)로 이동
     loginAsUser({
       userId: memberUserId,
       handle: normalizedHandle,

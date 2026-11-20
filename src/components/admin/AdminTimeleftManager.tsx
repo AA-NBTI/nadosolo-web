@@ -9,6 +9,13 @@ import {
   savePromoCodesDb,
 } from '@/lib/promoCodes';
 import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
+import {
+  DEFAULT_MEMBERSHIP_TIERS,
+  MembershipTierCode,
+  MembershipTierSpec,
+  fetchMembershipTiers,
+  saveMembershipTiers,
+} from '@/lib/membershipTiers';
 
 export type TimeleftSection = 'SLOT' | 'NOTIFY' | 'SANCTION' | 'TICKET' | 'PARTNER' | 'AUTOMATION';
 
@@ -48,6 +55,7 @@ export default function AdminTimeleftManager({
   const [profiles, setProfiles] = useState<any[]>([]);
   const [promos, setPromos] = useState<PromoCode[]>([]);
   const [promoUsage, setPromoUsage] = useState<Record<string, number>>({});
+  const [tiers, setTiers] = useState<MembershipTierSpec[]>(DEFAULT_MEMBERSHIP_TIERS);
   const [affiliates, setAffiliates] = useState<any[]>([]);
   const [runLog, setRunLog] = useState<any[]>([]);
 
@@ -96,13 +104,15 @@ export default function AdminTimeleftManager({
         const b = await supabase.from('user_blocks').select('*').order('created_at', { ascending: false }).limit(100);
         setBlocks(b.data || []);
       } else if (section === 'TICKET') {
-        const [p, promoList, usageLogs] = await Promise.all([
+        const [p, promoList, usageLogs, tierList] = await Promise.all([
           supabase.from('profiles').select('id,nickname,handle,self_domain_scores').limit(200),
           fetchPromoCodes(),
           getAppConfig<Array<{ promo?: string }>>('promo_usage_logs', 'nadosolo_promo_usage_logs_v1', []),
+          fetchMembershipTiers(),
         ]);
         setProfiles(p.data || []);
         setPromos(promoList);
+        setTiers(tierList);
         const counts: Record<string, number> = {};
         if (Array.isArray(usageLogs)) {
           for (const u of usageLogs) {
@@ -242,6 +252,24 @@ export default function AdminTimeleftManager({
 
   const creditOf = (p: any) =>
     typeof p.self_domain_scores?._ticket_credits === 'number' ? p.self_domain_scores._ticket_credits : 0;
+
+  const tierOf = (p: any): MembershipTierCode =>
+    (p.self_domain_scores?._tier_code || 'STANDARD') as MembershipTierCode;
+
+  const changeTier = async (id: string, nextCode: MembershipTierCode) => {
+    const expiresAt =
+      nextCode === 'BARO'
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        : undefined;
+    const ok = await nadoSoloSupabaseService.updateMemberTier(id, nextCode, expiresAt);
+    notify(ok ? `티어 ${nextCode}` : '티어 변경 실패');
+    load();
+  };
+
+  const handleSaveTiers = async () => {
+    const ok = await saveMembershipTiers(tiers);
+    notify(ok ? '티어 가격 저장 완료' : '저장 실패');
+  };
 
   const adjust = async (id: string, delta: number) => {
     const next = await nadoSoloSupabaseService.adjustTicketCredits(id, delta);
@@ -449,6 +477,41 @@ export default function AdminTimeleftManager({
             </div>
           ))}
         </div>
+        {renderHeader(
+          '티어 가격',
+          tiers.length,
+          <button type="button" className={btnCls} onClick={handleSaveTiers}>저장</button>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {tiers.map((t) => (
+            <div key={t.code} className={`${rowCls} flex items-center justify-between gap-3`}>
+              <div className="min-w-0">
+                <div className={`text-sm font-mono ${titleTextCls}`}>
+                  {t.name} ({t.code})
+                </div>
+                <div className={`text-sm font-mono truncate ${subTextCls}`}>
+                  Rank {t.rank} · {t.billingCycle === 'YEARLY' ? '1년권' : t.billingCycle === 'PER_EVENT' ? '1회 기준' : '가입비'}
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className={`text-sm font-mono ${subTextCls}`}>₩</span>
+                <input
+                  type="number"
+                  step={10000}
+                  min={0}
+                  value={t.priceKrw}
+                  onChange={(e) => {
+                    const nextVal = Math.max(0, Number(e.target.value) || 0);
+                    setTiers((prev) =>
+                      prev.map((x) => (x.code === t.code ? { ...x, priceKrw: nextVal } : x))
+                    );
+                  }}
+                  className={`${inputCls} w-32 text-right`}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
         {renderHeader('보유', list.length, <input className={inputCls} placeholder="검색" value={query} onChange={(e) => setQuery(e.target.value)} />)}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {list.map((p) => (
@@ -458,6 +521,17 @@ export default function AdminTimeleftManager({
                 <div className={`text-sm font-mono truncate ${muteTextCls}`}>{p.id}</div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <select
+                  value={tierOf(p)}
+                  onChange={(e) => changeTier(p.id, e.target.value as MembershipTierCode)}
+                  className={`${inputCls} py-1`}
+                >
+                  {tiers.map((t) => (
+                    <option key={t.code} value={t.code}>
+                      {t.code}
+                    </option>
+                  ))}
+                </select>
                 <button type="button" className={btnCls} onClick={() => adjust(p.id, -1)}>-1</button>
                 <span className={badgeCls}>{creditOf(p)}매</span>
                 <button type="button" className={btnCls} onClick={() => adjust(p.id, 1)}>+1</button>

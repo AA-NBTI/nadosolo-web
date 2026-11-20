@@ -268,11 +268,41 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.7.1',
+    releaseTitle: 'Timeleft 이식 충실도 감사 보완 · 결제 검증 · 실매칭 로스터 & 바로클럽(BARO)·6단계 티어 시스템 구축',
+    releaseDate: '2026-11-20',
+    summary: 'Timeleft 12개 영역 감사 결과 반영(토스페이먼츠 서버 결제 승인 API 신설, 비밀번호 SHA-256 해시 검증, 실매칭 로스터 DB 영속화 및 D-1 Reveal 실데이터 연동, 시크릿 투표 성별 오류 수정, 체크리스트 임시저장, 쌍방 Connect/체크인 공유, +1 동반 초대 가중치, 구버전 방 선택 잔재 정리) 및 BARO 1년 회원권(60만)·4단계 프리미엄 클럽(30만/300만/3,000만/1억) 티어 뼈대·관리자 가격 수정·상품 결제 연동 완료.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2711',
+        category: 'PROCESS',
+        categoryLabel: '결제·매칭무결성',
+        title: '토스페이먼츠 서버 승인 API 및 실매칭 방 로스터 D-1 Reveal 실데이터 연동',
+        beforeSummary: '결제 완료 URL 파라미터만으로 신청 확정 및 대시보드 Reveal/투표가 목업·하드코딩에 의존',
+        afterSummary: '/api/payments/confirm 서버 검증 및 멱등성 원장 기록, matched_room_roster DB 영속화 및 대시보드 실동석자 힌트·이성 투표·세션 체크인/쌍방 Connect 완결',
+        impactLabel: '결제 조작 차단 및 실제 매칭-오프라인-사후평가 E2E 연결',
+        status: 'VERIFIED',
+        affectedRoutes: ['/api/payments/confirm', '/payment/success', '/dashboard', '/auth'],
+      },
+      {
+        id: 'CHG-2712',
+        category: 'DATABASE',
+        categoryLabel: '티어·멤버십',
+        title: '바로클럽(BARO 1년 60만) 및 4단계 프리미엄 클럽 티어 아키텍처·관리자 가격 관제 구축',
+        beforeSummary: '단건/1~3회 체험권만 존재하고 장기 회원권 및 등급별 매칭 필터 체계 부재',
+        afterSummary: 'STANDARD~BANDI(Rank 0~5) 티어 코드·하향 호환 매칭 필터 구축, 관리자 /admin 참가권 탭 실시간 티어 가격/회원 등급 수정 및 /pricing·CheckoutModal 바로클럽 결제·즉시 예약 연동',
+        impactLabel: '고빈도 리텐션(바로클럽)과 프리미엄 멤버십 확장 기반 완성',
+        status: 'VERIFIED',
+        affectedRoutes: ['/pricing', '/meetup', '/admin', '/engine/dynamicMatchingEngine'],
+      },
+    ],
+  },
+  {
     version: 'v2.7.0',
     releaseTitle: '체크리스트 36문항 안배 체계 완결 · 관리자 시험 테스트 시뮬레이터 및 [수정하기/대시보드] 양방향 제어 구축',
     releaseDate: '2026-11-18',
     summary: '타임레프트 30문항 완전 흡수 및 나도솔로 고유 소셜 미러를 결합한 2단계 프로그레시브 체크리스트(사전 BASE 8 + 결제후 DEEP 24 + 컨디션 PULSE 4 = 총 36문항) 안배 체계 완결. 단일/복수 2개 선택 규격 및 식단 제약 최후단 영구 배치, 복수 2개 완료 시 350ms 자동 넘김 UX 완성. 완료 화면 [수정하기](24번 식단제약 복귀 및 자동넘김 배제, 본인 직접 확인 후 완료) 및 [대시보드] 최종 2개 버튼 시스템 구축. 관리자 대시보드 5종 페르소나 및 4대 축(목적, 심도, 테마, 에너지) 실시간 계측 시뮬레이터와 전 회원 체크리스트 한국어 디코더 전수 관제 가동.',
-    isLatest: true,
     changes: [
       {
         id: 'CHG-2701',
