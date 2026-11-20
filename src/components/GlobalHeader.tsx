@@ -25,6 +25,7 @@ export default function GlobalHeader() {
         { id: 'home', label: '다이닝 홈', href: '/' },
       ]
     : [
+        { id: 'yot', label: '엿장수', href: '/yot' },
         { id: 'solotest', label: '솔로테스트', href: '/test' },
         { id: 'checklist', label: '체크리스트', href: '/checklist' },
         { id: 'guide', label: '이용안내', href: '/guide' },

@@ -268,11 +268,53 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.7.2',
+    releaseTitle: '엿장수(Yot) 호기심 맛집 정보 거래소 · 룰렛 게임 & 3일 타임어택 바우처 출구 시스템 구축',
+    releaseDate: '2026-11-20',
+    summary: '광고 유입자 및 예비 이용자의 일상적 호기심을 자극하여 가고 싶은 맛집을 제보받고 룰렛을 통해 최대 10,000원 바우처를 지급하는 독립 엿장수(Yot) 코너 신설. 카카오 장소 API 연동, 방문 목적 칩 및 꿀팁 제보, 엿장수 감정소 및 가락엿 시각화·추가 흥정 인터랙션, 대형 룰렛 풀스크린 모달, 3일(72시간) 유효기간 바우처 발급 및 CheckoutModal 자동 적용, 헌법 제4조 사족/가격 설명 배제 및 3대 시스템 출구(예약하기/회원가입/홈으로) 다이렉트 라우팅 구현, 루트 레이아웃 전역 헤더 중복 렌더링 버그 근본 해결.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2721',
+        category: 'PAGE',
+        categoryLabel: '신규프로모션·퍼널',
+        title: '엿장수(Yot) 정보 거래소 라우트 및 카카오 장소 검색·제보 데이터화 엔진 신설',
+        beforeSummary: '초기 유입 시 소셜 다이닝 본문만 노출되어 이탈률이 높고 사용자 주도 맛집 위시리스트 수집 수단 부재',
+        afterSummary: '/yot 독립 라우트 개설, 카카오 장소 API 기반 0.5초 자동완성, 방문 목적 칩 복수 선택, 주관식 꿀팁 및 이메일 수집, yot_venues/yot_reports/yot_coupons DB 스키마 구축',
+        impactLabel: '심리적 방어벽 0%의 능동적 참여 퍼널 및 실매칭 추천 식당 데이터 자산 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/yot', '/api/yot/places', '/api/yot/trade', '/api/yot/spin'],
+      },
+      {
+        id: 'CHG-2722',
+        category: 'PROCESS',
+        categoryLabel: '게이미피케이션·전환',
+        title: '대형 룰렛 풀스크린 모달 및 3대 시스템 출구(예약하기/회원가입/홈으로) 다이렉트 라우팅 구축',
+        beforeSummary: '인라인 미니 룰렛과 설명형 버튼으로 가독성이 낮고 모달 내 링크 클릭 시 이동이 정체되는 결함 존재',
+        afterSummary: 'YotRouletteModal 풀스크린 대형 룰렛, 엿장수 마음대로 보너스 엿 1회 인심 로직, 3일(72시간) 타임어택 바우처 발급, 사족 없는 시스템 단어 버튼(예약하기/회원가입/홈으로) 및 useRouter 즉시 라우트 전환 완결',
+        impactLabel: '이탈자 없는 완벽한 게이미피케이션-유료 예약 및 회원 전환 루프 완성',
+        status: 'VERIFIED',
+        affectedRoutes: ['/yot', '/meetup', '/auth', '/CheckoutModal'],
+      },
+      {
+        id: 'CHG-2723',
+        category: 'CONSTITUTION',
+        categoryLabel: '헤더무결성·디자인',
+        title: '전역 헤더 중복 렌더링 버그 해결 및 포인트 컬러(#f04f74) 표준화',
+        beforeSummary: '신규 페이지 생성 시 GlobalHeader 중복 호출로 상단 헤더가 2개 겹쳐 렌더링되는 문제 발생',
+        afterSummary: '루트 layout.tsx 전역 헤더 단일 공급원 유지, 개별 페이지 중복 임포트 제거, 선택 칩 및 거래 버튼에 브랜드 포인트 컬러 및 반응형 폭 최적화 적용',
+        impactLabel: '전역 UI 렌더링 무결성 확보 및 시각적 일관성 확립',
+        status: 'VERIFIED',
+        affectedRoutes: ['/yot', '/layout', '/GlobalHeader'],
+      },
+    ],
+  },
+  {
     version: 'v2.7.1',
     releaseTitle: 'Timeleft 이식 충실도 감사 보완 · 결제 검증 · 실매칭 로스터 & 바로클럽(BARO)·6단계 티어 시스템 구축',
     releaseDate: '2026-11-20',
     summary: 'Timeleft 12개 영역 감사 결과 반영(토스페이먼츠 서버 결제 승인 API 신설, 비밀번호 SHA-256 해시 검증, 실매칭 로스터 DB 영속화 및 D-1 Reveal 실데이터 연동, 시크릿 투표 성별 오류 수정, 체크리스트 임시저장, 쌍방 Connect/체크인 공유, +1 동반 초대 가중치, 구버전 방 선택 잔재 정리) 및 BARO 1년 회원권(60만)·4단계 프리미엄 클럽(30만/300만/3,000만/1억) 티어 뼈대·관리자 가격 수정·상품 결제 연동 완료.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2711',

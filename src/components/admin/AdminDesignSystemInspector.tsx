@@ -87,6 +87,7 @@ const mkPage = (
 });
 
 const TIMELEFT_TRANSPLANT_PAGES: PageStructureMap[] = [
+  mkPage('YOT', '엿장수', '/yot', '호기심 맛집 정보 거래 및 룰렛 바우처 교환 코너', '정보 거래소', '거래'),
   mkPage('BUSAN', '부산', '/busan', '기존 다크 럭셔리 부산 다이닝 예약 (레퍼런스 A 보존)', '부산 다이닝', '신청'),
   mkPage('MEETUP', '밋업', '/meetup', '도시×날짜 블라인드 슬롯 예약, D-1 Reveal', '슬롯 예약', '예약'),
   mkPage('LOCATIONS', '도시', '/locations', '운영 도시·생활권 목록', '도시', '선택'),

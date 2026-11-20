@@ -76,22 +76,45 @@ export default function CheckoutModal({
       if (baro && baro.priceKrw > 0) setBaroPriceKrw(baro.priceKrw);
     });
 
-    const refCandidate =
+    let refCandidate =
       (initialPromoCode ||
         (typeof window !== 'undefined' ? localStorage.getItem('nadosolo_referral_code') : '') ||
         '')
         .trim()
         .toUpperCase();
 
+    // 엿장수(Yot) 룰렛 당첨 쿠폰 자동 연동
+    let yotCouponDiscount = 0;
+    if (typeof window !== 'undefined') {
+      try {
+        const rawYot = localStorage.getItem('yot_coupon');
+        if (rawYot) {
+          const parsed = JSON.parse(rawYot);
+          if (parsed && parsed.code && parsed.amount) {
+            refCandidate = parsed.code;
+            yotCouponDiscount = parsed.amount;
+          }
+        }
+      } catch (e) {}
+    }
+
     fetchPromoCodes().then((list) => {
       setPromoList(list);
       if (refCandidate) {
         const initPrice = TICKET_PLANS[initCount].price;
-        const resolved = resolvePromoFromList(refCandidate, initPrice, list);
-        if (resolved) {
+        // 엿장수 쿠폰 코드(YOT-) 우선 적용
+        if (refCandidate.startsWith('YOT-')) {
+          const discount = yotCouponDiscount || 10000;
           setPromoCode(refCandidate);
-          setAppliedPromo({ code: refCandidate, discountKrw: resolved.discountKrw });
-          setPromoNotice(`추천 코드 자동 적용: ${resolved.notice}`);
+          setAppliedPromo({ code: refCandidate, discountKrw: discount });
+          setPromoNotice(`엿장수 룰렛 웰컴 바우처 자동 적용: ₩${discount.toLocaleString()} 즉시 할인`);
+        } else {
+          const resolved = resolvePromoFromList(refCandidate, initPrice, list);
+          if (resolved) {
+            setPromoCode(refCandidate);
+            setAppliedPromo({ code: refCandidate, discountKrw: resolved.discountKrw });
+            setPromoNotice(`추천 코드 자동 적용: ${resolved.notice}`);
+          }
         }
       }
     });
@@ -187,6 +210,23 @@ export default function CheckoutModal({
   const handleApplyPromo = () => {
     const code = promoCode.trim().toUpperCase();
     if (!code) return;
+
+    if (code.startsWith('YOT-')) {
+      let disc = 10000;
+      if (typeof window !== 'undefined') {
+        try {
+          const rawYot = localStorage.getItem('yot_coupon');
+          if (rawYot) {
+            const parsed = JSON.parse(rawYot);
+            if (parsed && parsed.amount) disc = parsed.amount;
+          }
+        } catch (e) {}
+      }
+      setAppliedPromo({ code, discountKrw: disc });
+      setPromoNotice(`엿장수 룰렛 웰컴 바우처 적용: ₩${disc.toLocaleString()} 즉시 할인`);
+      return;
+    }
+
     const resolved = resolvePromoFromList(code, basePrice, promoList);
     if (resolved) {
       setAppliedPromo({ code, discountKrw: resolved.discountKrw });

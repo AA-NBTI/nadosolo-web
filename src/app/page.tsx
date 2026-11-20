@@ -158,6 +158,47 @@ export default function NadoSoloEditorialHomePage() {
         </div>
       </section>
 
+      {/* 1-B. [신설] 엿장수 코너 (Yot Exchange) - 일상적 호기심과 맛집 제보 ➔ 룰렛 ➔ 바우처 ➔ 모임 연결 */}
+      <section className="w-full py-12 sm:py-16 bg-[#0c0d12] border-b border-white/10">
+        <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14">
+          <div className="rounded-3xl border border-white/15 bg-gradient-to-r from-[#07080a] via-[#12131a] to-[#07080a] p-8 sm:p-12 relative overflow-hidden shadow-2xl">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative z-10">
+              <div className="space-y-4 max-w-2xl text-center lg:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-sm text-zinc-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <span className="font-mono text-zinc-400">YOT-EXCHANGE</span>
+                  <span className="text-zinc-600">|</span>
+                  <span className="text-white font-medium">호기심 맛집 거래소</span>
+                </div>
+
+                <h2 className="font-serif-editorial text-3xl sm:text-4xl text-white font-light tracking-tight">
+                  혼자 가기 아까운 나만의 맛집,<br className="sm:hidden" /> 엿장수한테 파시오!
+                </h2>
+
+                <p className="text-sm sm:text-base text-zinc-300 leading-relaxed">
+                  2인분 이상 주문해야 해서, 혹은 여러 메뉴를 맛보고 싶어 혼자 가기 망설여졌던 맛집 정보 거래하기.<br className="hidden sm:inline" />
+                  정보 가치에 따라 엿(룰렛 기회)을 받아 <span className="text-white font-semibold">최대 10,000원 웰컴 바우처</span>로 교환.
+                </p>
+              </div>
+
+              <div className="shrink-0 flex flex-col sm:flex-row items-center gap-4">
+                <Link
+                  href="/yot"
+                  prefetch={true}
+                  className="px-8 py-4 rounded-xl bg-[#f04f74] text-white font-semibold text-sm sm:text-base hover:bg-[#d63f63] transition-all flex items-center gap-2 shadow-[0_4px_25px_rgba(240,79,116,0.4)]"
+                >
+                  <span>✂️ 엿장수와 거래하기</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* 배경 은은한 포인트 조명 */}
+            <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-[#f04f74]/10 blur-3xl pointer-events-none" />
+          </div>
+        </div>
+      </section>
+
       {/* 2. 4단계 다크 카드 How It Works */}
       <section className="w-full py-16 sm:py-24 bg-[#0c0d12] border-b border-white/10">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14 space-y-12">
