@@ -107,7 +107,7 @@ export default function CheckoutModal({
           const discount = yotCouponDiscount || 10000;
           setPromoCode(refCandidate);
           setAppliedPromo({ code: refCandidate, discountKrw: discount });
-          setPromoNotice(`엿장수 룰렛 웰컴 바우처 자동 적용: ₩${discount.toLocaleString()} 즉시 할인`);
+          setPromoNotice(`솔로엿장수 룰렛 웰컴 바우처 자동 적용: ₩${discount.toLocaleString()} 즉시 할인`);
         } else {
           const resolved = resolvePromoFromList(refCandidate, initPrice, list);
           if (resolved) {
@@ -223,7 +223,7 @@ export default function CheckoutModal({
         } catch (e) {}
       }
       setAppliedPromo({ code, discountKrw: disc });
-      setPromoNotice(`엿장수 룰렛 웰컴 바우처 적용: ₩${disc.toLocaleString()} 즉시 할인`);
+      setPromoNotice(`솔로엿장수 룰렛 웰컴 바우처 적용: ₩${disc.toLocaleString()} 즉시 할인`);
       return;
     }
 

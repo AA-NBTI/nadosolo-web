@@ -13,24 +13,29 @@ export default function GlobalHeader() {
   const { currentUser, logout } = useNadoSoloEngine();
   const { config } = useSiteConfig();
 
-  const isPartnersRoute =
+  const isBizRoute = pathname.startsWith('/biz');
+  const isAffiliateRoute =
     pathname.startsWith('/partners') || pathname.startsWith('/affiliate');
 
-  // 일반 이용자(타임레프트) vs 파트너스(크리에이터 · 식당) 네비게이션 분리
-  const navItems = isPartnersRoute
+  // 일반 이용자 vs 어필리에이트 vs 예약업체(B2B) 네비게이션 완전 분리
+  const navItems = isBizRoute
     ? [
-        { id: 'affiliate', label: '크리에이터', href: '/affiliate' },
-        { id: 'partners', label: '식당 입점', href: '/partners' },
-        { id: 'partner-portal', label: '파트너스 포털', href: '/partners/dashboard' },
+        { id: 'biz-apply', label: '업체 입점', href: '/biz/apply' },
+        { id: 'biz-portal', label: '업체 포털', href: '/biz' },
         { id: 'home', label: '다이닝 홈', href: '/' },
       ]
-    : [
-        { id: 'yot', label: '엿장수', href: '/yot' },
-        { id: 'solotest', label: '솔로테스트', href: '/test' },
-        { id: 'checklist', label: '체크리스트', href: '/checklist' },
-        { id: 'guide', label: '이용안내', href: '/guide' },
-        { id: 'meetup', label: '밋업', href: '/meetup' },
-      ];
+    : isAffiliateRoute
+      ? [
+          { id: 'affiliate', label: '크리에이터', href: '/affiliate' },
+          { id: 'partner-portal', label: '어필리에이트 포털', href: '/partners/dashboard' },
+          { id: 'home', label: '다이닝 홈', href: '/' },
+        ]
+      : [
+          { id: 'yot', label: '솔로엿장수', href: '/yot' },
+          { id: 'misik', label: '솔로미식단', href: '/misik' },
+          { id: 'solotest', label: '솔로테스트', href: '/test' },
+          { id: 'meetup', label: '밋업', href: '/meetup' },
+        ];
 
   const handleLogout = () => {
     logout();
@@ -104,16 +109,16 @@ export default function GlobalHeader() {
           })}
         </nav>
 
-        {/* [우측] 프로필/로그인 (파트너스 영역은 전용 포털 버튼 표시) */}
+        {/* [우측] 프로필/로그인 (어필리에이트 / 예약업체 전용 포털 버튼 분리) */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-          {isPartnersRoute ? (
+          {isBizRoute || isAffiliateRoute ? (
             <div className="flex items-center gap-2">
               <Link
-                href="/partners/dashboard"
+                href={isBizRoute ? '/biz' : '/partners/dashboard'}
                 prefetch={true}
                 className="px-4 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-white text-xs font-mono tracking-wider uppercase transition-colors"
               >
-                파트너스 포털
+                {isBizRoute ? '업체 포털' : '어필리에이트 포털'}
               </Link>
               {isAdmin && (
                 <Link

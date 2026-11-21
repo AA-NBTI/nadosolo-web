@@ -1,12 +1,17 @@
 {
   "name": "nn-nadosolo",
-  "version": "2.7.2",
+  "version": "2.8.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "simulate": "npx tsx src/engine/simulate.ts",
+    "test:reservation": "npx tsx src/modules/reservation/__tests__/reservation.test.ts",
+    "test:reservation:supabase": "npx tsx src/modules/reservation/__tests__/supabase-driver.test.ts",
+    "test:reservation:token": "npx tsx src/lib/reservation/token.test.ts",
+    "test:reservation:reveal": "npx tsx src/lib/reservation/reveal.test.ts",
+    "test:reservation:availability": "npx tsx src/modules/reservation/__tests__/availability.test.ts",
     "pipeline:status": "node scripts/check-pipeline.mjs"
   },
   "dependencies": {

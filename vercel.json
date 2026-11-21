@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/daily-match",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/reservations-expire",
+      "schedule": "30 9 * * *"
     }
   ]
 }

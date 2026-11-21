@@ -83,7 +83,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning={true}>
       <head>
         <script
           type="application/ld+json"
@@ -107,7 +107,10 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-white/20 selection:text-white">
+      <body
+        suppressHydrationWarning={true}
+        className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-white/20 selection:text-white"
+      >
         <ChunkErrorRecovery />
         <NadoSoloProvider>
           <AdminViewerBanner />

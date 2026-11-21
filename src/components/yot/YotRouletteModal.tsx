@@ -4,13 +4,14 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import YotRoulette from './YotRoulette';
 import { YotSlotItem, SpinHistoryItem } from '@/lib/yot/yotTypes';
-import { Clock, ArrowRight, RotateCw, Sparkles, X, UserPlus, Home } from 'lucide-react';
+import { Clock, ArrowRight, RotateCw, Sparkles, X, UserPlus, Home, LayoutDashboard } from 'lucide-react';
 
 interface YotRouletteModalProps {
   isOpen: boolean;
   onClose: () => void;
   taffyCount: number;
   userEmail: string;
+  isLoggedIn?: boolean;
 }
 
 export default function YotRouletteModal({
@@ -18,6 +19,7 @@ export default function YotRouletteModal({
   onClose,
   taffyCount,
   userEmail,
+  isLoggedIn = false,
 }: YotRouletteModalProps) {
   const router = useRouter();
   const [spinsLeft, setSpinsLeft] = useState<number>(taffyCount);
@@ -143,7 +145,7 @@ export default function YotRouletteModal({
           </div>
 
           <h2 className="text-2xl sm:text-3xl font-serif-editorial text-white font-normal">
-            엿장수 룰렛
+            솔로엿장수 룰렛
           </h2>
         </div>
 
@@ -240,19 +242,30 @@ export default function YotRouletteModal({
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              {/* 2. 회원가입 */}
-              <button
-                type="button"
-                onClick={() =>
-                  handleNavigate(
-                    `/auth?coupon=${finalCoupon.code}&email=${encodeURIComponent(userEmail)}`
-                  )
-                }
-                className="w-full py-3 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/20 transition-all flex items-center justify-center gap-2 border border-white/10 cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4 text-zinc-300" />
-                <span>회원가입</span>
-              </button>
+              {/* 2. 로그인 회원: 내 대시보드 / 비회원: 회원가입 */}
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={() => handleNavigate('/dashboard')}
+                  className="w-full py-3 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/20 transition-all flex items-center justify-center gap-2 border border-white/10 cursor-pointer"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-zinc-300" />
+                  <span>내 대시보드</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleNavigate(
+                      `/auth?coupon=${finalCoupon.code}&email=${encodeURIComponent(userEmail)}`
+                    )
+                  }
+                  className="w-full py-3 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/20 transition-all flex items-center justify-center gap-2 border border-white/10 cursor-pointer"
+                >
+                  <UserPlus className="w-4 h-4 text-zinc-300" />
+                  <span>회원가입</span>
+                </button>
+              )}
 
               {/* 3. 홈으로 */}
               <button

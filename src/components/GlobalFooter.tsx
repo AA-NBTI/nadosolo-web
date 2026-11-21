@@ -49,19 +49,22 @@ export default function GlobalFooter() {
               <span className="text-white font-mono font-semibold block">서비스</span>
               <div className="flex flex-col gap-1.5">
                 <Link href="/meetup" prefetch={true} className="hover:text-white transition-colors">밋업</Link>
+                <Link href="/misik" prefetch={true} className="hover:text-white transition-colors">솔로미식단</Link>
+                <Link href="/yot" prefetch={true} className="hover:text-white transition-colors">솔로엿장수</Link>
+                <Link href="/guide" prefetch={true} className="hover:text-white transition-colors">이용 안내</Link>
+                <Link href="/checklist" prefetch={true} className="hover:text-white transition-colors">체크리스트</Link>
                 <Link href="/locations" prefetch={true} className="hover:text-white transition-colors">운영 도시</Link>
                 <Link href="/pricing" prefetch={true} className="hover:text-white transition-colors">참가권 안내</Link>
-                <Link href="/checklist" prefetch={true} className="hover:text-white transition-colors">체크리스트</Link>
-                <Link href="/guide" prefetch={true} className="hover:text-white transition-colors">이용 안내</Link>
               </div>
             </div>
 
             <div className="space-y-2">
-              <span className="text-white font-mono font-semibold block">파트너 · 성장</span>
+              <span className="text-white font-mono font-semibold block">파트너 · 예약</span>
               <div className="flex flex-col gap-1.5">
+                <Link href="/biz/apply" prefetch={true} className="hover:text-white transition-colors">예약업체 입점</Link>
+                <Link href="/biz" prefetch={true} className="hover:text-white transition-colors">예약업체 포털</Link>
                 <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
-                <Link href="/partners" prefetch={true} className="hover:text-white transition-colors">제휴식당 입점</Link>
-                <Link href="/partners/dashboard" prefetch={true} className="hover:text-white transition-colors">파트너스 포털</Link>
+                <Link href="/partners/dashboard" prefetch={true} className="hover:text-white transition-colors">어필리에이트 포털</Link>
                 <Link href="/about" prefetch={true} className="hover:text-white transition-colors">브랜드 소개</Link>
               </div>
             </div>

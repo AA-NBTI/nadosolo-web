@@ -35,7 +35,7 @@ export default function YotBargainModal({
         <div className="flex items-center justify-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-zinc-300">
             <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-            <span>엿장수 감정소</span>
+            <span>솔로엿장수 감정소</span>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSiteConfig } from '@/engine/siteConfigEngine';
 import { useNadoSoloEngine } from '@/engine';
+import CategoryVisualDeck from '@/components/home/CategoryVisualDeck';
 import {
   ArrowRight,
   ShieldCheck,
@@ -98,6 +99,9 @@ export default function NadoSoloEditorialHomePage() {
 
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col font-sans selection:bg-[#f04f74] selection:text-white">
+      {/* 0. 메인 화면 상단 비주얼 카테고리 덱 (안 1 적용) */}
+      <CategoryVisualDeck />
+
       {/* 1. 딥 다크 에디토리얼 Hero */}
       <section className="w-full py-14 sm:py-24 bg-[#07080a] border-b border-white/10">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14">
@@ -158,7 +162,7 @@ export default function NadoSoloEditorialHomePage() {
         </div>
       </section>
 
-      {/* 1-B. [신설] 엿장수 코너 (Yot Exchange) - 일상적 호기심과 맛집 제보 ➔ 룰렛 ➔ 바우처 ➔ 모임 연결 */}
+      {/* 1-B. [신설] 솔로엿장수 코너 (Yot Exchange) - 일상적 호기심과 맛집 제보 ➔ 룰렛 ➔ 바우처 ➔ 모임 연결 */}
       <section className="w-full py-12 sm:py-16 bg-[#0c0d12] border-b border-white/10">
         <div className="max-w-[1220px] mx-auto px-6 sm:px-10 lg:px-14">
           <div className="rounded-3xl border border-white/15 bg-gradient-to-r from-[#07080a] via-[#12131a] to-[#07080a] p-8 sm:p-12 relative overflow-hidden shadow-2xl">
@@ -168,11 +172,11 @@ export default function NadoSoloEditorialHomePage() {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                   <span className="font-mono text-zinc-400">YOT-EXCHANGE</span>
                   <span className="text-zinc-600">|</span>
-                  <span className="text-white font-medium">호기심 맛집 거래소</span>
+                  <span className="text-white font-medium">솔로엿장수 호기심 거래소</span>
                 </div>
 
                 <h2 className="font-serif-editorial text-3xl sm:text-4xl text-white font-light tracking-tight">
-                  혼자 가기 아까운 나만의 맛집,<br className="sm:hidden" /> 엿장수한테 파시오!
+                  혼자 가기 아까운 나만의 맛집,<br className="sm:hidden" /> 솔로엿장수한테 파시오!
                 </h2>
 
                 <p className="text-sm sm:text-base text-zinc-300 leading-relaxed">
@@ -187,7 +191,7 @@ export default function NadoSoloEditorialHomePage() {
                   prefetch={true}
                   className="px-8 py-4 rounded-xl bg-[#f04f74] text-white font-semibold text-sm sm:text-base hover:bg-[#d63f63] transition-all flex items-center gap-2 shadow-[0_4px_25px_rgba(240,79,116,0.4)]"
                 >
-                  <span>✂️ 엿장수와 거래하기</span>
+                  <span>✂️ 솔로엿장수와 거래하기</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>

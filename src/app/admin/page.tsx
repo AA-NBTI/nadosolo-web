@@ -29,6 +29,7 @@ import AdminAdaptiveMatchingManager from '@/components/admin/AdminAdaptiveMatchi
 import AdminPreMatchPage from './pre-match/page';
 import AdminTimeleftManager from '@/components/admin/AdminTimeleftManager';
 import AdminPartnersManager from '@/components/admin/AdminPartnersManager';
+import AdminReservationManager from '@/components/admin/AdminReservationManager';
 import AdminTestAnalyticsManager from '@/components/admin/AdminTestAnalyticsManager';
 import { ARCHITECTURE_RELEASES } from '@/engine/architectureAuditRegistry';
 import { isAdminAccount, isTesterAccount } from '@/modules/identity';
@@ -86,7 +87,9 @@ type AdminTabKey =
   | 'PT_AFFILIATE'
   | 'PT_FUNNEL'
   | 'PT_PAYOUT'
-  | 'PT_VENUE';
+  | 'PT_VENUE'
+  | 'RESERVATION_CONTROL'
+  | 'RESERVATION_RESOURCES';
 
 const normalizeCityName = (city?: string): string => {
   if (!city) return '미지정';
@@ -121,7 +124,15 @@ interface AdminCategoryGroup {
 
 const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
   {
-    groupTitle: '타임레프트',
+    groupTitle: '예약관리',
+    items: [
+      { key: 'RESERVATION_CONTROL', label: '관제' },
+      { key: 'RESERVATION_RESOURCES', label: '자원' },
+      { key: 'PT_VENUE', label: '식당' },
+    ],
+  },
+  {
+    groupTitle: '솔미단',
     items: [
       { key: 'TL_SLOT', label: '슬롯' },
       { key: 'PRE_MATCH', label: '가매칭' },
@@ -129,15 +140,6 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'TL_SANCTION', label: '제재' },
       { key: 'TL_TICKET', label: '참가권' },
       { key: 'TL_AUTOMATION', label: '자동화' },
-    ],
-  },
-  {
-    groupTitle: '파트너스',
-    items: [
-      { key: 'PT_AFFILIATE', label: '파트너' },
-      { key: 'PT_FUNNEL', label: '성과' },
-      { key: 'PT_PAYOUT', label: '정산' },
-      { key: 'PT_VENUE', label: '식당' },
     ],
   },
   {
@@ -200,6 +202,14 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'EVENT_LIST', label: '방목록' },
       { key: 'EVENT_GATE', label: '방관제' },
       { key: 'VENUE', label: '구매장' },
+    ],
+  },
+  {
+    groupTitle: '어필리에이트',
+    items: [
+      { key: 'PT_AFFILIATE', label: '파트너' },
+      { key: 'PT_FUNNEL', label: '성과' },
+      { key: 'PT_PAYOUT', label: '정산' },
     ],
   },
 ];
@@ -3085,6 +3095,12 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'TL_SANCTION' && <AdminTimeleftManager section="SANCTION" isLight={isLight} onNotify={notify} />}
           {activeTab === 'TL_TICKET' && <AdminTimeleftManager section="TICKET" isLight={isLight} onNotify={notify} />}
           {activeTab === 'TL_AUTOMATION' && <AdminTimeleftManager section="AUTOMATION" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'RESERVATION_CONTROL' && (
+            <AdminReservationManager initialView="BOOKINGS" isLight={isLight} onNotify={notify} />
+          )}
+          {activeTab === 'RESERVATION_RESOURCES' && (
+            <AdminReservationManager initialView="RESOURCES" isLight={isLight} onNotify={notify} />
+          )}
           {activeTab === 'PT_AFFILIATE' && <AdminPartnersManager section="AFFILIATE" isLight={isLight} onNotify={notify} />}
           {activeTab === 'PT_FUNNEL' && <AdminPartnersManager section="FUNNEL" isLight={isLight} onNotify={notify} />}
           {activeTab === 'PT_PAYOUT' && <AdminPartnersManager section="PAYOUT" isLight={isLight} onNotify={notify} />}

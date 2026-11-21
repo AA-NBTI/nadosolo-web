@@ -1,5 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import {
+  getNadoSoloReservationEngine,
+  listActiveRestaurantVenues,
+  requestRoomReservation,
+} from '@/lib/reservation/nadosolo';
+import {
   classifyAccountProfile,
   filterMatchingEligibleProfiles,
 } from '@/modules/identity';
@@ -114,12 +119,17 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
     };
   });
 
+  // 범용 예약 모듈에서 승인된 활성 식당 조회 (있으면 우선 사용, 없으면 샘플 폴백)
+  const reservationEngine = getNadoSoloReservationEngine();
+  const dbVenues = reservationEngine ? await listActiveRestaurantVenues().catch(() => []) : [];
+
   const pipeline = runUnifiedMatchingPipeline({
     participants,
     axes: DEFAULT_MATCHING_AXES,
     coreCount,
     requirePaid,
     blockedPairs,
+    ...(dbVenues.length > 0 ? { venues: dbVenues } : {}),
   });
 
   const committedEventIds: string[] = [];
@@ -127,6 +137,9 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
   let newlyCommittedRooms = 0;
   let newlyCommittedMembers = 0;
   let notificationsCreated = 0;
+  let reservationRequested = 0;
+  const reservationNotes: string[] = [];
+  const reservationLinks: Array<{ roomId: string; venue?: string; url: string }> = [];
 
   if (mode === 'EXECUTE' && pipeline.allAuditPassed) {
     for (const room of pipeline.grouping.rooms) {
@@ -169,6 +182,30 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
       }
       newlyCommittedRooms += 1;
       committedEventIds.push(eventId);
+
+      if (reservationEngine) {
+        try {
+          const r = await requestRoomReservation(reservationEngine, {
+            eventId,
+            roomId: room.roomId,
+            scheduleSlot: room.spec.scheduleSlot,
+            memberCount: room.members.length,
+            venueId: room.assignedVenueId,
+            venueName: room.assignedVenueName,
+            cityCode: room.spec.cityCode,
+            budgetTier: room.assignedVenueBudgetTier,
+          });
+          if (r.bookingId) {
+            reservationRequested += 1;
+            if (r.respondUrl) {
+              reservationLinks.push({ roomId: room.roomId, venue: room.assignedVenueName, url: r.respondUrl });
+            }
+          }
+          else if (r.skipped) reservationNotes.push(`${room.roomId}: ${r.skipped}`);
+        } catch (e) {
+          reservationNotes.push(`${room.roomId}: ${(e as Error).message}`);
+        }
+      }
       existingTitles.add(room.spec.title);
 
       for (const m of room.members) {
@@ -292,10 +329,14 @@ export async function runPipelineOnServer(body: AutoMatchRequestBody = {}) {
       existingMeetupCount: existingTitles.size,
       newlyCommittedRooms,
       newlyCommittedMembers,
+      reservationRequested,
       notificationsCreated,
     },
     committedEventIds,
     commitErrors,
+    reservationEnabled: Boolean(reservationEngine),
+    reservationNotes,
+    reservationLinks,
     rooms: pipeline.grouping.rooms.map((r) => ({
       roomId: r.roomId,
       title: r.spec.title,

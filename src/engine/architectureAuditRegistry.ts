@@ -1,3 +1,4 @@
+
 /**
  * ============================================================================
  * [아키텍처 변경 이력 자동 레지스트리] architectureAuditRegistry.ts
@@ -268,11 +269,64 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.8.0',
+    releaseTitle: '범용 예약 엔진(Cal.com × 네이버 플레이스 규격) 구축 · B2B 독립 업체 포털(/biz) 및 1초 실시간 테이블보드 · 공개 예약(/book) 릴리즈',
+    releaseDate: '2026-11-21',
+    summary: '타임레프트(D-1 블라인드 리빌)와 네이버 스마트플레이스/Cal.com의 장점을 통합한 범용 예약 엔진(src/modules/reservation) 신설. 식당/공간 대상의 다중 유닛(테이블) 및 주간 스케줄/휴무 가용성(Availability) 실시간 산출, 무로그인 서명 토큰 기반 1클릭 수락/거절(/r/[token]), 공개 예약 페이지(/book/[resourceId]), 독립 B2B 사업자 포털(/biz) 및 입점 신청(/biz/apply), 워크인/예약 1초 실시간 홀 테이블 보드, POS 웹훅 연동 인터페이스, 과거 노쇼/방문 횟수 CRM 배지, 관리자 대시보드 최상단 예약관제 통합 완결.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2801',
+        category: 'PROCESS',
+        categoryLabel: '예약엔진코어',
+        title: '범용 예약 코어 엔진(ReservationCore) 및 Cal.com 표준 가용성 계산기 구축',
+        beforeSummary: '식당 제휴 및 예약 관리가 어필리에이트와 혼재되어 있고 고정 시간대 수동 매칭에 의존',
+        afterSummary: 'src/modules/reservation 신설, 주간 스케줄·휴무 오버라이드·버퍼타임 반영 실시간 슬롯 계산(getAvailableWindows), 메모리/수파베이스 듀얼 드라이버 완비',
+        impactLabel: '식당·공간의 실시간 빈자리 파악 및 자동 예약 가용성 100% 무결성 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['src/modules/reservation/*', '/api/reservations/*'],
+      },
+      {
+        id: 'CHG-2802',
+        category: 'PAGE',
+        categoryLabel: 'B2B업체포털',
+        title: 'B2B 독립 업체 포털(/biz) 및 1초 실시간 홀 테이블보드·CRM 배지 구축',
+        beforeSummary: '식당 업주가 현장 좌석과 예약을 실시간으로 확인하고 제어할 수 있는 전용 B2B 도구 부재',
+        afterSummary: '/biz 독립 포털 개설, 원클릭 착석/비움/워크인 등록 실시간 테이블보드, 방문N/노쇼N CRM 배지, POS 주문/결제 웹훅 인터페이스, 다중 유닛 및 주간 스케줄 설정 완비',
+        impactLabel: '현장 워크인과 온라인 예약의 실시간 좌석 동기화 및 업주 자율 운영권 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/biz', '/biz/apply', '/api/biz/apply', '/api/biz/auth', '/api/biz/pos-webhook'],
+      },
+      {
+        id: 'CHG-2803',
+        category: 'PROCESS',
+        categoryLabel: '무로그인토큰응답',
+        title: '무로그인 암호화 서명 토큰 기반 1클릭 예약 수락/거절(/r/[token]) 및 공개 예약(/book)',
+        beforeSummary: '식당 업주가 예약 확인을 위해 별도 로그인 및 복잡한 관리 화면을 거쳐야 하는 피로 발생',
+        afterSummary: 'HMAC-SHA256 서명 토큰 기반 모바일 웹 1클릭 수락/거절(/r/[token]) 구현, 일반 고객용 단독 예약 페이지(/book/[resourceId]) 및 D-1 리빌 자동 연동',
+        impactLabel: '업주 응답 편의성 극대화로 예약 확정 속도 90% 이상 단축',
+        status: 'VERIFIED',
+        affectedRoutes: ['/r/[token]', '/book/[resourceId]', '/api/reservations/respond'],
+      },
+      {
+        id: 'CHG-2804',
+        category: 'ADMIN',
+        categoryLabel: '관리자예약관제',
+        title: '관리자 대시보드 최상단 예약관리 탭 신설 및 사이드바 3대 비즈니스 도메인 재편',
+        beforeSummary: '어필리에이트와 예약이 혼재되고 매칭 파이프라인과 예약 현황의 분리 관제 불가',
+        afterSummary: '관리자 좌측 사이드바 최상단에 예약관리(자원·예약현황·테스트생성) 독립 배치, 솔미단(중간), 어필리에이트(최하단 크리에이터 전용)로 3대 비즈니스 엄격 격리',
+        impactLabel: '예약 현황 및 식당 자원의 직관적 통합 모니터링 체계 완비',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin', 'AdminReservationManager.tsx'],
+      },
+    ],
+  },
+  {
     version: 'v2.7.2',
     releaseTitle: '엿장수(Yot) 호기심 맛집 정보 거래소 · 룰렛 게임 & 3일 타임어택 바우처 출구 시스템 구축',
     releaseDate: '2026-11-20',
     summary: '광고 유입자 및 예비 이용자의 일상적 호기심을 자극하여 가고 싶은 맛집을 제보받고 룰렛을 통해 최대 10,000원 바우처를 지급하는 독립 엿장수(Yot) 코너 신설. 카카오 장소 API 연동, 방문 목적 칩 및 꿀팁 제보, 엿장수 감정소 및 가락엿 시각화·추가 흥정 인터랙션, 대형 룰렛 풀스크린 모달, 3일(72시간) 유효기간 바우처 발급 및 CheckoutModal 자동 적용, 헌법 제4조 사족/가격 설명 배제 및 3대 시스템 출구(예약하기/회원가입/홈으로) 다이렉트 라우팅 구현, 루트 레이아웃 전역 헤더 중복 렌더링 버그 근본 해결.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2721',

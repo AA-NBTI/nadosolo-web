@@ -218,9 +218,29 @@ export default function AdminPartnersManager({
     void load();
   };
 
+  const syncToReservationDb = async (v: PartnerVenue, active: boolean, contactEmail?: string) => {
+    try {
+      await fetch('/api/admin/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'SYNC_RESOURCE',
+          venueId: v.venueId,
+          name: v.name,
+          cityCode: v.cityCode,
+          budgetTier: v.budgetTier,
+          maxTablesPerNight: v.maxTablesPerNight,
+          supportedDietary: v.supportedDietary,
+          active,
+          contactEmail,
+        }),
+      });
+    } catch {}
+  };
+
   const handleApproveVenueApp = async (va: VenuePartnerApplication) => {
     const createdVenueId = `VEN_PARTNER_${Date.now().toString().slice(-5)}`;
-    onAddVenue?.({
+    const venueObj: PartnerVenue = {
       venueId: createdVenueId,
       name: va.venueName,
       cityCode: va.cityCode,
@@ -228,9 +248,11 @@ export default function AdminPartnersManager({
       supportedDietary: va.supportedDietary,
       vibeThemes: ['WINE_BISTRO', 'CASUAL_DINING'],
       maxTablesPerNight: va.maxTablesPerNight,
-    });
+    };
+    onAddVenue?.(venueObj);
     const next = await updateVenueApplicationStatus(va.applicationId, 'APPROVED', createdVenueId);
     setVenueApps(next);
+    await syncToReservationDb(venueObj, true, va.contactEmail);
     notify(`${va.venueName} 승인`);
   };
 
@@ -258,6 +280,7 @@ export default function AdminPartnersManager({
       maxTablesPerNight: Math.max(1, newVenueTables),
     };
     onAddVenue(created);
+    void syncToReservationDb(created, true);
     setNewVenueName('');
     setNewVenueTables(3);
     notify(`${created.name} 추가`);

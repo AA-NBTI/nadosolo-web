@@ -169,3 +169,27 @@ export async function issueYotCoupon(userEmail: string, amount: number, spinHist
 
   return couponRecord;
 }
+
+
+/**
+ * 추천 맛집 랭킹 조회
+ */
+export async function getYotVenueRanking(limit = 10) {
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data } = await supabase
+        .from('yot_venues')
+        .select('*')
+        .order('report_count', { ascending: false })
+        .limit(limit);
+      if (data && data.length > 0) return data;
+    } catch (e) {
+      console.warn('[YotService] Ranking fallback to memory');
+    }
+  }
+
+  return Array.from(memoryVenues.values())
+    .sort((a, b) => (b.report_count || 1) - (a.report_count || 1))
+    .slice(0, limit);
+}

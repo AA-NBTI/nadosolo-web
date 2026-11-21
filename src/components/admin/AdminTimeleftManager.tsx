@@ -57,6 +57,7 @@ export default function AdminTimeleftManager({
   const [promoUsage, setPromoUsage] = useState<Record<string, number>>({});
   const [tiers, setTiers] = useState<MembershipTierSpec[]>(DEFAULT_MEMBERSHIP_TIERS);
   const [affiliates, setAffiliates] = useState<any[]>([]);
+  const [yotVenues, setYotVenues] = useState<any[]>([]);
   const [runLog, setRunLog] = useState<any[]>([]);
 
   const [nUser, setNUser] = useState('');
@@ -121,11 +122,17 @@ export default function AdminTimeleftManager({
         }
         setPromoUsage(counts);
       } else if (section === 'PARTNER') {
-        const { data, error } = await supabase
-          .from('affiliate_applications')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(100);
+        const [{ data, error }, yotRes] = await Promise.all([
+          supabase
+            .from('affiliate_applications')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(100),
+          fetch('/api/yot/ranking?limit=20')
+            .then((r) => r.json())
+            .catch(() => ({ ranking: [] })),
+        ]);
+        if (yotRes?.ranking) setYotVenues(yotRes.ranking);
         if (!error && data) {
           setAffiliates(
             data.map((r: any) => ({
@@ -571,6 +578,19 @@ export default function AdminTimeleftManager({
                 <span className={badgeCls}>식당</span>
               </div>
               <div className={`text-sm font-mono ${subTextCls}`}>{v.cityCode} · {v.budgetTier} · {v.maxTablesPerNight}테이블</div>
+            </div>
+          ))}
+          {yotVenues.map((yv, idx) => (
+            <div key={yv.provider_place_id || idx} className={rowCls}>
+              <div className="flex items-center justify-between gap-2">
+                <span className={`text-sm truncate font-medium ${titleTextCls}`}>
+                  #{idx + 1} {yv.place_name}
+                </span>
+                <span className={badgeCls}>제보 {yv.report_count || 1}건</span>
+              </div>
+              <div className={`text-sm font-mono truncate ${subTextCls}`}>
+                {yv.region_city} {yv.region_gu} {yv.region_dong} {yv.category_name ? `· ${yv.category_name.split('>').pop()?.trim()}` : ''}
+              </div>
             </div>
           ))}
         </div>

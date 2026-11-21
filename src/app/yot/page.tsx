@@ -1,17 +1,22 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useNadoSoloEngine } from '@/engine';
 import YotBargainModal from '@/components/yot/YotBargainModal';
 import YotRouletteModal from '@/components/yot/YotRouletteModal';
+import YotRankingList from '@/components/yot/YotRankingList';
 import {
   YOT_PURPOSE_CHIPS,
   YotVenueItem,
 } from '@/lib/yot/yotTypes';
-import { Search, ArrowRight, RotateCw, Mail, Clock, UserPlus, Home } from 'lucide-react';
+import { Search, ArrowRight, RotateCw, Mail, Clock, UserPlus, Home, LayoutDashboard, ShieldCheck } from 'lucide-react';
 
 export default function YotPage() {
   const router = useRouter();
+  const { currentUser } = useNadoSoloEngine();
+  const isLoggedIn = Boolean(currentUser);
 
   // 1단계: 검색 및 입력 상태
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,6 +45,13 @@ export default function YotPage() {
   } | null>(null);
 
   const reviewInputRef = useRef<HTMLInputElement | null>(null);
+
+  // 로그인 회원 이메일 자동 채움
+  useEffect(() => {
+    if (currentUser?.email && !userEmail) {
+      setUserEmail(currentUser.email);
+    }
+  }, [currentUser]);
 
   // 로컬 스토리지에 기존 발급된 쿠폰이 있으면 로드
   useEffect(() => {
@@ -115,6 +127,21 @@ export default function YotPage() {
         const data = await res.json();
         setTaffyCount(data.taffyCount || 1);
         setPraiseComment(data.praiseComment || '엿장수와 거래가 성사되었소!');
+
+        // 대시보드 연동을 위해 제보 내역 로컬 저장
+        try {
+          localStorage.setItem(
+            'yot_reported_venue',
+            JSON.stringify({
+              venue: selectedVenue,
+              purpose_tags: selectedChips,
+              one_line_review: oneLineReview,
+              user_email: userEmail,
+              reported_at: new Date().toISOString(),
+            })
+          );
+        } catch (e) {}
+
         setIsBargainModalOpen(true);
       } else {
         const err = await res.json();
@@ -146,22 +173,61 @@ export default function YotPage() {
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col font-sans">
       <main className="flex-1 w-full max-w-[1000px] mx-auto px-6 py-10 sm:py-16">
         
-        {/* 상단 간결 헤더 (회장님 지시: 구질구질한 정책/가격 설명 전면 제거) */}
-        <div className="text-center space-y-3 mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-[#0c0d12] text-xs font-mono text-zinc-300">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-            <span className="font-mono text-zinc-400">YOT-EXCHANGE</span>
-            <span className="text-zinc-600">|</span>
-            <span className="text-white font-medium">정보 거래소</span>
+        {/* 상단 시네마틱 2열 분할 헤더 */}
+        <div className="rounded-3xl border border-white/15 bg-[#0c0d12] shadow-2xl p-6 sm:p-10 mb-10 overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+            {/* 좌측: 타이틀 및 안내 */}
+            <div className="md:col-span-7 space-y-4 text-left">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/15 bg-black/60 backdrop-blur-md text-xs font-mono text-zinc-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                <span className="font-mono text-zinc-400">YOT-EXCHANGE</span>
+                <span className="text-zinc-600">|</span>
+                <span className="text-white font-medium">솔로엿장수 정보 거래소</span>
+              </div>
+
+              <h1 className="font-serif-editorial text-2xl sm:text-4xl lg:text-5xl font-light text-white tracking-tight leading-tight">
+                혼자 가기 아까운 맛집,<br />
+                솔로엿장수한테 파시오!
+              </h1>
+
+              <p className="text-sm sm:text-base text-zinc-300 leading-relaxed max-w-xl">
+                가고 싶었던 숨은 맛집을 제보하고 즉석 룰렛 기회를 획득하십시오.<br className="hidden sm:inline" />
+                당신이 판 맛집은 <span className="text-white font-semibold">나도솔로 6인 식탁의 공식 후보지</span>로 등록됩니다.
+              </p>
+
+              <div className="pt-2 flex flex-wrap items-center gap-2.5">
+                <span className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-zinc-300">
+                  # 엿가위거래
+                </span>
+                <span className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-zinc-300">
+                  # 100%룰렛당첨
+                </span>
+                <span className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-xs font-mono text-zinc-300">
+                  # 나도솔로공식후보
+                </span>
+              </div>
+            </div>
+
+            {/* 우측: 16:9 선명한 에디토리얼 시네마틱 비주얼 카드 */}
+            <div className="md:col-span-5 relative group">
+              <div className="relative aspect-[16/10] sm:aspect-[4/3] md:aspect-[16/11] rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+                <img
+                  src="/images/themes/yot-hero.jpg?v=2"
+                  alt="전통 엿장수와 황동 엿가위"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-95"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs font-mono">
+                  <span className="px-2.5 py-1 rounded bg-black/80 backdrop-blur-md border border-white/15 text-white font-medium">
+                    YOT-ROULETTE
+                  </span>
+                  <span className="text-zinc-400 drop-shadow">
+                    INFORMATION EXCHANGE
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
-
-          <h1 className="font-serif-editorial text-3xl sm:text-5xl font-light text-white tracking-tight">
-            혼자 가기 아까운 맛집,<br className="sm:hidden" /> 엿장수한테 파시오!
-          </h1>
-
-          <p className="text-sm sm:text-base text-zinc-400 max-w-md mx-auto leading-relaxed">
-            가고 싶었던 숨은 맛집 등록하고 룰렛 기회 획득.
-          </p>
         </div>
 
         {/* 1단계: 맛집 제보 및 엿 거래 섹션 */}
@@ -318,13 +384,25 @@ export default function YotPage() {
                   </span>
                 ) : (
                   <>
-                    <span>✂️ 엿장수와 거래하기</span>
+                    <span>✂️ 솔로엿장수와 거래하기</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
             </div>
           </form>
+        </div>
+
+        {/* 솔로미식단 랭킹 전체보기 연결 티저 */}
+        <div className="mb-8 text-center">
+          <Link
+            href="/misik"
+            className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors border border-white/10 px-4 py-2 rounded-full bg-white/5"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+            <span>회원들이 뽑은 솔로미식단(솔미단) 랭킹 보러가기</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
         </div>
 
         {/* 이미 발급된 바우처가 있을 경우 메인 화면에서도 즉시 출구 제공 */}
@@ -339,7 +417,7 @@ export default function YotPage() {
               보유 바우처: <span className="font-mono text-[#f04f74] font-bold">{pageCoupon.code}</span>
             </h3>
 
-            {/* 사족 없는 간결한 3대 시스템 출구 버튼 */}
+            {/* 사족 없는 간결한 3대 시스템 출구 버튼 (로그인 여부에 맞춤 전환) */}
             <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
               <button
                 type="button"
@@ -350,14 +428,25 @@ export default function YotPage() {
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <button
-                type="button"
-                onClick={() => router.push(`/auth?coupon=${pageCoupon.code}`)}
-                className="px-6 py-3 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/20 transition-all flex items-center gap-1.5 border border-white/10 cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4 text-zinc-300" />
-                <span>회원가입</span>
-              </button>
+              {isLoggedIn ? (
+                <button
+                  type="button"
+                  onClick={() => router.push('/dashboard')}
+                  className="px-6 py-3 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/20 transition-all flex items-center gap-1.5 border border-white/10 cursor-pointer"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-zinc-300" />
+                  <span>내 대시보드</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/auth?coupon=${pageCoupon.code}`)}
+                  className="px-6 py-3 rounded-xl bg-white/10 text-white font-medium text-sm hover:bg-white/20 transition-all flex items-center gap-1.5 border border-white/10 cursor-pointer"
+                >
+                  <UserPlus className="w-4 h-4 text-zinc-300" />
+                  <span>회원가입</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -387,7 +476,6 @@ export default function YotPage() {
           isOpen={isRouletteModalOpen}
           onClose={() => {
             setIsRouletteModalOpen(false);
-            // 룰렛 완료 후 로컬스토리지 쿠폰 동기화
             try {
               const saved = localStorage.getItem('yot_coupon');
               if (saved) setPageCoupon(JSON.parse(saved));
@@ -395,6 +483,7 @@ export default function YotPage() {
           }}
           taffyCount={taffyCount}
           userEmail={userEmail}
+          isLoggedIn={isLoggedIn}
         />
 
         {/* 하단 규격 */}

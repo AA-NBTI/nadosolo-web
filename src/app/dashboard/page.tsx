@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { blocksReveal, type ReservationPublicState } from '@/lib/reservation/reveal';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -13,6 +14,7 @@ import {
 } from '@/engine';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import ProcessGateLockedCard from '@/components/dashboard/ProcessGateLockedCard';
+import DashboardYotWidget from '@/components/dashboard/DashboardYotWidget';
 import { nadoSoloSupabaseService } from '@/lib/supabase/service';
 import { getAppConfig, saveAppConfig } from '@/lib/appConfigDb';
 import { KeyRound, UserX, AlertCircle, CheckCircle2, ShieldAlert, Phone, Mail, Bell, MapPin, Clock, Wine, Users, ExternalLink } from 'lucide-react';
@@ -189,6 +191,33 @@ function MemberDashboardContent() {
       });
     return [...matched, ...fallbacks];
   }, [conditionalEvents, appliedEventIds, cancelledEventIds]);
+
+  // 범용 예약 모듈 상태: 식당이 확정되지 않은 모임은 D-1이어도 식당 Reveal을 보류한다
+  const reservationEventId = myAppliedEvents[0]?.eventId;
+  const [reservationState, setReservationState] = useState<ReservationPublicState>('DISABLED');
+  const [reservationVenue, setReservationVenue] = useState<{
+    name?: string;
+    address?: string;
+    addressDetail?: string;
+    phone?: string;
+    guideNote?: string;
+  } | null>(null);
+  useEffect(() => {
+    if (!reservationEventId) return;
+    let alive = true;
+    fetch(`/api/reservations/status?eventId=${encodeURIComponent(reservationEventId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!alive) return;
+        if (data?.state) setReservationState(data.state as ReservationPublicState);
+        setReservationVenue(data?.venue || null);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [reservationEventId]);
+  const reservationBlocksReveal = blocksReveal(reservationState);
 
   // [P01 계정정보 & P02 기본프로필] 로컬 폼 상태
   const [editHandle, setEditHandle] = useState(
@@ -738,6 +767,9 @@ function MemberDashboardContent() {
               ---------------------------------------------------------- */}
           {currentProcess?.processId === 'P00_MEETUP_STATUS' && (
             <div className="space-y-6">
+              {/* [신설] 엿장수 바우처 & 내 제보 맛집 현황 위젯 */}
+              <DashboardYotWidget />
+
               {/* 모임 진행 단계 타임라인 탭 (단일 명사화) */}
               <div className="bg-[#0c0d12] p-2 border border-white/10">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full">
@@ -957,7 +989,7 @@ function MemberDashboardContent() {
                   hasRevealNotif ||
                   (!Number.isNaN(hoursUntilEvent) && hoursUntilEvent <= 24);
 
-                if (!isRevealed) {
+                if (!isRevealed || reservationBlocksReveal) {
                   return (
                     <section className="bg-[#0c0d12] border border-white/10 p-8 space-y-5">
                       <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -1015,14 +1047,23 @@ function MemberDashboardContent() {
                       <div className="space-y-1.5">
                         <span className="text-sm text-[#f04f74] font-mono">제휴 식당 확정</span>
                         <h4 className="font-serif-editorial text-lg font-normal text-white">
-                          {primaryEv?.venueNameOverride || assignedVenue?.name || '제휴 프라이빗 다이닝'}
+                          {reservationVenue?.name || primaryEv?.venueNameOverride || assignedVenue?.name || '제휴 프라이빗 다이닝'}
                         </h4>
                         <p className="text-sm text-zinc-400 font-light flex items-center gap-1.5">
                           <MapPin className="w-4 h-4 text-[#f04f74] shrink-0" />
                           <span>
-                            {`${primaryEv?.regionName || '서울'} ${primaryEv?.districtName || '강남구'} 제휴 살롱 (상세 주소 D-1 19:00 안내)`}
+                            {reservationVenue?.address
+                              ? `${reservationVenue.address} ${reservationVenue.addressDetail || ''}`.trim()
+                              : `${primaryEv?.regionName || '서울'} ${primaryEv?.districtName || '강남구'} 제휴 살롱 (상세 주소 D-1 19:00 안내)`}
                           </span>
                         </p>
+                        {(reservationVenue?.phone || reservationVenue?.guideNote) && (
+                          <p className="text-xs text-zinc-300 font-mono">
+                            {reservationVenue.phone ? `전화: ${reservationVenue.phone}` : ''}
+                            {reservationVenue.phone && reservationVenue.guideNote ? ' · ' : ''}
+                            {reservationVenue.guideNote ? `안내: ${reservationVenue.guideNote}` : ''}
+                          </p>
+                        )}
                         <p className="text-xs text-zinc-400 font-mono">
                           일정: {primaryEv?.dateText || '확정 일정'} · 현장 1/N 실비 정산 (인당 예상 3~5만원대)
                         </p>

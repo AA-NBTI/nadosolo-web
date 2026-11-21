@@ -87,7 +87,12 @@ const mkPage = (
 });
 
 const TIMELEFT_TRANSPLANT_PAGES: PageStructureMap[] = [
-  mkPage('YOT', '엿장수', '/yot', '호기심 맛집 정보 거래 및 룰렛 바우처 교환 코너', '정보 거래소', '거래'),
+  mkPage('YOT', '솔로엿장수', '/yot', '호기심 맛집 정보 거래 및 룰렛 바우처 교환 코너', '정보 거래소', '거래'),
+  mkPage('MISIK', '솔로미식단', '/misik', '이색 관점의 6인 소셜 미식 가이드 및 랭킹', '솔로미식단', '예약'),
+  mkPage('RESERVE_RESPOND', '예약응답', '/r', '식당 예약 수락·거절 전용 링크 페이지 (서명 토큰 인증)', '예약 요청', '수락'),
+  mkPage('PUBLIC_BOOK', '공개예약', '/book', '자영업자·제휴업체 전용 무료 공개 예약 위젯 페이지', '예약', '예약'),
+  mkPage('BIZ_PORTAL', '예약업체포털', '/biz', '예약업체 전용 좌석·휴무·현장등록·수락 포털', '업체 포털', '로그인'),
+  mkPage('BIZ_APPLY', '예약업체입점', '/biz/apply', '식당·숙박·공간 독립 예약업체 입점 신청', '업체 입점', '신청'),
   mkPage('BUSAN', '부산', '/busan', '기존 다크 럭셔리 부산 다이닝 예약 (레퍼런스 A 보존)', '부산 다이닝', '신청'),
   mkPage('MEETUP', '밋업', '/meetup', '도시×날짜 블라인드 슬롯 예약, D-1 Reveal', '슬롯 예약', '예약'),
   mkPage('LOCATIONS', '도시', '/locations', '운영 도시·생활권 목록', '도시', '선택'),
