@@ -269,11 +269,53 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.8.1',
+    releaseTitle: 'B2B 파트너 업체 2단계 온보딩 분리(간편 가입 → 첫 로그인 필수 정보 등록) 및 무료 도로명 주소 찾기 연동',
+    releaseDate: '2026-11-22',
+    summary: '파트너 업체 회원가입(/biz?tab=signup)을 이메일·담당자명·비밀번호 중심의 일반 계정 가입으로 경량화하고, 첫 로그인 직후 업체 필수 정보(업종·업체명·도로명 주소·연락처·테이블 수)를 1회 등록하도록 온보딩 게이트 신설. 온보딩 미완료 업체의 공개 예약(/book) 노출 차단 및 별도 API 키 없이 즉시 동작하는 무료 Daum 우편번호 도로명 주소 찾기 연동.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2811',
+        category: 'AUTH',
+        categoryLabel: '업체온보딩분리',
+        title: '파트너 업체 간편 회원가입 및 첫 로그인 필수 업체 정보 등록 게이트 신설',
+        beforeSummary: '회원가입 단계에서 업종·상호·주소·연락처·테이블 수까지 일괄 요구해 초기 가입 이탈 유발',
+        afterSummary: '/biz?tab=signup은 이메일·담당자명·비밀번호만 입력받아 계정 생성 후 로그인 전환, 첫 로그인 시 onboardingCompleted=false 감지하여 전용 업체 필수 정보 등록 화면(COMPLETE_ONBOARDING) 강제',
+        impactLabel: '초기 가입 장벽 제거 및 첫 로그인 시 정확한 매장 정보 수집률 100% 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/biz', '/api/biz/apply', '/api/biz/auth', '/api/partners/reservations'],
+      },
+      {
+        id: 'CHG-2812',
+        category: 'PAGE',
+        categoryLabel: '무료주소검색연동',
+        title: 'API 키 없는 무료 Daum 우편번호 기반 도로명 주소 찾기 컴포넌트 구축',
+        beforeSummary: '주소를 수동 텍스트로만 입력하여 오타 및 지번·도로명 혼선 발생 가능',
+        afterSummary: 'AddressAutocompleteInput 컴포넌트 신설, 무료 Daum 우편번호 스크립트 동적 로드로 지번/도로명 검색 즉시 선택 지원(온보딩·설정 탭 공용 적용)',
+        impactLabel: '별도 API 키 비용·유지보수 없이 정확한 도로명 및 지번 주소 데이터 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/biz', 'AddressAutocompleteInput.tsx'],
+      },
+      {
+        id: 'CHG-2813',
+        category: 'PROCESS',
+        categoryLabel: '공개예약안전장치',
+        title: '온보딩 미완료 업체 공개 예약(/book) 노출 차단 및 기존 업체 호환성 보장',
+        beforeSummary: '가입 직후 미완성 정보 상태에서도 공개 예약 링크가 열릴 수 있는 여지 존재',
+        afterSummary: '/api/reservations/public에서 onboardingCompleted=false 자원 차단, /api/biz/auth에서 기존 등록 업체(주소·연락처 보유)는 자동 온보딩 완료 처리로 하위 호환 유지',
+        impactLabel: '미완성 매장 예약 사고 원천 차단 및 기존 파트너 무중단 이용 보장',
+        status: 'VERIFIED',
+        affectedRoutes: ['/api/reservations/public', '/api/biz/auth'],
+      },
+    ],
+  },
+  {
     version: 'v2.8.0',
     releaseTitle: '범용 예약 엔진(Cal.com × 네이버 플레이스 규격) 구축 · B2B 독립 업체 포털(/biz) 및 1초 실시간 테이블보드 · 공개 예약(/book) 릴리즈',
     releaseDate: '2026-11-21',
     summary: '타임레프트(D-1 블라인드 리빌)와 네이버 스마트플레이스/Cal.com의 장점을 통합한 범용 예약 엔진(src/modules/reservation) 신설. 식당/공간 대상의 다중 유닛(테이블) 및 주간 스케줄/휴무 가용성(Availability) 실시간 산출, 무로그인 서명 토큰 기반 1클릭 수락/거절(/r/[token]), 공개 예약 페이지(/book/[resourceId]), 독립 B2B 사업자 포털(/biz) 및 입점 신청(/biz/apply), 워크인/예약 1초 실시간 홀 테이블 보드, POS 웹훅 연동 인터페이스, 과거 노쇼/방문 횟수 CRM 배지, 관리자 대시보드 최상단 예약관제 통합 완결.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2801',

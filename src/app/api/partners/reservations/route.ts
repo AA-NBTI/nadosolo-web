@@ -120,6 +120,77 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, tableBoard: nextBoard });
     }
 
+    // -0.5. 첫 로그인 시 업체 필수 정보 등록(온보딩 완료)
+    if (action === 'COMPLETE_ONBOARDING') {
+      const resource = await driver.getResource(venueId);
+      if (!resource) return NextResponse.json({ ok: false, error: '매장 자원 없음' }, { status: 404 });
+
+      const name = String(body.name || '').trim();
+      const kind = String(body.kind || 'restaurant').trim();
+      const address = String(body.profile?.address || '').trim();
+      const addressDetail = String(body.profile?.addressDetail || '').trim();
+      const phone = String(body.profile?.phone || '').trim();
+      const guideNote = String(body.profile?.guideNote || '').trim();
+      const quantity = Math.max(1, Number(body.quantity) || 2);
+      const partyCap = Math.max(1, Number(body.partyCap) || 6);
+
+      if (!name || !address || !phone) {
+        return NextResponse.json(
+          { ok: false, error: '업체명, 도로명 주소, 매장 연락처를 모두 입력해 주세요.' },
+          { status: 400 }
+        );
+      }
+
+      const defaultUnitName =
+        kind === 'restaurant' ? '홀 테이블' : kind === 'lodging' ? '객실' : kind === 'space' ? '예약 룸' : '기본 예약 단위';
+
+      const units = [
+        {
+          id: 'unit-main',
+          name: defaultUnitName,
+          minPartySize: 1,
+          maxPartySize: partyCap,
+          quantity,
+          durationMinutes: 120,
+          active: true,
+        },
+      ];
+
+      resource.name = name;
+      resource.kind = kind;
+      resource.capacity = quantity * partyCap;
+      resource.active = true;
+      resource.attributes = {
+        ...resource.attributes,
+        onboardingCompleted: true,
+        maxTablesPerNight: quantity,
+        profile: {
+          ...(resource.attributes?.profile as Record<string, any> | undefined),
+          address,
+          addressDetail,
+          phone,
+          managerPhone: phone,
+          guideNote,
+        },
+        units,
+      };
+      await driver.saveResource(resource);
+      return NextResponse.json({
+        ok: true,
+        resource: {
+          id: resource.id,
+          kind: resource.kind,
+          name: resource.name,
+          capacity: resource.capacity,
+          active: resource.active,
+          onboardingCompleted: true,
+          managerName: String(resource.attributes?.managerName || ''),
+          profile: resource.attributes.profile,
+          contactEmail: String(resource.attributes?.contactEmail || ''),
+        },
+      });
+    }
+
     // 0. 업체 직접 설정 저장 (매장 프로필 · 복수 유닛 · 주간 스케줄)
     if (action === 'UPDATE_SETTINGS') {
       const resource = await driver.getResource(venueId);

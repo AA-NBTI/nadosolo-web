@@ -19,21 +19,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: '잘못된 요청' }, { status: 400 });
   }
 
-  const name = String(body.name || '').trim();
-  const kind = String(body.kind || 'restaurant').trim();
   const contactEmail = String(body.contactEmail || '').trim().toLowerCase();
   const pin = String(body.pin || '').trim();
-  const address = String(body.address || '').trim();
-  const phone = String(body.phone || '').trim();
-  const guideNote = String(body.guideNote || '').trim();
-  const cityCode = String(body.cityCode || 'SEOUL_GANGNAM').trim();
-  const budgetTier = String(body.budgetTier || '$$').trim();
-  const quantity = Math.max(1, Number(body.quantity) || 2);
-  const partyCap = Math.max(1, Number(body.partyCap) || 6);
+  const managerName = String(body.managerName || '').trim();
 
-  if (!name || !contactEmail || pin.length < 4 || !address || !phone) {
+  if (!contactEmail || pin.length < 4) {
     return NextResponse.json(
-      { ok: false, error: '업체명, 이메일, 비밀번호(4자 이상), 주소, 전화번호를 모두 입력해 주세요.' },
+      { ok: false, error: '이메일과 비밀번호(4자 이상)를 입력해 주세요.' },
       { status: 400 }
     );
   }
@@ -44,39 +36,43 @@ export async function POST(request: Request) {
       (r) => String(r.attributes?.contactEmail || '').trim().toLowerCase() === contactEmail
     );
     if (dup) {
-      return NextResponse.json({ ok: false, error: '이미 등록된 담당자 이메일입니다.' }, { status: 409 });
+      return NextResponse.json({ ok: false, error: '이미 등록된 이메일입니다.' }, { status: 409 });
     }
 
     const id = `BIZ_${Date.now().toString(36).toUpperCase()}`;
+    const defaultName = managerName ? `${managerName} (업체등록 대기)` : `${contactEmail.split('@')[0]} (업체등록 대기)`;
     const resource: Resource = {
       id,
-      kind,
-      name,
-      capacity: quantity * partyCap,
-      active: true, // 가입 즉시 무료 예약 포털(/biz) & 공개 예약 링크(/book) 개통
+      kind: 'restaurant',
+      name: defaultName,
+      capacity: 12,
+      active: true,
       attributes: {
-        cityCode,
-        budgetTier,
-        maxTablesPerNight: quantity,
-        supportedDietary: Array.isArray(body.supportedDietary) ? body.supportedDietary : ['NONE'],
-        nadosoloApproved: false, // 나도솔로 공식 6인 송객만 관리자 승인 분리
+        cityCode: 'SEOUL_GANGNAM',
+        budgetTier: '$$',
+        maxTablesPerNight: 2,
+        supportedDietary: ['NONE'],
+        nadosoloApproved: false,
+        onboardingCompleted: false, // 첫 로그인 시 업체 필수 정보 등록 후 true 전환
         contactEmail,
+        managerName,
         pin,
         profile: {
-          address,
-          addressDetail: String(body.addressDetail || '').trim(),
-          phone,
-          managerPhone: phone,
-          guideNote,
+          address: '',
+          addressDetail: '',
+          phone: '',
+          managerName,
+          managerPhone: '',
+          guideNote: '',
         },
         units: [
           {
             id: 'unit-main',
-            name: String(body.unitName || (kind === 'restaurant' ? '6인 프라이빗 테이블' : '기본 예약 단위')),
+            name: '6인 프라이빗 테이블',
             minPartySize: 1,
-            maxPartySize: partyCap,
-            quantity,
-            durationMinutes: Math.max(30, Number(body.durationMinutes) || 120),
+            maxPartySize: 6,
+            quantity: 2,
+            durationMinutes: 120,
             active: true,
           },
         ],
@@ -103,9 +99,11 @@ export async function POST(request: Request) {
         kind: resource.kind,
         name: resource.name,
         contactEmail,
+        managerName,
+        onboardingCompleted: false,
         profile: resource.attributes.profile,
       },
-      message: '등록이 완료되었습니다.',
+      message: '회원가입이 완료되었습니다. 첫 로그인 후 업체 정보를 등록해 주세요.',
     });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });

@@ -4,6 +4,7 @@ import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Copy, LogOut, RefreshCw } from 'lucide-react';
+import AddressAutocompleteInput, { type SelectedAddressInfo } from '@/components/biz/AddressAutocompleteInput';
 
 const BIZ_SESSION_KEY = 'nadosolo_biz_session_v1';
 
@@ -12,6 +13,8 @@ interface BizSession {
   kind: string;
   name: string;
   contactEmail: string;
+  managerName?: string;
+  onboardingCompleted?: boolean;
   profile: Record<string, any>;
 }
 
@@ -48,17 +51,26 @@ function BizReservationPortalContent() {
   const [pin, setPin] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // 회원가입(업체 등록) 폼 상태 (/auth 구조 일치)
-  const [signupKind, setSignupKind] = useState<'restaurant' | 'lodging' | 'space' | 'etc'>('restaurant');
-  const [signupName, setSignupName] = useState('');
+  // 회원가입(일반 계정 정보) 폼 상태 (/auth 구조 일치)
   const [signupEmail, setSignupEmail] = useState('');
+  const [signupManagerName, setSignupManagerName] = useState('');
   const [signupPin, setSignupPin] = useState('');
   const [signupPinConfirm, setSignupPinConfirm] = useState('');
-  const [signupAddress, setSignupAddress] = useState('');
-  const [signupPhone, setSignupPhone] = useState('');
-  const [signupQuantity, setSignupQuantity] = useState(2);
-  const [signupCap, setSignupCap] = useState(6);
   const [signupBusy, setSignupBusy] = useState(false);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+
+  // 첫 로그인 후 업체 필수 정보 등록(온보딩) 상태
+  const [obKind, setObKind] = useState<'restaurant' | 'lodging' | 'space' | 'etc'>('restaurant');
+  const [obName, setObName] = useState('');
+  const [obAddress, setObAddress] = useState('');
+  const [obAddressMeta, setObAddressMeta] = useState<Partial<SelectedAddressInfo>>({});
+  const [obAddressDetail, setObAddressDetail] = useState('');
+  const [obPhone, setObPhone] = useState('');
+  const [obQuantity, setObQuantity] = useState(2);
+  const [obPartyCap, setObPartyCap] = useState(6);
+  const [obGuideNote, setObGuideNote] = useState('');
+  const [obError, setObError] = useState<string | null>(null);
+  const [obBusy, setObBusy] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'OPERATE' | 'SETTINGS'>('OPERATE');
   const [loading, setLoading] = useState(false);
@@ -76,6 +88,7 @@ function BizReservationPortalContent() {
 
   // 설정 상태 (프로필 · 복수 유닛 · 주간 스케줄)
   const [editAddress, setEditAddress] = useState('');
+  const [editAddressMeta, setEditAddressMeta] = useState<Partial<SelectedAddressInfo>>({});
   const [editDetail, setEditDetail] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editGuide, setEditGuide] = useState('');
@@ -140,12 +153,15 @@ function BizReservationPortalContent() {
   );
 
   useEffect(() => {
-    if (session) void loadData(session);
+    if (session && session.onboardingCompleted !== false) {
+      void loadData(session);
+    }
   }, [session, loadData]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError(null);
+    setAuthNotice(null);
     try {
       const res = await fetch('/api/biz/auth', {
         method: 'POST',
@@ -168,6 +184,15 @@ function BizReservationPortalContent() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError(null);
+    setAuthNotice(null);
+    if (!signupEmail.trim()) {
+      setLoginError('이메일을 입력해 주세요.');
+      return;
+    }
+    if (!signupManagerName.trim()) {
+      setLoginError('담당자명을 입력해 주세요.');
+      return;
+    }
     if (signupPin.length < 4) {
       setLoginError('비밀번호는 4자 이상 입력해 주세요.');
       return;
@@ -182,14 +207,9 @@ function BizReservationPortalContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          kind: signupKind,
-          name: signupName,
           contactEmail: signupEmail,
+          managerName: signupManagerName,
           pin: signupPin,
-          address: signupAddress,
-          phone: signupPhone,
-          quantity: signupQuantity,
-          partyCap: signupCap,
         }),
       });
       const data = await res.json();
@@ -197,14 +217,60 @@ function BizReservationPortalContent() {
         setLoginError(data.error || '가입 중 오류가 발생했습니다.');
         return;
       }
-      localStorage.setItem(BIZ_SESSION_KEY, JSON.stringify(data.resource));
-      setSession(data.resource);
+      setIdentifier(signupEmail);
+      setSignupEmail('');
+      setSignupManagerName('');
       setSignupPin('');
       setSignupPinConfirm('');
+      setAuthTab('LOGIN');
+      setAuthNotice('회원가입이 완료되었습니다. 첫 로그인 후 업체 정보를 등록해 주세요.');
     } catch {
       setLoginError('가입 처리 중 오류가 발생했습니다.');
     } finally {
       setSignupBusy(false);
+    }
+  };
+
+  const handleCompleteOnboarding = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    setObError(null);
+    if (!obName.trim() || !obAddress.trim() || !obPhone.trim()) {
+      setObError('업체명, 도로명 주소, 매장 연락처를 모두 입력해 주세요.');
+      return;
+    }
+    setObBusy(true);
+    try {
+      const res = await fetch('/api/partners/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          venueId: session.id,
+          action: 'COMPLETE_ONBOARDING',
+          kind: obKind,
+          name: obName.trim(),
+          quantity: obQuantity,
+          partyCap: obPartyCap,
+          profile: {
+            address: obAddress.trim(),
+            addressDetail: obAddressDetail.trim(),
+            jibunAddress: obAddressMeta.jibunAddress || '',
+            phone: obPhone.trim(),
+            guideNote: obGuideNote.trim(),
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!data.ok || !data.resource) {
+        setObError(data.error || '업체 정보 등록 실패');
+        return;
+      }
+      localStorage.setItem(BIZ_SESSION_KEY, JSON.stringify(data.resource));
+      setSession(data.resource);
+    } catch {
+      setObError('업체 정보 등록 중 오류가 발생했습니다.');
+    } finally {
+      setObBusy(false);
     }
   };
 
@@ -257,6 +323,7 @@ function BizReservationPortalContent() {
           ...session?.profile,
           address: editAddress.trim(),
           addressDetail: editDetail.trim(),
+          ...(editAddressMeta.jibunAddress ? { jibunAddress: editAddressMeta.jibunAddress } : {}),
           phone: editPhone.trim(),
           guideNote: editGuide.trim(),
         },
@@ -362,6 +429,12 @@ function BizReservationPortalContent() {
             </button>
           </div>
 
+          {authNotice && (
+            <div className="mb-5 p-3.5 bg-white/[0.04] border border-white/25 text-white text-sm font-mono text-center">
+              {authNotice}
+            </div>
+          )}
+
           {loginError && (
             <div className="mb-5 p-3.5 bg-transparent border border-white/20 text-white text-sm font-mono text-center">
               {loginError}
@@ -404,47 +477,38 @@ function BizReservationPortalContent() {
               </button>
             </form>
           ) : (
-            <form onSubmit={handleSignup} className="space-y-3.5">
-              <div className="grid grid-cols-2 gap-2.5">
-                <div>
-                  <label className="block text-sm font-mono text-zinc-300 mb-1">업종</label>
-                  <select
-                    value={signupKind}
-                    onChange={(e) => setSignupKind(e.target.value as any)}
-                    className="w-full px-3 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] focus:outline-none"
-                  >
-                    <option value="restaurant">식당 · 다이닝</option>
-                    <option value="lodging">숙박 · 스테이</option>
-                    <option value="space">공간 · 살롱</option>
-                    <option value="etc">기타 체험</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-mono text-zinc-300 mb-1">업체명</label>
-                  <input
-                    type="text"
-                    required
-                    value={signupName}
-                    onChange={(e) => setSignupName(e.target.value)}
-                    placeholder="광안브릿지뷰"
-                    className="w-full px-3 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none"
-                  />
-                </div>
-              </div>
+            <form onSubmit={handleSignup} className="space-y-4">
               <div>
-                <label className="block text-sm font-mono text-zinc-300 mb-1">이메일 (로그인 ID)</label>
+                <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5 uppercase">
+                  이메일 <span className="text-[#f04f74]">*</span>
+                </label>
                 <input
                   type="email"
                   required
                   value={signupEmail}
                   onChange={(e) => setSignupEmail(e.target.value)}
                   placeholder="owner@store.com"
-                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none"
+                  className="w-full px-4 py-3 bg-black/40 border border-white/15 focus:border-white/40 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div>
+                <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5 uppercase">
+                  담당자명 <span className="text-[#f04f74]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={signupManagerName}
+                  onChange={(e) => setSignupManagerName(e.target.value)}
+                  placeholder="홍길동"
+                  className="w-full px-4 py-3 bg-black/40 border border-white/15 focus:border-white/40 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-mono text-zinc-300 mb-1">비밀번호</label>
+                  <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5 uppercase">
+                    비밀번호 <span className="text-[#f04f74]">*</span>
+                  </label>
                   <input
                     type="password"
                     required
@@ -452,11 +516,13 @@ function BizReservationPortalContent() {
                     value={signupPin}
                     onChange={(e) => setSignupPin(e.target.value)}
                     placeholder="4자 이상"
-                    className="w-full px-3 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none"
+                    className="w-full px-4 py-3 bg-black/40 border border-white/15 focus:border-white/40 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-mono text-zinc-300 mb-1">비밀번호 확인</label>
+                  <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5 uppercase">
+                    비밀번호 확인 <span className="text-[#f04f74]">*</span>
+                  </label>
                   <input
                     type="password"
                     required
@@ -464,53 +530,175 @@ function BizReservationPortalContent() {
                     value={signupPinConfirm}
                     onChange={(e) => setSignupPinConfirm(e.target.value)}
                     placeholder="다시 입력"
-                    className="w-full px-3 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none"
+                    className="w-full px-4 py-3 bg-black/40 border border-white/15 focus:border-white/40 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-mono text-zinc-300 mb-1">도로명 주소</label>
-                <input
-                  type="text"
-                  required
-                  value={signupAddress}
-                  onChange={(e) => setSignupAddress(e.target.value)}
-                  placeholder="부산 수영구 광안해변로 219"
-                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none"
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-2">
-                  <label className="block text-sm font-mono text-zinc-300 mb-1">매장 연락처</label>
-                  <input
-                    type="tel"
-                    required
-                    value={signupPhone}
-                    onChange={(e) => setSignupPhone(e.target.value)}
-                    placeholder="051-755-1234"
-                    className="w-full px-3 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-mono text-zinc-300 mb-1">테이블수</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={signupQuantity}
-                    onChange={(e) => setSignupQuantity(Math.max(1, Number(e.target.value)))}
-                    className="w-full px-3 py-2.5 bg-black/40 border border-white/15 text-sm font-mono text-[#f5f2eb] focus:outline-none"
-                  />
-                </div>
-              </div>
+              {signupPinConfirm && (
+                <p className={`text-sm font-mono ${signupPin === signupPinConfirm ? 'text-zinc-200' : 'text-white'}`}>
+                  {signupPin === signupPinConfirm ? '✓ 비밀번호가 일치합니다.' : '✕ 비밀번호가 일치하지 않습니다.'}
+                </p>
+              )}
               <button
                 type="submit"
                 disabled={signupBusy}
                 className="w-full py-3.5 border border-white/30 bg-white/15 hover:bg-white/25 text-sm font-mono font-semibold text-white tracking-wider transition-colors cursor-pointer disabled:opacity-40"
               >
-                {signupBusy ? '가입 중...' : '가입'}
+                {signupBusy ? '가입 중...' : '회원가입'}
               </button>
             </form>
           )}
+        </div>
+      </main>
+    );
+  }
+
+  if (session.onboardingCompleted === false) {
+    return (
+      <main className="w-full min-h-screen bg-[#07080a] text-[#f5f2eb] px-4 py-12 flex items-center justify-center selection:bg-[#f04f74] selection:text-white">
+        <div className="w-full max-w-[560px] bg-[#0c0d12] p-8 sm:p-10 border border-white/[0.08] shadow-2xl space-y-6">
+          <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                <span className="text-sm font-mono tracking-[0.2em] text-zinc-300 uppercase">
+                  FIRST LOGIN SETUP
+                </span>
+              </div>
+              <h1 className="font-serif-editorial text-2xl font-normal text-white">
+                업체 필수 정보 등록
+              </h1>
+              <p className="text-sm text-zinc-300 font-light">
+                {session.managerName ? `${session.managerName}님, ` : ''}예약 포털 사용을 위해 업체 기본 정보를 1회 등록해 주세요.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="px-3 py-1.5 border border-white/20 text-sm font-mono text-zinc-300 hover:text-white flex items-center gap-1.5 cursor-pointer shrink-0"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              로그아웃
+            </button>
+          </div>
+
+          {obError && (
+            <div className="p-3.5 border border-white/20 text-white text-sm font-mono text-center">
+              {obError}
+            </div>
+          )}
+
+          <form onSubmit={handleCompleteOnboarding} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-mono text-zinc-300 mb-1.5">
+                  업종 <span className="text-[#f04f74]">*</span>
+                </label>
+                <select
+                  value={obKind}
+                  onChange={(e) => setObKind(e.target.value as any)}
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] focus:outline-none focus:border-white/40"
+                >
+                  <option value="restaurant">식당 · 다이닝</option>
+                  <option value="lodging">숙박 · 스테이</option>
+                  <option value="space">공간 · 살롱</option>
+                  <option value="etc">기타 체험</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-mono text-zinc-300 mb-1.5">
+                  업체명 <span className="text-[#f04f74]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={obName}
+                  onChange={(e) => setObName(e.target.value)}
+                  placeholder="광안브릿지뷰"
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none focus:border-white/40"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-mono text-zinc-300 mb-1.5">
+                도로명 주소 <span className="text-[#f04f74]">*</span>
+              </label>
+              <AddressAutocompleteInput
+                required
+                value={obAddress}
+                onChange={setObAddress}
+                onSelectAddress={(item) => setObAddressMeta(item)}
+                placeholder="지번·도로명·건물명 입력 시 자동 추천 (예: 광안동 192-2)"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-mono text-zinc-300 mb-1.5">상세 주소</label>
+              <input
+                type="text"
+                value={obAddressDetail}
+                onChange={(e) => setObAddressDetail(e.target.value)}
+                placeholder="2층 또는 201호 (선택)"
+                className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none focus:border-white/40"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-sm font-mono text-zinc-300 mb-1.5">
+                  매장 연락처 <span className="text-[#f04f74]">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={obPhone}
+                  onChange={(e) => setObPhone(e.target.value)}
+                  placeholder="051-755-1234"
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none focus:border-white/40"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-mono text-zinc-300 mb-1.5">테이블/유닛 수</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={obQuantity}
+                  onChange={(e) => setObQuantity(Math.max(1, Number(e.target.value)))}
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm font-mono text-[#f5f2eb] focus:outline-none focus:border-white/40"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-mono text-zinc-300 mb-1.5">유닛당 최대 인원</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={obPartyCap}
+                  onChange={(e) => setObPartyCap(Math.max(1, Number(e.target.value)))}
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm font-mono text-[#f5f2eb] focus:outline-none focus:border-white/40"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-mono text-zinc-300 mb-1.5">매장 안내 문구</label>
+              <input
+                type="text"
+                value={obGuideNote}
+                onChange={(e) => setObGuideNote(e.target.value)}
+                placeholder="예: 건물 뒷편 주차 가능 (선택)"
+                className="w-full px-3.5 py-2.5 bg-black/40 border border-white/15 text-sm text-[#f5f2eb] placeholder-zinc-500 focus:outline-none focus:border-white/40"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={obBusy}
+              className="w-full py-3.5 border border-white/30 bg-white/15 hover:bg-white/25 text-sm font-mono font-semibold text-white tracking-wider transition-colors cursor-pointer disabled:opacity-40"
+            >
+              {obBusy ? '등록 중...' : '등록'}
+            </button>
+          </form>
         </div>
       </main>
     );
@@ -597,7 +785,13 @@ function BizReservationPortalContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-zinc-400 mb-1">도로명 주소</label>
-                  <input value={editAddress} onChange={(e) => setEditAddress(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                  <AddressAutocompleteInput
+                    value={editAddress}
+                    onChange={setEditAddress}
+                    onSelectAddress={(item) => setEditAddressMeta(item)}
+                    placeholder="지번·도로명·건물명 입력"
+                    className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white focus:outline-none focus:border-white/40"
+                  />
                 </div>
                 <div>
                   <label className="block text-zinc-400 mb-1">상세 위치</label>

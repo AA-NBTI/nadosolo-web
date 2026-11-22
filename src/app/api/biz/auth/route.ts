@@ -44,6 +44,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: '비활성화된 업체 계정입니다.' }, { status: 403 });
     }
 
+    const profile = (matched.attributes?.profile as Record<string, any>) || {};
+    const explicitFlag = matched.attributes?.onboardingCompleted;
+    const onboardingCompleted =
+      typeof explicitFlag === 'boolean'
+        ? explicitFlag
+        : Boolean(matched.name && profile.address && profile.phone);
+
     return NextResponse.json({
       ok: true,
       resource: {
@@ -52,7 +59,9 @@ export async function POST(request: Request) {
         name: matched.name,
         capacity: matched.capacity,
         active: matched.active,
-        profile: matched.attributes?.profile || {},
+        onboardingCompleted,
+        managerName: String(matched.attributes?.managerName || profile.managerName || ''),
+        profile,
         contactEmail: matched.attributes?.contactEmail || '',
       },
     });

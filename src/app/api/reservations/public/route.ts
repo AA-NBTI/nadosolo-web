@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
   try {
     const resource = await driver.getResource(resourceId);
-    if (!resource || !resource.active) {
+    if (!resource || !resource.active || resource.attributes?.onboardingCompleted === false) {
       return NextResponse.json({ ok: false, error: '예약 가능한 업체를 찾을 수 없습니다.' }, { status: 404 });
     }
 
