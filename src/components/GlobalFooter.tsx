@@ -59,10 +59,9 @@ export default function GlobalFooter() {
             </div>
 
             <div className="space-y-2">
-              <span className="text-white font-mono font-semibold block">파트너 · 예약</span>
+              <span className="text-white font-mono font-semibold block">테이블바로 · 파트너</span>
               <div className="flex flex-col gap-1.5">
-                <Link href="/biz/apply" prefetch={true} className="hover:text-white transition-colors">예약업체 입점</Link>
-                <Link href="/biz" prefetch={true} className="hover:text-white transition-colors">예약업체 포털</Link>
+                <Link href="/reserve" prefetch={true} className="hover:text-white transition-colors">테이블바로</Link>
                 <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
                 <Link href="/partners/dashboard" prefetch={true} className="hover:text-white transition-colors">어필리에이트 포털</Link>
                 <Link href="/about" prefetch={true} className="hover:text-white transition-colors">브랜드 소개</Link>

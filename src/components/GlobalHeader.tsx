@@ -14,15 +14,18 @@ export default function GlobalHeader() {
   const { config } = useSiteConfig();
 
   const isBizRoute = pathname.startsWith('/biz');
+  const isPublicBookingRoute =
+    pathname.startsWith('/reserve') || pathname.startsWith('/r/');
+  const isTablebaroRoute = isBizRoute || isPublicBookingRoute;
   const isAffiliateRoute =
     pathname.startsWith('/partners') || pathname.startsWith('/affiliate');
 
-  // 일반 이용자 vs 어필리에이트 vs 예약업체(B2B) 네비게이션 완전 분리
-  const navItems = isBizRoute
+  // 일반 이용자 vs 어필리에이트 vs 테이블바로 네비게이션 완전 분리
+  const navItems = isTablebaroRoute
     ? [
-        { id: 'biz-apply', label: '업체 입점', href: '/biz/apply' },
-        { id: 'biz-portal', label: '업체 포털', href: '/biz' },
-        { id: 'home', label: '다이닝 홈', href: '/' },
+        { id: 'reserve-list', label: '매장찾기', href: '/reserve' },
+        { id: 'reserve-my', label: '내 예약', href: '/reserve/my' },
+        { id: 'biz-apply', label: '입점하기', href: '/biz?tab=signup' },
       ]
     : isAffiliateRoute
       ? [
@@ -52,37 +55,52 @@ export default function GlobalHeader() {
       {/* 아래 메인 캔버스 폭(1280px, px-6 sm:px-12 lg:px-20)과 완벽하게 수평 정렬 */}
       <div className="w-full max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20 h-18 flex items-center justify-between gap-4 sm:gap-6">
         
-        {/* [좌측] 나도솔로 정통 로고 (상단 nadosolo + 하단 '솔로공감 나도솔로' 폭 일치) + 섬세한 보조 문구 */}
+        {/* [좌측] 브랜드 로고: 테이블바로 경로(/biz, /book, /r) vs 나도솔로 분리 */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-          <Link
-            href="/"
-            prefetch={true}
-            className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
-          >
-            {/* 상단: 영문 nadosolo */}
-            <span className="font-serif-editorial text-[26px] sm:text-[30px] font-light text-white tracking-[-0.02em] lowercase leading-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] group-hover:text-zinc-100 transition-colors duration-300">
-              nadosolo
-            </span>
+          {isTablebaroRoute ? (
+            <Link
+              href="/reserve"
+              prefetch={true}
+              className="inline-flex flex-col items-start justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
+            >
+              <span className="font-serif-editorial text-[24px] sm:text-[28px] font-light text-white tracking-[-0.02em] lowercase leading-none">
+                tablebaro
+              </span>
+              <span className="text-[11px] font-mono tracking-[0.22em] text-[#3b82f6] mt-1 leading-none">
+                테이블바로
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/"
+              prefetch={true}
+              className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
+            >
+              {/* 상단: 영문 nadosolo */}
+              <span className="font-serif-editorial text-[26px] sm:text-[30px] font-light text-white tracking-[-0.02em] lowercase leading-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] group-hover:text-zinc-100 transition-colors duration-300">
+                nadosolo
+              </span>
 
-            {/* 하단: 한글 (솔로공감 / 나도솔로) */}
-            <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
-              <div className="w-[52%] flex justify-between items-center text-[10px] sm:text-[11.5px] font-serif-editorial font-black text-white group-hover:text-[#f04f74] transition-colors duration-200">
-                <span>솔</span>
-                <span>로</span>
-                <span>공</span>
-                <span>감</span>
+              {/* 하단: 한글 (솔로공감 / 나도솔로) */}
+              <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
+                <div className="w-[52%] flex justify-between items-center text-[10px] sm:text-[11.5px] font-serif-editorial font-black text-white group-hover:text-[#f04f74] transition-colors duration-200">
+                  <span>솔</span>
+                  <span>로</span>
+                  <span>공</span>
+                  <span>감</span>
+                </div>
+
+                <div className="w-[6%]" />
+
+                <div className="w-[42%] flex justify-between items-center text-[10px] sm:text-[11.5px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200">
+                  <span>나</span>
+                  <span>도</span>
+                  <span>솔</span>
+                  <span>로</span>
+                </div>
               </div>
-
-              <div className="w-[6%]" />
-
-              <div className="w-[42%] flex justify-between items-center text-[10px] sm:text-[11.5px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200">
-                <span>나</span>
-                <span>도</span>
-                <span>솔</span>
-                <span>로</span>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          )}
         </div>
 
         {/* [중앙] 네비게이션 */}
@@ -109,16 +127,36 @@ export default function GlobalHeader() {
           })}
         </nav>
 
-        {/* [우측] 프로필/로그인 (어필리에이트 / 예약업체 전용 포털 버튼 분리) */}
+        {/* [우측] 프로필/로그인 (어필리에이트 / 테이블바로 분리) */}
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-          {isBizRoute || isAffiliateRoute ? (
+          {isTablebaroRoute ? (
             <div className="flex items-center gap-2">
               <Link
-                href={isBizRoute ? '/biz' : '/partners/dashboard'}
+                href="/biz"
+                prefetch={true}
+                className="px-4 py-1.5 border border-[#3b82f6]/60 bg-[#3b82f6]/15 hover:bg-[#3b82f6]/25 text-white text-xs font-mono tracking-wider uppercase transition-colors"
+              >
+                로그인
+              </Link>
+              {isAdmin && (
+                <Link
+                  href="/admin"
+                  prefetch={true}
+                  className="w-8 h-8 rounded-none bg-transparent hover:bg-white/[0.05] border border-white/20 hover:border-[#3b82f6] text-zinc-300 hover:text-[#3b82f6] flex items-center justify-center transition-all"
+                  title="최고 관리자 대시보드"
+                >
+                  <ShieldCheck className="w-4 h-4 text-[#3b82f6]" />
+                </Link>
+              )}
+            </div>
+          ) : isAffiliateRoute ? (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/partners/dashboard"
                 prefetch={true}
                 className="px-4 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-white text-xs font-mono tracking-wider uppercase transition-colors"
               >
-                {isBizRoute ? '업체 포털' : '어필리에이트 포털'}
+                어필리에이트 포털
               </Link>
               {isAdmin && (
                 <Link

@@ -1,5 +1,13 @@
 import { NextResponse } from 'next/server';
-import { ReservationError, extractSchedule, extractUnits, type ScheduleConfig } from '@/modules/reservation';
+import {
+  ReservationError,
+  extractSchedule,
+  extractUnits,
+  getTodayWaitingState,
+  updateWaitingStatus,
+  type ScheduleConfig,
+  type WaitingStatus,
+} from '@/modules/reservation';
 import {
   getNadoSoloReservationDriver,
   getNadoSoloReservationEngine,
@@ -62,6 +70,7 @@ export async function GET(request: Request) {
     const windows = resource
       ? await engine.getAvailableWindows({ resourceId: venueId, date, partySize: 1 }).catch(() => [])
       : [];
+    const waitingState = resource ? getTodayWaitingState(resource) : null;
 
     return NextResponse.json({
       ok: true,
@@ -70,6 +79,10 @@ export async function GET(request: Request) {
       isClosedDay,
       profile: resource?.attributes?.profile || {},
       tableBoard: resource?.attributes?.tableBoard || {},
+      customerNotes: resource?.attributes?.customerNotes || {},
+      blockedPhones: Array.isArray(resource?.attributes?.blockedPhones) ? resource.attributes.blockedPhones : [],
+      waitingOpen: waitingState ? waitingState.waitingOpen : true,
+      waitingQueue: waitingState ? waitingState.activeList : [],
       schedule,
       units,
       windows,
@@ -120,6 +133,62 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, tableBoard: nextBoard });
     }
 
+    // -0.8. 원격 웨이팅(줄서기) 접수 열기 / 마감 토글 및 대기열 상태 변경
+    if (action === 'TOGGLE_WAITING_OPEN') {
+      const resource = await driver.getResource(venueId);
+      if (!resource) return NextResponse.json({ ok: false, error: '매장 자원 없음' }, { status: 404 });
+      const prevOpen = resource.attributes?.waitingOpen !== false;
+      resource.attributes = { ...resource.attributes, waitingOpen: !prevOpen };
+      await driver.saveResource(resource);
+      return NextResponse.json({ ok: true, waitingOpen: !prevOpen });
+    }
+
+    if (action === 'WAIT_CALL' || action === 'WAIT_SEAT' || action === 'WAIT_NO_SHOW' || action === 'WAIT_CANCEL') {
+      const waitingId = String(body.waitingId || '').trim();
+      if (!waitingId) return NextResponse.json({ ok: false, error: 'waitingId 필요' }, { status: 400 });
+      const resource = await driver.getResource(venueId);
+      if (!resource) return NextResponse.json({ ok: false, error: '매장 자원 없음' }, { status: 404 });
+      const statusMap: Record<string, WaitingStatus> = {
+        WAIT_CALL: 'CALLED',
+        WAIT_SEAT: 'SEATED',
+        WAIT_NO_SHOW: 'NO_SHOW',
+        WAIT_CANCEL: 'CANCELLED',
+      };
+      const { resource: nextRes, entry } = updateWaitingStatus(resource, waitingId, statusMap[action]);
+      await driver.saveResource(nextRes);
+      return NextResponse.json({ ok: true, entry });
+    }
+
+    // -0.6. 고객 CRM 메모 저장 & 블랙리스트(예약/웨이팅 차단) 토글
+    if (action === 'SAVE_CUSTOMER_NOTE') {
+      const phoneDigits = String(body.phone || '').replace(/\D/g, '');
+      const note = String(body.note || '').trim();
+      if (!phoneDigits) return NextResponse.json({ ok: false, error: '연락처 필요' }, { status: 400 });
+      const resource = await driver.getResource(venueId);
+      if (!resource) return NextResponse.json({ ok: false, error: '매장 자원 없음' }, { status: 404 });
+      const prevNotes = ((resource.attributes?.customerNotes as Record<string, string>) || {});
+      const nextNotes = { ...prevNotes, [phoneDigits]: note };
+      if (!note) delete nextNotes[phoneDigits];
+      resource.attributes = { ...resource.attributes, customerNotes: nextNotes };
+      await driver.saveResource(resource);
+      return NextResponse.json({ ok: true, customerNotes: nextNotes });
+    }
+
+    if (action === 'TOGGLE_BLOCK_CUSTOMER') {
+      const phoneDigits = String(body.phone || '').replace(/\D/g, '');
+      if (!phoneDigits) return NextResponse.json({ ok: false, error: '연락처 필요' }, { status: 400 });
+      const resource = await driver.getResource(venueId);
+      if (!resource) return NextResponse.json({ ok: false, error: '매장 자원 없음' }, { status: 404 });
+      const prevList = Array.isArray(resource.attributes?.blockedPhones)
+        ? (resource.attributes.blockedPhones as string[])
+        : [];
+      const exists = prevList.includes(phoneDigits);
+      const nextList = exists ? prevList.filter((p) => p !== phoneDigits) : [...prevList, phoneDigits];
+      resource.attributes = { ...resource.attributes, blockedPhones: nextList };
+      await driver.saveResource(resource);
+      return NextResponse.json({ ok: true, blocked: !exists, blockedPhones: nextList });
+    }
+
     // -0.5. 첫 로그인 시 업체 필수 정보 등록(온보딩 완료)
     if (action === 'COMPLETE_ONBOARDING') {
       const resource = await driver.getResource(venueId);
@@ -160,6 +229,24 @@ export async function POST(request: Request) {
       resource.kind = kind;
       resource.capacity = quantity * partyCap;
       resource.active = true;
+      const prevSchedule = extractSchedule(resource);
+      const nextSchedule = body.schedule
+        ? {
+            timezoneOffsetMinutes: 540,
+            weekly: Array.isArray(body.schedule.weekly) ? body.schedule.weekly : prevSchedule?.weekly || [],
+            overrides: prevSchedule?.overrides || [],
+          }
+        : prevSchedule || {
+            timezoneOffsetMinutes: 540,
+            weekly: [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+              dayOfWeek: d,
+              startTime: '11:00',
+              endTime: '22:00',
+              slotIntervalMinutes: 60,
+              active: true,
+            })),
+            overrides: [],
+          };
       resource.attributes = {
         ...resource.attributes,
         onboardingCompleted: true,
@@ -173,6 +260,7 @@ export async function POST(request: Request) {
           guideNote,
         },
         units,
+        schedule: nextSchedule,
       };
       await driver.saveResource(resource);
       return NextResponse.json({
@@ -191,7 +279,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // 0. 업체 직접 설정 저장 (매장 프로필 · 복수 유닛 · 주간 스케줄)
+    // 0. 업체 직접 설정 저장 (매장명 · 업종 · 프로필 · 복수 유닛 · 주간 스케줄)
     if (action === 'UPDATE_SETTINGS') {
       const resource = await driver.getResource(venueId);
       if (!resource) return NextResponse.json({ ok: false, error: '매장 자원 없음' }, { status: 404 });
@@ -200,12 +288,27 @@ export async function POST(request: Request) {
         (acc: number, u: any) => acc + (u.active ? Math.max(1, Number(u.quantity) || 1) * Math.max(1, Number(u.maxPartySize) || 1) : 0),
         0
       );
+      if (typeof body.name === 'string' && body.name.trim()) {
+        resource.name = body.name.trim();
+      }
+      if (typeof body.kind === 'string' && body.kind.trim()) {
+        resource.kind = body.kind.trim();
+      }
+      const prevOverrides = extractSchedule(resource)?.overrides || [];
+      const nextSchedule = body.schedule
+        ? {
+            ...body.schedule,
+            overrides: Array.isArray(body.schedule.overrides) && body.schedule.overrides.length > 0
+              ? body.schedule.overrides
+              : prevOverrides,
+          }
+        : undefined;
       resource.capacity = Math.max(1, nextTotalCap || resource.capacity);
       resource.attributes = {
         ...resource.attributes,
         ...(body.profile ? { profile: body.profile } : {}),
         ...(Array.isArray(body.units) ? { units: nextUnits } : {}),
-        ...(body.schedule ? { schedule: body.schedule } : {}),
+        ...(nextSchedule ? { schedule: nextSchedule } : {}),
       };
       await driver.saveResource(resource);
       return NextResponse.json({ ok: true, resource });

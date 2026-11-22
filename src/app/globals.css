@@ -63,6 +63,7 @@
 :root {
   color-scheme: dark;
   --brand-point: #f04f74;
+  --tablebaro-point: #3b82f6;
 }
 
 /* 굴림·굴림체 원천 차단: Pretendard 및 맑은 고딕 최우선 지정 */

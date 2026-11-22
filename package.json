@@ -1,6 +1,6 @@
 {
   "name": "nn-nadosolo",
-  "version": "2.8.1",
+  "version": "2.9.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -12,6 +12,7 @@
     "test:reservation:token": "npx tsx src/lib/reservation/token.test.ts",
     "test:reservation:reveal": "npx tsx src/lib/reservation/reveal.test.ts",
     "test:reservation:availability": "npx tsx src/modules/reservation/__tests__/availability.test.ts",
+    "test:reservation:waiting": "npx tsx src/modules/reservation/__tests__/waiting.test.ts",
     "pipeline:status": "node scripts/check-pipeline.mjs"
   },
   "dependencies": {

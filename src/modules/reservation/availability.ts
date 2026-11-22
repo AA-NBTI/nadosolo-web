@@ -97,9 +97,25 @@ export function computeAvailableWindows(
     return false;
   });
 
+  // 1초 홀 테이블 보드(현장 착석) 상태 추출
+  const tableBoard = (resource.attributes?.tableBoard as Record<string, { occupied?: boolean; seatedAt?: string }> | undefined) || {};
+
   const out: AvailableWindow[] = [];
 
   for (const unit of units) {
+    // 해당 유닛의 현재 착석(식사중) 테이블 시간 구간 목록
+    const occupiedIntervals: Array<{ startMs: number; endMs: number }> = [];
+    for (let i = 1; i <= Math.max(1, unit.quantity); i += 1) {
+      const cell = tableBoard[`${unit.id}#${i}`];
+      if (!cell?.occupied) continue;
+      const seatedMs = cell.seatedAt ? Date.parse(cell.seatedAt) : nowMs;
+      const occStartMs = Number.isFinite(seatedMs) ? seatedMs : nowMs;
+      const occEndMs = occStartMs + unit.durationMinutes * 60_000;
+      if (occEndMs > nowMs) {
+        occupiedIntervals.push({ startMs: occStartMs, endMs: occEndMs });
+      }
+    }
+
     for (let cursor = startMin; cursor + unit.durationMinutes <= endMin; cursor += interval) {
       const winEndMin = cursor + unit.durationMinutes;
 
@@ -124,6 +140,13 @@ export function computeAvailableWindows(
 
         if (bStartMs < endsAtMs && bEndMs > startsAtMs) {
           usedQty += Number(b.meta?.unitCount) || 1;
+        }
+      }
+
+      // 홀 테이블 보드 현장 착석 수 차감
+      for (const occ of occupiedIntervals) {
+        if (occ.startMs < endsAtMs && occ.endMs > startsAtMs) {
+          usedQty += 1;
         }
       }
 

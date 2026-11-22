@@ -36,9 +36,12 @@ export default async function ReservationRespondPage({
   return (
     <div className="min-h-screen bg-[#07080a] text-zinc-100 flex items-center justify-center px-6">
       <div className="w-full max-w-md border border-white/15 bg-[#0c0d12] p-8 space-y-6">
-        <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-          <h1 className="font-serif-editorial text-lg text-white font-normal">예약 요청</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+            <h1 className="font-serif-editorial text-lg text-white font-normal">예약 요청</h1>
+          </div>
+          <span className="text-sm font-mono tracking-wider text-zinc-400">TABLEBARO</span>
         </div>
         <dl className="space-y-2 text-sm">
           <div className="flex justify-between border-b border-white/10 pb-2">

@@ -71,12 +71,14 @@ export function resourceToPartnerVenue(r: Resource): PartnerVenue {
   };
 }
 
-/** 활성 제휴 식당 목록 조회 (파이프라인 매칭용) */
+/** 활성 제휴 식당 목록 조회 (파이프라인 매칭용 - 테이블바로 일반 매장 제외) */
 export async function listActiveRestaurantVenues(): Promise<PartnerVenue[]> {
   const driver = getNadoSoloReservationDriver();
   if (!driver) return [];
   const resources = await driver.listResources({ kind: 'restaurant' });
-  return resources.filter((r) => r.active).map(resourceToPartnerVenue);
+  return resources
+    .filter((r) => r.active && r.attributes?.nadosoloApproved !== false)
+    .map(resourceToPartnerVenue);
 }
 
 /** 제휴 식당 자원 등록/갱신 (입점 신청 및 관리자 승인 시 사용) */

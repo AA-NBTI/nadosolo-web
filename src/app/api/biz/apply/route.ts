@@ -78,9 +78,9 @@ export async function POST(request: Request) {
         ],
         schedule: {
           timezoneOffsetMinutes: 540,
-          weekly: [3, 5, 6].map((d) => ({
+          weekly: [0, 1, 2, 3, 4, 5, 6].map((d) => ({
             dayOfWeek: d,
-            startTime: '17:30',
+            startTime: '11:00',
             endTime: '22:00',
             slotIntervalMinutes: 60,
             active: true,

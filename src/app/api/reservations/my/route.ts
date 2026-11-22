@@ -1,0 +1,109 @@
+import { NextResponse } from 'next/server';
+import { ReservationError } from '@/modules/reservation';
+import { getNadoSoloReservationDriver, getNadoSoloReservationEngine } from '@/lib/reservation/nadosolo';
+
+export const dynamic = 'force-dynamic';
+
+function normalizePhone(raw: string): string {
+  return raw.replace(/\D/g, '');
+}
+
+/**
+ * 일반 손님용 내 예약 조회 & 직접 취소 API (무로그인 · 연락처 본인 확인)
+ */
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const phone = normalizePhone(searchParams.get('phone') || '');
+
+  if (phone.length < 8) {
+    return NextResponse.json({ ok: false, error: '연락처를 정확히 입력해 주세요.' }, { status: 400 });
+  }
+
+  const engine = getNadoSoloReservationEngine();
+  const driver = getNadoSoloReservationDriver();
+  if (!engine || !driver) {
+    return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
+  }
+
+  try {
+    const [allBookings, resources] = await Promise.all([
+      engine.listBookings(),
+      driver.listResources(),
+    ]);
+    const resMap = new Map(resources.map((r) => [r.id, r]));
+
+    const mine = allBookings
+      .filter((b) => {
+        const att = b.meta?.attendee as { phone?: string } | undefined;
+        const attPhone = normalizePhone(att?.phone || '');
+        const ownerPhone = normalizePhone(b.ownerRef.replace(/^GUEST:/, ''));
+        return (attPhone && attPhone === phone) || (ownerPhone && ownerPhone === phone);
+      })
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))
+      .map((b) => {
+        const res = resMap.get(b.resourceId);
+        const profile = (res?.attributes?.profile || {}) as Record<string, any>;
+        const att = b.meta?.attendee as { name?: string; phone?: string; requests?: string } | undefined;
+        return {
+          id: b.id,
+          resourceId: b.resourceId,
+          resourceName: res?.name || (b.meta?.venueName as string) || b.resourceId,
+          resourceAddress: profile.address || '',
+          resourcePhone: profile.phone || '',
+          partySize: b.partySize,
+          status: b.status,
+          startsAtText: (b.meta?.startsAtText as string) || '',
+          guestName: att?.name || '',
+          requests: att?.requests || '',
+          createdAt: b.createdAt,
+        };
+      });
+
+    return NextResponse.json({ ok: true, bookings: mine });
+  } catch (e) {
+    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  const engine = getNadoSoloReservationEngine();
+  if (!engine) {
+    return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
+  }
+
+  let body: { bookingId?: string; phone?: string; action?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: '잘못된 요청' }, { status: 400 });
+  }
+
+  const bookingId = String(body.bookingId || '').trim();
+  const phone = normalizePhone(String(body.phone || ''));
+  if (!bookingId || phone.length < 8) {
+    return NextResponse.json({ ok: false, error: '예약 번호와 연락처가 필요합니다.' }, { status: 400 });
+  }
+
+  try {
+    const booking = await engine.getBooking(bookingId);
+    if (!booking) {
+      return NextResponse.json({ ok: false, error: '예약을 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    const att = booking.meta?.attendee as { phone?: string } | undefined;
+    const attPhone = normalizePhone(att?.phone || '');
+    const ownerPhone = normalizePhone(booking.ownerRef.replace(/^GUEST:/, ''));
+
+    if (attPhone !== phone && ownerPhone !== phone) {
+      return NextResponse.json({ ok: false, error: '연락처가 일치하지 않습니다.' }, { status: 403 });
+    }
+
+    const updated = await engine.cancel(bookingId, '이용자 직접 취소');
+    return NextResponse.json({ ok: true, booking: updated });
+  } catch (e) {
+    if (e instanceof ReservationError) {
+      return NextResponse.json({ ok: false, code: e.code, error: e.message }, { status: 409 });
+    }
+    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  }
+}

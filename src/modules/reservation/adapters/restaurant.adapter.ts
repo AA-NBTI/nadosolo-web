@@ -48,8 +48,10 @@ export function tableSlotsForNight(
   }));
 }
 
-/** 같은 시각·도시·예산 티어(및 식단 지원)의 다른 식당 슬롯으로 대체. */
+/** 같은 시각·도시·예산 티어(및 식단 지원)의 다른 식당 슬롯으로 대체 (단체 모임 전용, 일반 손님 예약 제외). */
 export const sameCityTierFallback: FallbackStrategy = async ({ failed, slot, resource, engine }) => {
+  const src = failed.meta?.source;
+  if (src === 'public_link' || src === 'owner_walkin' || src === 'owner_block') return null;
   const need = (failed.meta.requiredDietary as string[] | undefined) ?? [];
   const candidates = await engine.searchSlots({
     kind: 'restaurant',

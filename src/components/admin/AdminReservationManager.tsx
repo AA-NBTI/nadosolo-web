@@ -232,8 +232,8 @@ export default function AdminReservationManager({
     <div className="space-y-4">
       <div className={`p-3 ${boxCls} flex flex-wrap items-center justify-between gap-3`}>
         <div className="flex items-center gap-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-          <h2 className={`font-serif-editorial text-lg font-normal ${titleCls}`}>예약관리</h2>
+          <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+          <h2 className={`font-serif-editorial text-lg font-normal ${titleCls}`}>테이블바로</h2>
           <span className={badgeCls}>
             {viewMode === 'BOOKINGS' ? `${bookings.length}건` : `${resources.length}곳`}
           </span>
@@ -418,7 +418,7 @@ export default function AdminReservationManager({
                 >
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74] shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6] shrink-0" />
                       <span className={`font-medium truncate ${titleCls}`}>
                         {venueName} · {when} · {b.partySize}명
                       </span>
@@ -530,7 +530,7 @@ export default function AdminReservationManager({
                 >
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74] shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6] shrink-0" />
                       <span className={`font-medium truncate ${titleCls}`}>
                         {r.name} · {KIND_LABEL[r.kind] || r.kind} · {r.capacity}석
                         {r.attributes?.contactEmail ? ` · ${r.attributes.contactEmail}` : ''}
@@ -566,17 +566,17 @@ export default function AdminReservationManager({
                       </div>
                       <div className="flex flex-wrap items-center justify-between gap-2 p-2 border border-white/10 bg-black/30">
                         <span className={`truncate ${titleCls}`}>
-                          공개 예약 링크: {typeof window !== 'undefined' ? `${window.location.origin}/book/${r.id}` : `/book/${r.id}`}
+                          공개 예약 링크: {typeof window !== 'undefined' ? `${window.location.origin}/reserve/${r.id}` : `/reserve/${r.id}`}
                         </span>
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             type="button"
-                            onClick={() => void copyLink(`${window.location.origin}/book/${r.id}`)}
+                            onClick={() => void copyLink(`${window.location.origin}/reserve/${r.id}`)}
                             className={btnCls}
                           >
                             복사
                           </button>
-                          <a href={`/book/${r.id}`} target="_blank" rel="noreferrer" className={btnCls}>
+                          <a href={`/reserve/${r.id}`} target="_blank" rel="noreferrer" className={btnCls}>
                             열기
                           </a>
                         </div>

@@ -14,3 +14,12 @@ export {
   sameCityTierFallback,
   type VenueLike,
 } from './adapters/restaurant.adapter';
+export {
+  getTodayWaitingState,
+  enqueueWaiting,
+  updateWaitingStatus,
+  findWaitingByPhone,
+  type WaitingEntry,
+  type WaitingStatus,
+  type TodayWaitingState,
+} from './waiting';

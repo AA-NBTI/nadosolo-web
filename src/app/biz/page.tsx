@@ -39,6 +39,27 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
+const VENUE_TAG_OPTIONS = ['주차가능', '콜키지프리', '프라이빗룸', '단체석', '와인페어링', '반려동물', '유아의자'] as const;
+
+interface WeeklyRuleState {
+  dayOfWeek: number;
+  active: boolean;
+  startTime: string;
+  endTime: string;
+  breakStart: string;
+  breakEnd: string;
+  slotIntervalMinutes: number;
+}
+
+const DEFAULT_WEEKLY_RULES: WeeklyRuleState[] = [0, 1, 2, 3, 4, 5, 6].map((d) => ({
+  dayOfWeek: d,
+  active: true,
+  startTime: '11:00',
+  endTime: '22:00',
+  breakStart: '',
+  breakEnd: '',
+  slotIntervalMinutes: 60,
+}));
 
 function BizReservationPortalContent() {
   const searchParams = useSearchParams();
@@ -69,6 +90,9 @@ function BizReservationPortalContent() {
   const [obQuantity, setObQuantity] = useState(2);
   const [obPartyCap, setObPartyCap] = useState(6);
   const [obGuideNote, setObGuideNote] = useState('');
+  const [obOpenDays, setObOpenDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+  const [obStartTime, setObStartTime] = useState('11:00');
+  const [obEndTime, setObEndTime] = useState('22:00');
   const [obError, setObError] = useState<string | null>(null);
   const [obBusy, setObBusy] = useState(false);
 
@@ -78,6 +102,11 @@ function BizReservationPortalContent() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [windows, setWindows] = useState<any[]>([]);
   const [tableBoard, setTableBoard] = useState<Record<string, { occupied?: boolean; seatedAt?: string }>>({});
+  const [waitingOpen, setWaitingOpen] = useState(true);
+  const [waitingQueue, setWaitingQueue] = useState<any[]>([]);
+  const [customerNotes, setCustomerNotes] = useState<Record<string, string>>({});
+  const [blockedPhones, setBlockedPhones] = useState<string[]>([]);
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({});
   const [selectedDate, setSelectedDate] = useState<string>(() =>
     new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10)
   );
@@ -86,19 +115,20 @@ function BizReservationPortalContent() {
   const [walkinSize, setWalkinSize] = useState(2);
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
-  // 설정 상태 (프로필 · 복수 유닛 · 주간 스케줄)
+  // 설정 상태 (상호 · 업종 · 프로필 · 복수 유닛 · 주간 스케줄)
+  const [editName, setEditName] = useState('');
+  const [editKind, setEditKind] = useState('restaurant');
   const [editAddress, setEditAddress] = useState('');
   const [editAddressMeta, setEditAddressMeta] = useState<Partial<SelectedAddressInfo>>({});
   const [editDetail, setEditDetail] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editGuide, setEditGuide] = useState('');
+  const [editCoverUrl, setEditCoverUrl] = useState('');
+  const [editSignatureMenu, setEditSignatureMenu] = useState('');
+  const [editPriceRange, setEditPriceRange] = useState('');
+  const [editTags, setEditTags] = useState<string[]>([]);
   const [units, setUnits] = useState<UnitItem[]>([]);
-  const [openDays, setOpenDays] = useState<number[]>([3, 5, 6]);
-  const [startTime, setStartTime] = useState('17:30');
-  const [endTime, setEndTime] = useState('22:00');
-  const [breakStart, setBreakStart] = useState('');
-  const [breakEnd, setBreakEnd] = useState('');
-  const [intervalMin, setIntervalMin] = useState(60);
+  const [weeklyRules, setWeeklyRules] = useState<WeeklyRuleState[]>(DEFAULT_WEEKLY_RULES);
 
   useEffect(() => {
     try {
@@ -122,26 +152,53 @@ function BizReservationPortalContent() {
         setBookings(Array.isArray(data.bookings) ? data.bookings : []);
         setWindows(Array.isArray(data.windows) ? data.windows : []);
         setTableBoard(data.tableBoard || {});
+        setCustomerNotes(data.customerNotes || {});
+        setBlockedPhones(Array.isArray(data.blockedPhones) ? data.blockedPhones : []);
+        setWaitingOpen(data.waitingOpen !== false);
+        setWaitingQueue(Array.isArray(data.waitingQueue) ? data.waitingQueue : []);
         setIsClosedDay(Boolean(data.isClosedDay));
 
         const p = data.profile || {};
+        setEditName(sess.name || '');
+        setEditKind(sess.kind || 'restaurant');
         setEditAddress(p.address || '');
         setEditDetail(p.addressDetail || '');
         setEditPhone(p.phone || '');
         setEditGuide(p.guideNote || '');
+        setEditCoverUrl(p.coverImageUrl || '');
+        setEditSignatureMenu(p.signatureMenu || '');
+        setEditPriceRange(p.priceRange || '');
+        setEditTags(Array.isArray(p.tags) ? p.tags : []);
         if (Array.isArray(data.units)) setUnits(data.units);
 
-        if (data.schedule?.weekly && Array.isArray(data.schedule.weekly) && data.schedule.weekly.length > 0) {
-          const activeRules = data.schedule.weekly.filter((w: any) => w.active);
-          setOpenDays(activeRules.map((w: any) => w.dayOfWeek));
-          const first = activeRules[0] || data.schedule.weekly[0];
-          if (first) {
-            setStartTime(first.startTime || '17:30');
-            setEndTime(first.endTime || '22:00');
-            setBreakStart(first.breakStart || '');
-            setBreakEnd(first.breakEnd || '');
-            setIntervalMin(first.slotIntervalMinutes || 60);
-          }
+        if (data.schedule?.weekly && Array.isArray(data.schedule.weekly)) {
+          const mapByDay = new Map<number, any>(
+            data.schedule.weekly.map((w: any) => [Number(w.dayOfWeek), w])
+          );
+          setWeeklyRules(
+            [0, 1, 2, 3, 4, 5, 6].map((d) => {
+              const found = mapByDay.get(d);
+              return found
+                ? {
+                    dayOfWeek: d,
+                    active: Boolean(found.active),
+                    startTime: found.startTime || '11:00',
+                    endTime: found.endTime || '22:00',
+                    breakStart: found.breakStart || '',
+                    breakEnd: found.breakEnd || '',
+                    slotIntervalMinutes: Number(found.slotIntervalMinutes) || 60,
+                  }
+                : {
+                    dayOfWeek: d,
+                    active: false,
+                    startTime: '11:00',
+                    endTime: '22:00',
+                    breakStart: '',
+                    breakEnd: '',
+                    slotIntervalMinutes: 60,
+                  };
+            })
+          );
         }
       } catch {
         setNotice('조회 실패');
@@ -258,6 +315,16 @@ function BizReservationPortalContent() {
             phone: obPhone.trim(),
             guideNote: obGuideNote.trim(),
           },
+          schedule: {
+            timezoneOffsetMinutes: 540,
+            weekly: obOpenDays.map((d) => ({
+              dayOfWeek: d,
+              startTime: obStartTime,
+              endTime: obEndTime,
+              slotIntervalMinutes: 60,
+              active: true,
+            })),
+          },
         }),
       });
       const data = await res.json();
@@ -308,17 +375,21 @@ function BizReservationPortalContent() {
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    const weekly = openDays.map((d) => ({
-      dayOfWeek: d,
-      startTime,
-      endTime,
-      ...(breakStart && breakEnd ? { breakStart, breakEnd } : {}),
-      slotIntervalMinutes: Math.max(15, intervalMin),
-      active: true,
-    }));
+    const weekly = weeklyRules
+      .filter((r) => r.active)
+      .map((r) => ({
+        dayOfWeek: r.dayOfWeek,
+        startTime: r.startTime,
+        endTime: r.endTime,
+        ...(r.breakStart && r.breakEnd ? { breakStart: r.breakStart, breakEnd: r.breakEnd } : {}),
+        slotIntervalMinutes: Math.max(15, r.slotIntervalMinutes || 60),
+        active: true,
+      }));
     await sendAction(
       {
         action: 'UPDATE_SETTINGS',
+        name: editName.trim() || session?.name,
+        kind: editKind,
         profile: {
           ...session?.profile,
           address: editAddress.trim(),
@@ -326,17 +397,25 @@ function BizReservationPortalContent() {
           ...(editAddressMeta.jibunAddress ? { jibunAddress: editAddressMeta.jibunAddress } : {}),
           phone: editPhone.trim(),
           guideNote: editGuide.trim(),
+          coverImageUrl: editCoverUrl.trim(),
+          signatureMenu: editSignatureMenu.trim(),
+          priceRange: editPriceRange.trim(),
+          tags: editTags,
         },
         units,
         schedule: {
           timezoneOffsetMinutes: 540,
           weekly,
-          overrides: [],
         },
       },
       '저장 완료',
       'SETTINGS'
     );
+    if (session && editName.trim()) {
+      const updatedSession = { ...session, name: editName.trim(), kind: editKind };
+      setSession(updatedSession);
+      localStorage.setItem(BIZ_SESSION_KEY, JSON.stringify(updatedSession));
+    }
   };
 
   const addUnit = () => {
@@ -372,7 +451,7 @@ function BizReservationPortalContent() {
 
   if (!session) {
     return (
-      <main className="w-full min-h-screen bg-[#07080a] text-[#f5f2eb] px-4 py-12 flex items-center justify-center selection:bg-[#f04f74] selection:text-white">
+      <main className="w-full min-h-screen bg-[#07080a] text-[#f5f2eb] px-4 py-12 flex items-center justify-center selection:bg-[#3b82f6] selection:text-white">
         <div className="w-full max-w-[460px] bg-[#0c0d12] p-8 sm:p-10 border border-white/[0.08] shadow-2xl relative">
           <Link
             href="/"
@@ -384,16 +463,16 @@ function BizReservationPortalContent() {
 
           <div className="flex flex-col items-center text-center mb-8">
             <div className="space-y-1.5">
-              <span className="text-sm font-mono tracking-[0.25em] text-[#f04f74] uppercase font-semibold">
-                BIZ RESERVATION
+              <span className="text-sm font-mono tracking-[0.25em] text-[#3b82f6] uppercase font-semibold">
+                TABLEBARO
               </span>
               <h1 className="font-serif-editorial text-2xl font-normal text-white">
-                {authTab === 'LOGIN' ? '파트너 업체 로그인' : '파트너 업체 가입'}
+                {authTab === 'LOGIN' ? '테이블바로 로그인' : '테이블바로 입점 가입'}
               </h1>
               <p className="text-sm text-zinc-300 font-light mt-1">
                 {authTab === 'LOGIN'
-                  ? '업체 계정에 로그인하고 실시간 좌석과 예약을 관리하세요.'
-                  : '업체 계정을 생성하고 무료 예약 포털을 바로 시작하세요.'}
+                  ? '매장 계정에 로그인하고 실시간 좌석과 예약을 관리하세요.'
+                  : '계정을 생성하고 테이블바로 매장 관리를 바로 시작하세요.'}
               </p>
             </div>
           </div>
@@ -480,7 +559,7 @@ function BizReservationPortalContent() {
             <form onSubmit={handleSignup} className="space-y-4">
               <div>
                 <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5 uppercase">
-                  이메일 <span className="text-[#f04f74]">*</span>
+                  이메일 <span className="text-[#3b82f6]">*</span>
                 </label>
                 <input
                   type="email"
@@ -493,7 +572,7 @@ function BizReservationPortalContent() {
               </div>
               <div>
                 <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5 uppercase">
-                  담당자명 <span className="text-[#f04f74]">*</span>
+                  담당자명 <span className="text-[#3b82f6]">*</span>
                 </label>
                 <input
                   type="text"
@@ -507,7 +586,7 @@ function BizReservationPortalContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5 uppercase">
-                    비밀번호 <span className="text-[#f04f74]">*</span>
+                    비밀번호 <span className="text-[#3b82f6]">*</span>
                   </label>
                   <input
                     type="password"
@@ -521,7 +600,7 @@ function BizReservationPortalContent() {
                 </div>
                 <div>
                   <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5 uppercase">
-                    비밀번호 확인 <span className="text-[#f04f74]">*</span>
+                    비밀번호 확인 <span className="text-[#3b82f6]">*</span>
                   </label>
                   <input
                     type="password"
@@ -555,18 +634,18 @@ function BizReservationPortalContent() {
 
   if (session.onboardingCompleted === false) {
     return (
-      <main className="w-full min-h-screen bg-[#07080a] text-[#f5f2eb] px-4 py-12 flex items-center justify-center selection:bg-[#f04f74] selection:text-white">
+      <main className="w-full min-h-screen bg-[#07080a] text-[#f5f2eb] px-4 py-12 flex items-center justify-center selection:bg-[#3b82f6] selection:text-white">
         <div className="w-full max-w-[560px] bg-[#0c0d12] p-8 sm:p-10 border border-white/[0.08] shadow-2xl space-y-6">
           <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
                 <span className="text-sm font-mono tracking-[0.2em] text-zinc-300 uppercase">
-                  FIRST LOGIN SETUP
+                  TABLEBARO SETUP
                 </span>
               </div>
               <h1 className="font-serif-editorial text-2xl font-normal text-white">
-                업체 필수 정보 등록
+                매장 필수 정보 등록
               </h1>
               <p className="text-sm text-zinc-300 font-light">
                 {session.managerName ? `${session.managerName}님, ` : ''}예약 포털 사용을 위해 업체 기본 정보를 1회 등록해 주세요.
@@ -592,7 +671,7 @@ function BizReservationPortalContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-mono text-zinc-300 mb-1.5">
-                  업종 <span className="text-[#f04f74]">*</span>
+                  업종 <span className="text-[#3b82f6]">*</span>
                 </label>
                 <select
                   value={obKind}
@@ -607,7 +686,7 @@ function BizReservationPortalContent() {
               </div>
               <div>
                 <label className="block text-sm font-mono text-zinc-300 mb-1.5">
-                  업체명 <span className="text-[#f04f74]">*</span>
+                  업체명 <span className="text-[#3b82f6]">*</span>
                 </label>
                 <input
                   type="text"
@@ -622,7 +701,7 @@ function BizReservationPortalContent() {
 
             <div>
               <label className="block text-sm font-mono text-zinc-300 mb-1.5">
-                도로명 주소 <span className="text-[#f04f74]">*</span>
+                도로명 주소 <span className="text-[#3b82f6]">*</span>
               </label>
               <AddressAutocompleteInput
                 required
@@ -647,7 +726,7 @@ function BizReservationPortalContent() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-sm font-mono text-zinc-300 mb-1.5">
-                  매장 연락처 <span className="text-[#f04f74]">*</span>
+                  매장 연락처 <span className="text-[#3b82f6]">*</span>
                 </label>
                 <input
                   type="tel"
@@ -691,6 +770,51 @@ function BizReservationPortalContent() {
               />
             </div>
 
+            <div className="space-y-2 pt-1">
+              <label className="block text-sm font-mono text-zinc-300">영업 요일 및 시간</label>
+              <div className="flex flex-wrap gap-1.5">
+                {DAY_LABELS.map((lbl, idx) => {
+                  const on = obOpenDays.includes(idx);
+                  return (
+                    <button
+                      key={lbl}
+                      type="button"
+                      onClick={() =>
+                        setObOpenDays((prev) =>
+                          prev.includes(idx) ? prev.filter((d) => d !== idx) : [...prev, idx].sort()
+                        )
+                      }
+                      className={`px-3 py-1.5 border text-sm font-mono cursor-pointer ${
+                        on ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold' : 'border-white/15 bg-black/40 text-zinc-400'
+                      }`}
+                    >
+                      {lbl}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-sm font-mono text-zinc-400 mb-1">오픈 시간</label>
+                  <input
+                    type="time"
+                    value={obStartTime}
+                    onChange={(e) => setObStartTime(e.target.value)}
+                    className="w-full px-3 py-2 bg-black/40 border border-white/15 text-sm font-mono text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-mono text-zinc-400 mb-1">마감 시간</label>
+                  <input
+                    type="time"
+                    value={obEndTime}
+                    onChange={(e) => setObEndTime(e.target.value)}
+                    className="w-full px-3 py-2 bg-black/40 border border-white/15 text-sm font-mono text-white"
+                  />
+                </div>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={obBusy}
@@ -709,7 +833,7 @@ function BizReservationPortalContent() {
       <div className="max-w-[1000px] mx-auto space-y-6">
         <header className="p-4 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
             <div>
               <h1 className="font-serif-editorial text-2xl text-white font-normal">{session.name}</h1>
               <p className="text-sm font-mono text-zinc-400">
@@ -739,7 +863,7 @@ function BizReservationPortalContent() {
             <button
               type="button"
               onClick={() => {
-                const url = `${window.location.origin}/book/${session.id}`;
+                const url = `${window.location.origin}/reserve/${session.id}`;
                 void navigator.clipboard.writeText(url);
                 setNotice('링크 복사 완료');
               }}
@@ -779,10 +903,23 @@ function BizReservationPortalContent() {
             {/* 매장 기본 정보 */}
             <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
               <div className="flex items-center gap-2 border-b border-white/10 pb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
                 <h2 className="font-serif-editorial text-lg text-white font-normal">매장정보</h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-zinc-400 mb-1">업체명</label>
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1">업종</label>
+                  <select value={editKind} onChange={(e) => setEditKind(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white">
+                    <option value="restaurant">식당 · 다이닝</option>
+                    <option value="lodging">숙박 · 스테이</option>
+                    <option value="space">공간 · 살롱</option>
+                    <option value="etc">기타 체험</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-zinc-400 mb-1">도로명 주소</label>
                   <AddressAutocompleteInput
@@ -805,6 +942,40 @@ function BizReservationPortalContent() {
                   <label className="block text-zinc-400 mb-1">이용 안내</label>
                   <input value={editGuide} onChange={(e) => setEditGuide(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
                 </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1">대표 메뉴</label>
+                  <input value={editSignatureMenu} onChange={(e) => setEditSignatureMenu(e.target.value)} placeholder="예: 한우 오마카세, 평양냉면" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1">가격대</label>
+                  <input value={editPriceRange} onChange={(e) => setEditPriceRange(e.target.value)} placeholder="예: 1인 2~4만원대" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-zinc-400 mb-1">대표 사진 URL</label>
+                  <input value={editCoverUrl} onChange={(e) => setEditCoverUrl(e.target.value)} placeholder="https://... (선택 입력)" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                </div>
+                <div className="sm:col-span-2 space-y-1.5">
+                  <label className="block text-zinc-400">편의 · 분위기 태그</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {VENUE_TAG_OPTIONS.map((tag) => {
+                      const on = editTags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() =>
+                            setEditTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+                          }
+                          className={`px-3 py-1 border text-sm font-mono cursor-pointer ${
+                            on ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold' : 'border-white/15 bg-black/40 text-zinc-400'
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -812,7 +983,7 @@ function BizReservationPortalContent() {
             <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
               <div className="flex items-center justify-between border-b border-white/10 pb-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
                   <h2 className="font-serif-editorial text-lg text-white font-normal">좌석 · 룸 유닛</h2>
                 </div>
                 <button
@@ -858,49 +1029,132 @@ function BizReservationPortalContent() {
               </div>
             </section>
 
-            {/* 주간 영업시간 & 브레이크타임 */}
+            {/* 요일별 차등 영업시간 & 브레이크타임 */}
             <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
-              <div className="flex items-center gap-2 border-b border-white/10 pb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
-                <h2 className="font-serif-editorial text-lg text-white font-normal">영업시간</h2>
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                  <h2 className="font-serif-editorial text-lg text-white font-normal">요일별 영업시간</h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const base = weeklyRules.find((r) => r.active) || weeklyRules[0];
+                    setWeeklyRules((prev) =>
+                      prev.map((r) => ({
+                        ...r,
+                        startTime: base.startTime,
+                        endTime: base.endTime,
+                        breakStart: base.breakStart,
+                        breakEnd: base.breakEnd,
+                        slotIntervalMinutes: base.slotIntervalMinutes,
+                      }))
+                    );
+                  }}
+                  className="px-2.5 py-1 border border-white/20 bg-white/5 hover:bg-white/15 text-sm text-zinc-200 cursor-pointer"
+                >
+                  첫 요일 시간 전체복사
+                </button>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {DAY_LABELS.map((lbl, idx) => (
-                  <button
-                    key={lbl}
-                    type="button"
-                    onClick={() =>
-                      setOpenDays((prev) => (prev.includes(idx) ? prev.filter((x) => x !== idx) : [...prev, idx]))
-                    }
-                    className={`px-3 py-1 border cursor-pointer ${
-                      openDays.includes(idx) ? 'border-white/40 bg-white/15 text-white font-bold' : 'border-white/10 text-zinc-500'
+              <div className="space-y-2">
+                {weeklyRules.map((rule) => (
+                  <div
+                    key={rule.dayOfWeek}
+                    className={`grid grid-cols-2 sm:grid-cols-6 gap-2 p-2.5 border items-center ${
+                      rule.active ? 'border-white/15 bg-black/40' : 'border-white/5 bg-black/20 opacity-60'
                     }`}
                   >
-                    {lbl}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setWeeklyRules((prev) =>
+                          prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, active: !r.active } : r))
+                        )
+                      }
+                      className={`px-3 py-1.5 border text-sm font-mono cursor-pointer ${
+                        rule.active ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold' : 'border-white/15 text-zinc-400'
+                      }`}
+                    >
+                      {DAY_LABELS[rule.dayOfWeek]} · {rule.active ? '영업' : '휴무'}
+                    </button>
+                    <div>
+                      <label className="block text-zinc-400 mb-0.5">오픈</label>
+                      <input
+                        type="time"
+                        disabled={!rule.active}
+                        value={rule.startTime}
+                        onChange={(e) =>
+                          setWeeklyRules((prev) =>
+                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, startTime: e.target.value } : r))
+                          )
+                        }
+                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-0.5">마감</label>
+                      <input
+                        type="time"
+                        disabled={!rule.active}
+                        value={rule.endTime}
+                        onChange={(e) =>
+                          setWeeklyRules((prev) =>
+                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, endTime: e.target.value } : r))
+                          )
+                        }
+                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-0.5">브레이크 시작</label>
+                      <input
+                        type="time"
+                        disabled={!rule.active}
+                        value={rule.breakStart}
+                        onChange={(e) =>
+                          setWeeklyRules((prev) =>
+                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, breakStart: e.target.value } : r))
+                          )
+                        }
+                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-0.5">브레이크 종료</label>
+                      <input
+                        type="time"
+                        disabled={!rule.active}
+                        value={rule.breakEnd}
+                        onChange={(e) =>
+                          setWeeklyRules((prev) =>
+                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, breakEnd: e.target.value } : r))
+                          )
+                        }
+                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-zinc-400 mb-0.5">간격(분)</label>
+                      <input
+                        type="number"
+                        min={15}
+                        step={15}
+                        disabled={!rule.active}
+                        value={rule.slotIntervalMinutes}
+                        onChange={(e) =>
+                          setWeeklyRules((prev) =>
+                            prev.map((r) =>
+                              r.dayOfWeek === rule.dayOfWeek
+                                ? { ...r, slotIntervalMinutes: Math.max(15, Number(e.target.value)) }
+                                : r
+                            )
+                          )
+                        }
+                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
+                      />
+                    </div>
+                  </div>
                 ))}
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                <div>
-                  <label className="block text-zinc-400 mb-1">오픈</label>
-                  <input value={startTime} onChange={(e) => setStartTime(e.target.value)} placeholder="17:30" className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">마감</label>
-                  <input value={endTime} onChange={(e) => setEndTime(e.target.value)} placeholder="22:00" className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">브레이크 시작</label>
-                  <input value={breakStart} onChange={(e) => setBreakStart(e.target.value)} placeholder="15:00" className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">브레이크 종료</label>
-                  <input value={breakEnd} onChange={(e) => setBreakEnd(e.target.value)} placeholder="17:00" className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">예약간격(분)</label>
-                  <input type="number" min={15} step={15} value={intervalMin} onChange={(e) => setIntervalMin(Number(e.target.value))} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                </div>
               </div>
               <div className="flex justify-end pt-2">
                 <button
@@ -929,7 +1183,7 @@ function BizReservationPortalContent() {
                 <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
                   <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
                     <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
                       <h2 className="font-serif-editorial text-xl text-white font-normal">테이블보드</h2>
                     </div>
                     <span className="px-2.5 py-0.5 border border-white/20 text-sm font-mono text-white">
@@ -968,7 +1222,7 @@ function BizReservationPortalContent() {
                         >
                           <div className="flex items-center justify-between text-sm font-mono">
                             <span className="font-bold truncate">{t.label}</span>
-                            {occupied && <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74] shrink-0" />}
+                            {occupied && <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6] shrink-0" />}
                           </div>
                           <div className="flex items-center justify-between text-sm font-mono">
                             <span>{occupied ? '식사중' : '빈자리'}</span>
@@ -982,11 +1236,99 @@ function BizReservationPortalContent() {
               );
             })()}
 
+            {/* 원격 웨이팅(줄서기) 대기열 관제 */}
+            <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                  <h2 className="font-serif-editorial text-xl text-white font-normal">웨이팅</h2>
+                  <span className="px-2.5 py-0.5 border border-white/20 text-sm font-mono text-white">
+                    {waitingQueue.length}팀
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  disabled={busyKey === 'TOGGLE_WAIT'}
+                  onClick={() =>
+                    void sendAction(
+                      { action: 'TOGGLE_WAITING_OPEN' },
+                      waitingOpen ? '웨이팅 마감' : '웨이팅 오픈',
+                      'TOGGLE_WAIT'
+                    )
+                  }
+                  className={`px-3 py-1 border text-sm font-mono cursor-pointer ${
+                    waitingOpen
+                      ? 'border-[#3b82f6]/60 bg-[#3b82f6]/20 text-white'
+                      : 'border-white/20 bg-white/10 text-zinc-300'
+                  }`}
+                >
+                  {waitingOpen ? '대기 받는중' : '대기 마감'}
+                </button>
+              </div>
+              {waitingQueue.length === 0 ? (
+                <p className="text-sm font-mono text-zinc-400">현재 대기 중인 손님이 없습니다.</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {waitingQueue.map((w: any) => (
+                    <div key={w.id} className="p-3 border border-white/15 bg-black/40 space-y-2 text-sm font-mono">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 border border-[#3b82f6]/60 bg-[#3b82f6]/20 text-white font-bold">
+                            #{w.ticketNo}
+                          </span>
+                          <span className="text-white font-bold">{w.name}</span>
+                          <span className="text-zinc-300">{w.partySize}명</span>
+                        </div>
+                        <span className="text-zinc-300">
+                          {w.status === 'CALLED' ? '호출됨' : '대기중'}
+                        </span>
+                      </div>
+                      <div className="text-zinc-400">{w.phone}</div>
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {w.status === 'WAITING' && (
+                          <button
+                            type="button"
+                            disabled={busyKey === `WC_${w.id}`}
+                            onClick={() =>
+                              void sendAction({ action: 'WAIT_CALL', waitingId: w.id }, `#${w.ticketNo} 입장 호출`, `WC_${w.id}`)
+                            }
+                            className="px-3 py-1 border border-[#3b82f6]/60 bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-white cursor-pointer"
+                          >
+                            입장호출
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          disabled={busyKey === `WS_${w.id}`}
+                          onClick={() =>
+                            void sendAction({ action: 'WAIT_SEAT', waitingId: w.id }, `#${w.ticketNo} 착석 완료`, `WS_${w.id}`)
+                          }
+                          className="px-3 py-1 border border-white/25 bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                        >
+                          착석
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busyKey === `WN_${w.id}`}
+                          onClick={() =>
+                            void sendAction({ action: 'WAIT_NO_SHOW', waitingId: w.id }, `#${w.ticketNo} 노쇼`, `WN_${w.id}`)
+                          }
+                          className="px-3 py-1 border border-white/15 bg-black/40 hover:bg-white/10 text-zinc-300 cursor-pointer"
+                        >
+                          노쇼
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
             {/* 좌석 현황판 & 현장/휴무 관리 */}
             <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
                   <h2 className="font-serif-editorial text-xl text-white font-normal">좌석현황</h2>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-sm font-mono">
@@ -1113,6 +1455,11 @@ function BizReservationPortalContent() {
                     const when = b.meta?.startsAtText || b.createdAt;
                     const busy = busyKey === b.id;
                     const stats = b.customerStats || { visits: 0, noShows: 0 };
+                    const guestPhone = String(b.meta?.attendee?.phone || '');
+                    const phoneDigits = guestPhone.replace(/\D/g, '');
+                    const isBlocked = Boolean(phoneDigits && blockedPhones.includes(phoneDigits));
+                    const savedNote = phoneDigits ? customerNotes[phoneDigits] || '' : '';
+                    const draftNote = phoneDigits ? (noteDrafts[phoneDigits] ?? savedNote) : '';
                     return (
                       <div key={b.id} className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
                         <div className="flex items-center justify-between gap-2 text-sm">
@@ -1120,6 +1467,11 @@ function BizReservationPortalContent() {
                             {when} · {b.partySize}명
                           </span>
                           <div className="flex items-center gap-1.5 shrink-0 font-mono">
+                            {isBlocked && (
+                              <span className="px-2 py-0.5 border border-white/40 bg-white/15 text-white font-bold">
+                                차단됨
+                              </span>
+                            )}
                             {stats.visits > 0 && (
                               <span className="px-2 py-0.5 border border-white/25 bg-white/10 text-white">
                                 방문 {stats.visits}
@@ -1142,10 +1494,51 @@ function BizReservationPortalContent() {
                         </div>
                         <div className="text-sm font-mono text-zinc-400 truncate">
                           {b.id}
-                          {b.meta?.attendee?.name ? ` · ${b.meta.attendee.name} (${b.meta.attendee.phone || ''})` : ''}
+                          {b.meta?.attendee?.name ? ` · ${b.meta.attendee.name} (${guestPhone})` : ''}
                         </div>
                         {b.meta?.attendee?.requests && (
                           <div className="text-sm text-zinc-300">요청: {b.meta.attendee.requests}</div>
+                        )}
+                        {phoneDigits.length >= 8 && (
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1 text-sm font-mono">
+                            <input
+                              type="text"
+                              value={draftNote}
+                              onChange={(e) =>
+                                setNoteDrafts((prev) => ({ ...prev, [phoneDigits]: e.target.value }))
+                              }
+                              placeholder="고객 메모 (선호 좌석, 알레르기 등)"
+                              className="flex-1 min-w-[140px] px-2.5 py-1 bg-black/40 border border-white/15 text-white text-sm"
+                            />
+                            <button
+                              type="button"
+                              disabled={busyKey === `NOTE_${phoneDigits}`}
+                              onClick={() =>
+                                void sendAction(
+                                  { action: 'SAVE_CUSTOMER_NOTE', phone: phoneDigits, note: draftNote },
+                                  '고객 메모 저장',
+                                  `NOTE_${phoneDigits}`
+                                )
+                              }
+                              className="px-2.5 py-1 border border-white/20 bg-white/5 hover:bg-white/15 text-white cursor-pointer"
+                            >
+                              메모저장
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busyKey === `BLK_${phoneDigits}`}
+                              onClick={() =>
+                                void sendAction(
+                                  { action: 'TOGGLE_BLOCK_CUSTOMER', phone: phoneDigits },
+                                  isBlocked ? '차단 해제' : '예약 차단',
+                                  `BLK_${phoneDigits}`
+                                )
+                              }
+                              className="px-2.5 py-1 border border-white/20 bg-black/40 hover:bg-white/15 text-zinc-200 cursor-pointer"
+                            >
+                              {isBlocked ? '차단해제' : '차단'}
+                            </button>
+                          </div>
                         )}
                         {b.status === 'REQUESTED' && (
                           <div className="grid grid-cols-2 gap-2">

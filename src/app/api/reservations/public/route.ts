@@ -15,14 +15,39 @@ export async function GET(request: Request) {
   const date = searchParams.get('date')?.trim();
   const partySize = Math.max(1, Number(searchParams.get('partySize') || '2'));
 
-  if (!resourceId) {
-    return NextResponse.json({ ok: false, error: 'resourceId 필요' }, { status: 400 });
-  }
-
   const engine = getNadoSoloReservationEngine();
   const driver = getNadoSoloReservationDriver();
   if (!engine || !driver) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
+  }
+
+  // resourceId가 없으면 공개 가능한 활성 매장 목록 반환 (/table 탐색 페이지용)
+  if (!resourceId) {
+    try {
+      const all = await driver.listResources();
+      const resources = all
+        .filter((r) => r.active && r.attributes?.onboardingCompleted !== false)
+        .map((r) => {
+          const p = (r.attributes?.profile || {}) as Record<string, any>;
+          return {
+            id: r.id,
+            kind: r.kind,
+            name: r.name,
+            address: p.address || '',
+            addressDetail: p.addressDetail || '',
+            phone: p.phone || '',
+            guideNote: p.guideNote || '',
+            coverImageUrl: p.coverImageUrl || '',
+            signatureMenu: p.signatureMenu || '',
+            priceRange: p.priceRange || '',
+            tags: Array.isArray(p.tags) ? p.tags : [],
+            capacity: r.capacity,
+          };
+        });
+      return NextResponse.json({ ok: true, resources });
+    } catch (e) {
+      return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+    }
   }
 
   try {
@@ -48,6 +73,10 @@ export async function GET(request: Request) {
         addressDetail: profile.addressDetail || '',
         phone: profile.phone || '',
         guideNote: profile.guideNote || '',
+        coverImageUrl: profile.coverImageUrl || '',
+        signatureMenu: profile.signatureMenu || '',
+        priceRange: profile.priceRange || '',
+        tags: Array.isArray(profile.tags) ? profile.tags : [],
         units,
       },
       windows,
@@ -83,6 +112,21 @@ export async function POST(request: Request) {
   }
 
   try {
+    const driver = getNadoSoloReservationDriver();
+    if (driver) {
+      const resource = await driver.getResource(resourceId);
+      const blocked = Array.isArray(resource?.attributes?.blockedPhones)
+        ? (resource.attributes.blockedPhones as string[])
+        : [];
+      const phoneDigits = phone.replace(/\D/g, '');
+      if (phoneDigits && blocked.includes(phoneDigits)) {
+        return NextResponse.json(
+          { ok: false, error: '매장 운영 정책상 온라인 예약이 제한된 연락처입니다.' },
+          { status: 403 }
+        );
+      }
+    }
+
     const startsAtText = new Date(startsAt).toLocaleString('ko-KR', {
       timeZone: 'Asia/Seoul',
       month: 'long',

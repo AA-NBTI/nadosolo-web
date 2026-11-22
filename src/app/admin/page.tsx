@@ -124,7 +124,7 @@ interface AdminCategoryGroup {
 
 const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
   {
-    groupTitle: '예약관리',
+    groupTitle: '테이블바로',
     items: [
       { key: 'RESERVATION_CONTROL', label: '관제' },
       { key: 'RESERVATION_RESOURCES', label: '자원' },
