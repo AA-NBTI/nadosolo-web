@@ -1316,13 +1316,13 @@ function MemberDashboardContent() {
                 <section className="bg-[#0c0d12] border border-white/[0.08] p-6 sm:p-8 space-y-8">
                   <div className="border-b border-white/[0.08] pb-4 flex flex-wrap items-center justify-between gap-4">
                     <div>
-                      <h3 className="font-serif-editorial text-xl font-normal text-white">모임 후 매너평가 &amp; 시크릿 호감 투표</h3>
+                      <h3 className="font-serif-editorial text-xl font-normal text-white">모임 후 15초 호감 투표 &amp; 피드백</h3>
                       <p className="text-sm text-zinc-400 mt-1 font-light">
-                        오늘 함께한 테이블 동석자 5명에게 익명 매너 피드백을 전달하고, 설레는 호감을 투표합니다.
+                        오늘 함께한 테이블 동석자들에게 설레는 호감을 투표하고, 계속 교류하고 싶은 멤버를 선택합니다.
                       </p>
                     </div>
                     <span className="text-sm text-[#f04f74] bg-transparent px-3 py-1.5 rounded-none border border-[#f04f74]/25 font-mono">
-                      익명 100% 보장
+                      15초 안심 완료
                     </span>
                   </div>
 
@@ -1536,6 +1536,27 @@ function MemberDashboardContent() {
                         );
                       })}
                     </div>
+                  </div>
+
+                  {/* 심층 소통 리포트 선택 참여 배너 (Opt-in) */}
+                  <div className="p-6 bg-white/[0.02] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                        <span className="text-xs font-mono text-[#f04f74] font-bold">선택 분석 · 심층 리포트</span>
+                      </div>
+                      <h4 className="font-serif-editorial text-base text-white">나의 대화 스타일과 매너 분석 보기</h4>
+                      <p className="text-xs text-zinc-400">
+                        동석자 관찰 피드백을 통해 타인의 시선에서 발견한 나의 소통 강점과 매력 리포트를 확인하실 수 있습니다.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveProcessId('P08_EVALUATION')}
+                      className="px-4 py-2 border border-white/20 bg-white/5 hover:bg-white/15 text-white text-xs font-mono font-bold cursor-pointer shrink-0 transition-all"
+                    >
+                      심층 분석 참여하기
+                    </button>
                   </div>
                 </section>
               )}
@@ -2716,7 +2737,7 @@ function MemberDashboardContent() {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                   <div>
                     <h3 className="font-serif-editorial text-xl font-normal text-white">
-                      다면평가
+                      심층 소통 피드백 (선택)
                     </h3>
                     {(() => {
                       const appliedEv = conditionalEvents.find((e) => appliedEventIds.includes(e.eventId));
@@ -2730,21 +2751,15 @@ function MemberDashboardContent() {
                 </div>
                 <div className="flex items-center gap-2 font-mono text-sm">
                   <span className="px-2.5 py-0.5 border border-white/10 bg-white/5 text-zinc-300">
-                    완료: <strong className="text-white">{completedEvalUserIds.length}</strong> / 5명
+                    분석 참여: <strong className="text-white">{completedEvalUserIds.length}</strong>명 완료
                   </span>
-                  {completedEvalUserIds.length >= 5 ? (
-                    <button
-                      type="button"
-                      onClick={() => setActiveProcessId('P10_REPORT')}
-                      className="px-3 py-1 border border-white/30 bg-white/15 hover:bg-white/25 text-white text-sm font-mono font-bold transition-all cursor-pointer"
-                    >
-                      리포트 열람
-                    </button>
-                  ) : (
-                    <span className="px-2.5 py-0.5 border border-white/20 bg-white/5 text-zinc-300 text-sm font-semibold">
-                      잠금상태
-                    </span>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setActiveProcessId('P10_REPORT')}
+                    className="px-3 py-1 border border-white/30 bg-white/15 hover:bg-white/25 text-white text-sm font-mono font-bold transition-all cursor-pointer"
+                  >
+                    리포트 열람
+                  </button>
                 </div>
               </div>
 
@@ -2831,7 +2846,7 @@ function MemberDashboardContent() {
 
               <div className="flex items-center justify-between gap-3 pt-2 border-t border-white/[0.08]">
                 <span className="text-sm text-zinc-400 font-mono">
-                  전원 완료 시 리포트 자동 해금
+                  입력 완료 시 리포트에 실시간 반영됩니다
                 </span>
                 <button
                   type="button"

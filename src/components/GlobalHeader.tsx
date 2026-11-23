@@ -23,14 +23,14 @@ export default function GlobalHeader() {
   // 일반 이용자 vs 어필리에이트 vs 테이블바로 네비게이션 완전 분리
   const navItems = isTablebaroRoute
     ? [
-        { id: 'reserve-list', label: '매장찾기', href: '/reserve' },
-        { id: 'reserve-my', label: '내 예약', href: '/reserve/my' },
-        { id: 'biz-apply', label: '입점하기', href: '/biz?tab=signup' },
+        { id: 'reserve-list', label: '매장검색', href: '/reserve' },
+        { id: 'reserve-my', label: '예약확인', href: '/reserve/my' },
+        { id: 'biz-apply', label: '입점신청', href: '/biz?tab=signup' },
       ]
     : isAffiliateRoute
       ? [
           { id: 'affiliate', label: '크리에이터', href: '/affiliate' },
-          { id: 'partner-portal', label: '어필리에이트 포털', href: '/partners/dashboard' },
+          { id: 'partner-portal', label: '파트너센터', href: '/partners/dashboard' },
           { id: 'home', label: '다이닝 홈', href: '/' },
         ]
       : [
@@ -156,7 +156,7 @@ export default function GlobalHeader() {
                 prefetch={true}
                 className="px-4 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-white text-xs font-mono tracking-wider uppercase transition-colors"
               >
-                어필리에이트 포털
+                파트너센터
               </Link>
               {isAdmin && (
                 <Link

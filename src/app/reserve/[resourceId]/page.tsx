@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Calendar, Clock, MapPin, Phone, Users, CheckCircle2, RefreshCw } from 'lucide-react';
@@ -18,6 +18,24 @@ interface PublicResource {
   priceRange?: string;
   tags?: string[];
   units?: Array<{ minPartySize: number; maxPartySize: number; active: boolean }>;
+  schedule?: {
+    weekly?: Array<{
+      dayOfWeek: number;
+      active: boolean;
+      startTime: string;
+      endTime: string;
+      slotIntervalMinutes?: number;
+      breakStart?: string;
+      breakEnd?: string;
+    }>;
+    overrides?: Array<{
+      date: string;
+      closed?: boolean;
+      customStartTime?: string;
+      customEndTime?: string;
+    }>;
+    timezoneOffsetMinutes?: number;
+  };
 }
 
 interface AvailableWindow {
@@ -43,6 +61,38 @@ const KIND_LABEL: Record<string, string> = {
   space: '공간',
   etc: '예약',
 };
+
+const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+function checkDateSchedule(resource: PublicResource | null, dateStr: string): { isOpen: boolean; reason?: string } {
+  if (!resource?.schedule) return { isOpen: true };
+  const override = resource.schedule.overrides?.find((o) => o.date === dateStr);
+  if (override?.closed) return { isOpen: false, reason: '해당 날짜는 매장 특별 휴무일입니다.' };
+
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dayOfWeek = new Date(Date.UTC(y, m - 1, d, 0, 0, 0, 0)).getUTCDay();
+  const rule = resource.schedule.weekly?.find((w) => w.dayOfWeek === dayOfWeek && w.active);
+  if (!rule && (!override || !override.customStartTime)) {
+    const activeDays = (resource.schedule.weekly || []).filter((w) => w.active);
+    const openDays = activeDays.map((w) => DAY_KO[w.dayOfWeek]).join(', ');
+    return {
+      isOpen: false,
+      reason: openDays ? `선택하신 날짜(${DAY_KO[dayOfWeek]}요일)는 매장 정기 휴무일입니다. (영업 요일: ${openDays})` : '현재 영업일이 설정되지 않았습니다.',
+    };
+  }
+  return { isOpen: true };
+}
+
+function getNextOpenDate(resource: PublicResource, fromDateStr: string): string | null {
+  const baseMs = Date.parse(`${fromDateStr}T00:00:00Z`);
+  for (let i = 1; i <= 14; i++) {
+    const d = new Date(baseMs + i * 86400_000);
+    const dateStr = d.toISOString().slice(0, 10);
+    const check = checkDateSchedule(resource, dateStr);
+    if (check.isOpen) return dateStr;
+  }
+  return null;
+}
 
 function todayKst(): string {
   const kst = new Date(Date.now() + 9 * 3600_000);
@@ -77,6 +127,7 @@ export default function PublicReservePage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  const initialAdjusted = useRef(false);
 
   // 웨이팅(줄서기) 상태
   const [waitingOpen, setWaitingOpen] = useState(true);
@@ -106,6 +157,14 @@ export default function PublicReservePage() {
       } else {
         setResource(data.resource);
         setWindows(Array.isArray(data.windows) ? data.windows : []);
+        if (!initialAdjusted.current && data.resource?.schedule) {
+          initialAdjusted.current = true;
+          const check = checkDateSchedule(data.resource, date);
+          if (!check.isOpen) {
+            const nextOpen = getNextOpenDate(data.resource, date);
+            if (nextOpen) setDate(nextOpen);
+          }
+        }
       }
     } catch {
       setErrorMsg('네트워크 오류가 발생했습니다.');
@@ -252,9 +311,9 @@ export default function PublicReservePage() {
           <div className="grid grid-cols-2 gap-2">
             <Link
               href={`/reserve/my?phone=${encodeURIComponent(phone)}`}
-              className="py-3 border border-[#3b82f6]/60 bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-sm font-mono text-white text-center"
+              className="py-3 border border-[#3b82f6]/60 bg-[#3b82f6]/20 hover:bg-[#3b82f6]/30 text-sm font-mono text-white text-center font-medium"
             >
-              내 예약 확인
+              예약확인
             </Link>
             <button
               type="button"
@@ -280,14 +339,11 @@ export default function PublicReservePage() {
             {/* 업체 프로필 헤더 */}
             <header className="p-6 border border-white/15 bg-[#0c0d12] space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
-                  <span className="text-sm font-mono text-zinc-400">
-                    {KIND_LABEL[resource.kind] || '예약'}
-                  </span>
-                </div>
+                <span className="text-sm font-mono text-zinc-400">
+                  {KIND_LABEL[resource.kind] || '예약'}
+                </span>
                 <Link href="/reserve" className="text-sm font-mono text-zinc-400 hover:text-white">
-                  전체 매장 목록
+                  매장검색
                 </Link>
               </div>
               <h1 className="font-serif-editorial text-2xl sm:text-3xl text-white font-normal">
@@ -501,16 +557,49 @@ export default function PublicReservePage() {
 
                   {/* 2. 예약 가능 시간대 선택 */}
                   <div className="pt-2 space-y-2">
-                    <div className="text-sm font-mono text-zinc-400 flex items-center gap-1.5">
-                      <Clock className="w-4 h-4 text-[#3b82f6]" />
-                      <span>시간 선택</span>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-mono text-zinc-400 flex items-center gap-1.5">
+                        <Clock className="w-4 h-4 text-[#3b82f6]" />
+                        <span>시간 선택</span>
+                      </div>
+                      {(() => {
+                        const activeWeekly = (resource.schedule?.weekly || []).filter((w) => w.active);
+                        if (activeWeekly.length === 0) return null;
+                        const openDaysText = activeWeekly.map((w) => DAY_KO[w.dayOfWeek]).join('·');
+                        const timeRange = activeWeekly[0] ? `${activeWeekly[0].startTime}~${activeWeekly[0].endTime}` : '';
+                        return (
+                          <span className="text-xs font-mono text-zinc-400 bg-white/5 border border-white/10 px-2 py-0.5">
+                            영업: 매주 {openDaysText} ({timeRange})
+                          </span>
+                        );
+                      })()}
                     </div>
+
                     {loading ? (
                       <p className="text-sm font-mono text-zinc-400 py-4">조회 중...</p>
                     ) : windows.length === 0 ? (
-                      <p className="text-sm font-mono text-zinc-400 py-4 border border-white/10 px-4">
-                        선택한 날짜에 예약 가능한 시간대가 없습니다.
-                      </p>
+                      (() => {
+                        const dateCheck = checkDateSchedule(resource, date);
+                        const nextOpen = getNextOpenDate(resource, date);
+                        return (
+                          <div className="py-4 border border-white/10 px-4 space-y-3 bg-black/30">
+                            <p className="text-sm font-mono text-zinc-300">
+                              {dateCheck.isOpen
+                                ? '선택한 날짜의 예약 가능한 시간대가 모두 마감되었습니다.'
+                                : dateCheck.reason}
+                            </p>
+                            {nextOpen && nextOpen !== date && (
+                              <button
+                                type="button"
+                                onClick={() => setDate(nextOpen)}
+                                className="px-3 py-1.5 border border-white/20 bg-white/10 hover:bg-white/20 text-xs font-mono text-white transition-colors cursor-pointer"
+                              >
+                                가장 빠른 영업일({nextOpen}) 보기
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })()
                     ) : (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                         {windows.map((w) => {

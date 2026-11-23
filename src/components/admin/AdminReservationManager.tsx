@@ -344,11 +344,11 @@ export default function AdminReservationManager({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
-              <label className={`block mb-1 ${subCls}`}>포털 로그인 이메일</label>
+              <label className={`block mb-1 ${subCls}`}>로그인 이메일</label>
               <input type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="owner@store.com" className={inputCls} />
             </div>
             <div>
-              <label className={`block mb-1 ${subCls}`}>포털 비밀번호 (PIN)</label>
+              <label className={`block mb-1 ${subCls}`}>비밀번호 (PIN)</label>
               <input value={pin} onChange={(e) => setPin(e.target.value)} placeholder="4자 이상 (예: 1234)" className={inputCls} />
             </div>
           </div>

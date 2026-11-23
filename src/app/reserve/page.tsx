@@ -78,28 +78,39 @@ export default function ReserveDirectoryPage() {
       <div className="max-w-[960px] mx-auto space-y-6">
         <header className="p-6 border border-white/15 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
-              <span className="text-sm font-mono text-zinc-300">TABLEBARO</span>
-            </div>
+            <span className="text-sm font-mono text-zinc-300 block">TABLEBARO</span>
             <h1 className="font-serif-editorial text-2xl sm:text-3xl text-white font-normal">
-              예약 매장 찾기
+              매장검색
             </h1>
             <p className="text-sm text-zinc-400">
-              앱 설치나 회원가입 없이 원하는 매장을 선택해 3초 만에 예약하세요.
+              실시간 좌석 확인 및 선결제 예약
             </p>
           </div>
           <Link
             href="/reserve/my"
-            className="px-4 py-2.5 border border-[#3b82f6]/60 bg-[#3b82f6]/15 hover:bg-[#3b82f6]/25 text-sm font-mono text-white shrink-0"
+            className="px-4 py-2.5 border border-[#3b82f6]/60 bg-[#3b82f6]/15 hover:bg-[#3b82f6]/25 text-sm font-mono text-white shrink-0 font-medium"
           >
-            내 예약 확인 · 취소
+            예약확인
           </Link>
         </header>
 
-        {/* 검색 및 업종 필터 */}
-        <section className="p-4 border border-white/10 bg-[#0c0d12] flex flex-col sm:flex-row gap-3 justify-between">
-          <div className="flex flex-wrap gap-1.5">
+        {/* 메인 상단 전진 배치 검색창 & 업종 필터 */}
+        <section className="p-5 border border-white/15 bg-[#0c0d12] space-y-4 shadow-sm">
+          {/* 1. 최상단 풀사이즈 검색창 */}
+          <div className="relative w-full">
+            <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              autoFocus
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="매장명, 지역, 도로명, 메뉴 검색"
+              className="w-full pl-12 pr-4 py-3.5 bg-black/60 border border-white/20 focus:border-[#3b82f6] text-base text-white outline-none font-mono transition-colors"
+            />
+          </div>
+
+          {/* 2. 업종 필터 탭 */}
+          <div className="flex flex-wrap gap-1.5 pt-1">
             {KIND_TABS.map((t) => (
               <button
                 key={t.id}
@@ -114,17 +125,6 @@ export default function ReserveDirectoryPage() {
                 {t.label}
               </button>
             ))}
-          </div>
-
-          <div className="relative sm:w-72">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="매장명 또는 지역/도로명 검색"
-              className="w-full pl-9 pr-3 py-2 bg-black/50 border border-white/20 text-sm text-white outline-none focus:border-[#3b82f6]"
-            />
           </div>
         </section>
 

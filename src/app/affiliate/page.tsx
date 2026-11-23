@@ -140,14 +140,14 @@ export default function AffiliateProgramPage() {
           {submitted ? (
             <div className="p-5 border border-white/20 bg-[#07080a] space-y-3 text-sm text-white">
               <p>
-                파트너 신청이 접수되었습니다. 등록하신 추천 코드({customCode})와 파트너 비밀번호로 파트너스 전용 포털에 로그인하여 승인 상태와 실적을 확인하실 수 있습니다.
+                파트너 신청이 접수되었습니다. 등록하신 추천 코드({customCode})와 비밀번호로 파트너센터에 로그인하여 승인 상태와 실적을 확인하실 수 있습니다.
               </p>
               <Link
                 href="/partners/dashboard"
                 prefetch={true}
                 className="inline-block px-4 py-2 bg-[#f04f74] text-white font-mono font-semibold"
               >
-                파트너스 포털
+                파트너센터
               </Link>
             </div>
           ) : (

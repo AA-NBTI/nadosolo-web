@@ -269,11 +269,53 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.1',
+    releaseTitle: '용어 전역 단일화(매장검색·예약확인·입점신청·매장관리·파트너센터) · 테이블바로 선결제 예약 솔루션 블루 포인트(#3b82f6) 및 서비스 중심 카피라이트 완결',
+    releaseDate: '2026-11-23',
+    summary: '중복 사족 및 설명조 명칭(사장님 포털, 어필리에이트 포털, 내 예약 등)을 시스템 헌법에 따라 단일 명사형(매장검색, 예약확인, 입점신청, 매장관리, 파트너센터)으로 전역 통일. 테이블바로 푸터 로고 서브타이틀의 고유 블루(#3b82f6) 확정 및 SEO 강화를 위한 서비스명 중심의 저작권(Copyright TABLEBARO / NADOSOLO) 표기 구조 정립, 미종료 백그라운드 태스크 정리로 에이전트 즉각 응답성 회복.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2911',
+        category: 'CONSTITUTION',
+        categoryLabel: '용어단일화',
+        title: '서비스 헌법 기반 5대 핵심 메뉴 단일 명사 표준화',
+        beforeSummary: '사장님 포털, 어필리에이트 포털, 내 예약, 매장 탐색, 입점하기 등 페이지별 혼용',
+        afterSummary: '매장검색, 예약확인, 입점신청, 매장관리, 파트너센터 5대 단일 명칭으로 헤더·푸터·관리자 명칭 사전 전수 통일',
+        impactLabel: '사용자 및 관리자 간의 인지 부하 0% 및 소통 명칭 무결성 확보',
+        status: 'VERIFIED',
+        affectedRoutes: ['/reserve', '/reserve/my', '/biz', '/partners/dashboard', 'GlobalFooter.tsx', 'GlobalHeader.tsx'],
+      },
+      {
+        id: 'CHG-2912',
+        category: 'CONSTITUTION',
+        categoryLabel: '브랜드아이덴티티',
+        title: '테이블바로 고유 블루(#3b82f6) 정립 및 SEO 중심 저작권 표기 개편',
+        beforeSummary: '푸터 서브타이틀 포인트 컬러 혼용 및 법인명 우선 카피라이트 구조',
+        afterSummary: '테이블바로 전용 블루(#3b82f6) 적용, 서비스 브랜드명(TABLEBARO / NADOSOLO) 중심의 저작권 표기로 SEO 및 브랜드 인식 제고',
+        impactLabel: '브랜드 분리 완성도 향상 및 검색엔진 수집 최적화',
+        status: 'VERIFIED',
+        affectedRoutes: ['GlobalFooter.tsx'],
+      },
+      {
+        id: 'CHG-2913',
+        category: 'ADMIN',
+        categoryLabel: '태스크최적화',
+        title: '백그라운드 비데몬 태스크 자동 정리 및 즉시 응답성 보장',
+        beforeSummary: '일회성 검증 스크립트의 백그라운드 잔류로 메시지 큐잉 현상 발생',
+        afterSummary: '좀비 태스크 전수 취소 및 개발 서버 단일 데몬 체계 정돈으로 엔터 즉각 실행 보장',
+        impactLabel: 'IDE 인터랙션 지연 0초 및 안정적 개발 환경 유지',
+        status: 'VERIFIED',
+        affectedRoutes: ['manage_task'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.0',
     releaseTitle: '테이블바로(TABLEBARO) 독립 브랜드 분리 · 테이블링(원격 웨이팅·매장탐색 /reserve) 및 캐치테이블(요일별 영업시간·CRM·리치프로필) 릴리즈',
     releaseDate: '2026-11-22',
     summary: '예약 인프라를 테이블바로(TABLEBARO, #3b82f6 블루 포인트) 브랜드로 독립 분리하고 /book 경로를 /reserve로 단일화. 손님용 매장 탐색(/reserve), 내 예약 확인·직접 취소(/reserve/my), 테이블링 표준 원격 웨이팅(줄서기·번호표·입장호출·대기마감), 캐치테이블 표준 요일별 차등 영업시간, 홀 테이블보드 ↔ 당일 잔여석 실시간 차감 연동, 고객 CRM 메모·블랙리스트 자동 차단, 매장 리치 프로필(대표사진·메뉴·가격대·태그) 및 나도솔로 송객 격리 완결.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2901',

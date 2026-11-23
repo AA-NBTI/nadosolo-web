@@ -71,6 +71,7 @@ function BizReservationPortalContent() {
   const [identifier, setIdentifier] = useState('');
   const [pin, setPin] = useState('');
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginBusy, setLoginBusy] = useState(false);
 
   // 회원가입(일반 계정 정보) 폼 상태 (/auth 구조 일치)
   const [signupEmail, setSignupEmail] = useState('');
@@ -219,22 +220,26 @@ function BizReservationPortalContent() {
     e.preventDefault();
     setLoginError(null);
     setAuthNotice(null);
+    setLoginBusy(true);
     try {
       const res = await fetch('/api/biz/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, pin }),
+        body: JSON.stringify({ identifier: identifier.trim(), pin: pin.trim() }),
       });
       const data = await res.json();
       if (!data.ok || !data.resource) {
-        setLoginError(data.error || '로그인 실패');
+        setLoginError(data.error || '로그인에 실패했습니다. 아이디(이메일)와 비밀번호를 확인해 주세요.');
         return;
       }
       localStorage.setItem(BIZ_SESSION_KEY, JSON.stringify(data.resource));
       setSession(data.resource);
       setPin('');
+      setAuthNotice(`${data.resource.name} 계정으로 로그인되었습니다.`);
     } catch {
-      setLoginError('로그인 오류');
+      setLoginError('로그인 처리 중 네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoginBusy(false);
     }
   };
 
@@ -463,7 +468,7 @@ function BizReservationPortalContent() {
 
           <div className="flex flex-col items-center text-center mb-8">
             <div className="space-y-1.5">
-              <span className="text-sm font-mono tracking-[0.25em] text-[#3b82f6] uppercase font-semibold">
+              <span className="text-sm font-mono tracking-[0.25em] text-zinc-300 uppercase font-semibold">
                 TABLEBARO
               </span>
               <h1 className="font-serif-editorial text-2xl font-normal text-white">
@@ -509,13 +514,13 @@ function BizReservationPortalContent() {
           </div>
 
           {authNotice && (
-            <div className="mb-5 p-3.5 bg-white/[0.04] border border-white/25 text-white text-sm font-mono text-center">
+            <div className="mb-5 p-3.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 text-sm font-mono text-center">
               {authNotice}
             </div>
           )}
 
           {loginError && (
-            <div className="mb-5 p-3.5 bg-transparent border border-white/20 text-white text-sm font-mono text-center">
+            <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-200 text-sm font-mono text-center">
               {loginError}
             </div>
           )}
@@ -550,10 +555,27 @@ function BizReservationPortalContent() {
               </div>
               <button
                 type="submit"
-                className="w-full py-3.5 border border-white/30 bg-white/15 hover:bg-white/25 text-sm font-mono font-semibold text-white tracking-wider transition-colors cursor-pointer"
+                disabled={loginBusy}
+                className="w-full py-3.5 border border-white/30 bg-white/15 hover:bg-white/25 text-sm font-mono font-semibold text-white tracking-wider transition-colors cursor-pointer disabled:opacity-40"
               >
-                로그인
+                {loginBusy ? '로그인 확인 중...' : '로그인'}
               </button>
+
+              {/* 테스트 등록 매장 빠른 로그인 지원 */}
+              <div className="pt-3 border-t border-white/10 space-y-2">
+                <span className="text-xs font-mono text-zinc-400 block">등록된 매장 바로 입력 테스트:</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIdentifier('aa@aa.com');
+                    setPin('aa1111');
+                  }}
+                  className="w-full p-2.5 text-xs font-mono text-left border border-white/15 bg-white/5 hover:bg-white/10 text-zinc-200 flex items-center justify-between cursor-pointer transition-colors"
+                >
+                  <span>고수냉명 (aa@aa.com)</span>
+                  <span className="text-zinc-400">PIN 자동입력</span>
+                </button>
+              </div>
             </form>
           ) : (
             <form onSubmit={handleSignup} className="space-y-4">
@@ -648,7 +670,7 @@ function BizReservationPortalContent() {
                 매장 필수 정보 등록
               </h1>
               <p className="text-sm text-zinc-300 font-light">
-                {session.managerName ? `${session.managerName}님, ` : ''}예약 포털 사용을 위해 업체 기본 정보를 1회 등록해 주세요.
+                {session.managerName ? `${session.managerName}님, ` : ''}매장 관리를 위해 기본 정보를 1회 등록해 주세요.
               </p>
             </div>
             <button
@@ -833,9 +855,14 @@ function BizReservationPortalContent() {
       <div className="max-w-[1000px] mx-auto space-y-6">
         <header className="p-4 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
             <div>
-              <h1 className="font-serif-editorial text-2xl text-white font-normal">{session.name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-serif-editorial text-2xl text-white font-normal">{session.name}</h1>
+                <span className="px-2 py-0.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs font-mono font-bold">
+                  접속 중
+                </span>
+              </div>
               <p className="text-sm font-mono text-zinc-400">
                 코드: {session.id} · {editAddress || session.profile?.address || ''}
               </p>

@@ -109,19 +109,16 @@ function MyReservationsContent() {
       <div className="max-w-[720px] mx-auto space-y-6">
         <header className="p-6 border border-white/15 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
-              <span className="text-sm font-mono text-zinc-300">TABLEBARO</span>
-            </div>
+            <span className="text-sm font-mono text-zinc-300 block">TABLEBARO</span>
             <h1 className="font-serif-editorial text-2xl text-white font-normal">
-              내 예약 확인 · 취소
+              예약확인
             </h1>
             <p className="text-sm text-zinc-400">
-              예약 시 입력하신 연락처를 입력하면 로그인 없이 예약 내역을 확인하거나 취소할 수 있습니다.
+              예약 시 입력하신 연락처를 입력하면 예약 내역을 확인하거나 취소할 수 있습니다.
             </p>
           </div>
           <Link href="/reserve" className="px-3.5 py-2 border border-white/20 text-sm font-mono text-zinc-200 hover:text-white shrink-0">
-            매장 찾기
+            매장검색
           </Link>
         </header>
 

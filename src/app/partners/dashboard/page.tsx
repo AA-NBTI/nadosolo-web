@@ -176,7 +176,7 @@ export default function PartnerPortalDashboardPage() {
               크리에이터 신청 →
             </Link>
             <Link href="/biz" prefetch={true} className="hover:text-white">
-              예약업체 포털(/biz) →
+              매장관리(/biz) →
             </Link>
           </div>
         </div>

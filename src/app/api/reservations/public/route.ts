@@ -62,6 +62,7 @@ export async function GET(request: Request) {
 
     const profile = (resource.attributes?.profile || {}) as Record<string, any>;
     const units = extractUnits(resource).filter((u) => u.active);
+    const schedule = (resource.attributes?.schedule || null) as Record<string, any> | null;
 
     return NextResponse.json({
       ok: true,
@@ -78,6 +79,7 @@ export async function GET(request: Request) {
         priceRange: profile.priceRange || '',
         tags: Array.isArray(profile.tags) ? profile.tags : [],
         units,
+        schedule,
       },
       windows,
     });

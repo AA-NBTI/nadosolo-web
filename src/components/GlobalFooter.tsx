@@ -1,124 +1,181 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { PhoneCall, X, Instagram, MessageCircle, Globe } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import { useSiteConfig } from '@/engine/siteConfigEngine';
 
 export default function GlobalFooter() {
+  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
   const [activeModal, setActiveModal] = useState<'TERMS' | 'PRIVACY' | 'REFUND' | null>(null);
   const { config } = useSiteConfig();
   const f = config?.footer;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isTablebaro = mounted && Boolean(
+    pathname?.startsWith('/reserve') ||
+    pathname?.startsWith('/biz') ||
+    pathname?.startsWith('/r/')
+  );
 
   return (
     <>
       <footer className="w-full bg-[#090a0f] border-t border-white/10 text-zinc-400 py-10 px-4 sm:px-6 mt-auto">
         <div className="w-full max-w-[1200px] mx-auto space-y-6">
           
-          {/* 푸터 상단 기본 브랜드 로고: 정통 nadosolo + 솔로공감 나도솔로 */}
-          <div className="flex flex-col items-center justify-center">
-            <Link
-              href="/"
-              prefetch={true}
-              className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
-            >
-              <span className="font-serif-editorial text-[26px] sm:text-[30px] font-light text-white tracking-[-0.02em] lowercase leading-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] group-hover:text-zinc-100 transition-colors duration-300">
-                nadosolo
-              </span>
-              <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
-                <div className="w-[52%] flex justify-between items-center text-[9.5px] sm:text-[11px] font-serif-editorial font-black text-white group-hover:text-[#f04f74] transition-colors duration-200">
-                  <span>솔</span>
-                  <span>로</span>
-                  <span>공</span>
-                  <span>감</span>
-                </div>
-                <div className="w-[6%]" />
-                <div className="w-[42%] flex justify-between items-center text-[9.5px] sm:text-[11px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200">
-                  <span>나</span>
-                  <span>도</span>
-                  <span>솔</span>
-                  <span>로</span>
-                </div>
-              </div>
-            </Link>
-          </div>
-
-          {/* 타임레프트 표준 다중 컬럼 사이트맵 (신규 페이지 + 기존 나도솔로 아카이브 전원 유지) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 py-4 border-y border-white/10 text-xs sm:text-sm max-w-4xl mx-auto">
-            <div className="space-y-2">
-              <span className="text-white font-mono font-semibold block">서비스</span>
-              <div className="flex flex-col gap-1.5">
-                <Link href="/meetup" prefetch={true} className="hover:text-white transition-colors">밋업</Link>
-                <Link href="/misik" prefetch={true} className="hover:text-white transition-colors">솔로미식단</Link>
-                <Link href="/yot" prefetch={true} className="hover:text-white transition-colors">솔로엿장수</Link>
-                <Link href="/guide" prefetch={true} className="hover:text-white transition-colors">이용 안내</Link>
-                <Link href="/checklist" prefetch={true} className="hover:text-white transition-colors">체크리스트</Link>
-                <Link href="/locations" prefetch={true} className="hover:text-white transition-colors">운영 도시</Link>
-                <Link href="/pricing" prefetch={true} className="hover:text-white transition-colors">참가권 안내</Link>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-white font-mono font-semibold block">테이블바로 · 파트너</span>
-              <div className="flex flex-col gap-1.5">
-                <Link href="/reserve" prefetch={true} className="hover:text-white transition-colors">테이블바로</Link>
-                <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
-                <Link href="/partners/dashboard" prefetch={true} className="hover:text-white transition-colors">어필리에이트 포털</Link>
-                <Link href="/about" prefetch={true} className="hover:text-white transition-colors">브랜드 소개</Link>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-white font-mono font-semibold block">트랙 · 아카이브</span>
-              <div className="flex flex-col gap-1.5">
-                <Link href="/busan" prefetch={true} className="hover:text-white transition-colors">부산 다이닝</Link>
-                <Link href="/dining" prefetch={true} className="hover:text-white transition-colors">소셜 다이닝</Link>
-                <Link href="/salon" prefetch={true} className="hover:text-white transition-colors">소셜 살롱</Link>
-                <Link href="/club" prefetch={true} className="hover:text-white transition-colors">소셜 클럽</Link>
-                <Link href="/showcase" prefetch={true} className="hover:text-white transition-colors">쇼케이스</Link>
-                <Link href="/solotest" prefetch={true} className="hover:text-white transition-colors">솔로 테스트</Link>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <span className="text-white font-mono font-semibold block">안전 · 약관</span>
-              <div className="flex flex-col gap-1.5">
-                <Link href="/safety" prefetch={true} className="hover:text-white transition-colors">안전 가이드</Link>
-                <Link href="/terms" prefetch={true} className="hover:text-white transition-colors">이용약관</Link>
-                <Link href="/privacy" prefetch={true} className="hover:text-white transition-colors">개인정보처리방침</Link>
-                <button
-                  type="button"
-                  onClick={() => setActiveModal('REFUND')}
-                  className="text-left hover:text-white transition-colors cursor-pointer"
+          {isTablebaro ? (
+            <>
+              {/* 테이블바로 푸터 상단 브랜드 로고: 점 없이 순수 텍스트 + 선결제 예약 솔루션 (포인트컬러 적용) */}
+              <div className="flex flex-col items-center justify-center">
+                <Link
+                  href="/reserve"
+                  prefetch={true}
+                  className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity select-none py-1"
                 >
-                  취소 및 환불규정
-                </button>
+                  <span className="font-serif-editorial text-[24px] sm:text-[28px] font-normal text-white tracking-[-0.01em] leading-none">
+                    TABLEBARO
+                  </span>
+                  <span className="text-xs font-mono text-[#3b82f6] font-medium tracking-wider mt-1.5">
+                    선결제 예약 솔루션
+                  </span>
+                </Link>
               </div>
-            </div>
-          </div>
 
-          {f?.socialLinks && f.socialLinks.filter((s) => s.visible).length > 0 && (
-            <div className="flex items-center justify-center gap-4">
-              {f.socialLinks
-                .filter((s) => s.visible)
-                .map((s) => (
-                  <a
-                    key={s.id}
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-zinc-400 hover:text-rose-400 text-xs transition-colors flex items-center gap-1"
-                  >
-                    {s.platform === 'instagram' && <Instagram className="w-3.5 h-3.5" />}
-                    {s.platform === 'kakao' && <MessageCircle className="w-3.5 h-3.5" />}
-                    {s.platform === 'website' && <Globe className="w-3.5 h-3.5" />}
-                    <span>{s.label}</span>
-                  </a>
-                ))}
-            </div>
+              {/* 테이블바로 전용 단정 사이트맵 */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 py-4 border-y border-white/10 text-xs sm:text-sm max-w-4xl mx-auto">
+                <div className="space-y-2">
+                  <span className="text-white font-mono font-semibold block">예약</span>
+                  <div className="flex flex-col gap-1.5">
+                    <Link href="/reserve" prefetch={true} className="hover:text-white transition-colors">매장검색</Link>
+                    <Link href="/reserve/my" prefetch={true} className="hover:text-white transition-colors">예약확인</Link>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-white font-mono font-semibold block">파트너</span>
+                  <div className="flex flex-col gap-1.5">
+                    <Link href="/biz" prefetch={true} className="hover:text-white transition-colors">매장관리</Link>
+                    <Link href="/biz?tab=signup" prefetch={true} className="hover:text-white transition-colors">입점신청</Link>
+                    <Link href="/" prefetch={true} className="hover:text-white transition-colors">나도솔로</Link>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-white font-mono font-semibold block">솔루션</span>
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-zinc-400">선결제 예약</span>
+                    <span className="text-zinc-400">스케줄 관리</span>
+                    <span className="text-zinc-400">좌석 연동</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-white font-mono font-semibold block">정책</span>
+                  <div className="flex flex-col gap-1.5">
+                    <Link href="/terms" prefetch={true} className="hover:text-white transition-colors">이용약관</Link>
+                    <Link href="/privacy" prefetch={true} className="hover:text-white transition-colors">개인정보처리방침</Link>
+                    <button
+                      type="button"
+                      onClick={() => setActiveModal('REFUND')}
+                      className="text-left hover:text-white transition-colors cursor-pointer"
+                    >
+                      환불규정
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* 푸터 상단 기본 브랜드 로고: 정통 nadosolo + 솔로공감 나도솔로 */}
+              <div className="flex flex-col items-center justify-center">
+                <Link
+                  href="/"
+                  prefetch={true}
+                  className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
+                >
+                  <span className="font-serif-editorial text-[26px] sm:text-[30px] font-light text-white tracking-[-0.02em] lowercase leading-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] group-hover:text-zinc-100 transition-colors duration-300">
+                    nadosolo
+                  </span>
+                  <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
+                    <div className="w-[52%] flex justify-between items-center text-[9.5px] sm:text-[11px] font-serif-editorial font-black text-white group-hover:text-[#f04f74] transition-colors duration-200">
+                      <span>솔</span>
+                      <span>로</span>
+                      <span>공</span>
+                      <span>감</span>
+                    </div>
+                    <div className="w-[6%]" />
+                    <div className="w-[42%] flex justify-between items-center text-[9.5px] sm:text-[11px] font-serif-editorial font-black text-[#f04f74] group-hover:text-white transition-colors duration-200">
+                      <span>나</span>
+                      <span>도</span>
+                      <span>솔</span>
+                      <span>로</span>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
+              {/* 타임레프트 표준 다중 컬럼 사이트맵 */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 py-4 border-y border-white/10 text-xs sm:text-sm max-w-4xl mx-auto">
+                <div className="space-y-2">
+                  <span className="text-white font-mono font-semibold block">서비스</span>
+                  <div className="flex flex-col gap-1.5">
+                    <Link href="/meetup" prefetch={true} className="hover:text-white transition-colors">밋업</Link>
+                    <Link href="/misik" prefetch={true} className="hover:text-white transition-colors">솔로미식단</Link>
+                    <Link href="/yot" prefetch={true} className="hover:text-white transition-colors">솔로엿장수</Link>
+                    <Link href="/guide" prefetch={true} className="hover:text-white transition-colors">이용 안내</Link>
+                    <Link href="/checklist" prefetch={true} className="hover:text-white transition-colors">체크리스트</Link>
+                    <Link href="/locations" prefetch={true} className="hover:text-white transition-colors">운영 도시</Link>
+                    <Link href="/pricing" prefetch={true} className="hover:text-white transition-colors">참가권 안내</Link>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-white font-mono font-semibold block">파트너</span>
+                  <div className="flex flex-col gap-1.5">
+                    <Link href="/reserve" prefetch={true} className="hover:text-white transition-colors">테이블바로</Link>
+                    <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">크리에이터</Link>
+                    <Link href="/partners/dashboard" prefetch={true} className="hover:text-white transition-colors">파트너센터</Link>
+                    <Link href="/about" prefetch={true} className="hover:text-white transition-colors">브랜드 소개</Link>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-white font-mono font-semibold block">트랙 · 아카이브</span>
+                  <div className="flex flex-col gap-1.5">
+                    <Link href="/busan" prefetch={true} className="hover:text-white transition-colors">부산 다이닝</Link>
+                    <Link href="/dining" prefetch={true} className="hover:text-white transition-colors">소셜 다이닝</Link>
+                    <Link href="/salon" prefetch={true} className="hover:text-white transition-colors">소셜 살롱</Link>
+                    <Link href="/club" prefetch={true} className="hover:text-white transition-colors">소셜 클럽</Link>
+                    <Link href="/showcase" prefetch={true} className="hover:text-white transition-colors">쇼케이스</Link>
+                    <Link href="/solotest" prefetch={true} className="hover:text-white transition-colors">솔로 테스트</Link>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-white font-mono font-semibold block">안전 · 약관</span>
+                  <div className="flex flex-col gap-1.5">
+                    <Link href="/safety" prefetch={true} className="hover:text-white transition-colors">안전 가이드</Link>
+                    <Link href="/terms" prefetch={true} className="hover:text-white transition-colors">이용약관</Link>
+                    <Link href="/privacy" prefetch={true} className="hover:text-white transition-colors">개인정보처리방침</Link>
+                    <button
+                      type="button"
+                      onClick={() => setActiveModal('REFUND')}
+                      className="text-left hover:text-white transition-colors cursor-pointer"
+                    >
+                      취소 및 환불규정
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
           )}
 
-          {/* 중간 2열: 정식 법정 사업자 정보 (관리자 설정 동적 연동) */}
+          {/* 중간 2열: 정식 법정 사업자 정보 (인스타그램/카카오톡 링크 완전 영구 삭제) */}
           <div className="flex flex-col gap-2 font-sans text-xs text-zinc-400 text-center max-w-4xl mx-auto leading-relaxed font-normal">
             <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
               <span>상호: <span className="text-zinc-300">{f?.companyName || '템바보드 주식회사'}</span></span>
@@ -140,116 +197,57 @@ export default function GlobalFooter() {
               <span>통신판매업신고: <span className="text-zinc-300">{f?.mailOrderNum || '제 2026-부산사하-0589호'}</span></span>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-              <span>사업장 소재지: <span className="text-zinc-300">{f?.address || '부산광역시 사하구 하신번영로 328, 302호 (하단동)'}</span></span>
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-zinc-400">
+              <span>주소: <span className="text-zinc-400">{f?.address || '부산광역시 사하구 하단동'}</span></span>
               <span className="text-zinc-700">|</span>
-              <span>대표전화: <span className="text-zinc-300">{f?.tel || '051-208-8746'}</span></span>
+              <span>이메일: <a href={`mailto:${isTablebaro ? 'admin@tablebaro.com' : (f?.email || 'admin@nadosolo.com')}`} className="hover:text-white">{isTablebaro ? 'admin@tablebaro.com' : (f?.email || 'admin@nadosolo.com')}</a></span>
               <span className="text-zinc-700">|</span>
-              <span>전자우편: <span className="text-zinc-300">{f?.email || 'nadosoloteam@gmail.com'}</span></span>
+              <span>호스팅 서비스: <span className="text-zinc-400">Vercel Inc.</span></span>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-              <span>개인정보보호책임자: <span className="text-zinc-300">{f?.privacyOfficer || '박경민'}</span></span>
-              <span className="text-zinc-700">|</span>
-              <span>호스팅서비스: <span className="text-zinc-300">{f?.hosting || 'Vercel Inc.'}</span></span>
-              <span className="text-zinc-700">|</span>
-              <span>고객센터 운영시간: <span className="text-zinc-300">{f?.csHours || '평일 10:00 ~ 18:00 (주말 및 공휴일 휴무)'}</span></span>
-            </div>
-
-            {/* 결제 심사 필수 배너 (토스페이먼츠 PG 심사 규격 준수) */}
-            <div className="mt-3 p-3.5 rounded-xl bg-white/[0.02] border border-white/10 max-w-3xl mx-auto space-y-1.5 text-[11px] text-zinc-400 font-normal">
-              <div>
-                <span>구매안전서비스(에스크로) 안내: 고객님의 안전한 전자상거래를 위해 토스페이먼츠(주)의 구매안전(에스크로) 서비스 연동 및 계약 절차를 진행하고 있습니다.</span>
-              </div>
-              <div>
-                <span>전자결제 연동 수탁 고지: 전자결제(PG) 및 에스크로 대행 업무는 「개인정보 보호법」 제26조에 따라 수탁사인 토스페이먼츠(주)에 위탁 운영됩니다.</span>
-              </div>
+            <div className="pt-2 text-zinc-400">
+              Copyright © {new Date().getFullYear()} {isTablebaro ? 'TABLEBARO' : 'NADOSOLO'}. All rights reserved.
             </div>
           </div>
 
-          {/* 하단 3열: 저작권 표시 */}
-          <div className="text-center text-xs text-zinc-500 border-t border-white/5 pt-5">
-            {f?.copyright || '© 2026 nadosolo.com. All rights reserved.'}
-          </div>
         </div>
       </footer>
 
-      {/* ====================================================================
-          정식 법률 문서 모달 팝업 레이어 (이용약관 / 개인정보처리방침 / 환불규정)
-          ==================================================================== */}
+      {/* 약관 팝업 모달들 */}
       {activeModal && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
-          onClick={() => setActiveModal(null)}
-        >
-          <div
-            className="relative w-full max-w-2xl max-h-[85vh] bg-[#12151e] border border-white/10 rounded-2xl p-6 sm:p-8 flex flex-col shadow-2xl text-zinc-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* 닫기 버튼 */}
-            <button
-              type="button"
-              onClick={() => setActiveModal(null)}
-              className="absolute top-5 right-5 p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-              aria-label="닫기"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* 이용약관 모달 내용 */}
-            {activeModal === 'TERMS' && (
-              <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-                <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">
-                  서비스 이용약관
-                </h3>
-                <div className="text-xs sm:text-sm text-zinc-400 space-y-3 leading-relaxed">
-                  <p><strong>제1조 (목적)</strong> 본 약관은 템바보드 주식회사(이하 &apos;회사&apos;)가 운영하는 나도솔로(nadosolo.com) 플랫폼(이하 &apos;서비스&apos;)에서 제공하는 솔로 라이프스타일 큐레이션 및 소셜 다이닝 중개 서비스의 이용조건 및 절차를 규정함을 목적으로 합니다.</p>
-                  <p><strong>제2조 (회원의 의무 및 에티켓)</strong> 회원은 서비스 이용 시 타인을 존중하는 매너를 준수하여야 하며, 허위 신원 기재, 상대방에 대한 무례한 언행, 영리 목적의 영업 활동 등 건전한 소셜 문화를 저해하는 행위는 엄격히 금지됩니다. 위반 시 사전 경고 없이 이용 자격이 박탈될 수 있습니다.</p>
-                  <p><strong>제3조 (서비스 성격)</strong> 본 서비스는 건전한 취향 교류와 사교를 위한 커뮤니티 플랫폼으로, 직업소개소나 결혼중개업이 아니며 참여자 간의 자율적인 소통과 만남을 매개합니다.</p>
-                </div>
-              </div>
-            )}
-
-            {/* 개인정보처리방침 모달 내용 */}
-            {activeModal === 'PRIVACY' && (
-              <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-                <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">
-                  개인정보처리방침
-                </h3>
-                <div className="text-xs sm:text-sm text-zinc-400 space-y-3 leading-relaxed">
-                  <p><strong>1. 수집하는 개인정보 항목</strong> 회사는 원활한 매칭 및 다이닝 배정을 위해 닉네임, 성별, 연령대, 휴대전화번호, 성향 진단 데이터(NBTI), 결제 정보를 수집합니다.</p>
-                  <p><strong>2. 개인정보의 수집 및 이용목적</strong> 소셜 다이닝 테이블 편성 및 자리 배치, 모임 안내 SMS 발송, 결제 및 환불 처리, 비매너 이용자 필터링 등 서비스 품질 관리를 목적으로 합니다.</p>
-                  <p><strong>3. 개인정보의 보유 및 파기</strong> 회원은 언제든지 회원 탈퇴를 통해 개인정보 삭제를 요청할 수 있으며, 관계 법령에 따른 의무 보존 기간이 경과한 후 즉시 파기합니다.</p>
-                </div>
-              </div>
-            )}
-
-            {/* 취소 및 환불규정 모달 내용 */}
-            {activeModal === 'REFUND' && (
-              <div className="space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-                <h3 className="text-xl font-bold text-white border-b border-white/10 pb-3">
-                  취소 및 환불규정
-                </h3>
-                <div className="text-xs sm:text-sm text-zinc-400 space-y-3 leading-relaxed">
-                  <p><strong>제1조 (환불 기준)</strong> 소셜 다이닝 및 이벤트 참가 취소 시 환불 기준은 다음과 같습니다.</p>
-                  <ul className="list-disc list-inside space-y-1.5 pl-2 text-zinc-300">
-                    <li>모임 시작 3일 전(D-3) 23:59까지 취소 시: <strong>100% 전액 환불</strong></li>
-                    <li>모임 시작 2일 전(D-2) 23:59까지 취소 시: <strong>50% 환불</strong></li>
-                    <li>모임 시작 1일 전(D-1) 및 당일(D-Day) 취소/노쇼: <strong>환불 불가</strong> (테이블 예약 및 좌석 배정 완료로 인한 손실 발생)</li>
-                  </ul>
-                  <p><strong>제2조 (회사 귀책 사유)</strong> 최소 인원 미달로 모임이 취소되거나 주최 측 사정으로 행사가 취소될 경우, 참가비는 <strong>100% 전액 환불</strong>됩니다.</p>
-                  <p><strong>제3조 (회원 제명 시 처리)</strong> 비매너 행위 등으로 이용 자격이 박탈되거나 제명 조치되는 경우, 이미 예약이 확정된 당일 모임 참가비는 좌석 배정 완료 손실로 환불되지 않으며, 사전에 선결제된 차후 일정 참가권은 전액 환불 처리됩니다.</p>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 pt-4 border-t border-white/10 flex justify-end">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-[#0c0d12] border border-white/20 p-6 sm:p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <h3 className="font-serif-editorial text-xl text-white font-normal">
+                {activeModal === 'TERMS' && '이용약관'}
+                {activeModal === 'PRIVACY' && '개인정보처리방침'}
+                {activeModal === 'REFUND' && '취소 및 환불규정'}
+              </h3>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center border border-white/20 text-zinc-400 hover:text-white cursor-pointer text-sm font-mono"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="text-sm text-zinc-300 space-y-3 font-light leading-relaxed">
+              {activeModal === 'REFUND' && (
+                <>
+                  <p className="font-medium text-white">제1조 (취소 및 환불 정책)</p>
+                  <p>1. 모임 시작 48시간 전까지는 대시보드에서 전액 무료 취소 또는 다음 회차로의 이월(참가권 1매 보존)이 가능합니다.</p>
+                  <p>2. 모임 시작 24시간 이내 취소 또는 당일 불참(노쇼)의 경우, 다른 참가자들과의 테이블 밸런스 및 예약 식당 좌석 보증을 위해 참가권이 보존되지 않으며 환불이 불가합니다.</p>
+                  <p>3. 최소 인원 미달 등으로 모임이 성사되지 않을 경우, 결제하신 참가권은 자동으로 다음 회차로 전액 보존 및 연장됩니다.</p>
+                </>
+              )}
+            </div>
+
+            <div className="pt-4 border-t border-white/10 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="px-6 py-2 border border-white/20 hover:bg-white/10 text-sm font-mono text-white cursor-pointer"
               >
                 닫기
               </button>

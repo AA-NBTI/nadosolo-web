@@ -18,7 +18,7 @@ const DINING_CHAPTERS = [
     status: '여성 1석 잔여',
     image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=85',
     desc: '소음과 외부 시선이 차단된 프라이빗 룸에서 제철 재료로 빚어낸 셰프의 시그니처 디너와 엄선된 와인을 즐깁니다.',
-    specs: ['3:3 엄선 큐레이션', '단독 프라이빗 룸', '소셜 리포트 발행'],
+    specs: ['취향 맞춤 큐레이션', '단독 프라이빗 룸', '호감 매칭 & 피드백'],
   },
   {
     chapter: 'CHAPTER 02',
@@ -135,7 +135,7 @@ export default function DiningPage() {
               </h1>
 
               <p className="text-sm sm:text-base text-zinc-300 font-light leading-relaxed pt-2">
-                신원과 에티켓이 검증된 6인의 참가자가 엄선된 프라이빗 룸에 모여 코스 디너와 와인을 함께합니다. 식사와 주류 비용은 당일 현장에서 1/N 실비로 정산하며, 온라인 참가비는 다면 관찰 엔진 라이선스 및 맞춤형 소셜 리포트 발행비입니다.
+                에티켓이 검증된 참가자들이 엄선된 프라이빗 룸에 모여 코스 디너와 와인을 함께합니다. 식사와 주류 비용은 당일 현장에서 1/N 실비로 정산하며, 온라인 참가비는 AI 취향 매칭 및 제휴 식당 단체 좌석 예약 티켓 비용입니다.
               </p>
             </div>
 
@@ -148,14 +148,14 @@ export default function DiningPage() {
               <div className="space-y-3 divide-y divide-white/[0.06] text-xs">
                 <div className="pt-2 flex justify-between items-center">
                   <span className="text-zinc-400 font-light">테이블 편성</span>
-                  <span className="text-zinc-100 font-mono">3:3 성향 맞춤 밸런스</span>
+                  <span className="text-zinc-100 font-mono">취향·에너지 맞춤 밸런스</span>
                 </div>
                 <div className="pt-3 flex justify-between items-center">
                   <span className="text-zinc-400 font-light">운영 거점</span>
                   <span className="text-zinc-100 font-mono">부산 (전포 • 마린시티)</span>
                 </div>
                 <div className="pt-3 flex justify-between items-center">
-                  <span className="text-zinc-400 font-light">리포트 라이선스</span>
+                  <span className="text-zinc-400 font-light">다이닝 티켓</span>
                   <span className="text-zinc-100 font-mono text-[#f04f74] font-semibold">₩30,000 (온라인 결제)</span>
                 </div>
                 <div className="pt-3 flex justify-between items-center">
