@@ -4,8 +4,13 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSiteConfig } from '@/engine/siteConfigEngine';
+import { isTablebaroHost, isTablebaroPath } from '@/modules/tenancy';
 
-export default function GlobalFooter() {
+export default function GlobalFooter({
+  isTablebaro: isTablebaroProp,
+}: {
+  isTablebaro?: boolean;
+}) {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [activeModal, setActiveModal] = useState<'TERMS' | 'PRIVACY' | 'REFUND' | null>(null);
@@ -16,11 +21,13 @@ export default function GlobalFooter() {
     setMounted(true);
   }, []);
 
-  const isTablebaro = mounted && Boolean(
-    pathname?.startsWith('/reserve') ||
-    pathname?.startsWith('/biz') ||
-    pathname?.startsWith('/r/')
-  );
+  const isTablebaro =
+    typeof isTablebaroProp === 'boolean'
+      ? isTablebaroProp
+      : mounted &&
+        (isTablebaroHost(window.location.hostname) || isTablebaroPath(pathname));
+
+  const onTablebaroHost = mounted && isTablebaroHost(window.location.hostname);
 
   return (
     <>
@@ -61,7 +68,11 @@ export default function GlobalFooter() {
                     <Link href="/biz" prefetch={true} className="hover:text-white transition-colors">매장관리</Link>
                     <Link href="/biz?tab=signup" prefetch={true} className="hover:text-white transition-colors">입점신청</Link>
                     <Link href="/reserve/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
-                    <Link href="/" prefetch={true} className="hover:text-white transition-colors">나도솔로</Link>
+                    {onTablebaroHost ? (
+                      <a href="https://nadosolo.com" className="hover:text-white transition-colors">나도솔로</a>
+                    ) : (
+                      <Link href="/" prefetch={true} className="hover:text-white transition-colors">나도솔로</Link>
+                    )}
                   </div>
                 </div>
 

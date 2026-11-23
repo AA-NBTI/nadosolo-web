@@ -84,3 +84,28 @@ export function buildTenantUrl(params: {
   const base = params.origin.replace(/\/$/, '');
   return `${base}/reserve/${encodeURIComponent(cleanSlug || params.resourceId)}`;
 }
+
+/** 호스트가 테이블바로 도메인(tablebaro.com 또는 *.tablebaro.com)인지 판별 */
+export function isTablebaroHost(hostHeader: string | null | undefined): boolean {
+  const host = String(hostHeader ?? '')
+    .split(':')[0]
+    .trim()
+    .toLowerCase();
+  return host === 'tablebaro.com' || host.endsWith('.tablebaro.com');
+}
+
+/** 경로가 테이블바로 전용 경로(/reserve, /biz, /r/, /pay/)인지 판별 */
+export function isTablebaroPath(pathname: string | null | undefined): boolean {
+  if (!pathname) return false;
+  return (
+    pathname.startsWith('/reserve') ||
+    pathname.startsWith('/biz') ||
+    pathname.startsWith('/r/') ||
+    pathname.startsWith('/pay/')
+  );
+}
+
+/** tablebaro.com 가맹점 서브도메인(예: gosu.tablebaro.com) 여부 및 슬러그 반환 */
+export function getTablebaroSubdomain(hostHeader: string | null | undefined): string | null {
+  return extractSubdomainSlug(hostHeader, ['tablebaro.com']);
+}

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LogOut, User } from 'lucide-react';
+import { getTablebaroSubdomain, isTablebaroHost } from '@/modules/tenancy';
 
 const BIZ_SESSION_KEY = 'tablebaro_biz_session_v1';
 
@@ -17,6 +18,21 @@ const NAV_ITEMS = [
 export default function TablebaroHeader() {
   const pathname = usePathname();
   const [bizName, setBizName] = useState<string | null>(null);
+  const [subdomain, setSubdomain] = useState<string | null>(null);
+  const [onTablebaroApex, setOnTablebaroApex] = useState(false);
+
+  useEffect(() => {
+    const h = window.location.hostname;
+    setSubdomain(getTablebaroSubdomain(h));
+    setOnTablebaroApex(isTablebaroHost(h) && !getTablebaroSubdomain(h));
+  }, []);
+
+  /** 가맹점 서브도메인(gosu.tablebaro.com)에서는 메인 허브(tablebaro.com)로 빠져나감 */
+  const resolveHref = (path: string) => {
+    if (subdomain) return `https://tablebaro.com${path}`;
+    return path;
+  };
+  const homeHref = subdomain ? 'https://tablebaro.com' : onTablebaroApex ? '/' : '/reserve';
 
   useEffect(() => {
     const syncSession = () => {
@@ -51,8 +67,8 @@ export default function TablebaroHeader() {
     <header className="sticky top-0 z-50 w-full bg-[#090a0f] border-b border-white/10">
       <div className="w-full max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20 h-18 flex items-center justify-between gap-4 sm:gap-6">
         <Link
-          href="/reserve"
-          prefetch={true}
+          href={homeHref}
+          prefetch={!subdomain}
           className="inline-flex flex-col items-start justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
         >
           <span className="font-serif-editorial text-[24px] sm:text-[28px] font-light text-white tracking-[-0.02em] lowercase leading-none">
@@ -69,8 +85,8 @@ export default function TablebaroHeader() {
             return (
               <Link
                 key={item.id}
-                href={item.href}
-                prefetch={true}
+                href={resolveHref(item.href)}
+                prefetch={!subdomain}
                 className={`text-xs font-mono tracking-[0.2em] uppercase transition-colors py-1 ${
                   isActive ? 'text-white font-semibold' : 'text-zinc-400 hover:text-white font-light'
                 }`}
@@ -85,8 +101,8 @@ export default function TablebaroHeader() {
           {bizName ? (
             <div className="flex items-center gap-2">
               <Link
-                href="/biz"
-                prefetch={true}
+                href={resolveHref('/biz')}
+                prefetch={!subdomain}
                 className="flex items-center gap-1.5 px-3 py-1.5 border border-white/15 bg-white/[0.03] hover:bg-white/[0.08] text-xs font-mono text-zinc-200 hover:text-white transition-all"
                 title="매장관리"
               >
@@ -104,8 +120,8 @@ export default function TablebaroHeader() {
             </div>
           ) : (
             <Link
-              href="/biz"
-              prefetch={true}
+              href={resolveHref('/biz')}
+              prefetch={!subdomain}
               className="px-4 py-1.5 border border-[#3b82f6]/60 bg-[#3b82f6]/15 hover:bg-[#3b82f6]/25 text-white text-xs font-mono tracking-wider uppercase transition-colors"
             >
               로그인
