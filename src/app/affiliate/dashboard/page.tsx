@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import { Copy, Check, LogOut, RefreshCw } from 'lucide-react';
+import { buildTrackedUrl } from '@/modules/tracking';
 import {
   AffiliateApplicationRow,
   AffiliateEventLog,
@@ -198,10 +199,16 @@ export default function PartnerPortalDashboardPage() {
   const totalCommission = validPurchases.reduce((s, e) => s + (e.commissionKrw || 0), 0);
   const paidTotal = creatorPayouts.reduce((s, p) => s + (p.amountKrw || 0), 0);
   const balance = Math.max(0, totalCommission - paidTotal);
+  const activeCode = creatorApp?.code || session.identifier;
   const refUrl =
-    typeof window !== 'undefined' && creatorApp
-      ? `${window.location.origin}/meetup?ref=${creatorApp.code}`
-      : `/meetup?ref=${creatorApp?.code || session.identifier}`;
+    typeof window !== 'undefined'
+      ? buildTrackedUrl(window.location.origin, '/meetup', {
+          ref: activeCode,
+          source: 'affiliate',
+          medium: 'referral',
+          campaign: `nadosolo_${activeCode}`,
+        })
+      : `/meetup?ref=${activeCode}&utm_source=affiliate&utm_medium=referral&utm_campaign=nadosolo_${activeCode}`;
 
   return (
     <main className="min-h-screen bg-[#07080a] text-[#f5f2eb] py-12 px-5 sm:px-8">

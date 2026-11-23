@@ -7,7 +7,6 @@ import { useNadoSoloEngine, normalizeRegionCity } from '@/engine';
 import { nadoSoloSupabaseService } from '@/lib/supabase/service';
 import CheckoutModal, { CheckoutEventData } from '@/components/CheckoutModal';
 import CmsPageHeader from '@/components/CmsPageHeader';
-import { trackAffiliateClick } from '@/lib/affiliateDb';
 
 interface BlindSlot {
   slotKey: string;
@@ -60,12 +59,11 @@ function MeetupSlotBookingContent() {
   useEffect(() => {
     if (qRef && typeof window !== 'undefined') {
       localStorage.setItem('nadosolo_referral_code', qRef);
-      void trackAffiliateClick(qRef, currentUser?.userId);
     }
     if (qInvite && typeof window !== 'undefined') {
       localStorage.setItem('nadosolo_inviter_user_id', qInvite);
     }
-  }, [qRef, qInvite, currentUser?.userId]);
+  }, [qRef, qInvite]);
 
   useEffect(() => {
     if (!currentUser?.userId) return;

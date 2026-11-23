@@ -77,7 +77,7 @@ export default function TablebaroPartnersPage() {
     ? buildTrackedUrl(
         typeof window !== 'undefined' ? window.location.origin : '',
         venueId.trim() ? `/reserve/${venueId.trim()}` : '/reserve',
-        { ref: session, source: 'partner', medium: 'affiliate' }
+        { ref: session, source: 'affiliate', medium: 'referral', campaign: `tablebaro_${session}` }
       )
     : '';
 

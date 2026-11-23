@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Copy, Check, Users, Sparkles, ArrowRight } from 'lucide-react';
 import { createAffiliateApplication } from '@/lib/affiliateDb';
+import { buildTrackedUrl } from '@/modules/tracking';
 
 export default function AffiliateProgramPage() {
   const [customCode, setCustomCode] = useState('');
@@ -16,7 +17,13 @@ export default function AffiliateProgramPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://nadosolo.com';
-  const refUrl = `${origin}/meetup?ref=${encodeURIComponent(customCode.trim() || 'MYCODE')}`;
+  const previewCode = (customCode.trim() || 'MYCODE').toUpperCase();
+  const refUrl = buildTrackedUrl(origin, '/meetup', {
+    ref: previewCode,
+    source: 'affiliate',
+    medium: 'referral',
+    campaign: `nadosolo_${previewCode}`,
+  });
 
   const handleCopy = () => {
     navigator.clipboard?.writeText(refUrl).catch(() => {});
