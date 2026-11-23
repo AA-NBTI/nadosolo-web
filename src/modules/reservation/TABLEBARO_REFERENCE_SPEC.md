@@ -28,4 +28,4 @@
 | CT-04 | DB 레벨 동시성 락(오픈런 중복 차단 RPC) | ⏳ 보완 | Supabase RPC 트랜잭션 락 추가 |
 | CT-05 | 고객 CRM (방문·노쇼 배지 + 메모 + 블랙리스트 차단) | ✅ 완료 | `src/app/biz/page.tsx`, `src/app/api/partners/reservations/route.ts` |
 | CT-06 | 매장 리치 프로필 (대표 사진 · 메뉴 · 주차/콜키지 태그) | ✅ 완료 | `src/app/biz/page.tsx`, `src/app/reserve/page.tsx`, `src/app/reserve/[resourceId]/page.tsx` |
-| CT-07 | 예약금 선결제 및 노쇼 위약금 자동 정산 (PG) | ⏳ 예정 | 토스페이먼츠/포트원 결제 어댑터 |
+| CT-07 | 선결제 예약 및 환불 정산 (PG) | ✅ 완료 | `src/modules/payment`, `src/app/api/reservations/pay/route.ts` |

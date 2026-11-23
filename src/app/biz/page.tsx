@@ -128,6 +128,7 @@ function BizReservationPortalContent() {
   const [editCoverUrl, setEditCoverUrl] = useState('');
   const [editSignatureMenu, setEditSignatureMenu] = useState('');
   const [editPriceRange, setEditPriceRange] = useState('');
+  const [editPrepayAmountKrw, setEditPrepayAmountKrw] = useState(0);
   const [editTags, setEditTags] = useState<string[]>([]);
   const [units, setUnits] = useState<UnitItem[]>([]);
   const [weeklyRules, setWeeklyRules] = useState<WeeklyRuleState[]>(DEFAULT_WEEKLY_RULES);
@@ -170,6 +171,7 @@ function BizReservationPortalContent() {
         setEditCoverUrl(p.coverImageUrl || '');
         setEditSignatureMenu(p.signatureMenu || '');
         setEditPriceRange(p.priceRange || '');
+        setEditPrepayAmountKrw(Number(p.prepayAmountKrw ?? p.depositKrw ?? 0));
         setEditTags(Array.isArray(p.tags) ? p.tags : []);
         if (Array.isArray(data.units)) setUnits(data.units);
 
@@ -406,6 +408,7 @@ function BizReservationPortalContent() {
           coverImageUrl: editCoverUrl.trim(),
           signatureMenu: editSignatureMenu.trim(),
           priceRange: editPriceRange.trim(),
+          prepayAmountKrw: Math.max(0, Math.round(Number(editPrepayAmountKrw) || 0)),
           tags: editTags,
         },
         units,
@@ -988,6 +991,18 @@ function BizReservationPortalContent() {
                 <div>
                   <label className="block text-zinc-400 mb-1">가격대</label>
                   <input value={editPriceRange} onChange={(e) => setEditPriceRange(e.target.value)} placeholder="예: 1인 2~4만원대" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1">결제 금액 (원)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1000}
+                    value={editPrepayAmountKrw}
+                    onChange={(e) => setEditPrepayAmountKrw(Number(e.target.value) || 0)}
+                    placeholder="예: 10000"
+                    className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white"
+                  />
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-zinc-400 mb-1">대표 사진 URL</label>

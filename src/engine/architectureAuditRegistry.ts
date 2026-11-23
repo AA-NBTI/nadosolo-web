@@ -269,11 +269,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.3',
+    releaseTitle: '범용 결제 상태 머신·PG 어댑터(TEST/TOSS)·선결제 예약 및 환불·어필리에이트 실적 연동 완결',
+    releaseDate: '2026-11-23',
+    summary: 'src/modules/payment 코어(상태 전이 검증, 업종별 환불 비율 계산, TEST/TOSS 어댑터)를 신설하고, /api/reservations/pay 및 /api/reservations/my 환불 연동을 구현. 매장 설정 결제금액(prepayAmountKrw), 예약 결제 단계 UI, 어필리에이트 실적(trackPurchase) 자동 귀속을 연결했으며 예약금 개념을 제거하고 익숙한 결제 화면 구조로 통일함.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2931',
+        category: 'PROCESS',
+        categoryLabel: '결제엔진·어댑터',
+        title: '범용 결제 상태 머신(payment) 및 TEST/TOSS PG 어댑터 구축',
+        beforeSummary: '테이블바로 예약 시 결제·환불 상태 머신과 PG 어댑터 부재',
+        afterSummary: 'src/modules/payment 신설(transitionPaymentStatus, computeRefundAmount, createTestPaymentAdapter, createTossPaymentAdapter) 및 test:payment 3/3 검증',
+        impactLabel: 'PG 심사 전 테스트 모드로 전 과정 검증 및 실키 전환 즉시 대응',
+        status: 'VERIFIED',
+        affectedRoutes: ['src/modules/payment', '/api/reservations/pay'],
+      },
+      {
+        id: 'CHG-2932',
+        category: 'PROCESS',
+        categoryLabel: '결제·환불·정산연동',
+        title: '매장 결제금액 설정·예약 결제 UI·취소 자동 환불·어필리에이트 귀속 연결',
+        beforeSummary: '예약 시 결제 단계 및 취소 시 환불 처리·어필리에이트 수수료 연동 미구현',
+        afterSummary: '/biz 결제 금액 설정, /reserve/[id] 결제 단계, /reserve/my 취소 시 자동 환불, 결제 완료 시 tablebaroPartnersEngine.trackPurchase 자동 기록',
+        impactLabel: '예약→결제→어필리에이트 정산→취소·환불까지 전체 커머스 루프 완성',
+        status: 'VERIFIED',
+        affectedRoutes: ['/biz', '/reserve/[resourceId]', '/reserve/my', '/api/reservations/my'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.2',
     releaseTitle: '테이블바로 어필리에이트 · UTM/QR 범용 추적 모듈 · 관리자 단계별 심사 및 독립 레이아웃(AppShell) 분리 완결',
     releaseDate: '2026-11-23',
     summary: '테이블바로 전용 어필리에이트 프리셋(tablebaro.preset.ts)과 UTM·QR 범용 추적 모듈(src/modules/tracking)을 신설하고, /reserve/affiliate 및 /biz 마케팅 탭을 구축. 용어를 매장·어필리에이트로 단일화하고 API/라우트(/api/biz/reservations, /reserve/affiliate)와 예약 런타임(lib/reservation/runtime.ts)을 중립화했으며, AppShell 분기를 통해 테이블바로 경로에서 NadoSoloProvider 의존을 완전 제거함.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2921',

@@ -79,6 +79,8 @@ export async function GET(request: Request) {
         signatureMenu: profile.signatureMenu || '',
         priceRange: profile.priceRange || '',
         tags: Array.isArray(profile.tags) ? profile.tags : [],
+        prepayAmountKrw: Math.max(0, Number(profile.prepayAmountKrw ?? profile.depositKrw ?? 0)),
+        freeCancelHours: Math.max(0, Number(profile.freeCancelHours ?? 48)),
         units,
         schedule,
       },
@@ -116,6 +118,7 @@ export async function POST(request: Request) {
 
   try {
     const driver = getReservationDriver();
+    let prepayAmountKrw = 0;
     if (driver) {
       const resource = await driver.getResource(resourceId);
       const blocked = Array.isArray(resource?.attributes?.blockedPhones)
@@ -128,6 +131,8 @@ export async function POST(request: Request) {
           { status: 403 }
         );
       }
+      const prof = (resource?.attributes?.profile || {}) as Record<string, any>;
+      prepayAmountKrw = Math.max(0, Math.round(Number(prof.prepayAmountKrw ?? prof.depositKrw ?? 0)));
     }
 
     const startsAtText = new Date(startsAt).toLocaleString('ko-KR', {
@@ -140,6 +145,16 @@ export async function POST(request: Request) {
       hour12: false,
     });
 
+    const requiresPayment = prepayAmountKrw >= 1000;
+    const paymentMeta = requiresPayment
+      ? {
+          orderId: `tb_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+          provider: process.env.TOSS_SECRET_KEY ? 'TOSS' : 'TEST',
+          amountKrw: prepayAmountKrw,
+          status: 'PENDING',
+        }
+      : undefined;
+
     const booking = await engine.bookWindow({
       resourceId,
       unitId,
@@ -150,13 +165,14 @@ export async function POST(request: Request) {
       meta: {
         source: 'public_link',
         startsAtText,
+        ...(paymentMeta ? { payment: paymentMeta } : {}),
         ...(sanitizeAttribution(body.attribution)
           ? { attribution: sanitizeAttribution(body.attribution) }
           : {}),
       },
     });
 
-    return NextResponse.json({ ok: true, booking });
+    return NextResponse.json({ ok: true, booking, requiresPayment, prepayAmountKrw });
   } catch (e) {
     if (e instanceof ReservationError) {
       return NextResponse.json({ ok: false, code: e.code, error: e.message }, { status: 409 });

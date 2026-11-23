@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Calendar, Clock, MapPin, Phone, Users, CheckCircle2, RefreshCw } from 'lucide-react';
 import { loadAttribution } from '@/modules/tracking';
+import { tablebaroPartnersEngine } from '@/modules/partners';
 import { TABLEBARO_ATTRIBUTION_KEY } from '@/components/AttributionCapture';
 
 interface PublicResource {
@@ -19,6 +20,8 @@ interface PublicResource {
   signatureMenu?: string;
   priceRange?: string;
   tags?: string[];
+  prepayAmountKrw?: number;
+  freeCancelHours?: number;
   units?: Array<{ minPartySize: number; maxPartySize: number; active: boolean }>;
   schedule?: {
     weekly?: Array<{
@@ -129,6 +132,12 @@ export default function PublicReservePage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [confirmedId, setConfirmedId] = useState<string | null>(null);
+  const [pendingPay, setPendingPay] = useState<{
+    bookingId: string;
+    orderId: string;
+    amountKrw: number;
+  } | null>(null);
+  const [payBusy, setPayBusy] = useState(false);
   const initialAdjusted = useRef(false);
 
   // 웨이팅(줄서기) 상태
@@ -226,6 +235,12 @@ export default function PublicReservePage() {
       const data = await res.json();
       if (!data.ok) {
         setErrorMsg(data.error || '예약 접수에 실패했습니다.');
+      } else if (data.requiresPayment && data.booking?.id) {
+        setPendingPay({
+          bookingId: data.booking.id,
+          orderId: data.booking.meta?.payment?.orderId || `tb_${data.booking.id}`,
+          amountKrw: Number(data.prepayAmountKrw || 0),
+        });
       } else {
         setConfirmedId(data.booking?.id || 'RESERVED');
       }
@@ -297,6 +312,85 @@ export default function PublicReservePage() {
       setWaitBusy(false);
     }
   };
+
+  const handleConfirmPayment = async () => {
+    if (!pendingPay) return;
+    setPayBusy(true);
+    setErrorMsg(null);
+    try {
+      const res = await fetch('/api/reservations/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingId: pendingPay.bookingId }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setErrorMsg(data.error || '결제 승인에 실패했습니다.');
+      } else {
+        if (data.attribution?.partnerCode) {
+          void tablebaroPartnersEngine.trackPurchase({
+            code: data.attribution.partnerCode,
+            orderId: pendingPay.orderId,
+            amountKrw: pendingPay.amountKrw,
+          });
+        }
+        setConfirmedId(pendingPay.bookingId);
+        setPendingPay(null);
+      }
+    } catch {
+      setErrorMsg('결제 처리 중 오류가 발생했습니다.');
+    } finally {
+      setPayBusy(false);
+    }
+  };
+
+  if (pendingPay && resource) {
+    return (
+      <main className="min-h-screen bg-[#07080a] text-zinc-100 flex items-center justify-center px-5 py-12">
+        <div className="w-full max-w-md border border-white/15 bg-[#0c0d12] p-8 space-y-5">
+          <div className="space-y-1">
+            <h1 className="font-serif-editorial text-2xl text-white font-normal">결제</h1>
+          </div>
+          <div className="text-sm font-mono text-zinc-300 space-y-1.5 border-y border-white/10 py-4">
+            <div>매장: {resource.name}</div>
+            <div>일시: {date} {selected ? fmtTimeKst(selected.startsAt) : ''}</div>
+            <div>인원: {partySize}명 ({selected?.unitName})</div>
+            <div>주문번호: {pendingPay.orderId}</div>
+            <div className="flex items-center justify-between text-white font-bold pt-2 border-t border-white/10">
+              <span>결제금액</span>
+              <span>{pendingPay.amountKrw.toLocaleString('ko-KR')}원</span>
+            </div>
+          </div>
+          <p className="text-xs text-zinc-400">
+            이용 {resource.freeCancelHours ?? 48}시간 전까지 예약확인 화면에서 직접 취소 시 전액 환불됩니다. (테스트 결제 모드)
+          </p>
+          {errorMsg && (
+            <div className="p-3 border border-white/25 bg-white/5 text-sm font-mono text-white">
+              {errorMsg}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setPendingPay(null)}
+              disabled={payBusy}
+              className="py-3 border border-white/25 bg-white/5 hover:bg-white/15 text-sm font-mono text-white cursor-pointer"
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleConfirmPayment()}
+              disabled={payBusy}
+              className="py-3 border border-[#3b82f6]/60 bg-[#3b82f6]/25 hover:bg-[#3b82f6]/35 text-sm font-mono font-bold text-white cursor-pointer disabled:opacity-40"
+            >
+              {payBusy ? '결제 중' : '결제'}
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (confirmedId && resource) {
     return (

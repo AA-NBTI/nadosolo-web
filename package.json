@@ -1,12 +1,13 @@
 {
   "name": "nn-nadosolo",
-  "version": "2.9.2",
+  "version": "2.9.3",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "simulate": "npx tsx src/engine/simulate.ts",
+    "test:payment": "npx tsx src/modules/payment/__tests__/payment.test.ts",
     "test:tracking": "npx tsx src/modules/tracking/__tests__/tracking.test.ts",
     "test:reservation": "npx tsx src/modules/reservation/__tests__/reservation.test.ts",
     "test:reservation:supabase": "npx tsx src/modules/reservation/__tests__/supabase-driver.test.ts",

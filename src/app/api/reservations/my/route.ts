@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server';
 import { ReservationError } from '@/modules/reservation';
 import { getReservationDriver, getReservationEngine } from '@/lib/reservation/runtime';
+import {
+  computeRefundAmount,
+  getDefaultPaymentAdapter,
+  transitionPaymentStatus,
+  type PaymentRecord,
+} from '@/modules/payment';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,6 +61,7 @@ export async function GET(request: Request) {
           startsAtText: (b.meta?.startsAtText as string) || '',
           guestName: att?.name || '',
           requests: att?.requests || '',
+          payment: (b.meta?.payment as Record<string, unknown> | undefined) || null,
           createdAt: b.createdAt,
         };
       });
@@ -99,6 +106,43 @@ export async function POST(request: Request) {
     }
 
     const updated = await engine.cancel(bookingId, '이용자 직접 취소');
+    const payment = updated.meta?.payment as PaymentRecord | undefined;
+    const driver = getReservationDriver();
+
+    if (payment && payment.status === 'PAID' && driver) {
+      const [slot, resource] = await Promise.all([
+        driver.getSlot(updated.slotId),
+        driver.getResource(updated.resourceId),
+      ]);
+      const prof = (resource?.attributes?.profile || {}) as Record<string, any>;
+      const freeCancelHours = Math.max(0, Number(prof.freeCancelHours ?? 48));
+      const { refundAmountKrw, fullRefund } = computeRefundAmount({
+        paidAmountKrw: payment.amountKrw,
+        startsAt: slot?.startsAt || updated.createdAt,
+        rule: { freeCancelHours, lateRefundRatePercent: 0 },
+      });
+      if (refundAmountKrw > 0 && payment.paymentKey) {
+        await getDefaultPaymentAdapter().refund({
+          paymentKey: payment.paymentKey,
+          amountKrw: refundAmountKrw,
+          reason: '이용자 직접 취소',
+        });
+      }
+      const nextStatus = fullRefund ? 'REFUNDED' : 'PARTIAL_REFUNDED';
+      const refundedPayment: PaymentRecord = {
+        ...transitionPaymentStatus(payment, nextStatus),
+        refundedAt: new Date().toISOString(),
+        refundAmountKrw,
+        refundReason: '이용자 직접 취소',
+      };
+      const withRefund = {
+        ...updated,
+        meta: { ...updated.meta, payment: refundedPayment },
+      };
+      await driver.saveBooking(withRefund);
+      return NextResponse.json({ ok: true, booking: withRefund });
+    }
+
     return NextResponse.json({ ok: true, booking: updated });
   } catch (e) {
     if (e instanceof ReservationError) {

@@ -16,8 +16,17 @@ interface MyBookingItem {
   startsAtText: string;
   guestName: string;
   requests: string;
+  payment?: { amountKrw: number; status: string; refundAmountKrw?: number } | null;
   createdAt: string;
 }
+
+const PAY_LABEL: Record<string, string> = {
+  PENDING: '결제대기',
+  PAID: '결제완료',
+  REFUNDED: '전액환불',
+  PARTIAL_REFUNDED: '부분환불',
+  FAILED: '결제실패',
+};
 
 const STATUS_LABEL: Record<string, string> = {
   REQUESTED: '확인 대기',
@@ -216,6 +225,19 @@ function MyReservationsContent() {
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4 text-[#3b82f6] shrink-0" />
                           <span>{b.resourcePhone}</span>
+                        </div>
+                      )}
+                      {b.payment && b.payment.amountKrw > 0 && (
+                        <div className="pt-2 mt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-white">
+                          <span>결제금액: {b.payment.amountKrw.toLocaleString('ko-KR')}원</span>
+                          <span className="px-2 py-0.5 border border-white/20 text-sm font-mono">
+                            {PAY_LABEL[b.payment.status] || b.payment.status}
+                          </span>
+                          {typeof b.payment.refundAmountKrw === 'number' && b.payment.status !== 'PAID' && (
+                            <span className="w-full text-zinc-300">
+                              환불금액: {b.payment.refundAmountKrw.toLocaleString('ko-KR')}원
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
