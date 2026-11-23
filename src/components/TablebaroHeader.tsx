@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
+const BIZ_SESSION_KEY = 'tablebaro_biz_session_v1';
 
 const NAV_ITEMS = [
   { id: 'reserve-list', label: '매장검색', href: '/reserve' },
@@ -13,6 +15,30 @@ const NAV_ITEMS = [
 /** 테이블바로 전용 헤더 (NadoSoloProvider 비종속) */
 export default function TablebaroHeader() {
   const pathname = usePathname();
+  const [bizName, setBizName] = useState<string | null>(null);
+
+  useEffect(() => {
+    const syncSession = () => {
+      try {
+        const raw = localStorage.getItem(BIZ_SESSION_KEY);
+        if (!raw) {
+          setBizName(null);
+          return;
+        }
+        const parsed = JSON.parse(raw) as { name?: string };
+        setBizName(parsed?.name || '매장관리');
+      } catch {
+        setBizName(null);
+      }
+    };
+    syncSession();
+    window.addEventListener('storage', syncSession);
+    window.addEventListener('tablebaro-biz-session', syncSession);
+    return () => {
+      window.removeEventListener('storage', syncSession);
+      window.removeEventListener('tablebaro-biz-session', syncSession);
+    };
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#090a0f] border-b border-white/10">
@@ -49,13 +75,24 @@ export default function TablebaroHeader() {
         </nav>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="/biz"
-            prefetch={true}
-            className="px-4 py-1.5 border border-[#3b82f6]/60 bg-[#3b82f6]/15 hover:bg-[#3b82f6]/25 text-white text-xs font-mono tracking-wider uppercase transition-colors"
-          >
-            로그인
-          </Link>
+          {bizName ? (
+            <Link
+              href="/biz"
+              prefetch={true}
+              className="px-4 py-1.5 border border-white/30 bg-white/10 hover:bg-white/20 text-white text-xs font-mono tracking-wider inline-flex items-center gap-2 transition-colors"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              <span className="max-w-[120px] truncate">{bizName}</span>
+            </Link>
+          ) : (
+            <Link
+              href="/biz"
+              prefetch={true}
+              className="px-4 py-1.5 border border-[#3b82f6]/60 bg-[#3b82f6]/15 hover:bg-[#3b82f6]/25 text-white text-xs font-mono tracking-wider uppercase transition-colors"
+            >
+              로그인
+            </Link>
+          )}
         </div>
       </div>
     </header>

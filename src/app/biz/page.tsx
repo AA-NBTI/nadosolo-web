@@ -101,6 +101,8 @@ function BizReservationPortalContent() {
   const [obBusy, setObBusy] = useState(false);
 
   const [activeTab, setActiveTab] = useState<'OPERATE' | 'SETTINGS' | 'MARKETING' | 'PAYOUTS' | 'PAYLINKS'>('OPERATE');
+  const [settingMenu, setSettingMenu] = useState<'INFO' | 'HOMEPAGE' | 'PAYMENT' | 'UNITS' | 'HOURS' | null>(null);
+  const [signupHandle, setSignupHandle] = useState('');
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -240,6 +242,7 @@ function BizReservationPortalContent() {
         return;
       }
       localStorage.setItem(BIZ_SESSION_KEY, JSON.stringify(data.resource));
+      window.dispatchEvent(new Event('tablebaro-biz-session'));
       setSession(data.resource);
       setPin('');
       setAuthNotice(`${data.resource.name} 계정으로 로그인되었습니다.`);
@@ -278,6 +281,7 @@ function BizReservationPortalContent() {
         body: JSON.stringify({
           contactEmail: signupEmail,
           managerName: signupManagerName,
+          handle: signupHandle.trim().toLowerCase(),
           pin: signupPin,
         }),
       });
@@ -288,6 +292,7 @@ function BizReservationPortalContent() {
       }
       setIdentifier(signupEmail);
       setSignupEmail('');
+      setSignupHandle('');
       setSignupManagerName('');
       setSignupPin('');
       setSignupPinConfirm('');
@@ -345,6 +350,7 @@ function BizReservationPortalContent() {
         return;
       }
       localStorage.setItem(BIZ_SESSION_KEY, JSON.stringify(data.resource));
+      window.dispatchEvent(new Event('tablebaro-biz-session'));
       setSession(data.resource);
     } catch {
       setObError('업체 정보 등록 중 오류가 발생했습니다.');
@@ -355,6 +361,7 @@ function BizReservationPortalContent() {
 
   const handleLogout = () => {
     localStorage.removeItem(BIZ_SESSION_KEY);
+    window.dispatchEvent(new Event('tablebaro-biz-session'));
     setSession(null);
     setBookings([]);
     setWindows([]);
@@ -613,6 +620,26 @@ function BizReservationPortalContent() {
                   placeholder="홍길동"
                   className="w-full px-4 py-3 bg-black/40 border border-white/15 focus:border-white/40 text-sm text-[#f5f2eb] placeholder-zinc-500 font-light focus:outline-none transition-colors"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-mono tracking-wider text-zinc-300 mb-1.5">
+                  핸들 (홈페이지 주소)
+                </label>
+                <div className="flex items-center border border-white/15 bg-black/40">
+                  <span className="px-3 text-sm font-mono text-zinc-400">@</span>
+                  <input
+                    type="text"
+                    value={signupHandle}
+                    onChange={(e) => setSignupHandle(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    placeholder="gosu"
+                    className="flex-1 py-3 pr-4 bg-transparent text-sm font-mono text-[#f5f2eb] placeholder-zinc-500 focus:outline-none"
+                  />
+                </div>
+                {signupHandle && (
+                  <p className="text-xs font-mono text-zinc-400 mt-1">
+                    {signupHandle}.tablebaro.com
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
@@ -988,59 +1015,151 @@ function BizReservationPortalContent() {
         ) : activeTab === 'PAYOUTS' ? (
           <BizPayouts resourceId={session.id} />
         ) : activeTab === 'SETTINGS' ? (
-          <form onSubmit={handleSaveSettings} className="space-y-4 text-sm font-mono">
-            {/* 매장 기본 정보 */}
-            <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
-              <div className="flex items-center gap-2 border-b border-white/10 pb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
-                <h2 className="font-serif-editorial text-lg text-white font-normal">매장정보</h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-zinc-400 mb-1">업체명</label>
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+          <form onSubmit={handleSaveSettings} className="space-y-3 text-sm font-mono">
+            {/* 한 단어 · 하나의 기능 (리스트 우선 -> 클릭 시 해당 기능만 노출) */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              {(
+                [
+                  ['INFO', '기본정보'],
+                  ['HOMEPAGE', '홈페이지'],
+                  ['PAYMENT', '결제'],
+                  ['UNITS', '좌석'],
+                  ['HOURS', '영업시간'],
+                ] as const
+              ).map(([key, label]) => {
+                const active = settingMenu === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSettingMenu(active ? null : key)}
+                    className={`p-3 border text-left flex items-center justify-between cursor-pointer ${
+                      active
+                        ? 'border-white/40 bg-white/15 text-white font-bold'
+                        : 'border-white/10 bg-[#0c0d12] text-zinc-200 hover:border-white/30'
+                    }`}
+                  >
+                    <span>{label}</span>
+                    <span className="text-zinc-400">{active ? '−' : '+'}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {settingMenu === 'INFO' && (
+              <section className="p-4 border border-white/15 bg-[#0c0d12] space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-zinc-400 mb-1">업체명</label>
+                    <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">업종</label>
+                    <select value={editKind} onChange={(e) => setEditKind(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white">
+                      <option value="restaurant">식당 · 다이닝</option>
+                      <option value="lodging">숙박 · 스테이</option>
+                      <option value="space">공간 · 살롱</option>
+                      <option value="etc">기타 체험</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">주소</label>
+                    <AddressAutocompleteInput
+                      value={editAddress}
+                      onChange={setEditAddress}
+                      onSelectAddress={(item) => setEditAddressMeta(item)}
+                      placeholder="도로명 주소"
+                      className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white focus:outline-none focus:border-white/40"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">상세위치</label>
+                    <input value={editDetail} onChange={(e) => setEditDetail(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">전화</label>
+                    <input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">안내</label>
+                    <input value={editGuide} onChange={(e) => setEditGuide(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">업종</label>
-                  <select value={editKind} onChange={(e) => setEditKind(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white">
-                    <option value="restaurant">식당 · 다이닝</option>
-                    <option value="lodging">숙박 · 스테이</option>
-                    <option value="space">공간 · 살롱</option>
-                    <option value="etc">기타 체험</option>
-                  </select>
+                <div className="flex justify-end pt-2">
+                  <button type="submit" disabled={busyKey === 'SETTINGS'} className="px-6 py-2 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-bold cursor-pointer">
+                    저장
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">도로명 주소</label>
-                  <AddressAutocompleteInput
-                    value={editAddress}
-                    onChange={setEditAddress}
-                    onSelectAddress={(item) => setEditAddressMeta(item)}
-                    placeholder="지번·도로명·건물명 입력"
-                    className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white focus:outline-none focus:border-white/40"
-                  />
+              </section>
+            )}
+
+            {settingMenu === 'HOMEPAGE' && (
+              <section className="p-4 border border-white/15 bg-[#0c0d12] space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-zinc-400 mb-1">핸들 (@주소)</label>
+                    <div className="flex items-center border border-white/20 bg-black/40">
+                      <span className="px-3 text-zinc-400">@</span>
+                      <input
+                        value={editSlug}
+                        onChange={(e) => setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        placeholder="gosu"
+                        className="flex-1 py-2 pr-3 bg-transparent text-white focus:outline-none"
+                      />
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                      <Link href={publicPath} target="_blank" rel="noopener noreferrer" className="text-white underline underline-offset-4 inline-flex items-center gap-1">
+                        <span>{publicPath}</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </Link>
+                      {editSlug.trim() && <span>· {editSlug.trim()}.tablebaro.com</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">대표메뉴</label>
+                    <input value={editSignatureMenu} onChange={(e) => setEditSignatureMenu(e.target.value)} placeholder="예: 평양냉면" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">가격대</label>
+                    <input value={editPriceRange} onChange={(e) => setEditPriceRange(e.target.value)} placeholder="예: 1~2만원대" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 mb-1">대표사진 URL</label>
+                    <input value={editCoverUrl} onChange={(e) => setEditCoverUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                  </div>
+                  <div className="sm:col-span-2 space-y-1.5">
+                    <label className="block text-zinc-400">태그</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {VENUE_TAG_OPTIONS.map((tag) => {
+                        const on = editTags.includes(tag);
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => setEditTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))}
+                            className={`px-3 py-1 border text-sm font-mono cursor-pointer ${
+                              on ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold' : 'border-white/15 bg-black/40 text-zinc-400'
+                            }`}
+                          >
+                            {tag}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">상세 위치</label>
-                  <input value={editDetail} onChange={(e) => setEditDetail(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
+                <div className="flex justify-end pt-2">
+                  <button type="submit" disabled={busyKey === 'SETTINGS'} className="px-6 py-2 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-bold cursor-pointer">
+                    저장
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">매장 전화</label>
-                  <input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">이용 안내</label>
-                  <input value={editGuide} onChange={(e) => setEditGuide(e.target.value)} className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">대표 메뉴</label>
-                  <input value={editSignatureMenu} onChange={(e) => setEditSignatureMenu(e.target.value)} placeholder="예: 한우 오마카세, 평양냉면" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">가격대</label>
-                  <input value={editPriceRange} onChange={(e) => setEditPriceRange(e.target.value)} placeholder="예: 1인 2~4만원대" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
-                </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">결제 금액 (원)</label>
+              </section>
+            )}
+
+            {settingMenu === 'PAYMENT' && (
+              <section className="p-4 border border-white/15 bg-[#0c0d12] space-y-3">
+                <div className="max-w-xs">
+                  <label className="block text-zinc-400 mb-1">결제금액 (원)</label>
                   <input
                     type="number"
                     min={0}
@@ -1051,243 +1170,138 @@ function BizReservationPortalContent() {
                     className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white"
                   />
                 </div>
-                <div>
-                  <label className="block text-zinc-400 mb-1">전용 주소 (슬러그)</label>
-                  <input
-                    value={editSlug}
-                    onChange={(e) => setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                    placeholder="예: gosu (gosu.tablebaro.com)"
-                    className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white"
-                  />
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
-                    <Link
-                      href={publicPath}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-white underline underline-offset-4 inline-flex items-center gap-1"
-                    >
-                      <span>{publicPath}</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </Link>
-                    {editSlug.trim() && <span>· {editSlug.trim()}.tablebaro.com</span>}
-                  </div>
+                <div className="flex justify-end pt-2">
+                  <button type="submit" disabled={busyKey === 'SETTINGS'} className="px-6 py-2 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-bold cursor-pointer">
+                    저장
+                  </button>
                 </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-zinc-400 mb-1">대표 사진 URL</label>
-                  <input value={editCoverUrl} onChange={(e) => setEditCoverUrl(e.target.value)} placeholder="https://... (선택 입력)" className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white" />
-                </div>
-                <div className="sm:col-span-2 space-y-1.5">
-                  <label className="block text-zinc-400">편의 · 분위기 태그</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {VENUE_TAG_OPTIONS.map((tag) => {
-                      const on = editTags.includes(tag);
-                      return (
-                        <button
-                          key={tag}
-                          type="button"
-                          onClick={() =>
-                            setEditTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
-                          }
-                          className={`px-3 py-1 border text-sm font-mono cursor-pointer ${
-                            on ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold' : 'border-white/15 bg-black/40 text-zinc-400'
-                          }`}
-                        >
-                          {tag}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </section>
+              </section>
+            )}
 
-            {/* 복수 좌석/상품 유닛 */}
-            <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
-              <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
-                  <h2 className="font-serif-editorial text-lg text-white font-normal">좌석 · 룸 유닛</h2>
+            {settingMenu === 'UNITS' && (
+              <section className="p-4 border border-white/15 bg-[#0c0d12] space-y-3">
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <span className="text-white">좌석</span>
+                  <button type="button" onClick={addUnit} className="px-2.5 py-1 border border-white/25 bg-white/10 hover:bg-white/20 text-white cursor-pointer">
+                    + 추가
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={addUnit}
-                  className="px-2.5 py-1 border border-white/25 bg-white/10 hover:bg-white/20 text-white cursor-pointer"
-                >
-                  + 추가
-                </button>
-              </div>
-              <div className="space-y-2">
-                {units.map((u, idx) => (
-                  <div key={u.id} className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2.5 border border-white/10 bg-black/30 items-end">
-                    <div className="col-span-2 sm:col-span-2">
-                      <label className="block text-zinc-400 mb-1">유닛명</label>
-                      <input value={u.name} onChange={(e) => updateUnit(idx, { name: e.target.value })} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                    </div>
-                    <div>
-                      <label className="block text-zinc-400 mb-1">최소인원</label>
-                      <input type="number" min={1} value={u.minPartySize} onChange={(e) => updateUnit(idx, { minPartySize: Number(e.target.value) })} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                    </div>
-                    <div>
-                      <label className="block text-zinc-400 mb-1">최대인원</label>
-                      <input type="number" min={1} value={u.maxPartySize} onChange={(e) => updateUnit(idx, { maxPartySize: Number(e.target.value) })} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                    </div>
-                    <div>
-                      <label className="block text-zinc-400 mb-1">수량</label>
-                      <input type="number" min={1} value={u.quantity} onChange={(e) => updateUnit(idx, { quantity: Number(e.target.value) })} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <div className="flex-1">
-                        <label className="block text-zinc-400 mb-1">분</label>
-                        <input type="number" min={30} step={30} value={u.durationMinutes} onChange={(e) => updateUnit(idx, { durationMinutes: Number(e.target.value) })} className="w-full px-2 py-1.5 bg-black/50 border border-white/20 text-white" />
+                <div className="space-y-2">
+                  {units.map((u, idx) => (
+                    <div key={u.id} className="grid grid-cols-2 sm:grid-cols-6 gap-2 p-2.5 border border-white/10 bg-black/30 items-end">
+                      <div className="col-span-2 sm:col-span-2">
+                        <label className="block text-zinc-400 mb-1">유닛명</label>
+                        <input value={u.name} onChange={(e) => updateUnit(idx, { name: e.target.value })} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
                       </div>
-                      {units.length > 1 && (
-                        <button type="button" onClick={() => removeUnit(idx)} className="px-2 py-1.5 border border-white/20 text-zinc-300 hover:text-white cursor-pointer">
-                          삭제
-                        </button>
-                      )}
+                      <div>
+                        <label className="block text-zinc-400 mb-1">최소</label>
+                        <input type="number" min={1} value={u.minPartySize} onChange={(e) => updateUnit(idx, { minPartySize: Number(e.target.value) })} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-400 mb-1">최대</label>
+                        <input type="number" min={1} value={u.maxPartySize} onChange={(e) => updateUnit(idx, { maxPartySize: Number(e.target.value) })} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-400 mb-1">수량</label>
+                        <input type="number" min={1} value={u.quantity} onChange={(e) => updateUnit(idx, { quantity: Number(e.target.value) })} className="w-full px-2.5 py-1.5 bg-black/50 border border-white/20 text-white" />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex-1">
+                          <label className="block text-zinc-400 mb-1">분</label>
+                          <input type="number" min={30} step={30} value={u.durationMinutes} onChange={(e) => updateUnit(idx, { durationMinutes: Number(e.target.value) })} className="w-full px-2 py-1.5 bg-black/50 border border-white/20 text-white" />
+                        </div>
+                        {units.length > 1 && (
+                          <button type="button" onClick={() => removeUnit(idx)} className="px-2 py-1.5 border border-white/20 text-zinc-300 hover:text-white cursor-pointer">
+                            삭제
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* 요일별 차등 영업시간 & 브레이크타임 */}
-            <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
-                  <h2 className="font-serif-editorial text-lg text-white font-normal">요일별 영업시간</h2>
+                  ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const base = weeklyRules.find((r) => r.active) || weeklyRules[0];
-                    setWeeklyRules((prev) =>
-                      prev.map((r) => ({
-                        ...r,
-                        startTime: base.startTime,
-                        endTime: base.endTime,
-                        breakStart: base.breakStart,
-                        breakEnd: base.breakEnd,
-                        slotIntervalMinutes: base.slotIntervalMinutes,
-                      }))
-                    );
-                  }}
-                  className="px-2.5 py-1 border border-white/20 bg-white/5 hover:bg-white/15 text-sm text-zinc-200 cursor-pointer"
-                >
-                  첫 요일 시간 전체복사
-                </button>
-              </div>
-              <div className="space-y-2">
-                {weeklyRules.map((rule) => (
-                  <div
-                    key={rule.dayOfWeek}
-                    className={`grid grid-cols-2 sm:grid-cols-6 gap-2 p-2.5 border items-center ${
-                      rule.active ? 'border-white/15 bg-black/40' : 'border-white/5 bg-black/20 opacity-60'
-                    }`}
+                <div className="flex justify-end pt-2">
+                  <button type="submit" disabled={busyKey === 'SETTINGS'} className="px-6 py-2 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-bold cursor-pointer">
+                    저장
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {settingMenu === 'HOURS' && (
+              <section className="p-4 border border-white/15 bg-[#0c0d12] space-y-3">
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <span className="text-white">영업시간</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const base = weeklyRules.find((r) => r.active) || weeklyRules[0];
+                      setWeeklyRules((prev) =>
+                        prev.map((r) => ({
+                          ...r,
+                          startTime: base.startTime,
+                          endTime: base.endTime,
+                          breakStart: base.breakStart,
+                          breakEnd: base.breakEnd,
+                          slotIntervalMinutes: base.slotIntervalMinutes,
+                        }))
+                      );
+                    }}
+                    className="px-2.5 py-1 border border-white/20 bg-white/5 hover:bg-white/15 text-sm text-zinc-200 cursor-pointer"
                   >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setWeeklyRules((prev) =>
-                          prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, active: !r.active } : r))
-                        )
-                      }
-                      className={`px-3 py-1.5 border text-sm font-mono cursor-pointer ${
-                        rule.active ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold' : 'border-white/15 text-zinc-400'
+                    전체복사
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {weeklyRules.map((rule) => (
+                    <div
+                      key={rule.dayOfWeek}
+                      className={`grid grid-cols-2 sm:grid-cols-6 gap-2 p-2.5 border items-center ${
+                        rule.active ? 'border-white/15 bg-black/40' : 'border-white/5 bg-black/20 opacity-60'
                       }`}
                     >
-                      {DAY_LABELS[rule.dayOfWeek]} · {rule.active ? '영업' : '휴무'}
-                    </button>
-                    <div>
-                      <label className="block text-zinc-400 mb-0.5">오픈</label>
-                      <input
-                        type="time"
-                        disabled={!rule.active}
-                        value={rule.startTime}
-                        onChange={(e) =>
+                      <button
+                        type="button"
+                        onClick={() =>
                           setWeeklyRules((prev) =>
-                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, startTime: e.target.value } : r))
+                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, active: !r.active } : r))
                           )
                         }
-                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
-                      />
+                        className={`px-3 py-1.5 border text-sm font-mono cursor-pointer ${
+                          rule.active ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold' : 'border-white/15 text-zinc-400'
+                        }`}
+                      >
+                        {DAY_LABELS[rule.dayOfWeek]} · {rule.active ? '영업' : '휴무'}
+                      </button>
+                      <div>
+                        <label className="block text-zinc-400 mb-0.5">오픈</label>
+                        <input type="time" disabled={!rule.active} value={rule.startTime} onChange={(e) => setWeeklyRules((prev) => prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, startTime: e.target.value } : r)))} className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-400 mb-0.5">마감</label>
+                        <input type="time" disabled={!rule.active} value={rule.endTime} onChange={(e) => setWeeklyRules((prev) => prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, endTime: e.target.value } : r)))} className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-400 mb-0.5">브레이크1</label>
+                        <input type="time" disabled={!rule.active} value={rule.breakStart} onChange={(e) => setWeeklyRules((prev) => prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, breakStart: e.target.value } : r)))} className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-400 mb-0.5">브레이크2</label>
+                        <input type="time" disabled={!rule.active} value={rule.breakEnd} onChange={(e) => setWeeklyRules((prev) => prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, breakEnd: e.target.value } : r)))} className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white" />
+                      </div>
+                      <div>
+                        <label className="block text-zinc-400 mb-0.5">간격</label>
+                        <input type="number" min={15} step={15} disabled={!rule.active} value={rule.slotIntervalMinutes} onChange={(e) => setWeeklyRules((prev) => prev.map((r) => r.dayOfWeek === rule.dayOfWeek ? { ...r, slotIntervalMinutes: Math.max(15, Number(e.target.value)) } : r))} className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-zinc-400 mb-0.5">마감</label>
-                      <input
-                        type="time"
-                        disabled={!rule.active}
-                        value={rule.endTime}
-                        onChange={(e) =>
-                          setWeeklyRules((prev) =>
-                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, endTime: e.target.value } : r))
-                          )
-                        }
-                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-zinc-400 mb-0.5">브레이크 시작</label>
-                      <input
-                        type="time"
-                        disabled={!rule.active}
-                        value={rule.breakStart}
-                        onChange={(e) =>
-                          setWeeklyRules((prev) =>
-                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, breakStart: e.target.value } : r))
-                          )
-                        }
-                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-zinc-400 mb-0.5">브레이크 종료</label>
-                      <input
-                        type="time"
-                        disabled={!rule.active}
-                        value={rule.breakEnd}
-                        onChange={(e) =>
-                          setWeeklyRules((prev) =>
-                            prev.map((r) => (r.dayOfWeek === rule.dayOfWeek ? { ...r, breakEnd: e.target.value } : r))
-                          )
-                        }
-                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-zinc-400 mb-0.5">간격(분)</label>
-                      <input
-                        type="number"
-                        min={15}
-                        step={15}
-                        disabled={!rule.active}
-                        value={rule.slotIntervalMinutes}
-                        onChange={(e) =>
-                          setWeeklyRules((prev) =>
-                            prev.map((r) =>
-                              r.dayOfWeek === rule.dayOfWeek
-                                ? { ...r, slotIntervalMinutes: Math.max(15, Number(e.target.value)) }
-                                : r
-                            )
-                          )
-                        }
-                        className="w-full px-2 py-1 bg-black/50 border border-white/20 text-white"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  disabled={busyKey === 'SETTINGS'}
-                  className="px-6 py-2 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-bold cursor-pointer"
-                >
-                  저장
-                </button>
-              </div>
-            </section>
+                  ))}
+                </div>
+                <div className="flex justify-end pt-2">
+                  <button type="submit" disabled={busyKey === 'SETTINGS'} className="px-6 py-2 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-bold cursor-pointer">
+                    저장
+                  </button>
+                </div>
+              </section>
+            )}
           </form>
         ) : (
           <>

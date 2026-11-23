@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getReservationDriver } from '@/lib/reservation/runtime';
 import type { Resource } from '@/modules/reservation';
+import { normalizeSlug } from '@/modules/tenancy';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,15 @@ export async function POST(request: Request) {
   const contactEmail = String(body.contactEmail || '').trim().toLowerCase();
   const pin = String(body.pin || '').trim();
   const managerName = String(body.managerName || '').trim();
+  const rawHandle = String(body.handle || body.slug || '').trim();
+  const cleanHandle = rawHandle ? normalizeSlug(rawHandle) : null;
+
+  if (rawHandle && !cleanHandle) {
+    return NextResponse.json(
+      { ok: false, error: '핸들은 영문 소문자·숫자 2~32자만 사용할 수 있습니다. (예약어 제외)' },
+      { status: 400 }
+    );
+  }
 
   if (!contactEmail || pin.length < 4) {
     return NextResponse.json(
@@ -37,6 +47,14 @@ export async function POST(request: Request) {
     );
     if (dup) {
       return NextResponse.json({ ok: false, error: '이미 등록된 이메일입니다.' }, { status: 409 });
+    }
+    if (cleanHandle) {
+      const slugDup = existing.find(
+        (r) => String((r.attributes?.profile as Record<string, any> | undefined)?.slug || '').toLowerCase() === cleanHandle
+      );
+      if (slugDup) {
+        return NextResponse.json({ ok: false, error: `이미 사용 중인 핸들입니다: @${cleanHandle}` }, { status: 409 });
+      }
     }
 
     const id = `BIZ_${Date.now().toString(36).toUpperCase()}`;
@@ -64,6 +82,7 @@ export async function POST(request: Request) {
           managerName,
           managerPhone: '',
           guideNote: '',
+          ...(cleanHandle ? { slug: cleanHandle } : {}),
         },
         units: [
           {
