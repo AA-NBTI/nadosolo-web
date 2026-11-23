@@ -19,7 +19,20 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const slug = extractSubdomainSlug(request.headers.get('host'));
+  const host = (request.headers.get('host') || '').toLowerCase();
+
+  // tablebaro.com 또는 www.tablebaro.com 메인 접속 시 -> 테이블바로 허브(/reserve)로 리라이트
+  if (
+    (host === 'tablebaro.com' || host === 'www.tablebaro.com') &&
+    (pathname === '/' || pathname === '')
+  ) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/reserve';
+    url.search = search;
+    return NextResponse.rewrite(url);
+  }
+
+  const slug = extractSubdomainSlug(host);
   if (!slug) {
     return NextResponse.next();
   }
