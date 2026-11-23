@@ -139,14 +139,23 @@ function BizReservationPortalContent() {
   const [weeklyRules, setWeeklyRules] = useState<WeeklyRuleState[]>(DEFAULT_WEEKLY_RULES);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(BIZ_SESSION_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as BizSession;
-        if (parsed?.id) setSession(parsed);
+    const sync = () => {
+      try {
+        const raw = localStorage.getItem(BIZ_SESSION_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as BizSession;
+          setSession(parsed?.id ? parsed : null);
+        } else {
+          setSession(null);
+        }
+      } catch {
+        setSession(null);
       }
-    } catch {}
-    setReady(true);
+      setReady(true);
+    };
+    sync();
+    window.addEventListener('tablebaro-biz-session', sync);
+    return () => window.removeEventListener('tablebaro-biz-session', sync);
   }, []);
 
   const loadData = useCallback(

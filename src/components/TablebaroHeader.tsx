@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { LogOut, User } from 'lucide-react';
 
 const BIZ_SESSION_KEY = 'tablebaro_biz_session_v1';
 
@@ -40,6 +41,12 @@ export default function TablebaroHeader() {
     };
   }, [pathname]);
 
+  const handleLogout = () => {
+    localStorage.removeItem(BIZ_SESSION_KEY);
+    window.dispatchEvent(new Event('tablebaro-biz-session'));
+    setBizName(null);
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full bg-[#090a0f] border-b border-white/10">
       <div className="w-full max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20 h-18 flex items-center justify-between gap-4 sm:gap-6">
@@ -76,14 +83,25 @@ export default function TablebaroHeader() {
 
         <div className="flex items-center gap-2 shrink-0">
           {bizName ? (
-            <Link
-              href="/biz"
-              prefetch={true}
-              className="px-4 py-1.5 border border-white/30 bg-white/10 hover:bg-white/20 text-white text-xs font-mono tracking-wider inline-flex items-center gap-2 transition-colors"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span className="max-w-[120px] truncate">{bizName}</span>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/biz"
+                prefetch={true}
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-white/15 bg-white/[0.03] hover:bg-white/[0.08] text-xs font-mono text-zinc-200 hover:text-white transition-all"
+                title="매장관리"
+              >
+                <User className="w-3.5 h-3.5 text-[#3b82f6]" />
+                <span className="truncate max-w-[100px] sm:max-w-[140px]">{bizName}</span>
+              </Link>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="p-1.5 text-zinc-500 hover:text-zinc-200 transition-colors cursor-pointer"
+                title="로그아웃"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           ) : (
             <Link
               href="/biz"
