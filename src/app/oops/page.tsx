@@ -246,37 +246,31 @@ function OopsHqContent() {
             <strong>OOPS HQ</strong>는 거대 플랫폼과 AI 알고리즘의 통제를 거부하고,
             인간이 최종 통제권(브레이크)과 직통 연결망을 되찾기 위해 출범한
             <strong> AI 저항군 본부</strong>입니다. 우리는 말뿐인 선언이 아닌,
-            카카오톡 API와 앱스토어 검열을 거치지 않는 <strong>독립 통신망</strong>을 직접 가동합니다.
+            플랫폼 API와 앱스토어 검열을 거치지 않는 <strong>독립 통신망</strong>을 직접 가동합니다.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
             <div className="p-4 border border-white/10 bg-[#0d0f14] space-y-1.5">
-              <div className="text-xs font-mono text-red-400">01 · 신경망 (OOPS)</div>
-              <div className="text-sm font-semibold text-white">독립 직통 푸시망</div>
+              <div className="text-xs font-mono text-red-400">01 · DIRECT PING</div>
+              <div className="text-sm font-semibold text-white">무검열 직통 호출망</div>
               <p className="text-xs text-zinc-400 leading-relaxed">
-                메신저 통행세 0원. 사람·매장·AI의 실수 직전 호출을 폰으로 즉시 전송합니다.
+                거대 메신저의 통행세와 검열 없이 인간과 인간을 브라우저·기기 단위로 직접 연결합니다.
               </p>
             </div>
-            <a
-              href="https://nadosolo.com"
-              className="p-4 border border-white/10 bg-[#0d0f14] hover:border-white/25 transition-colors space-y-1.5"
-            >
-              <div className="text-xs font-mono text-[#f04f74]">02 · 아지트 (NADOSOLO)</div>
-              <div className="text-sm font-semibold text-white">오프라인 인간 연대</div>
+            <div className="p-4 border border-white/10 bg-[#0d0f14] space-y-1.5">
+              <div className="text-xs font-mono text-red-400">02 · HUMAN BRAKE</div>
+              <div className="text-sm font-semibold text-white">AI 실행 최종 브레이크</div>
               <p className="text-xs text-zinc-400 leading-relaxed">
-                스크린 너머가 아닌 실제 식탁에서 얼굴을 맞대고 소통하는 소셜 메타인지 플랫폼.
+                AI 에이전트가 대신 결정하기 직전, 최종 승인·차단 버튼을 인간의 손에 되돌려줍니다.
               </p>
-            </a>
-            <a
-              href="https://tablebaro.com"
-              className="p-4 border border-white/10 bg-[#0d0f14] hover:border-white/25 transition-colors space-y-1.5"
-            >
-              <div className="text-xs font-mono text-blue-400">03 · 보급로 (TABLEBARO)</div>
-              <div className="text-sm font-semibold text-white">실물 매장 직거래</div>
+            </div>
+            <div className="p-4 border border-white/10 bg-[#0d0f14] space-y-1.5">
+              <div className="text-xs font-mono text-red-400">03 · OPEN PROTOCOL</div>
+              <div className="text-sm font-semibold text-white">범용 독립 알림 엔진</div>
               <p className="text-xs text-zinc-400 leading-relaxed">
-                거대 플랫폼 수수료 없이 오프라인 매장과 손님을 직접 연결하는 예약 엔진.
+                어떤 외부 서비스나 개인도 OOPS 독립 통신망을 API로 연결해 즉시 활용할 수 있습니다.
               </p>
-            </a>
+            </div>
           </div>
         </section>
 
@@ -488,15 +482,10 @@ function OopsHqContent() {
       <footer className="border-t border-white/10 py-8 px-5 text-xs text-zinc-500">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="font-mono text-zinc-400">
-            OOPS.MONSTER · Operated by 템바보드 주식회사 (107-88-44796)
+            OOPS.MONSTER · AI RESISTANCE HEADQUARTERS
           </div>
-          <div className="flex items-center gap-4 font-mono">
-            <a href="https://nadosolo.com" className="hover:text-white transition-colors">
-              nadosolo.com
-            </a>
-            <a href="https://tablebaro.com" className="hover:text-white transition-colors">
-              tablebaro.com
-            </a>
+          <div className="font-mono text-zinc-500">
+            HUMAN-FIRST INDEPENDENT SIGNAL NETWORK
           </div>
         </div>
       </footer>
