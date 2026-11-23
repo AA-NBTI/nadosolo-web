@@ -269,11 +269,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.9',
+    releaseTitle: '듀얼 도메인 UI·메타데이터·파비콘·SEO 완전 분리 (nadosolo.com vs tablebaro.com)',
+    releaseDate: '2026-11-23',
+    summary: 'tablebaro.com 및 *.tablebaro.com 호스트 접속 시 나도솔로 헤더·푸터·OG 메타태그·파비콘·사이트맵이 혼입되던 6개 지점을 일괄 수정하여 양 브랜드의 UI 쉘과 SEO를 100% 독립 분리함.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2991',
+        category: 'CONSTITUTION',
+        categoryLabel: '듀얼브랜드·완전격리',
+        title: '호스트 기반 AppShell·동적 Metadata·파비콘·교차링크·SEO 분리 완결',
+        beforeSummary: 'rewrite된 tablebaro.com 루트 접속 시 pathname(/) 기준으로 나도솔로 헤더·푸터·메타태그가 노출됨',
+        afterSummary: 'isTablebaroHost 판별로 UI 쉘·OG 메타·t/n 파비콘·robots/sitemap·서브도메인 탈출 링크 100% 분리',
+        impactLabel: '단일 배포 환경에서 나도솔로와 테이블바로의 브랜드 경험·SEO 완전 독립',
+        status: 'VERIFIED',
+        affectedRoutes: ['src/app/layout.tsx', 'src/components/AppShell.tsx', 'src/components/GlobalFooter.tsx', 'src/components/TablebaroHeader.tsx', 'src/app/icon.tsx', 'src/app/robots.ts', 'src/app/sitemap.ts'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.8',
     releaseTitle: 'tablebaro.com 멀티도메인·와일드카드(*.tablebaro.com) Vercel 실서버 연동 및 호스트 분기 라우팅 완결',
     releaseDate: '2026-11-23',
     summary: 'nadosolo-web 단일 Vercel 프로젝트에 tablebaro.com 및 와일드카드 서브도메인(*.tablebaro.com, gosu.tablebaro.com)을 직접 연결하고, middleware.ts를 통한 호스트 기반 자동 라우팅(nadosolo.com -> 메인, tablebaro.com -> /reserve, *.tablebaro.com -> /reserve/[slug])을 검증 완료하여 나도솔로-테이블바로 듀얼 브랜드 상용 아키텍처를 완결함.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2981',
