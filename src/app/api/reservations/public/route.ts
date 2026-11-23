@@ -3,6 +3,7 @@ import { ReservationError, extractUnits } from '@/modules/reservation';
 import { getReservationDriver, getReservationEngine } from '@/lib/reservation/runtime';
 import { sanitizeAttribution } from '@/modules/tracking';
 import { recordTrackingEvent } from '@/lib/tracking/serverStore';
+import { dispatchNotification } from '@/lib/notify/serverStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -181,6 +182,14 @@ export async function POST(request: Request) {
         amountKrw: 0,
         orderId: booking.id,
         resourceId,
+      });
+      void dispatchNotification({
+        service: 'TABLEBARO',
+        template: 'BOOKING_REQUEST',
+        to: phone,
+        title: '예약 접수',
+        body: `${name}님 ${startsAtText} ${partySize}명 예약이 접수되었습니다.`,
+        linkUrl: `/reserve/my`,
       });
     }
 

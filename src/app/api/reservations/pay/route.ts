@@ -6,6 +6,7 @@ import {
   type PaymentRecord,
 } from '@/modules/payment';
 import { recordTrackingEvent } from '@/lib/tracking/serverStore';
+import { dispatchNotification } from '@/lib/notify/serverStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,6 +85,18 @@ export async function POST(request: Request) {
       orderId: nextPayment.orderId,
       resourceId: booking.resourceId,
     });
+
+    const att = booking.meta?.attendee as { name?: string; phone?: string } | undefined;
+    if (att?.phone) {
+      void dispatchNotification({
+        service: 'TABLEBARO',
+        template: 'BOOKING_CONFIRMED',
+        to: att.phone,
+        title: '결제 · 예약 완료',
+        body: `${att.name || '고객'}님 ${(booking.meta?.startsAtText as string) || ''} ${booking.partySize}명 (${nextPayment.amountKrw.toLocaleString('ko-KR')}원 결제완료)`,
+        linkUrl: '/reserve/my',
+      });
+    }
 
     return NextResponse.json({
       ok: true,

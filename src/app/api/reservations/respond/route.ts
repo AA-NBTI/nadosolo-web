@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ReservationError } from '@/modules/reservation';
 import { getNadoSoloReservationEngine, syncMeetupVenueOnFallback } from '@/lib/reservation/nadosolo';
 import { getLinkSecret, verifyResponseToken } from '@/lib/reservation/token';
+import { dispatchNotification } from '@/lib/notify/serverStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,6 +43,17 @@ export async function POST(request: Request) {
         : await engine.decline(verified.bookingId, '식당 거절');
     const fallbackId =
       action === 'DECLINE' ? await syncMeetupVenueOnFallback(engine, booking).catch(() => null) : null;
+    const att = booking.meta?.attendee as { phone?: string } | undefined;
+    if (att?.phone) {
+      void dispatchNotification({
+        service: 'TABLEBARO',
+        template: action === 'ACCEPT' ? 'BOOKING_CONFIRMED' : 'BOOKING_CANCELLED',
+        to: att.phone,
+        title: action === 'ACCEPT' ? '예약 확정' : '예약 불가 안내',
+        body: action === 'ACCEPT' ? '매장에서 예약을 확정했습니다.' : '매장 사정으로 예약이 거절되었습니다.',
+        linkUrl: '/reserve/my',
+      });
+    }
     return NextResponse.json({ ok: true, status: booking.status, fallbackBookingId: fallbackId });
   } catch (e) {
     if (e instanceof ReservationError) {

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Copy, LogOut, RefreshCw } from 'lucide-react';
 import AddressAutocompleteInput, { type SelectedAddressInfo } from '@/components/biz/AddressAutocompleteInput';
 import BizMarketing from '@/components/biz/BizMarketing';
+import BizPayouts from '@/components/biz/BizPayouts';
 
 const BIZ_SESSION_KEY = 'tablebaro_biz_session_v1';
 
@@ -98,7 +99,7 @@ function BizReservationPortalContent() {
   const [obError, setObError] = useState<string | null>(null);
   const [obBusy, setObBusy] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'OPERATE' | 'SETTINGS' | 'MARKETING'>('OPERATE');
+  const [activeTab, setActiveTab] = useState<'OPERATE' | 'SETTINGS' | 'MARKETING' | 'PAYOUTS'>('OPERATE');
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -902,6 +903,15 @@ function BizReservationPortalContent() {
             </button>
             <button
               type="button"
+              onClick={() => setActiveTab('PAYOUTS')}
+              className={`px-3 py-1.5 border text-sm font-mono text-white cursor-pointer ${
+                activeTab === 'PAYOUTS' ? 'border-white/40 bg-white/15 font-bold' : 'border-white/15 bg-white/5'
+              }`}
+            >
+              정산
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 const url = `${window.location.origin}/reserve/${session.id}`;
                 void navigator.clipboard.writeText(url);
@@ -940,6 +950,8 @@ function BizReservationPortalContent() {
 
         {activeTab === 'MARKETING' ? (
           <BizMarketing venueId={session.id} bookings={bookings} />
+        ) : activeTab === 'PAYOUTS' ? (
+          <BizPayouts resourceId={session.id} />
         ) : activeTab === 'SETTINGS' ? (
           <form onSubmit={handleSaveSettings} className="space-y-4 text-sm font-mono">
             {/* 매장 기본 정보 */}

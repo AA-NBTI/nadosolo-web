@@ -7,6 +7,7 @@ import {
   transitionPaymentStatus,
   type PaymentRecord,
 } from '@/modules/payment';
+import { dispatchNotification } from '@/lib/notify/serverStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -140,9 +141,25 @@ export async function POST(request: Request) {
         meta: { ...updated.meta, payment: refundedPayment },
       };
       await driver.saveBooking(withRefund);
+      void dispatchNotification({
+        service: 'TABLEBARO',
+        template: 'BOOKING_CANCELLED',
+        to: phone,
+        title: '예약 취소 · 환불',
+        body: `예약이 취소되었습니다. (환불 ${refundAmountKrw.toLocaleString('ko-KR')}원)`,
+        linkUrl: '/reserve/my',
+      });
       return NextResponse.json({ ok: true, booking: withRefund });
     }
 
+    void dispatchNotification({
+      service: 'TABLEBARO',
+      template: 'BOOKING_CANCELLED',
+      to: phone,
+      title: '예약 취소',
+      body: '예약이 정상 취소되었습니다.',
+      linkUrl: '/reserve/my',
+    });
     return NextResponse.json({ ok: true, booking: updated });
   } catch (e) {
     if (e instanceof ReservationError) {

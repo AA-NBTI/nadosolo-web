@@ -313,6 +313,31 @@ export default function PublicReservePage() {
     }
   };
 
+  const handleTossPayment = async () => {
+    if (!pendingPay || !resource) return;
+    setPayBusy(true);
+    setErrorMsg(null);
+    try {
+      const { loadTossPayments } = await import('@tosspayments/payment-sdk');
+      const clientKey =
+        process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJqK4Wj7mM05N3LzN97Eq';
+      const tossPayments = await loadTossPayments(clientKey);
+      const origin = window.location.origin;
+      await tossPayments.requestPayment('카드', {
+        amount: pendingPay.amountKrw,
+        orderId: pendingPay.orderId,
+        orderName: `${resource.name} 예약`,
+        customerName: name.trim() || '예약 고객',
+        successUrl: `${origin}/reserve/pay/success?bookingId=${encodeURIComponent(pendingPay.bookingId)}`,
+        failUrl: `${origin}/reserve/${encodeURIComponent(resourceId)}`,
+      });
+    } catch (err: unknown) {
+      const e = err as { code?: string; message?: string };
+      setErrorMsg(e?.code === 'USER_CANCEL' ? '결제가 취소되었습니다.' : e?.message || '결제창 호출 실패');
+      setPayBusy(false);
+    }
+  };
+
   const handleConfirmPayment = async () => {
     if (!pendingPay) return;
     setPayBusy(true);
@@ -369,7 +394,7 @@ export default function PublicReservePage() {
               {errorMsg}
             </div>
           )}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setPendingPay(null)}
@@ -382,9 +407,17 @@ export default function PublicReservePage() {
               type="button"
               onClick={() => void handleConfirmPayment()}
               disabled={payBusy}
+              className="py-3 border border-white/25 bg-white/10 hover:bg-white/20 text-sm font-mono text-white cursor-pointer disabled:opacity-40"
+            >
+              테스트승인
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleTossPayment()}
+              disabled={payBusy}
               className="py-3 border border-[#3b82f6]/60 bg-[#3b82f6]/25 hover:bg-[#3b82f6]/35 text-sm font-mono font-bold text-white cursor-pointer disabled:opacity-40"
             >
-              {payBusy ? '결제 중' : '결제'}
+              {payBusy ? '연결 중' : '결제'}
             </button>
           </div>
         </div>

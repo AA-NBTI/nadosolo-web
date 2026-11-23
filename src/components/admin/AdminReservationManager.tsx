@@ -62,7 +62,27 @@ export default function AdminReservationManager({
   const [resources, setResources] = useState<ResourceItem[]>([]);
   const [bookings, setBookings] = useState<BookingItem[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'BOOKINGS' | 'RESOURCES'>(initialView);
+  const [viewMode, setViewMode] = useState<'BOOKINGS' | 'RESOURCES' | 'PAYOUTS' | 'NOTIFY'>(initialView);
+  const [payoutSummaries, setPayoutSummaries] = useState<Array<{
+    resourceId: string;
+    resourceName: string;
+    netSalesKrw: number;
+    feeKrw: number;
+    paidOutKrw: number;
+    balanceKrw: number;
+    bankInfo: string;
+    requestedAt?: string;
+  }>>([]);
+  const [notifyLogs, setNotifyLogs] = useState<Array<{
+    id: string;
+    template: string;
+    provider: string;
+    status: string;
+    to: string;
+    title: string;
+    body: string;
+    at: string;
+  }>>([]);
   const [showAddForm, setShowAddForm] = useState(false);
 
   // 자원 등록 폼 상태 (Cal.com + 네이버 플레이스 기준)
@@ -94,11 +114,21 @@ export default function AdminReservationManager({
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/admin/reservations');
-      const data = await res.json();
+      const [res, payRes, ntfRes] = await Promise.all([
+        fetch('/api/admin/reservations'),
+        fetch('/api/biz/payouts'),
+        fetch('/api/notify?service=TABLEBARO'),
+      ]);
+      const [data, payData, ntfData] = await Promise.all([res.json(), payRes.json(), ntfRes.json()]);
       setEnabled(Boolean(data.enabled));
       setResources(Array.isArray(data.resources) ? data.resources : []);
       setBookings(Array.isArray(data.bookings) ? data.bookings : []);
+      if (payData?.ok && Array.isArray(payData.summaries)) {
+        setPayoutSummaries(payData.summaries);
+      }
+      if (ntfData?.ok && Array.isArray(ntfData.logs)) {
+        setNotifyLogs(ntfData.logs);
+      }
     } catch {
       notify('예약 현황 조회 실패');
     } finally {
@@ -253,6 +283,20 @@ export default function AdminReservationManager({
             className={`${btnCls} ${viewMode === 'RESOURCES' ? 'border-white/40 font-bold' : ''}`}
           >
             자원
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('PAYOUTS')}
+            className={`${btnCls} ${viewMode === 'PAYOUTS' ? 'border-white/40 font-bold' : ''}`}
+          >
+            정산
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('NOTIFY')}
+            className={`${btnCls} ${viewMode === 'NOTIFY' ? 'border-white/40 font-bold' : ''}`}
+          >
+            알림
           </button>
           {viewMode === 'RESOURCES' ? (
             <button
@@ -632,6 +676,74 @@ export default function AdminReservationManager({
             })
           )}
           </div>
+        </div>
+      )}
+
+      {viewMode === 'PAYOUTS' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {payoutSummaries.length === 0 && (
+            <div className={`col-span-full p-6 ${boxCls} text-sm font-mono ${subCls}`}>정산 대상 없음</div>
+          )}
+          {payoutSummaries.map((s) => (
+            <div key={s.resourceId} className={`${rowCls} flex items-center justify-between gap-3`}>
+              <div className="min-w-0">
+                <div className={`text-sm font-bold truncate ${titleCls}`}>{s.resourceName}</div>
+                <div className={`text-sm font-mono truncate ${subCls}`}>
+                  매출 ₩{s.netSalesKrw.toLocaleString()} · 수수료 ₩{s.feeKrw.toLocaleString()} · {s.bankInfo || '계좌 미등록'}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {s.requestedAt && <span className={badgeCls}>출금요청</span>}
+                <span className={badgeCls}>잔액 ₩{s.balanceKrw.toLocaleString()}</span>
+                <button
+                  type="button"
+                  disabled={s.balanceKrw <= 0 || loading}
+                  onClick={async () => {
+                    const res = await fetch('/api/biz/payouts', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        action: 'PAYOUT',
+                        resourceId: s.resourceId,
+                        resourceName: s.resourceName,
+                        amountKrw: s.balanceKrw,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                      notify(`${s.resourceName} 정산 지급 완료`);
+                      await load();
+                    }
+                  }}
+                  className={btnCls}
+                >
+                  지급
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {viewMode === 'NOTIFY' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {notifyLogs.length === 0 && (
+            <div className={`col-span-full p-6 ${boxCls} text-sm font-mono ${subCls}`}>알림 발송 기록 없음</div>
+          )}
+          {notifyLogs.map((n) => (
+            <div key={n.id} className={rowCls}>
+              <div className="flex items-center justify-between gap-2">
+                <span className={`text-sm font-mono truncate ${titleCls}`}>
+                  [{n.provider}] {n.title} · {n.to}
+                </span>
+                <span className={badgeCls}>{n.status}</span>
+              </div>
+              <div className={`text-sm font-mono mt-1 truncate ${subCls}`}>{n.body}</div>
+              <div className={`text-sm font-mono mt-1 ${subCls}`}>
+                {new Date(n.at).toLocaleString('ko-KR')}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
