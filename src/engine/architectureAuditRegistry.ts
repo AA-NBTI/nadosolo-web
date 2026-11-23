@@ -269,11 +269,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.4',
+    releaseTitle: '마케팅 탭 채널별 결제 매출 합산 및 나도솔로 어필리에이트 QR 발급 완결',
+    releaseDate: '2026-11-23',
+    summary: '테이블바로 매장관리 마케팅 탭(BizMarketing)에 결제완료(PAID) 금액 기반의 채널별 매출 합산을 연결하고, 나도솔로 어필리에이트 대시보드(/partners/dashboard)에 전용 홍보 QR 생성·다운로드 기능을 추가하여 UTM·QR 체계를 완결함.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2941',
+        category: 'PROCESS',
+        categoryLabel: '채널별매출·QR완결',
+        title: '매장 마케팅 채널별 결제 매출 합산 및 나도솔로 어필리에이트 QR 저장 추가',
+        beforeSummary: '매장 마케팅 탭 예약 건수만 집계, 나도솔로 어필리에이트 QR 미지원',
+        afterSummary: 'BizMarketing PAID 매출 합산 표시 및 /partners/dashboard QR 생성·PNG 다운로드 적용',
+        impactLabel: '양 서비스 모두 온라인 UTM + 오프라인 QR 추적 및 성과 분석 완결',
+        status: 'VERIFIED',
+        affectedRoutes: ['/biz', '/partners/dashboard', 'BizMarketing.tsx'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.3',
     releaseTitle: '범용 결제 상태 머신·PG 어댑터(TEST/TOSS)·선결제 예약 및 환불·어필리에이트 실적 연동 완결',
     releaseDate: '2026-11-23',
     summary: 'src/modules/payment 코어(상태 전이 검증, 업종별 환불 비율 계산, TEST/TOSS 어댑터)를 신설하고, /api/reservations/pay 및 /api/reservations/my 환불 연동을 구현. 매장 설정 결제금액(prepayAmountKrw), 예약 결제 단계 UI, 어필리에이트 실적(trackPurchase) 자동 귀속을 연결했으며 예약금 개념을 제거하고 익숙한 결제 화면 구조로 통일함.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2931',

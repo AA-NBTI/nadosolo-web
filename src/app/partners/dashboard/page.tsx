@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import QRCode from 'qrcode';
 import { Copy, Check, LogOut, RefreshCw } from 'lucide-react';
 import {
   AffiliateApplicationRow,
@@ -46,6 +47,17 @@ export default function PartnerPortalDashboardPage() {
   const [creatorPayouts, setCreatorPayouts] = useState<AffiliatePayoutRecord[]>([]);
   const [bankInput, setBankInput] = useState('');
   const [copied, setCopied] = useState(false);
+  const [qr, setQr] = useState('');
+
+  useEffect(() => {
+    const c = creatorApp?.code || session?.identifier;
+    if (!c || typeof window === 'undefined') {
+      setQr('');
+      return;
+    }
+    const url = `${window.location.origin}/meetup?ref=${c}`;
+    QRCode.toDataURL(url, { width: 512, margin: 2 }).then(setQr).catch(() => setQr(''));
+  }, [creatorApp?.code, session?.identifier]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -257,7 +269,22 @@ export default function PartnerPortalDashboardPage() {
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? '복사됨' : '복사'}</span>
             </button>
+            {qr && (
+              <a
+                href={qr}
+                download={`nadosolo-${creatorApp?.code || session.identifier}.png`}
+                className="px-4 py-2 border border-white/25 bg-white/10 hover:bg-white/20 text-sm font-mono text-white cursor-pointer"
+              >
+                QR저장
+              </a>
+            )}
           </div>
+          {qr && (
+            <div className="pt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qr} alt="홍보 QR" width={120} height={120} className="bg-white p-1" />
+            </div>
+          )}
         </section>
 
         <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm font-mono">

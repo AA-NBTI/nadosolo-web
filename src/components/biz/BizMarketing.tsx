@@ -15,7 +15,13 @@ const CHANNELS = [
 
 interface Props {
   venueId: string;
-  bookings: Array<{ meta?: { attribution?: Attribution; source?: string } }>;
+  bookings: Array<{
+    meta?: {
+      attribution?: Attribution;
+      source?: string;
+      payment?: { amountKrw?: number; status?: string };
+    };
+  }>;
 }
 
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
@@ -34,12 +40,18 @@ export default function BizMarketing({ venueId, bookings }: Props) {
       summarizeByChannel(
         bookings
           .filter((b) => b.meta?.source === 'public_link')
-          .map((b) => ({ type: 'BOOKING' as const, attribution: b.meta?.attribution ?? null }))
+          .map((b) => ({
+            type: 'BOOKING' as const,
+            attribution: b.meta?.attribution ?? null,
+            amountKrw:
+              b.meta?.payment?.status === 'PAID' ? Number(b.meta.payment.amountKrw || 0) : 0,
+          }))
       ),
     [bookings]
   );
   const statOf = (key: string) => stats.find((s) => s.channel === key)?.bookings ?? 0;
   const total = stats.reduce((s, r) => s + r.bookings, 0);
+  const totalAmount = stats.reduce((s, r) => s + r.amountKrw, 0);
   const direct = stats.find((s) => s.channel === '직접')?.bookings ?? 0;
 
   const current = CHANNELS.find((c) => c.key === open);
@@ -74,6 +86,9 @@ export default function BizMarketing({ venueId, bookings }: Props) {
         </span>
         <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
           직접 {direct}
+        </span>
+        <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-300">
+          매출 {won(totalAmount)}
         </span>
       </div>
 
