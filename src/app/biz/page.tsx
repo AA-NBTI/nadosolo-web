@@ -3,7 +3,7 @@
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Copy, LogOut, RefreshCw } from 'lucide-react';
+import { Copy, ExternalLink, LogOut, RefreshCw } from 'lucide-react';
 import AddressAutocompleteInput, { type SelectedAddressInfo } from '@/components/biz/AddressAutocompleteInput';
 import BizMarketing from '@/components/biz/BizMarketing';
 import BizPayouts from '@/components/biz/BizPayouts';
@@ -859,6 +859,8 @@ function BizReservationPortalContent() {
     );
   }
 
+  const publicPath = editSlug.trim() ? `/reserve/${editSlug.trim()}` : `/reserve/${session.id}`;
+
   return (
     <main className="min-h-screen bg-[#07080a] text-zinc-100 py-10 px-5 sm:px-8">
       <div className="max-w-[1000px] mx-auto space-y-6">
@@ -867,7 +869,16 @@ function BizReservationPortalContent() {
             <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-serif-editorial text-2xl text-white font-normal">{session.name}</h1>
+                <Link
+                  href={publicPath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-serif-editorial text-2xl text-white font-normal inline-flex items-center gap-1.5 hover:underline underline-offset-4"
+                  title="내 홈페이지 열기"
+                >
+                  <span>{session.name}</span>
+                  <ExternalLink className="w-4 h-4 text-zinc-400" />
+                </Link>
                 <span className="px-2 py-0.5 border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs font-mono font-bold">
                   접속 중
                 </span>
@@ -926,9 +937,9 @@ function BizReservationPortalContent() {
             <button
               type="button"
               onClick={() => {
-                const url = `${window.location.origin}/reserve/${session.id}`;
+                const url = `${window.location.origin}${publicPath}`;
                 void navigator.clipboard.writeText(url);
-                setNotice('링크 복사 완료');
+                setNotice(`링크 복사 완료: ${url}`);
               }}
               className="px-3 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-sm font-mono text-white inline-flex items-center gap-1.5 cursor-pointer"
             >
@@ -956,8 +967,17 @@ function BizReservationPortalContent() {
         </header>
 
         {notice && (
-          <div className="p-3 border border-white/20 bg-white/5 text-sm font-mono text-white">
-            {notice}
+          <div className="p-3 border border-white/20 bg-white/5 text-sm font-mono text-white flex flex-wrap items-center justify-between gap-2">
+            <span>{notice}</span>
+            <Link
+              href={publicPath}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2.5 py-1 border border-white/25 bg-white/10 hover:bg-white/20 text-white inline-flex items-center gap-1 shrink-0"
+            >
+              <span>열기</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
           </div>
         )}
 
@@ -1039,6 +1059,18 @@ function BizReservationPortalContent() {
                     placeholder="예: gosu (gosu.tablebaro.com)"
                     className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white"
                   />
+                  <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+                    <Link
+                      href={publicPath}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white underline underline-offset-4 inline-flex items-center gap-1"
+                    >
+                      <span>{publicPath}</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                    {editSlug.trim() && <span>· {editSlug.trim()}.tablebaro.com</span>}
+                  </div>
                 </div>
                 <div className="sm:col-span-2">
                   <label className="block text-zinc-400 mb-1">대표 사진 URL</label>
