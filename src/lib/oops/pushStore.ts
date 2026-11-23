@@ -149,6 +149,12 @@ export async function sendOopsPush(params: {
   }
 }
 
+export async function listOopsBackers(): Promise<OopsBackerRecord[]> {
+  const db = await readConfig<OopsBackerRecord[]>(BACKERS_KEY, memBackers);
+  memBackers = db;
+  return db;
+}
+
 export async function addOopsBacker(params: {
   name: string;
   org: string;
@@ -156,7 +162,7 @@ export async function addOopsBacker(params: {
   tier: string;
   message: string;
 }): Promise<OopsBackerRecord> {
-  const list = await readConfig<OopsBackerRecord[]>(BACKERS_KEY, memBackers);
+  const list = await listOopsBackers();
   const record: OopsBackerRecord = {
     id: `BK-${Date.now().toString(36).toUpperCase()}`,
     name: params.name.trim().slice(0, 60),
@@ -170,4 +176,25 @@ export async function addOopsBacker(params: {
   memBackers = next;
   await writeConfig(BACKERS_KEY, next);
   return record;
+}
+
+export async function broadcastOopsPush(params: {
+  title: string;
+  body: string;
+  url?: string;
+}): Promise<{ total: number; sent: number; failed: number }> {
+  const agents = await listOopsAgents();
+  let sent = 0;
+  let failed = 0;
+  for (const agent of agents) {
+    const res = await sendOopsPush({
+      subscription: agent.subscription,
+      title: params.title,
+      body: params.body,
+      url: params.url || '/',
+    });
+    if (res.ok) sent++;
+    else failed++;
+  }
+  return { total: agents.length, sent, failed };
 }

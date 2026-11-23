@@ -269,11 +269,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v3.0.0',
+    releaseTitle: '3대 도메인 독립 생태계(nadosolo · tablebaro · oops.monster) 완결 및 OOPS HQ 독립 버전 분리',
+    releaseDate: '2026-11-24',
+    summary: '나도솔로(v3.0.0)와 테이블바로 듀얼 상용 아키텍처에 이어 제3 도메인 oops.monster(AI 저항군 본부 · VAPID Web Push 통신망 · 전용 관제실 /hq)를 완전 격리 통합하고, 향후 OOPS 자체 버전(v0.3.0+)으로 독립 업데이트할 수 있는 분리 체계를 확립함.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-3001',
+        category: 'CONSTITUTION',
+        categoryLabel: '3대생태계·독립분리',
+        title: 'oops.monster 독립 통신망 · 글로벌 5개국어 · 전용 관제(/oops/hq) 완결 및 v3.0.0 선언',
+        beforeSummary: '나도솔로·테이블바로 2개 도메인 운영 및 OOPS 전용 관제·버전 분리 체계 부재',
+        afterSummary: '3대 도메인(nadosolo / tablebaro / oops.monster) 100% UI·SEO·세션 격리 및 OOPS 독립 버전(v0.3.0) 분리',
+        impactLabel: '단일 서버 비용으로 3대 독립 브랜드 동시 가동 및 각 도메인별 독립 진화 체계 완성',
+        status: 'VERIFIED',
+        affectedRoutes: ['/oops', '/oops/hq', '/api/oops/push', '/api/oops/hq', 'src/middleware.ts'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.9',
     releaseTitle: '듀얼 도메인 UI·메타데이터·파비콘·SEO 완전 분리 (nadosolo.com vs tablebaro.com)',
     releaseDate: '2026-11-23',
     summary: 'tablebaro.com 및 *.tablebaro.com 호스트 접속 시 나도솔로 헤더·푸터·OG 메타태그·파비콘·사이트맵이 혼입되던 6개 지점을 일괄 수정하여 양 브랜드의 UI 쉘과 SEO를 100% 독립 분리함.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2991',

@@ -24,12 +24,20 @@ export function middleware(request: NextRequest) {
 
   const host = (request.headers.get('host') || '').toLowerCase();
 
-  // oops.monster 또는 *.oops.monster 메인 접속 시 -> OOPS HQ(/oops)로 리라이트
-  if (isOopsHost(host) && (pathname === '/' || pathname === '')) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/oops';
-    url.search = search;
-    return NextResponse.rewrite(url);
+  // oops.monster 또는 *.oops.monster 접속 시 -> / -> /oops, /hq -> /oops/hq 리라이트
+  if (isOopsHost(host)) {
+    if (pathname === '/' || pathname === '') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/oops';
+      url.search = search;
+      return NextResponse.rewrite(url);
+    }
+    if (pathname === '/hq') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/oops/hq';
+      url.search = search;
+      return NextResponse.rewrite(url);
+    }
   }
 
   // tablebaro.com 또는 www.tablebaro.com 메인 접속 시 -> 테이블바로 허브(/reserve)로 리라이트
