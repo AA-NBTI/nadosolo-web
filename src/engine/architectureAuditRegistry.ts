@@ -269,11 +269,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.8',
+    releaseTitle: 'tablebaro.com 멀티도메인·와일드카드(*.tablebaro.com) Vercel 실서버 연동 및 호스트 분기 라우팅 완결',
+    releaseDate: '2026-11-23',
+    summary: 'nadosolo-web 단일 Vercel 프로젝트에 tablebaro.com 및 와일드카드 서브도메인(*.tablebaro.com, gosu.tablebaro.com)을 직접 연결하고, middleware.ts를 통한 호스트 기반 자동 라우팅(nadosolo.com -> 메인, tablebaro.com -> /reserve, *.tablebaro.com -> /reserve/[slug])을 검증 완료하여 나도솔로-테이블바로 듀얼 브랜드 상용 아키텍처를 완결함.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2981',
+        category: 'CONSTITUTION',
+        categoryLabel: '멀티도메인·상용DNS',
+        title: 'tablebaro.com 및 와일드카드(*.tablebaro.com) Vercel 실서버 연결 및 SSL 인증 완결',
+        beforeSummary: 'nadosolo.com 단일 도메인만 운영되어 테이블바로는 서브 경로(/reserve)로만 접근 가능',
+        afterSummary: 'tablebaro.com 및 gosu.tablebaro.com Vercel 실서버 연결, SSL 인증서 발급 및 라이브 200 OK 검증 완료',
+        impactLabel: '단일 Next.js 배포로 나도솔로 B2C와 테이블바로 B2B/B2C 멀티테넌트 무제한 서브도메인 상용화',
+        status: 'VERIFIED',
+        affectedRoutes: ['/', '/reserve', '/reserve/[resourceId]', 'src/middleware.ts'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.7',
     releaseTitle: '테이블바로 헤더 우측 로그인·로그아웃 대칭 UX 완성 및 /biz 실시간 세션 동기화',
     releaseDate: '2026-11-23',
     summary: '나도솔로 헤더와 100% 동일한 좌·우 대칭 레이아웃으로 테이블바로 헤더 우측에 [매장명] + [로그아웃 아이콘]을 배치하고, 어느 페이지에서든 로그아웃 시 /biz와 즉시 동기화되도록 개선함.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2971',
