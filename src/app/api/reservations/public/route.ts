@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ReservationError, extractUnits } from '@/modules/reservation';
 import { getReservationDriver, getReservationEngine } from '@/lib/reservation/runtime';
 import { sanitizeAttribution } from '@/modules/tracking';
+import { recordTrackingEvent } from '@/lib/tracking/serverStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -155,6 +156,7 @@ export async function POST(request: Request) {
         }
       : undefined;
 
+    const cleanAttr = sanitizeAttribution(body.attribution);
     const booking = await engine.bookWindow({
       resourceId,
       unitId,
@@ -166,11 +168,21 @@ export async function POST(request: Request) {
         source: 'public_link',
         startsAtText,
         ...(paymentMeta ? { payment: paymentMeta } : {}),
-        ...(sanitizeAttribution(body.attribution)
-          ? { attribution: sanitizeAttribution(body.attribution) }
-          : {}),
+        ...(cleanAttr ? { attribution: cleanAttr } : {}),
       },
     });
+
+    if (!requiresPayment) {
+      void recordTrackingEvent({
+        service: 'TABLEBARO',
+        type: 'CONVERSION',
+        path: `/reserve/${resourceId}`,
+        attribution: cleanAttr,
+        amountKrw: 0,
+        orderId: booking.id,
+        resourceId,
+      });
+    }
 
     return NextResponse.json({ ok: true, booking, requiresPayment, prepayAmountKrw });
   } catch (e) {

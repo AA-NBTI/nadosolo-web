@@ -5,6 +5,7 @@ import {
   transitionPaymentStatus,
   type PaymentRecord,
 } from '@/modules/payment';
+import { recordTrackingEvent } from '@/lib/tracking/serverStore';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,6 +74,16 @@ export async function POST(request: Request) {
       updatedAt: new Date().toISOString(),
     };
     await driver.saveBooking(updated);
+
+    void recordTrackingEvent({
+      service: 'TABLEBARO',
+      type: 'CONVERSION',
+      path: `/reserve/${booking.resourceId}`,
+      attribution: booking.meta?.attribution,
+      amountKrw: nextPayment.amountKrw,
+      orderId: nextPayment.orderId,
+      resourceId: booking.resourceId,
+    });
 
     return NextResponse.json({
       ok: true,

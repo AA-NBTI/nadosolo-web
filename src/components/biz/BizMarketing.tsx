@@ -2,7 +2,12 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
-import { buildTrackedUrl, summarizeByChannel, type Attribution } from '@/modules/tracking';
+import {
+  buildTrackedUrl,
+  summarizeByChannel,
+  type Attribution,
+  type TrackingSummary,
+} from '@/modules/tracking';
 
 const CHANNELS = [
   { key: 'naver_place', label: '네이버', medium: 'link' },
@@ -30,6 +35,18 @@ export default function BizMarketing({ venueId, bookings }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const [qr, setQr] = useState<string>('');
   const [copied, setCopied] = useState<string | null>(null);
+  const [shortMap, setShortMap] = useState<Record<string, string>>({});
+  const [shortBusy, setShortBusy] = useState(false);
+  const [tracking, setTracking] = useState<TrackingSummary | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/tracking?service=TABLEBARO&resourceId=${encodeURIComponent(venueId)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok && d.summary) setTracking(d.summary);
+      })
+      .catch(() => {});
+  }, [venueId]);
 
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const urlOf = (key: string, medium: string) =>
@@ -50,25 +67,29 @@ export default function BizMarketing({ venueId, bookings }: Props) {
     [bookings]
   );
   const statOf = (key: string) => stats.find((s) => s.channel === key)?.bookings ?? 0;
+  const visitOf = (key: string) => tracking?.bySource.find((s) => s.key === key)?.visits ?? 0;
+  const totalVisits = tracking?.visits ?? 0;
   const total = stats.reduce((s, r) => s + r.bookings, 0);
   const totalAmount = stats.reduce((s, r) => s + r.amountKrw, 0);
   const direct = stats.find((s) => s.channel === '직접')?.bookings ?? 0;
+  const totalCvr = totalVisits > 0 ? Math.round((total / totalVisits) * 1000) / 10 : 0;
 
   const current = CHANNELS.find((c) => c.key === open);
+  const currentShort = open ? shortMap[open] : undefined;
   useEffect(() => {
     if (!current) {
       setQr('');
       return;
     }
     let alive = true;
-    QRCode.toDataURL(urlOf(current.key, current.medium), { width: 512, margin: 2 })
+    QRCode.toDataURL(currentShort || urlOf(current.key, current.medium), { width: 512, margin: 2 })
       .then((d) => alive && setQr(d))
       .catch(() => alive && setQr(''));
     return () => {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, venueId]);
+  }, [open, venueId, currentShort]);
 
   const copy = (key: string, text: string) => {
     void navigator.clipboard.writeText(text);
@@ -82,7 +103,13 @@ export default function BizMarketing({ venueId, bookings }: Props) {
         <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
         <h2 className="font-serif-editorial text-lg text-white font-normal">마케팅</h2>
         <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+          유입 {totalVisits}
+        </span>
+        <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
           예약 {total}
+        </span>
+        <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+          전환 {totalCvr}%
         </span>
         <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
           직접 {direct}
@@ -106,19 +133,44 @@ export default function BizMarketing({ venueId, bookings }: Props) {
                 }`}
               >
                 <span>{c.label}</span>
-                <span className="text-zinc-300">예약 {statOf(c.key)}</span>
+                <span className="text-zinc-300">유입 {visitOf(c.key)} · 예약 {statOf(c.key)}</span>
               </button>
               {isOpen && (
                 <div className="col-span-full p-4 border border-white/20 bg-[#0c0d12] grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4">
                   <div className="space-y-3 min-w-0">
-                    <p className="text-zinc-200 break-all">{link}</p>
+                    <p className="text-zinc-200 break-all">{shortMap[c.key] || link}</p>
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
-                        onClick={() => copy(c.key, link)}
+                        onClick={() => copy(c.key, shortMap[c.key] || link)}
                         className="px-3 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-white cursor-pointer"
                       >
                         {copied === c.key ? '복사 완료' : '복사'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={shortBusy}
+                        onClick={async () => {
+                          setShortBusy(true);
+                          try {
+                            const res = await fetch('/api/short', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ service: 'TABLEBARO', targetUrl: link, label: `${venueId}_${c.key}` }),
+                            });
+                            const data = await res.json();
+                            if (data.ok && data.shortPath) {
+                              const s = `${origin}${data.shortPath}`;
+                              setShortMap((prev) => ({ ...prev, [c.key]: s }));
+                              copy(c.key, s);
+                            }
+                          } finally {
+                            setShortBusy(false);
+                          }
+                        }}
+                        className="px-3 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-white cursor-pointer disabled:opacity-40"
+                      >
+                        {shortBusy ? '생성 중' : '단축링크'}
                       </button>
                       {qr && (
                         <a

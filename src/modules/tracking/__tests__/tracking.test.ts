@@ -4,6 +4,8 @@ import {
   mergeAttribution,
   buildTrackedUrl,
   summarizeByChannel,
+  summarizeTracking,
+  generateShortCode,
   isAttributionFresh,
 } from '../index';
 import { TABLEBARO_PARTNERS_PRESET } from '../../partners/presets/tablebaro.preset';
@@ -56,6 +58,27 @@ test('테이블바로·나도솔로 파트너스 저장 키 완전 분리', () =
   const nd = new Set(Object.values(NADOSOLO_PARTNERS_PRESET.storageKeys));
   assert.equal(tb.some((k) => nd.has(k)), false);
   assert.notEqual(TABLEBARO_PARTNERS_PRESET.namespace, NADOSOLO_PARTNERS_PRESET.namespace);
+});
+
+test('다차원 트래킹 집계 및 단축 코드 생성', () => {
+  const ia = parseAttribution('?utm_source=instagram&utm_medium=social&utm_campaign=fall', t0);
+  const qa = parseAttribution('?utm_source=qr_table&utm_medium=qr', t0);
+  const sum = summarizeTracking([
+    { id: '1', service: 'TABLEBARO', type: 'VISIT', path: '/reserve/V1', attribution: ia, at: t0.toISOString() },
+    { id: '2', service: 'TABLEBARO', type: 'VISIT', path: '/reserve/V1', attribution: ia, at: t0.toISOString() },
+    { id: '3', service: 'TABLEBARO', type: 'CONVERSION', path: '/reserve/V1', attribution: ia, amountKrw: 30000, orderId: 'o1', at: t0.toISOString() },
+    { id: '4', service: 'TABLEBARO', type: 'VISIT', path: '/reserve/V1', attribution: qa, at: t0.toISOString() },
+  ]);
+  assert.equal(sum.visits, 3);
+  assert.equal(sum.conversions, 1);
+  assert.equal(sum.cvr, 33.3);
+  assert.equal(sum.amountKrw, 30000);
+  assert.equal(sum.bySource[0].key, 'instagram');
+  assert.equal(sum.byMedium.some((m) => m.key === 'qr'), true);
+  assert.equal(sum.byPath[0].key, '/reserve/V1');
+  const code = generateShortCode(6);
+  assert.equal(code.length, 6);
+  assert.match(code, /^[2-9a-zA-Z]+$/);
 });
 
 let failed = 0;

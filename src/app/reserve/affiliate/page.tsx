@@ -45,6 +45,8 @@ export default function TablebaroPartnersPage() {
   const [bank, setBank] = useState('');
   const [venueId, setVenueId] = useState('');
   const [qr, setQr] = useState('');
+  const [shortUrl, setShortUrl] = useState('');
+  const [shortBusy, setShortBusy] = useState(false);
 
   useEffect(() => {
     setSession(localStorage.getItem(SESSION_KEY));
@@ -82,12 +84,16 @@ export default function TablebaroPartnersPage() {
     : '';
 
   useEffect(() => {
+    setShortUrl('');
+  }, [venueId, session]);
+
+  useEffect(() => {
     if (!link || !approved) {
       setQr('');
       return;
     }
-    QRCode.toDataURL(link, { width: 512, margin: 2 }).then(setQr).catch(() => setQr(''));
-  }, [link, approved]);
+    QRCode.toDataURL(shortUrl || link, { width: 512, margin: 2 }).then(setQr).catch(() => setQr(''));
+  }, [link, approved, shortUrl]);
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,12 +242,38 @@ export default function TablebaroPartnersPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        void navigator.clipboard.writeText(link);
+                        void navigator.clipboard.writeText(shortUrl || link);
                         setNotice('복사 완료');
                       }}
                       className={btnCls}
                     >
                       복사
+                    </button>
+                    <button
+                      type="button"
+                      disabled={shortBusy}
+                      onClick={async () => {
+                        setShortBusy(true);
+                        try {
+                          const res = await fetch('/api/short', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ service: 'TABLEBARO', targetUrl: link, label: session || undefined }),
+                          });
+                          const data = await res.json();
+                          if (data.ok && data.shortPath) {
+                            const s = `${window.location.origin}${data.shortPath}`;
+                            setShortUrl(s);
+                            void navigator.clipboard.writeText(s);
+                            setNotice(`단축링크 생성 및 복사: ${s}`);
+                          }
+                        } finally {
+                          setShortBusy(false);
+                        }
+                      }}
+                      className={btnCls}
+                    >
+                      {shortBusy ? '생성 중' : '단축링크'}
                     </button>
                     {qr && (
                       <a href={qr} download={`tablebaro-${session}.png`} className={btnCls}>
@@ -249,6 +281,7 @@ export default function TablebaroPartnersPage() {
                       </a>
                     )}
                   </div>
+                  {shortUrl && <p className="text-white font-bold">단축: {shortUrl}</p>}
                   {qr && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={qr} alt="QR" width={140} height={140} className="bg-white p-1" />

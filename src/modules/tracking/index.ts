@@ -140,3 +140,114 @@ export function captureAttribution(
   } catch {}
   return merged;
 }
+
+export type TrackingService = 'NADOSOLO' | 'TABLEBARO';
+
+export interface TrackingEvent {
+  id: string;
+  service: TrackingService;
+  type: 'VISIT' | 'CONVERSION';
+  path: string;
+  attribution: Attribution | null;
+  amountKrw?: number;
+  orderId?: string;
+  resourceId?: string;
+  at: string;
+}
+
+export interface ShortLinkRecord {
+  code: string;
+  service: TrackingService;
+  targetUrl: string;
+  label?: string;
+  clicks: number;
+  createdAt: string;
+}
+
+export interface TrackingBucket {
+  key: string;
+  visits: number;
+  conversions: number;
+  cvr: number;
+  amountKrw: number;
+}
+
+export interface TrackingSummary {
+  visits: number;
+  conversions: number;
+  cvr: number;
+  amountKrw: number;
+  bySource: TrackingBucket[];
+  byMedium: TrackingBucket[];
+  byCampaign: TrackingBucket[];
+  byPath: TrackingBucket[];
+}
+
+const calcCvr = (visits: number, conversions: number) =>
+  visits > 0 ? Math.round((conversions / visits) * 1000) / 10 : conversions > 0 ? 100 : 0;
+
+function aggregateBuckets(
+  events: TrackingEvent[],
+  pickKey: (e: TrackingEvent) => string
+): TrackingBucket[] {
+  const map = new Map<string, { visits: number; conversions: number; amountKrw: number }>();
+  for (const e of events) {
+    const key = pickKey(e);
+    const cur = map.get(key) ?? { visits: 0, conversions: 0, amountKrw: 0 };
+    if (e.type === 'VISIT') cur.visits += 1;
+    else {
+      cur.conversions += 1;
+      cur.amountKrw += e.amountKrw ?? 0;
+    }
+    map.set(key, cur);
+  }
+  return [...map.entries()]
+    .map(([key, v]) => ({
+      key,
+      visits: v.visits,
+      conversions: v.conversions,
+      cvr: calcCvr(v.visits, v.conversions),
+      amountKrw: v.amountKrw,
+    }))
+    .sort((a, b) => b.conversions - a.conversions || b.visits - a.visits || b.amountKrw - a.amountKrw);
+}
+
+/** 서비스별 유입·전환 이벤트를 다차원(채널·매체·캠페인·경로)으로 집계한다. */
+export function summarizeTracking(events: TrackingEvent[]): TrackingSummary {
+  let visits = 0;
+  let conversions = 0;
+  let amountKrw = 0;
+  for (const e of events) {
+    if (e.type === 'VISIT') visits += 1;
+    else {
+      conversions += 1;
+      amountKrw += e.amountKrw ?? 0;
+    }
+  }
+  return {
+    visits,
+    conversions,
+    cvr: calcCvr(visits, conversions),
+    amountKrw,
+    bySource: aggregateBuckets(
+      events,
+      (e) =>
+        e.attribution?.source ||
+        (e.attribution?.partnerCode ? `ref:${e.attribution.partnerCode}` : '직접')
+    ),
+    byMedium: aggregateBuckets(events, (e) => e.attribution?.medium || '직접'),
+    byCampaign: aggregateBuckets(events, (e) => e.attribution?.campaign || '일반'),
+    byPath: aggregateBuckets(events, (e) => e.path || '/'),
+  };
+}
+
+const SHORT_ALPHABET = '23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+
+/** 혼동 문자(0,O,1,l,I)를 제외한 6자리 URL-safe 단축 코드 생성 */
+export function generateShortCode(length = 6): string {
+  let out = '';
+  for (let i = 0; i < length; i++) {
+    out += SHORT_ALPHABET[Math.floor(Math.random() * SHORT_ALPHABET.length)];
+  }
+  return out;
+}

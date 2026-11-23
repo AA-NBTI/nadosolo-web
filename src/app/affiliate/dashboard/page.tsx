@@ -49,6 +49,8 @@ export default function PartnerPortalDashboardPage() {
   const [bankInput, setBankInput] = useState('');
   const [copied, setCopied] = useState(false);
   const [qr, setQr] = useState('');
+  const [shortUrl, setShortUrl] = useState('');
+  const [shortBusy, setShortBusy] = useState(false);
 
   useEffect(() => {
     const c = creatorApp?.code || session?.identifier;
@@ -56,9 +58,16 @@ export default function PartnerPortalDashboardPage() {
       setQr('');
       return;
     }
-    const url = `${window.location.origin}/meetup?ref=${c}`;
+    const url =
+      shortUrl ||
+      buildTrackedUrl(window.location.origin, '/meetup', {
+        ref: c,
+        source: 'affiliate',
+        medium: 'referral',
+        campaign: `nadosolo_${c}`,
+      });
     QRCode.toDataURL(url, { width: 512, margin: 2 }).then(setQr).catch(() => setQr(''));
-  }, [creatorApp?.code, session?.identifier]);
+  }, [creatorApp?.code, session?.identifier, shortUrl]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -276,6 +285,32 @@ export default function PartnerPortalDashboardPage() {
               {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               <span>{copied ? '복사됨' : '복사'}</span>
             </button>
+            <button
+              type="button"
+              onClick={async () => {
+                setShortBusy(true);
+                try {
+                  const res = await fetch('/api/short', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service: 'NADOSOLO', targetUrl: refUrl, label: activeCode }),
+                  });
+                  const data = await res.json();
+                  if (data.ok && data.shortPath) {
+                    const s = `${window.location.origin}${data.shortPath}`;
+                    setShortUrl(s);
+                    void navigator.clipboard.writeText(s);
+                    setNotice(`단축링크 생성 및 복사 완료: ${s}`);
+                  }
+                } finally {
+                  setShortBusy(false);
+                }
+              }}
+              disabled={shortBusy}
+              className="px-4 py-2 border border-white/25 bg-white/10 hover:bg-white/20 text-sm font-mono text-white cursor-pointer disabled:opacity-40"
+            >
+              {shortBusy ? '생성 중' : '단축링크'}
+            </button>
             {qr && (
               <a
                 href={qr}
@@ -286,6 +321,11 @@ export default function PartnerPortalDashboardPage() {
               </a>
             )}
           </div>
+          {shortUrl && (
+            <div className="text-sm font-mono text-zinc-200">
+              단축링크: <span className="text-white font-bold">{shortUrl}</span>
+            </div>
+          )}
           {qr && (
             <div className="pt-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}

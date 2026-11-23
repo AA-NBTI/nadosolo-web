@@ -7,6 +7,8 @@ import { CheckCircle2, AlertCircle } from 'lucide-react';
 import { useNadoSoloEngine } from '@/engine';
 import { nadosoloBillingEngine } from '@/modules/billing';
 import { trackAffiliatePurchase } from '@/lib/affiliateDb';
+import { loadAttribution } from '@/modules/tracking';
+import { NADOSOLO_ATTRIBUTION_KEY } from '@/components/AttributionCapture';
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams();
@@ -96,6 +98,22 @@ function PaymentSuccessContent() {
             userEmail: currentUser?.email,
             userHandle: currentUser?.handle,
           });
+        }
+
+        if (!data.alreadyConfirmed && typeof window !== 'undefined') {
+          const attr = loadAttribution(localStorage, NADOSOLO_ATTRIBUTION_KEY);
+          void fetch('/api/tracking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              service: 'NADOSOLO',
+              type: 'CONVERSION',
+              path: '/payment/success',
+              attribution: attr ?? (promo ? { partnerCode: promo, capturedAt: new Date().toISOString() } : null),
+              amountKrw: Number(amount) || 30000,
+              orderId,
+            }),
+          }).catch(() => {});
         }
 
         setVerifyState('CONFIRMED');

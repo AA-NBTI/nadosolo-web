@@ -29,6 +29,7 @@ import AdminAdaptiveMatchingManager from '@/components/admin/AdminAdaptiveMatchi
 import AdminPreMatchPage from './pre-match/page';
 import AdminTimeleftManager from '@/components/admin/AdminTimeleftManager';
 import AdminPartnersManager from '@/components/admin/AdminPartnersManager';
+import AdminTrackingManager from '@/components/admin/AdminTrackingManager';
 import AdminReservationManager from '@/components/admin/AdminReservationManager';
 import AdminTestAnalyticsManager from '@/components/admin/AdminTestAnalyticsManager';
 import { ARCHITECTURE_RELEASES } from '@/engine/architectureAuditRegistry';
@@ -88,6 +89,7 @@ type AdminTabKey =
   | 'PT_FUNNEL'
   | 'PT_PAYOUT'
   | 'PT_VENUE'
+  | 'PT_TRACKING'
   | 'RESERVATION_CONTROL'
   | 'RESERVATION_RESOURCES';
 
@@ -210,6 +212,7 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
       { key: 'PT_AFFILIATE', label: '어필리에이트' },
       { key: 'PT_FUNNEL', label: '성과' },
       { key: 'PT_PAYOUT', label: '정산' },
+      { key: 'PT_TRACKING', label: '트래킹' },
     ],
   },
 ];
@@ -3104,6 +3107,7 @@ export default function AdminOperationsDashboardPage() {
           {activeTab === 'PT_AFFILIATE' && <AdminPartnersManager section="AFFILIATE" isLight={isLight} onNotify={notify} />}
           {activeTab === 'PT_FUNNEL' && <AdminPartnersManager section="FUNNEL" isLight={isLight} onNotify={notify} />}
           {activeTab === 'PT_PAYOUT' && <AdminPartnersManager section="PAYOUT" isLight={isLight} onNotify={notify} />}
+          {activeTab === 'PT_TRACKING' && <AdminTrackingManager isLight={isLight} onNotify={notify} />}
           {activeTab === 'PT_VENUE' && (
             <AdminPartnersManager
               section="VENUE"
