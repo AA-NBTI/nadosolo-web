@@ -2,7 +2,13 @@
 
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Bell, Check, Copy, Radio, Send, Sparkles, Zap } from 'lucide-react';
+import { Bell, Check, Copy, Globe, Radio, Send, Sparkles, Zap } from 'lucide-react';
+import {
+  detectOopsLocale,
+  OOPS_DICT,
+  OOPS_LOCALES,
+  type OopsLocale,
+} from '@/lib/oops/i18n';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -16,11 +22,11 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 /** 네오 브루탈리즘 OOPS 몬스터 마스코트 (인라인 SVG) */
-function OopsMonsterMascot() {
+function OopsMonsterMascot({ tag }: { tag: string }) {
   return (
     <div className="relative inline-flex flex-col items-center select-none">
       <div className="mb-2 px-3 py-1 bg-[#ffc900] border-2 border-black shadow-[3px_3px_0px_#000] text-xs font-mono font-bold text-black -rotate-2">
-        OOPS! HUMAN ONLY
+        {tag}
       </div>
       <svg
         width="136"
@@ -30,29 +36,18 @@ function OopsMonsterMascot() {
         xmlns="http://www.w3.org/2000/svg"
         className="drop-shadow-[5px_5px_0px_#000]"
       >
-        {/* 뿔 */}
         <path d="M40 36L28 12L54 28Z" fill="#ffc900" stroke="#000" strokeWidth="3.5" strokeLinejoin="round" />
         <path d="M100 36L112 12L86 28Z" fill="#ffc900" stroke="#000" strokeWidth="3.5" strokeLinejoin="round" />
-        {/* 몸통 */}
         <rect x="22" y="28" width="96" height="92" rx="28" fill="#ff90e8" stroke="#000" strokeWidth="4" />
-        {/* 왼쪽 눈 */}
         <circle cx="52" cy="64" r="15" fill="#fff" stroke="#000" strokeWidth="3.5" />
         <circle cx="55" cy="64" r="6" fill="#000" />
         <circle cx="57" cy="61" r="2" fill="#fff" />
-        {/* 오른쪽 눈 */}
         <circle cx="88" cy="64" r="13" fill="#fff" stroke="#000" strokeWidth="3.5" />
         <circle cx="86" cy="65" r="5.5" fill="#000" />
         <circle cx="88" cy="62" r="2" fill="#fff" />
-        {/* 입 (익살스러운 지그재그) */}
-        <path
-          d="M46 94C54 103 86 103 94 94"
-          stroke="#000"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
+        <path d="M46 94C54 103 86 103 94 94" stroke="#000" strokeWidth="4" strokeLinecap="round" />
         <path d="M58 97L62 104L67 98" fill="#fff" stroke="#000" strokeWidth="2.5" strokeLinejoin="round" />
         <path d="M75 98L80 104L83 97" fill="#fff" stroke="#000" strokeWidth="2.5" strokeLinejoin="round" />
-        {/* 팔 */}
         <path d="M22 76C10 72 8 88 20 92" stroke="#000" strokeWidth="4" strokeLinecap="round" />
         <path d="M118 76C130 72 132 88 120 92" stroke="#000" strokeWidth="4" strokeLinecap="round" />
       </svg>
@@ -63,6 +58,9 @@ function OopsMonsterMascot() {
 function OopsHqContent() {
   const sp = useSearchParams();
   const initialPingTarget = (sp.get('ping') || '').trim().toUpperCase();
+
+  const [locale, setLocale] = useState<OopsLocale>('en');
+  const t = OOPS_DICT[locale];
 
   const [vapidKey, setVapidKey] = useState('');
   const [agentsCount, setAgentsCount] = useState<number>(0);
@@ -75,8 +73,8 @@ function OopsHqContent() {
   const [copied, setCopied] = useState(false);
 
   const [targetCode, setTargetCode] = useState(initialPingTarget);
-  const [pingTitle, setPingTitle] = useState('OOPS! 몬스터 출동');
-  const [pingBody, setPingBody] = useState('거대 플랫폼 없이 인간이 직접 보낸 호출입니다!');
+  const [pingTitle, setPingTitle] = useState('');
+  const [pingBody, setPingBody] = useState('');
   const [pingBusy, setPingBusy] = useState(false);
   const [pingResult, setPingResult] = useState<string | null>(null);
 
@@ -86,6 +84,23 @@ function OopsHqContent() {
   const [backerMessage, setBackerMessage] = useState('');
   const [backerBusy, setBackerBusy] = useState(false);
   const [backerDone, setBackerDone] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('oops_locale_v1');
+    const detected = saved
+      ? detectOopsLocale(saved)
+      : detectOopsLocale(typeof navigator !== 'undefined' ? navigator.language : 'en');
+    setLocale(detected);
+    setPingTitle(OOPS_DICT[detected].pingTitleDefault);
+    setPingBody(OOPS_DICT[detected].pingBodyDefault);
+  }, []);
+
+  const changeLocale = (next: OopsLocale) => {
+    setLocale(next);
+    localStorage.setItem('oops_locale_v1', next);
+    setPingTitle(OOPS_DICT[next].pingTitleDefault);
+    setPingBody(OOPS_DICT[next].pingBodyDefault);
+  };
 
   const loadStatus = useCallback(async () => {
     try {
@@ -110,19 +125,17 @@ function OopsHqContent() {
     setPushMsg(null);
     try {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        setPushError(
-          '이 브라우저는 Web Push를 지원하지 않습니다. 아이폰은 Safari [공유 ➔ 홈 화면에 추가] 후 앱으로 열어주세요.'
-        );
+        setPushError(t.errNoPush);
         return;
       }
       if (!vapidKey) {
-        setPushError('서버 푸시 공개키를 불러오지 못했습니다.');
+        setPushError(t.errNoVapid);
         return;
       }
 
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
-        setPushError('알림 권한이 거부되었습니다. 브라우저 설정에서 알림을 허용해 주세요.');
+        setPushError(t.errDenied);
         return;
       }
 
@@ -144,22 +157,22 @@ function OopsHqContent() {
         body: JSON.stringify({
           action: 'SUBSCRIBE',
           subscription: sub.toJSON(),
-          alias: alias.trim() || '저항군 요원',
+          alias: alias.trim() || 'Resistance Agent',
         }),
       });
       const data = await res.json();
       if (!data.ok || !data.agent?.agentId) {
-        setPushError(data.error || '등록 실패');
+        setPushError(data.error || 'Subscribe failed');
         return;
       }
 
       localStorage.setItem('oops_agent_id_v1', data.agent.agentId);
       setMyAgentId(data.agent.agentId);
       setTargetCode((prev) => prev || data.agent.agentId);
-      setPushMsg(`독립 통신망 연결 완료! 내 요원 코드: ${data.agent.agentId}`);
+      setPushMsg(`${t.msgConnected} ${data.agent.agentId}`);
       void loadStatus();
     } catch (err) {
-      setPushError(err instanceof Error ? err.message : '통신망 연결 중 오류가 발생했습니다.');
+      setPushError(err instanceof Error ? err.message : 'Error connecting push');
     } finally {
       setPushBusy(false);
     }
@@ -168,7 +181,7 @@ function OopsHqContent() {
   const sendMonsterPing = async (overrideId?: string) => {
     const code = (overrideId || targetCode).trim().toUpperCase();
     if (!code) {
-      setPingResult('수신할 요원 코드(예: OP-XXXXXX)를 입력해 주세요.');
+      setPingResult(t.msgNoTarget);
       return;
     }
     setPingBusy(true);
@@ -180,19 +193,19 @@ function OopsHqContent() {
         body: JSON.stringify({
           action: 'PING',
           agentId: code,
-          title: pingTitle,
-          body: pingBody,
+          title: pingTitle || t.pingTitleDefault,
+          body: pingBody || t.pingBodyDefault,
           url: '/oops',
         }),
       });
       const data = await res.json();
       if (!data.ok) {
-        setPingResult(`발송 실패: ${data.error}`);
+        setPingResult(`ERR: ${data.error}`);
       } else {
-        setPingResult(`✓ ${code} 기기로 독립 푸시 발사 완료!`);
+        setPingResult(`✓ ${t.msgPingSuccess} ${code}`);
       }
     } catch {
-      setPingResult('네트워크 오류가 발생했습니다.');
+      setPingResult('Network error.');
     } finally {
       setPingBusy(false);
     }
@@ -231,7 +244,7 @@ function OopsHqContent() {
       });
       const data = await res.json();
       if (data.ok) {
-        setBackerDone(`접수 완료 (${data.backerId}). 본부에서 직접 회신드리겠습니다.`);
+        setBackerDone(`${t.msgBackerDone} ${data.backerId}`);
         setBackerName('');
         setBackerOrg('');
         setBackerEmail('');
@@ -244,20 +257,42 @@ function OopsHqContent() {
 
   return (
     <div className="min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans">
-      {/* 1. Gumroad 스타일 상단 네비게이션 */}
+      {/* 1. Gumroad 스타일 상단 네비게이션 + 글로벌 언어 전환 */}
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
-        <div className="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="max-w-5xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
             <span className="px-2.5 py-1 bg-[#ff90e8] border-2 border-black shadow-[2px_2px_0px_#000] font-mono text-sm font-black tracking-tight">
               oops.monster
             </span>
-            <span className="hidden sm:inline-block text-xs font-mono font-bold px-2 py-0.5 bg-[#ffc900] border-2 border-black">
-              AI RESISTANCE HQ
+            <span className="hidden md:inline-block text-xs font-mono font-bold px-2 py-0.5 bg-[#ffc900] border-2 border-black">
+              {t.badgeTop}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono font-bold bg-white border-2 border-black shadow-[2px_2px_0px_#000] px-3 py-1.5">
-            <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
-            <span>ACTIVE NODES: {agentsCount}</span>
+
+          <div className="flex items-center gap-2">
+            {/* 글로벌 언어 전환기 (EN / KO / JA / ZH / ES) */}
+            <div className="flex items-center bg-white border-2 border-black shadow-[2px_2px_0px_#000] px-1 py-0.5 gap-0.5">
+              <Globe className="w-3.5 h-3.5 mx-1 text-zinc-600 hidden sm:block" />
+              {OOPS_LOCALES.map((loc) => (
+                <button
+                  key={loc.code}
+                  type="button"
+                  onClick={() => changeLocale(loc.code)}
+                  className={`px-1.5 py-0.5 text-[11px] font-mono font-bold cursor-pointer transition-colors ${
+                    locale === loc.code
+                      ? 'bg-black text-white'
+                      : 'text-zinc-700 hover:bg-zinc-200'
+                  }`}
+                >
+                  {loc.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono font-bold bg-white border-2 border-black shadow-[2px_2px_0px_#000] px-2.5 py-1">
+              <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
+              <span>{t.activeNodes}: {agentsCount}</span>
+            </div>
           </div>
         </div>
       </header>
@@ -268,60 +303,51 @@ function OopsHqContent() {
           <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8">
             <div className="space-y-5 flex-1">
               <div className="inline-block px-3 py-1 bg-[#ffc900] border-2 border-black text-xs font-mono font-bold">
-                FOUNDING MANIFESTO · 2026
+                {t.manifestoTag}
               </div>
 
               <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-[1.15] text-black">
-                AI가 인간보다 더 많은 것을 결정할 수 있는 세상에서,{' '}
+                {t.heroTitlePre}{' '}
                 <span className="bg-[#ff90e8] px-1.5 inline-block border-b-4 border-black">
-                  누가 인간의 편에 설 것인가?
+                  {t.heroTitleHighlight}
                 </span>
               </h1>
 
               <p className="text-base sm:text-lg text-zinc-800 leading-relaxed font-medium">
-                <strong>OOPS HQ</strong>는 거대 AI와 플랫폼의 알고리즘 통제에 맞서,
-                인간이 <strong>최종 브레이크</strong>와 <strong>무검열 직통 통신망</strong>을
-                되찾기 위해 만든 AI 저항군 본부입니다.
+                {t.heroDesc}
               </p>
             </div>
 
             <div className="shrink-0">
-              <OopsMonsterMascot />
+              <OopsMonsterMascot tag={t.mascotTag} />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 mt-8 border-t-2 border-black">
             <div className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[3px_3px_0px_#000] space-y-1">
-              <div className="text-xs font-mono font-black text-[#ff4d00]">01 · DIRECT PING</div>
-              <div className="text-base font-extrabold">무검열 직통 호출망</div>
-              <p className="text-xs text-zinc-700 leading-relaxed">
-                메신저 통행세 0원. 사람과 사람을 브라우저·기기 단위로 직접 연결합니다.
-              </p>
+              <div className="text-xs font-mono font-black text-[#ff4d00]">{t.pillars[0].code}</div>
+              <div className="text-base font-extrabold">{t.pillars[0].title}</div>
+              <p className="text-xs text-zinc-700 leading-relaxed">{t.pillars[0].desc}</p>
             </div>
             <div className="p-4 bg-[#ff90e8]/35 border-2 border-black shadow-[3px_3px_0px_#000] space-y-1">
-              <div className="text-xs font-mono font-black text-black">02 · HUMAN BRAKE</div>
-              <div className="text-base font-extrabold">AI 실행 최종 브레이크</div>
-              <p className="text-xs text-zinc-800 leading-relaxed">
-                AI 에이전트가 대신 결정하기 직전, 승인·차단 버튼을 인간 손에 돌려줍니다.
-              </p>
+              <div className="text-xs font-mono font-black text-black">{t.pillars[1].code}</div>
+              <div className="text-base font-extrabold">{t.pillars[1].title}</div>
+              <p className="text-xs text-zinc-800 leading-relaxed">{t.pillars[1].desc}</p>
             </div>
             <div className="p-4 bg-[#ffc900]/45 border-2 border-black shadow-[3px_3px_0px_#000] space-y-1">
-              <div className="text-xs font-mono font-black text-black">03 · RETRO RESISTANCE</div>
-              <div className="text-base font-extrabold">아날로그 감성 암호망</div>
-              <p className="text-xs text-zinc-800 leading-relaxed">
-                첨단 AI 시대에 오히려 90년대 레트로 단말기 감성으로 인간의 주권을 지킵니다.
-              </p>
+              <div className="text-xs font-mono font-black text-black">{t.pillars[2].code}</div>
+              <div className="text-base font-extrabold">{t.pillars[2].title}</div>
+              <p className="text-xs text-zinc-800 leading-relaxed">{t.pillars[2].desc}</p>
             </div>
           </div>
         </section>
 
-        {/* 3. 중간 삽입: Poolsuite.net 스타일 레트로 OS 윈도우 (실전 통신 단말기) */}
+        {/* 3. 중간 삽입: Poolsuite.net 스타일 레트로 OS 윈도우 */}
         <section className="bg-[#d6d3c9] border-2 border-black shadow-[8px_8px_0px_#000]">
-          {/* 레트로 OS 타이틀 바 */}
           <div className="bg-[#000080] text-white px-3 py-2 border-b-2 border-black flex items-center justify-between select-none">
             <div className="flex items-center gap-2 font-mono text-xs sm:text-sm font-bold tracking-wide">
               <span className="inline-block w-3 h-3 bg-[#ffc900] border border-white" />
-              <span>OOPS_SIGNAL_TERMINAL_v1.0.EXE</span>
+              <span>{t.terminalTitle}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-5 h-5 bg-[#d6d3c9] text-black border border-black flex items-center justify-center text-xs font-black leading-none">
@@ -336,25 +362,22 @@ function OopsHqContent() {
             </div>
           </div>
 
-          {/* 레트로 툴바 스트립 */}
           <div className="px-4 py-1.5 bg-[#ebe8df] border-b-2 border-black flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
             <div className="flex items-center gap-4 font-bold">
-              <span>File</span>
-              <span>Signal</span>
-              <span>Monsters</span>
-              <span>Help</span>
+              {t.terminalMenus.map((m) => (
+                <span key={m}>{m}</span>
+              ))}
             </div>
-            <span className="text-zinc-700">PROTOCOL: VAPID-WEBPUSH // NO-KAKAO</span>
+            <span className="text-zinc-700">{t.terminalProtocol}</span>
           </div>
 
-          {/* 레트로 윈도우 내부 컨텐츠 */}
           <div className="p-5 sm:p-7 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 좌측 모듈: 내 기기 등록 */}
+            {/* 좌측 모듈 */}
             <div className="bg-[#f4f4f0] border-2 border-black p-5 shadow-[4px_4px_0px_#000] space-y-4">
               <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
                 <span className="font-mono text-sm font-black flex items-center gap-2">
                   <Bell className="w-4 h-4 text-[#ff4d00]" />
-                  <span>01. 내 기기 신호 연결</span>
+                  <span>{t.step1Title}</span>
                 </span>
                 {myAgentId && (
                   <span className="text-xs font-mono font-black px-2 py-0.5 bg-[#ffc900] border border-black">
@@ -363,17 +386,14 @@ function OopsHqContent() {
                 )}
               </div>
 
-              <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed">
-                앱스토어 없이 웹표준 푸시로 내 폰을 독립 단말기로 등록합니다.
-                발급된 링크를 친구·가족에게 넘겨 나를 깨우게 해보세요.
-              </p>
+              <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed">{t.step1Desc}</p>
 
               <div className="space-y-2.5">
                 <input
                   type="text"
                   value={alias}
                   onChange={(e) => setAlias(e.target.value)}
-                  placeholder="요원 호출명 (예: 김대표, 지수)"
+                  placeholder={t.aliasPlaceholder}
                   className="w-full px-3 py-2.5 bg-white border-2 border-black text-sm font-mono focus:outline-none focus:bg-[#ffc900]/15"
                 />
                 <button
@@ -383,7 +403,7 @@ function OopsHqContent() {
                   className="w-full py-3 px-4 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-sm border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <Bell className="w-4 h-4" />
-                  <span>{pushBusy ? '연결 중...' : myAgentId ? '통신망 재동기화' : '내 기기 독립 알림 켜기'}</span>
+                  <span>{pushBusy ? t.connectingBtn : myAgentId ? t.reconnectBtn : t.connectBtn}</span>
                 </button>
               </div>
 
@@ -401,7 +421,7 @@ function OopsHqContent() {
               {myAgentId && (
                 <div className="p-3 bg-white border-2 border-black space-y-2">
                   <div className="text-[11px] font-mono font-bold text-zinc-600">
-                    내 직통 호출 링크 (공유용)
+                    {t.shareLabel}
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <code className="text-xs font-mono font-bold truncate">
@@ -413,51 +433,49 @@ function OopsHqContent() {
                       className="shrink-0 px-2.5 py-1 bg-[#ff90e8] border-2 border-black text-xs font-mono font-bold flex items-center gap-1 cursor-pointer"
                     >
                       {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? '복사됨' : '복사'}</span>
+                      <span>{copied ? t.copiedBtn : t.copyBtn}</span>
                     </button>
                   </div>
                 </div>
               )}
 
               <div className="text-xs font-mono text-zinc-700 pt-2 border-t border-black/20">
-                📱 아이폰(iOS): Safari [공유(□↑) ➔ 홈 화면에 추가] 후 앱으로 실행 시 수신 가능
+                {t.iosTip}
               </div>
             </div>
 
-            {/* 우측 모듈: 몬스터 발사 */}
+            {/* 우측 모듈 */}
             <div className="bg-[#f4f4f0] border-2 border-black p-5 shadow-[4px_4px_0px_#000] space-y-4">
               <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
                 <span className="font-mono text-sm font-black flex items-center gap-2">
                   <Zap className="w-4 h-4 text-[#ff4d00]" />
-                  <span>02. 몬스터 호출 발사</span>
+                  <span>{t.step2Title}</span>
                 </span>
-                <span className="text-[11px] font-mono font-bold text-zinc-600">INSTANT PING</span>
+                <span className="text-[11px] font-mono font-bold text-zinc-600">{t.step2Badge}</span>
               </div>
 
-              <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed">
-                요원 코드만 입력하면 카카오톡 없이 서버가 상대방 기기 잠금화면에 직접 몬스터 알림을 쏩니다.
-              </p>
+              <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed">{t.step2Desc}</p>
 
               <div className="space-y-2.5">
                 <input
                   type="text"
                   value={targetCode}
                   onChange={(e) => setTargetCode(e.target.value.toUpperCase())}
-                  placeholder="수신 요원 코드 (예: OP-XXXXXX)"
+                  placeholder={t.targetPlaceholder}
                   className="w-full px-3 py-2.5 bg-white border-2 border-black text-sm font-mono font-bold focus:outline-none focus:bg-[#ff90e8]/15"
                 />
                 <input
                   type="text"
                   value={pingTitle}
                   onChange={(e) => setPingTitle(e.target.value)}
-                  placeholder="알림 제목"
+                  placeholder={t.pingTitlePlaceholder}
                   className="w-full px-3 py-2 bg-white border-2 border-black text-sm focus:outline-none"
                 />
                 <textarea
                   rows={2}
                   value={pingBody}
                   onChange={(e) => setPingBody(e.target.value)}
-                  placeholder="전달할 메시지"
+                  placeholder={t.pingBodyPlaceholder}
                   className="w-full px-3 py-2 bg-white border-2 border-black text-sm focus:outline-none"
                 />
                 <div className="flex gap-2">
@@ -468,7 +486,7 @@ function OopsHqContent() {
                     className="flex-1 py-3 px-4 bg-[#ff90e8] hover:bg-[#ffa6ed] text-black font-black text-sm border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Send className="w-4 h-4" />
-                    <span>{pingBusy ? '발사 중...' : '몬스터 푸시 발사'}</span>
+                    <span>{pingBusy ? t.firingBtn : t.fireBtn}</span>
                   </button>
                   {myAgentId && (
                     <button
@@ -477,7 +495,7 @@ function OopsHqContent() {
                       onClick={() => sendMonsterPing(myAgentId)}
                       className="px-4 py-3 bg-white hover:bg-zinc-100 border-2 border-black shadow-[3px_3px_0px_#000] text-xs font-mono font-black cursor-pointer"
                     >
-                      내 폰 테스트
+                      {t.selfTestBtn}
                     </button>
                   )}
                 </div>
@@ -497,14 +515,10 @@ function OopsHqContent() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
               <Sparkles className="w-3.5 h-3.5 text-[#ffc900]" />
-              <span>FOUNDING BACKERS & ALLIES</span>
+              <span>{t.backerTag}</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-black">
-              창립 백커 · 전략적 동지 합류
-            </h2>
-            <p className="text-sm text-zinc-700 max-w-2xl font-medium">
-              인간 주권 기술과 독립 통신망 비전에 공감하는 CEO, 엔젤 투자자, 크리에이터·엔지니어의 합류를 기다립니다.
-            </p>
+            <h2 className="text-2xl sm:text-3xl font-black text-black">{t.backerTitle}</h2>
+            <p className="text-sm text-zinc-700 max-w-2xl font-medium">{t.backerDesc}</p>
           </div>
 
           <form onSubmit={submitBacker} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -513,14 +527,14 @@ function OopsHqContent() {
               required
               value={backerName}
               onChange={(e) => setBackerName(e.target.value)}
-              placeholder="성함 *"
+              placeholder={t.namePlaceholder}
               className="px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
             />
             <input
               type="text"
               value={backerOrg}
               onChange={(e) => setBackerOrg(e.target.value)}
-              placeholder="소속 / 직책"
+              placeholder={t.orgPlaceholder}
               className="px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
             />
             <input
@@ -528,14 +542,14 @@ function OopsHqContent() {
               required
               value={backerEmail}
               onChange={(e) => setBackerEmail(e.target.value)}
-              placeholder="회신받을 이메일 *"
+              placeholder={t.emailPlaceholder}
               className="sm:col-span-2 px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
             />
             <textarea
               rows={3}
               value={backerMessage}
               onChange={(e) => setBackerMessage(e.target.value)}
-              placeholder="합류 형태(창립 백커 후원 / 전략 투자 / 기술 기여) 및 메시지"
+              placeholder={t.msgPlaceholder}
               className="sm:col-span-2 px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
             />
             <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-4 pt-1">
@@ -544,7 +558,7 @@ function OopsHqContent() {
                 disabled={backerBusy}
                 className="px-6 py-3 bg-black hover:bg-zinc-800 text-white font-black text-sm border-2 border-black shadow-[4px_4px_0px_#ff90e8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
               >
-                {backerBusy ? '전송 중...' : '합류 의사 전달하기 ➔'}
+                {backerBusy ? t.submittingBtn : t.submitBtn}
               </button>
               {backerDone && (
                 <span className="text-xs font-mono font-bold bg-[#a3e635]/50 border-2 border-black px-3 py-1.5">
@@ -556,11 +570,10 @@ function OopsHqContent() {
         </section>
       </main>
 
-      {/* 순수 OOPS 푸터 */}
       <footer className="border-t-2 border-black bg-white py-6 px-5 text-xs font-mono">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="font-bold">OOPS.MONSTER · AI RESISTANCE HEADQUARTERS</div>
-          <div className="text-zinc-600">HUMAN-FIRST INDEPENDENT SIGNAL NETWORK</div>
+          <div className="text-zinc-600">{t.footerRight}</div>
         </div>
       </footer>
     </div>
