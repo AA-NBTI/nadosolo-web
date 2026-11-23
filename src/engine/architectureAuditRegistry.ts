@@ -269,11 +269,42 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.6',
+    releaseTitle: '독립 트래킹·단축URL·알림·정산 원장·멀티테넌트 슬러그(@핸들)·10초 결제링크 및 /biz UX 단순화',
+    releaseDate: '2026-11-23',
+    summary: '나도솔로·테이블바로 독립 트래킹 수집기 및 /admin 트래킹 대시보드, 자체 단축링크(/s/코드), 알림 어댑터, 테이블바로 토스 결제창 및 매장 정산 원장, 멀티테넌트 슬러그(@핸들)와 10초 결제링크(/pay/[id]), 헤더 로그인 상태 표시 및 /biz 설정 1단어 1기능 구조 개편 완료.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2961',
+        category: 'ADMIN',
+        categoryLabel: '트래킹·단축URL',
+        title: '독립 트래킹 대시보드 · 단축링크(/s/코드) · 제로터치 UTM 수집 완결',
+        beforeSummary: '나도솔로 어필리에이트 UTM 누락 및 통합 유입·전환율 조회 대시보드 부재',
+        afterSummary: '나도솔로·테이블바로 완전 독립 수집기, /admin 트래킹 대시보드, /s/코드 단축URL·QR 연동 완료',
+        impactLabel: '링크 발급 -> 유입 -> 전환 -> 대시보드 조회 4단계 사업 사이클 완결',
+        status: 'VERIFIED',
+        affectedRoutes: ['/admin', '/s/[code]', '/affiliate/dashboard', '/reserve/affiliate', '/biz'],
+      },
+      {
+        id: 'CHG-2962',
+        category: 'CONSTITUTION',
+        categoryLabel: '상용인프라·UX',
+        title: '알림 어댑터 · 정산 원장 · @핸들 서브도메인 · 10초 결제링크 · /biz 단일기능 개편',
+        beforeSummary: '테스트 결제 단일 흐름, 매장 정산 미비, 가입 시 슬러그 부재 및 복잡한 설정 나열',
+        afterSummary: '토스 결제창·알림 어댑터·매장 정산 원장·@핸들 자동 홈페이지·PayLink·헤더 로그인 표시·설정 5단어 분리',
+        impactLabel: '상용 런칭 직전 B2B/B2C 풀사이클 및 1단어 1기능 헌법 준수',
+        status: 'VERIFIED',
+        affectedRoutes: ['/biz', '/pay/[id]', '/reserve/[resourceId]', '/reserve/pay/success'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.5',
     releaseTitle: '나도솔로·테이블바로 좌우 대칭 경로 통일(/affiliate/dashboard) 및 파트너·인원 잔여 혼용 일괄 제거',
     releaseDate: '2026-11-23',
     summary: '나도솔로 어필리에이트 대시보드를 /partners/dashboard에서 /affiliate/dashboard로 이동해 테이블바로(/reserve/affiliate)와 좌우 대칭 구조를 완성하고, 전역 헤더·푸터·도시/살롱/다이닝·관리자 안내 문구 내 파트너 및 고정 인원(6인) 잔여 표현을 일괄 정리함.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2951',
