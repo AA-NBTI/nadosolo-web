@@ -17,8 +17,7 @@ export default function GlobalHeader() {
   const isPublicBookingRoute =
     pathname.startsWith('/reserve') || pathname.startsWith('/r/');
   const isTablebaroRoute = isBizRoute || isPublicBookingRoute;
-  const isAffiliateRoute =
-    pathname.startsWith('/partners') || pathname.startsWith('/affiliate');
+  const isAffiliateRoute = pathname.startsWith('/affiliate');
 
   // 일반 이용자 vs 어필리에이트 vs 테이블바로 네비게이션 완전 분리
   const navItems = isTablebaroRoute
@@ -30,7 +29,7 @@ export default function GlobalHeader() {
     : isAffiliateRoute
       ? [
           { id: 'affiliate', label: '어필리에이트', href: '/affiliate' },
-          { id: 'partner-portal', label: '관리', href: '/partners/dashboard' },
+          { id: 'partner-portal', label: '관리', href: '/affiliate/dashboard' },
           { id: 'home', label: '다이닝 홈', href: '/' },
         ]
       : [
@@ -152,7 +151,7 @@ export default function GlobalHeader() {
           ) : isAffiliateRoute ? (
             <div className="flex items-center gap-2">
               <Link
-                href="/partners/dashboard"
+                href="/affiliate/dashboard"
                 prefetch={true}
                 className="px-4 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-white text-xs font-mono tracking-wider uppercase transition-colors"
               >

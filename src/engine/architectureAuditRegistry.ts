@@ -269,11 +269,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.5',
+    releaseTitle: '나도솔로·테이블바로 좌우 대칭 경로 통일(/affiliate/dashboard) 및 파트너·인원 잔여 혼용 일괄 제거',
+    releaseDate: '2026-11-23',
+    summary: '나도솔로 어필리에이트 대시보드를 /partners/dashboard에서 /affiliate/dashboard로 이동해 테이블바로(/reserve/affiliate)와 좌우 대칭 구조를 완성하고, 전역 헤더·푸터·도시/살롱/다이닝·관리자 안내 문구 내 파트너 및 고정 인원(6인) 잔여 표현을 일괄 정리함.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2951',
+        category: 'CONSTITUTION',
+        categoryLabel: '대칭구조·용어통일',
+        title: '어필리에이트 대시보드(/affiliate/dashboard) 이동 및 잔여 파트너·고정인원 문구 제거',
+        beforeSummary: '나도솔로 /partners/dashboard 경로 혼용 및 도시·살롱·다이닝 내 파트너·6인 잔재 존재',
+        afterSummary: '/affiliate/dashboard 단일화, GlobalHeader/Footer 및 전 페이지 제휴매장·어필리에이트 용어 완결',
+        impactLabel: '나도솔로·테이블바로 양 서비스의 경로·용어 완전 대칭 달성',
+        status: 'VERIFIED',
+        affectedRoutes: ['/affiliate', '/affiliate/dashboard', '/busan', '/dining', '/salon'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.4',
     releaseTitle: '마케팅 탭 채널별 결제 매출 합산 및 나도솔로 어필리에이트 QR 발급 완결',
     releaseDate: '2026-11-23',
     summary: '테이블바로 매장관리 마케팅 탭(BizMarketing)에 결제완료(PAID) 금액 기반의 채널별 매출 합산을 연결하고, 나도솔로 어필리에이트 대시보드(/partners/dashboard)에 전용 홍보 QR 생성·다운로드 기능을 추가하여 UTM·QR 체계를 완결함.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2941',

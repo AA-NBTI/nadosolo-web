@@ -171,7 +171,7 @@ export default function SocialSalonPage() {
               Salon Spaces
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif-editorial font-bold text-white mt-1">
-              소셜 살롱 파트너 공간
+              소셜 살롱 제휴 공간
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-zinc-400">

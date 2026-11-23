@@ -59,7 +59,7 @@ export default function SectorVenues() {
               The Residences &amp; Salons
             </span>
             <h2 className="font-serif-editorial text-3xl sm:text-5xl font-normal text-white tracking-tight leading-tight">
-              실사 검증 제휴 파트너 공간
+              실사 검증 제휴 매장
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-zinc-400 font-light max-w-md leading-relaxed">

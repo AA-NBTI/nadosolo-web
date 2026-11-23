@@ -140,7 +140,7 @@ export default function GlobalFooter() {
                   <div className="flex flex-col gap-1.5">
                     <Link href="/reserve" prefetch={true} className="hover:text-white transition-colors">테이블바로</Link>
                     <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
-                    <Link href="/partners/dashboard" prefetch={true} className="hover:text-white transition-colors">어필리에이트 관리</Link>
+                    <Link href="/affiliate/dashboard" prefetch={true} className="hover:text-white transition-colors">어필리에이트 관리</Link>
                     <Link href="/about" prefetch={true} className="hover:text-white transition-colors">브랜드 소개</Link>
                   </div>
                 </div>

@@ -28,7 +28,7 @@ export default function AffiliateProgramPage() {
     e.preventDefault();
     setSubmitError(null);
     if (!passwordPin.trim() || passwordPin.trim().length < 4) {
-      setSubmitError('파트너 전용 비밀번호는 4자 이상 입력해 주세요.');
+      setSubmitError('비밀번호는 4자 이상 입력해 주세요.');
       return;
     }
     const res = await createAffiliateApplication({
@@ -60,15 +60,15 @@ export default function AffiliateProgramPage() {
               </h1>
             </div>
             <Link
-              href="/partners/dashboard"
+              href="/affiliate/dashboard"
               prefetch={true}
               className="px-4 py-2.5 border border-white/25 bg-white/10 hover:bg-white/20 text-sm font-mono text-white font-semibold shrink-0"
             >
-              파트너스 로그인
+              로그인
             </Link>
           </div>
           <p className="text-sm sm:text-base text-zinc-300 font-light max-w-2xl leading-relaxed">
-            크리에이터, 커뮤니티 운영자, 로컬 인플루언서에게 전용 추천 링크와 프로모션 코드를 제공합니다. 추천 링크를 통해 발생한 첫 예약 건마다 파트너 수익이 정산됩니다.
+            크리에이터, 커뮤니티 운영자, 로컬 인플루언서에게 전용 추천 링크와 프로모션 코드를 제공합니다. 추천 링크를 통해 발생한 첫 예약 건마다 수익이 정산됩니다.
           </p>
         </header>
 
@@ -85,7 +85,7 @@ export default function AffiliateProgramPage() {
             <Users className="w-5 h-5 text-[#f04f74]" />
             <h2 className="text-white font-semibold text-base">성과 추적 · 투명 정산</h2>
             <p className="text-zinc-400 leading-relaxed">
-              추천 코드를 통해 완료된 유료 슬롯 예약 건수를 추적하고, 월 단위로 파트너 커미션을 정산합니다.
+              추천 코드를 통해 완료된 유료 슬롯 예약 건수를 추적하고, 월 단위로 커미션을 정산합니다.
             </p>
           </div>
           <div className="p-6 border border-white/10 bg-[#0c0d12] space-y-2">
@@ -136,14 +136,14 @@ export default function AffiliateProgramPage() {
 
         {/* 앰배서더 신청 폼 */}
         <section className="p-6 sm:p-8 border border-white/10 bg-[#0c0d12] space-y-4">
-          <h2 className="font-serif-editorial text-2xl text-white font-normal">어필리에이트 파트너 신청</h2>
+          <h2 className="font-serif-editorial text-2xl text-white font-normal">어필리에이트 신청</h2>
           {submitted ? (
             <div className="p-5 border border-white/20 bg-[#07080a] space-y-3 text-sm text-white">
               <p>
                 신청이 접수되었습니다. 등록하신 추천 코드({customCode})와 비밀번호로 로그인하여 승인 상태와 실적을 확인하실 수 있습니다.
               </p>
               <Link
-                href="/partners/dashboard"
+                href="/affiliate/dashboard"
                 prefetch={true}
                 className="inline-block px-4 py-2 bg-[#f04f74] text-white font-mono font-semibold"
               >
@@ -181,7 +181,7 @@ export default function AffiliateProgramPage() {
                 required
                 value={passwordPin}
                 onChange={(e) => setPasswordPin(e.target.value)}
-                placeholder="파트너 비밀번호 (실적·정산 로그인용, 4자 이상)"
+                placeholder="비밀번호 (실적·정산 로그인용, 4자 이상)"
                 className="px-4 py-3 bg-[#07080a] border border-white/15 font-mono text-white"
               />
               <input
@@ -212,7 +212,7 @@ export default function AffiliateProgramPage() {
             </p>
           </div>
           <Link
-            href="/partners/dashboard"
+            href="/affiliate/dashboard"
             prefetch={true}
             className="px-5 py-3 border border-white/30 bg-white/15 hover:bg-white/25 text-white text-sm font-mono font-semibold shrink-0 text-center"
           >

@@ -174,7 +174,7 @@ export default function CityLandingPage() {
             CURATED DISTRICTS
           </span>
           <h2 className="text-2xl sm:text-3xl font-bold text-white">
-            {city.nameKr} 엄선 상권 &amp; 파트너 베뉴
+            {city.nameKr} 엄선 상권 &amp; 제휴 매장
           </h2>
           <p className="text-xs sm:text-sm text-zinc-400">
             교통과 이동 동선, 대화의 몰입도를 극대화하는 프라이빗 룸과 라운지만을 엄선합니다.

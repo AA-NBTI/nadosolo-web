@@ -976,10 +976,10 @@ export default function PurchaseMainPage() {
             <div className="p-6 border border-white/10 bg-[#0c0d12] space-y-3">
               <span className="text-xs font-mono text-[#f04f74] uppercase">PARTNERS &amp; AFFILIATES</span>
               <h3 className="font-serif-editorial text-xl text-white font-normal">
-                앰배서더 · 제휴 식당 파트너십
+                앰배서더 · 제휴 매장
               </h3>
               <p className="text-sm text-zinc-400 font-light">
-                나도솔로를 소개하고 수익을 나누는 어필리에이트 프로그램과, 6인 확정 손님을 배정받는 제휴 식당 파트너십을 운영합니다.
+                나도솔로를 소개하고 수익을 나누는 어필리에이트 프로그램과, 매칭된 손님을 배정받는 제휴 매장을 운영합니다.
               </p>
               <div className="flex flex-wrap gap-3 pt-1">
                 <Link href="/affiliate" prefetch={true} className="px-4 py-2 border border-white/25 text-sm font-mono text-white hover:bg-white/10">

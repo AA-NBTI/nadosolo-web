@@ -282,7 +282,7 @@ export default function DiningPage() {
       </section>
 
       {/* ==============================================================
-          3. 제휴 파트너 공간 아카이브 (Curated Venues)
+          3. 제휴 매장 아카이브 (Curated Venues)
           ============================================================== */}
       <section className="w-full py-20 sm:py-28">
         <div className="max-w-[1280px] mx-auto px-6 sm:px-12 lg:px-20">

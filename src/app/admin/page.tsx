@@ -3508,7 +3508,7 @@ export default function AdminOperationsDashboardPage() {
             <section className="space-y-4">
               <div className={`p-3 border flex items-center justify-between gap-3 ${isLight ? 'bg-white border-zinc-200 shadow-sm' : 'bg-[#0c0d12] border-white/10'}`}>
                 <span className={`text-sm font-mono ${isLight ? 'text-zinc-700' : 'text-zinc-300'}`}>
-                  아카이브 (구매장) — 표준 식당 입점 심사·관리는 파트너스 &gt; 식당 탭에서 운영합니다.
+                  아카이브 (구매장) — 표준 매장 입점 심사·관리는 식당 탭에서 운영합니다.
                 </span>
                 <button
                   type="button"
