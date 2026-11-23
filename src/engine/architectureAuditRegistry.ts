@@ -269,11 +269,31 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.7',
+    releaseTitle: '테이블바로 헤더 우측 로그인·로그아웃 대칭 UX 완성 및 /biz 실시간 세션 동기화',
+    releaseDate: '2026-11-23',
+    summary: '나도솔로 헤더와 100% 동일한 좌·우 대칭 레이아웃으로 테이블바로 헤더 우측에 [매장명] + [로그아웃 아이콘]을 배치하고, 어느 페이지에서든 로그아웃 시 /biz와 즉시 동기화되도록 개선함.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2971',
+        category: 'CONSTITUTION',
+        categoryLabel: '대칭UX·헤더',
+        title: '테이블바로 헤더 우측 [매장명] + [로그아웃] 나도솔로 대칭 적용',
+        beforeSummary: '로그인 상태에서도 헤더 우측에 로그아웃 버튼이 없어 /biz 내부에서만 로그아웃 가능',
+        afterSummary: '나도솔로 GlobalHeader와 동일하게 우측 [User 매장명] + [LogOut] 배치 및 실시간 세션 동기화',
+        impactLabel: '나도솔로 · 테이블바로 양쪽 이용자의 학습 비용 0% 대칭 경험 완성',
+        status: 'VERIFIED',
+        affectedRoutes: ['/reserve', '/reserve/my', '/biz', '/reserve/affiliate'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.6',
     releaseTitle: '독립 트래킹·단축URL·알림·정산 원장·멀티테넌트 슬러그(@핸들)·10초 결제링크 및 /biz UX 단순화',
     releaseDate: '2026-11-23',
     summary: '나도솔로·테이블바로 독립 트래킹 수집기 및 /admin 트래킹 대시보드, 자체 단축링크(/s/코드), 알림 어댑터, 테이블바로 토스 결제창 및 매장 정산 원장, 멀티테넌트 슬러그(@핸들)와 10초 결제링크(/pay/[id]), 헤더 로그인 상태 표시 및 /biz 설정 1단어 1기능 구조 개편 완료.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2961',
