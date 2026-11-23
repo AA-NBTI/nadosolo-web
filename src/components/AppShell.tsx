@@ -3,26 +3,40 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { NadoSoloProvider } from '@/engine';
-import { isTablebaroHost, isTablebaroPath } from '@/modules/tenancy';
+import { isOopsHost, isOopsPath, isTablebaroHost, isTablebaroPath } from '@/modules/tenancy';
 import GlobalHeader from '@/components/GlobalHeader';
 import GlobalFooter from '@/components/GlobalFooter';
 import TablebaroHeader from '@/components/TablebaroHeader';
 import AttributionCapture from '@/components/AttributionCapture';
 import AdminViewerBanner from '@/components/admin/AdminViewerBanner';
 
-/** 테이블바로 호스트/경로는 NadoSoloProvider 없이 독립 렌더링하고, 나도솔로만 Provider를 마운트한다. */
+export type BrandKind = 'nadosolo' | 'tablebaro' | 'oops';
+
+/** 호스트/경로에 따라 나도솔로·테이블바로·OOPS 3개 브랜드를 완전 독립 쉘로 분기한다. */
 export default function AppShell({
   children,
-  initialIsTablebaro = false,
+  initialBrand = 'nadosolo',
 }: {
   children: React.ReactNode;
-  initialIsTablebaro?: boolean;
+  initialBrand?: BrandKind;
 }) {
   const pathname = usePathname();
-  const clientIsTablebaroHost =
-    typeof window !== 'undefined' && isTablebaroHost(window.location.hostname);
+  const clientHost = typeof window !== 'undefined' ? window.location.hostname : null;
+
+  const isOops =
+    initialBrand === 'oops' || isOopsHost(clientHost) || isOopsPath(pathname);
+
+  if (isOops) {
+    return (
+      <>
+        <AttributionCapture />
+        <div className="flex-1 flex flex-col">{children}</div>
+      </>
+    );
+  }
+
   const isTablebaro =
-    initialIsTablebaro || clientIsTablebaroHost || isTablebaroPath(pathname);
+    initialBrand === 'tablebaro' || isTablebaroHost(clientHost) || isTablebaroPath(pathname);
 
   if (isTablebaro) {
     return (

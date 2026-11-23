@@ -1,12 +1,17 @@
 import type { MetadataRoute } from 'next';
 import { headers } from 'next/headers';
-import { isTablebaroHost } from '@/modules/tenancy';
+import { isOopsHost, isTablebaroHost } from '@/modules/tenancy';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const h = await headers();
   const host = h.get('host');
+  const isOops = isOopsHost(host);
   const isTablebaro = isTablebaroHost(host);
   const now = new Date();
+
+  if (isOops) {
+    return [{ url: 'https://oops.monster', lastModified: now, changeFrequency: 'daily', priority: 1.0 }];
+  }
 
   if (isTablebaro) {
     const siteUrl = 'https://tablebaro.com';

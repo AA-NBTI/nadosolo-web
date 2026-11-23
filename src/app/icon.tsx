@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { headers } from 'next/headers';
-import { isTablebaroHost } from '@/modules/tenancy';
+import { isOopsHost, isTablebaroHost } from '@/modules/tenancy';
 
 export const runtime = 'edge';
 
@@ -12,7 +12,9 @@ export const contentType = 'image/png';
 
 export default async function Icon() {
   const h = await headers();
-  const isTablebaro = isTablebaroHost(h.get('host'));
+  const host = h.get('host');
+  const isOops = isOopsHost(host);
+  const isTablebaro = isTablebaroHost(host);
 
   return new ImageResponse(
     (
@@ -26,9 +28,11 @@ export default async function Icon() {
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: 8,
-          border: isTablebaro
-            ? '1px solid rgba(59, 130, 246, 0.45)'
-            : '1px solid rgba(255, 255, 255, 0.15)',
+          border: isOops
+            ? '1px solid rgba(239, 68, 68, 0.55)'
+            : isTablebaro
+              ? '1px solid rgba(59, 130, 246, 0.45)'
+              : '1px solid rgba(255, 255, 255, 0.15)',
           fontFamily: 'serif',
           fontWeight: 600,
           color: '#ffffff',
@@ -37,11 +41,11 @@ export default async function Icon() {
       >
         <span
           style={{
-            color: isTablebaro ? '#3b82f6' : '#ffffff',
+            color: isOops ? '#ef4444' : isTablebaro ? '#3b82f6' : '#ffffff',
             letterSpacing: '-0.5px',
           }}
         >
-          {isTablebaro ? 't' : 'n'}
+          {isOops ? '!' : isTablebaro ? 't' : 'n'}
         </span>
       </div>
     ),

@@ -2,13 +2,50 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import './globals.css';
 import ChunkErrorRecovery from '@/components/ChunkErrorRecovery';
-import AppShell from '@/components/AppShell';
-import { isTablebaroHost } from '@/modules/tenancy';
+import AppShell, { type BrandKind } from '@/components/AppShell';
+import { isOopsHost, isTablebaroHost } from '@/modules/tenancy';
 
 export async function generateMetadata(): Promise<Metadata> {
   const h = await headers();
   const host = h.get('host');
+  const isOops = isOopsHost(host);
   const isTablebaro = isTablebaroHost(host);
+
+  if (isOops) {
+    const siteUrl = 'https://oops.monster';
+    return {
+      metadataBase: new URL(siteUrl),
+      manifest: '/manifest.webmanifest',
+      title: {
+        default: 'OOPS | AI 저항군 본부 · 독립 통신망',
+        template: '%s | OOPS HQ',
+      },
+      description:
+        'AI가 인간보다 더 많은 것을 결정할 수 있는 세상에서, 누가 인간의 편에 설 것인가? 거대 플랫폼과 AI에 종속되지 않는 인간 직통 독립 알림망 oops.monster.',
+      keywords: ['oops.monster', 'OOPS', 'AI 저항군', '독립 통신망', 'Human-First Tech', 'Web Push'],
+      alternates: { canonical: '/' },
+      openGraph: {
+        type: 'website',
+        locale: 'ko_KR',
+        url: siteUrl,
+        siteName: 'OOPS HQ',
+        title: 'OOPS | AI 저항군 본부 · 독립 통신망',
+        description:
+          'AI가 인간보다 더 많은 것을 결정할 수 있는 세상에서, 누가 인간의 편에 설 것인가? 거대 플랫폼 없는 인간 직통 독립 알림망.',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'OOPS | AI 저항군 본부 · 독립 통신망',
+        description:
+          '거대 플랫폼과 AI에 종속되지 않는 인간 직통 독립 알림망 oops.monster.',
+      },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' },
+      },
+    };
+  }
 
   if (isTablebaro) {
     const cleanHost = (host || 'tablebaro.com').split(':')[0];
@@ -113,29 +150,39 @@ export default async function RootLayout({
 }) {
   const h = await headers();
   const host = h.get('host');
+  const isOops = isOopsHost(host);
   const isTablebaro = isTablebaroHost(host);
-  const siteUrl = isTablebaro
-    ? `https://${(host || 'tablebaro.com').split(':')[0]}`
-    : process.env.NEXT_PUBLIC_SITE_URL || 'https://nadosolo.com';
+  const brand: BrandKind = isOops ? 'oops' : isTablebaro ? 'tablebaro' : 'nadosolo';
+  const siteUrl = isOops
+    ? 'https://oops.monster'
+    : isTablebaro
+      ? `https://${(host || 'tablebaro.com').split(':')[0]}`
+      : process.env.NEXT_PUBLIC_SITE_URL || 'https://nadosolo.com';
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'WebSite',
-        name: isTablebaro ? '테이블바로' : '나도솔로',
-        alternateName: isTablebaro ? ['tablebaro', '테이블바로 공식'] : ['nadosolo', '나도솔로 공식'],
+        name: isOops ? 'OOPS HQ' : isTablebaro ? '테이블바로' : '나도솔로',
+        alternateName: isOops
+          ? ['oops.monster', 'AI 저항군 본부']
+          : isTablebaro
+            ? ['tablebaro', '테이블바로 공식']
+            : ['nadosolo', '나도솔로 공식'],
         url: siteUrl,
         inLanguage: 'ko-KR',
       },
       {
         '@type': 'Organization',
-        name: isTablebaro ? '테이블바로' : '나도솔로',
-        alternateName: isTablebaro ? 'tablebaro' : 'nadosolo',
+        name: isOops ? 'OOPS HQ' : isTablebaro ? '테이블바로' : '나도솔로',
+        alternateName: isOops ? 'oops.monster' : isTablebaro ? 'tablebaro' : 'nadosolo',
         url: siteUrl,
-        description: isTablebaro
-          ? '다이닝·공간·숙박을 위한 노쇼 없는 스마트 선결제 예약 및 매장 전용 예약 솔루션'
-          : '오프라인 소셜 다이닝 환경에서의 실제 상호작용을 통해 소통 역량과 매너를 다면 관찰하는 소셜 메타인지 플랫폼',
+        description: isOops
+          ? '거대 플랫폼과 AI에 종속되지 않는 인간 주권 독립 통신망 oops.monster'
+          : isTablebaro
+            ? '다이닝·공간·숙박을 위한 노쇼 없는 스마트 선결제 예약 및 매장 전용 예약 솔루션'
+            : '오프라인 소셜 다이닝 환경에서의 실제 상호작용을 통해 소통 역량과 매너를 다면 관찰하는 소셜 메타인지 플랫폼',
       },
     ],
   };
@@ -170,7 +217,7 @@ export default async function RootLayout({
         className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-white/20 selection:text-white"
       >
         <ChunkErrorRecovery />
-        <AppShell initialIsTablebaro={isTablebaro}>{children}</AppShell>
+        <AppShell initialBrand={brand}>{children}</AppShell>
       </body>
     </html>
   );

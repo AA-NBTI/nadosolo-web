@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { extractSubdomainSlug } from '@/modules/tenancy';
+import { extractSubdomainSlug, isOopsHost } from '@/modules/tenancy';
 
 const PASSTHROUGH_PREFIXES = [
   '/api/',
@@ -10,6 +10,9 @@ const PASSTHROUGH_PREFIXES = [
   '/pay/',
   '/s/',
   '/r/',
+  '/oops',
+  '/sw.js',
+  '/manifest.webmanifest',
   '/favicon.ico',
 ];
 
@@ -20,6 +23,14 @@ export function middleware(request: NextRequest) {
   }
 
   const host = (request.headers.get('host') || '').toLowerCase();
+
+  // oops.monster 또는 *.oops.monster 메인 접속 시 -> OOPS HQ(/oops)로 리라이트
+  if (isOopsHost(host) && (pathname === '/' || pathname === '')) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/oops';
+    url.search = search;
+    return NextResponse.rewrite(url);
+  }
 
   // tablebaro.com 또는 www.tablebaro.com 메인 접속 시 -> 테이블바로 허브(/reserve)로 리라이트
   if (

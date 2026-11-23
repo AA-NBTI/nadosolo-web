@@ -109,3 +109,18 @@ export function isTablebaroPath(pathname: string | null | undefined): boolean {
 export function getTablebaroSubdomain(hostHeader: string | null | undefined): string | null {
   return extractSubdomainSlug(hostHeader, ['tablebaro.com']);
 }
+
+/** 호스트가 OOPS(oops.monster 또는 *.oops.monster)인지 판별 */
+export function isOopsHost(hostHeader: string | null | undefined): boolean {
+  const host = String(hostHeader ?? '')
+    .split(':')[0]
+    .trim()
+    .toLowerCase();
+  return host === 'oops.monster' || host.endsWith('.oops.monster');
+}
+
+/** 경로가 OOPS 전용 경로(/oops)인지 판별 */
+export function isOopsPath(pathname: string | null | undefined): boolean {
+  if (!pathname) return false;
+  return pathname.startsWith('/oops');
+}
