@@ -7,6 +7,7 @@ import { Copy, LogOut, RefreshCw } from 'lucide-react';
 import AddressAutocompleteInput, { type SelectedAddressInfo } from '@/components/biz/AddressAutocompleteInput';
 import BizMarketing from '@/components/biz/BizMarketing';
 import BizPayouts from '@/components/biz/BizPayouts';
+import BizPayLinks from '@/components/biz/BizPayLinks';
 
 const BIZ_SESSION_KEY = 'tablebaro_biz_session_v1';
 
@@ -99,7 +100,7 @@ function BizReservationPortalContent() {
   const [obError, setObError] = useState<string | null>(null);
   const [obBusy, setObBusy] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'OPERATE' | 'SETTINGS' | 'MARKETING' | 'PAYOUTS'>('OPERATE');
+  const [activeTab, setActiveTab] = useState<'OPERATE' | 'SETTINGS' | 'MARKETING' | 'PAYOUTS' | 'PAYLINKS'>('OPERATE');
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -130,6 +131,7 @@ function BizReservationPortalContent() {
   const [editSignatureMenu, setEditSignatureMenu] = useState('');
   const [editPriceRange, setEditPriceRange] = useState('');
   const [editPrepayAmountKrw, setEditPrepayAmountKrw] = useState(0);
+  const [editSlug, setEditSlug] = useState('');
   const [editTags, setEditTags] = useState<string[]>([]);
   const [units, setUnits] = useState<UnitItem[]>([]);
   const [weeklyRules, setWeeklyRules] = useState<WeeklyRuleState[]>(DEFAULT_WEEKLY_RULES);
@@ -173,6 +175,7 @@ function BizReservationPortalContent() {
         setEditSignatureMenu(p.signatureMenu || '');
         setEditPriceRange(p.priceRange || '');
         setEditPrepayAmountKrw(Number(p.prepayAmountKrw ?? p.depositKrw ?? 0));
+        setEditSlug(String(p.slug || ''));
         setEditTags(Array.isArray(p.tags) ? p.tags : []);
         if (Array.isArray(data.units)) setUnits(data.units);
 
@@ -410,6 +413,7 @@ function BizReservationPortalContent() {
           signatureMenu: editSignatureMenu.trim(),
           priceRange: editPriceRange.trim(),
           prepayAmountKrw: Math.max(0, Math.round(Number(editPrepayAmountKrw) || 0)),
+          slug: editSlug.trim().toLowerCase(),
           tags: editTags,
         },
         units,
@@ -903,6 +907,15 @@ function BizReservationPortalContent() {
             </button>
             <button
               type="button"
+              onClick={() => setActiveTab('PAYLINKS')}
+              className={`px-3 py-1.5 border text-sm font-mono text-white cursor-pointer ${
+                activeTab === 'PAYLINKS' ? 'border-white/40 bg-white/15 font-bold' : 'border-white/15 bg-white/5'
+              }`}
+            >
+              결제링크
+            </button>
+            <button
+              type="button"
               onClick={() => setActiveTab('PAYOUTS')}
               className={`px-3 py-1.5 border text-sm font-mono text-white cursor-pointer ${
                 activeTab === 'PAYOUTS' ? 'border-white/40 bg-white/15 font-bold' : 'border-white/15 bg-white/5'
@@ -950,6 +963,8 @@ function BizReservationPortalContent() {
 
         {activeTab === 'MARKETING' ? (
           <BizMarketing venueId={session.id} bookings={bookings} />
+        ) : activeTab === 'PAYLINKS' ? (
+          <BizPayLinks resourceId={session.id} resourceName={editName || session.name} defaultAmountKrw={editPrepayAmountKrw} />
         ) : activeTab === 'PAYOUTS' ? (
           <BizPayouts resourceId={session.id} />
         ) : activeTab === 'SETTINGS' ? (
@@ -1013,6 +1028,15 @@ function BizReservationPortalContent() {
                     value={editPrepayAmountKrw}
                     onChange={(e) => setEditPrepayAmountKrw(Number(e.target.value) || 0)}
                     placeholder="예: 10000"
+                    className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-zinc-400 mb-1">전용 주소 (슬러그)</label>
+                  <input
+                    value={editSlug}
+                    onChange={(e) => setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    placeholder="예: gosu (gosu.tablebaro.com)"
                     className="w-full px-3 py-2 bg-black/40 border border-white/20 text-white"
                   />
                 </div>

@@ -13,6 +13,7 @@ import {
   getReservationEngine,
 } from '@/lib/reservation/runtime';
 import { syncMeetupVenueOnFallback } from '@/lib/reservation/nadosolo';
+import { normalizeSlug } from '@/modules/tenancy';
 
 export const dynamic = 'force-dynamic';
 
@@ -283,6 +284,22 @@ export async function POST(request: Request) {
     if (action === 'UPDATE_SETTINGS') {
       const resource = await driver.getResource(venueId);
       if (!resource) return NextResponse.json({ ok: false, error: '매장 자원 없음' }, { status: 404 });
+      if (body.profile && typeof body.profile.slug === 'string' && body.profile.slug.trim()) {
+        const cleanSlug = normalizeSlug(body.profile.slug);
+        if (!cleanSlug) {
+          return NextResponse.json({ ok: false, error: '사용할 수 없는 슬러그입니다. (영문·숫자 2~32자, 예약어 제외)' }, { status: 400 });
+        }
+        const all = await driver.listResources();
+        const dup = all.find(
+          (r) =>
+            r.id !== venueId &&
+            String((r.attributes?.profile as Record<string, any> | undefined)?.slug || '').toLowerCase() === cleanSlug
+        );
+        if (dup) {
+          return NextResponse.json({ ok: false, error: `이미 사용 중인 슬러그입니다: ${cleanSlug}` }, { status: 409 });
+        }
+        body.profile.slug = cleanSlug;
+      }
       const nextUnits = Array.isArray(body.units) ? body.units : extractUnits(resource);
       const nextTotalCap = nextUnits.reduce(
         (acc: number, u: any) => acc + (u.active ? Math.max(1, Number(u.quantity) || 1) * Math.max(1, Number(u.maxPartySize) || 1) : 0),

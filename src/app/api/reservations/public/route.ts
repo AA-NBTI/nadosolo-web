@@ -54,13 +54,22 @@ export async function GET(request: Request) {
   }
 
   try {
-    const resource = await driver.getResource(resourceId);
+    let resource = await driver.getResource(resourceId);
+    if (!resource) {
+      const all = await driver.listResources();
+      const targetSlug = resourceId.toLowerCase();
+      resource =
+        all.find(
+          (r) =>
+            String((r.attributes?.profile as Record<string, any> | undefined)?.slug || '').toLowerCase() === targetSlug
+        ) ?? null;
+    }
     if (!resource || !resource.active || resource.attributes?.onboardingCompleted === false) {
       return NextResponse.json({ ok: false, error: '예약 가능한 업체를 찾을 수 없습니다.' }, { status: 404 });
     }
 
     const windows = date
-      ? await engine.getAvailableWindows({ resourceId, date, partySize })
+      ? await engine.getAvailableWindows({ resourceId: resource.id, date, partySize })
       : [];
 
     const profile = (resource.attributes?.profile || {}) as Record<string, any>;
@@ -120,9 +129,20 @@ export async function POST(request: Request) {
 
   try {
     const driver = getReservationDriver();
+    let canonicalResourceId = resourceId;
     let prepayAmountKrw = 0;
     if (driver) {
-      const resource = await driver.getResource(resourceId);
+      let resource = await driver.getResource(resourceId);
+      if (!resource) {
+        const all = await driver.listResources();
+        const targetSlug = resourceId.toLowerCase();
+        resource =
+          all.find(
+            (r) =>
+              String((r.attributes?.profile as Record<string, any> | undefined)?.slug || '').toLowerCase() === targetSlug
+          ) ?? null;
+      }
+      if (resource) canonicalResourceId = resource.id;
       const blocked = Array.isArray(resource?.attributes?.blockedPhones)
         ? (resource.attributes.blockedPhones as string[])
         : [];
@@ -159,7 +179,7 @@ export async function POST(request: Request) {
 
     const cleanAttr = sanitizeAttribution(body.attribution);
     const booking = await engine.bookWindow({
-      resourceId,
+      resourceId: canonicalResourceId,
       unitId,
       startsAt,
       partySize,
@@ -177,11 +197,11 @@ export async function POST(request: Request) {
       void recordTrackingEvent({
         service: 'TABLEBARO',
         type: 'CONVERSION',
-        path: `/reserve/${resourceId}`,
+        path: `/reserve/${canonicalResourceId}`,
         attribution: cleanAttr,
         amountKrw: 0,
         orderId: booking.id,
-        resourceId,
+        resourceId: canonicalResourceId,
       });
       void dispatchNotification({
         service: 'TABLEBARO',
