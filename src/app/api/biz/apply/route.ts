@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getNadoSoloReservationDriver } from '@/lib/reservation/nadosolo';
+import { getReservationDriver } from '@/lib/reservation/runtime';
 import type { Resource } from '@/modules/reservation';
 
 export const dynamic = 'force-dynamic';
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
  * 예약 업체 독립 입점 신청 API (affiliateDb 의존 0%, reservation_resources에 active=false로 직접 저장)
  */
 export async function POST(request: Request) {
-  const driver = getNadoSoloReservationDriver();
+  const driver = getReservationDriver();
   if (!driver) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
   }
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
       kind: 'restaurant',
       name: defaultName,
       capacity: 12,
-      active: true,
+      active: false, // 관리자 승인 게이트: /admin 승인 후 로그인 및 노출 가능
       attributes: {
         cityCode: 'SEOUL_GANGNAM',
         budgetTier: '$$',
@@ -68,7 +68,7 @@ export async function POST(request: Request) {
         units: [
           {
             id: 'unit-main',
-            name: '6인 프라이빗 테이블',
+            name: '메인 테이블',
             minPartySize: 1,
             maxPartySize: 6,
             quantity: 2,

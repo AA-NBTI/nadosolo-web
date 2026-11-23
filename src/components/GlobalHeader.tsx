@@ -29,8 +29,8 @@ export default function GlobalHeader() {
       ]
     : isAffiliateRoute
       ? [
-          { id: 'affiliate', label: '크리에이터', href: '/affiliate' },
-          { id: 'partner-portal', label: '파트너센터', href: '/partners/dashboard' },
+          { id: 'affiliate', label: '어필리에이트', href: '/affiliate' },
+          { id: 'partner-portal', label: '관리', href: '/partners/dashboard' },
           { id: 'home', label: '다이닝 홈', href: '/' },
         ]
       : [
@@ -156,7 +156,7 @@ export default function GlobalHeader() {
                 prefetch={true}
                 className="px-4 py-1.5 border border-white/25 bg-white/10 hover:bg-white/20 text-white text-xs font-mono tracking-wider uppercase transition-colors"
               >
-                파트너센터
+                어필리에이트
               </Link>
               {isAdmin && (
                 <Link

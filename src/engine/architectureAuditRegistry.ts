@@ -269,11 +269,53 @@ export const GOVERNANCE_HOTSPOTS: GovernanceHotspot[] = [
  */
 export const ARCHITECTURE_RELEASES: ArchitectureReleaseSnapshot[] = [
   {
+    version: 'v2.9.2',
+    releaseTitle: '테이블바로 어필리에이트 · UTM/QR 범용 추적 모듈 · 관리자 단계별 심사 및 독립 레이아웃(AppShell) 분리 완결',
+    releaseDate: '2026-11-23',
+    summary: '테이블바로 전용 어필리에이트 프리셋(tablebaro.preset.ts)과 UTM·QR 범용 추적 모듈(src/modules/tracking)을 신설하고, /reserve/affiliate 및 /biz 마케팅 탭을 구축. 용어를 매장·어필리에이트로 단일화하고 API/라우트(/api/biz/reservations, /reserve/affiliate)와 예약 런타임(lib/reservation/runtime.ts)을 중립화했으며, AppShell 분기를 통해 테이블바로 경로에서 NadoSoloProvider 의존을 완전 제거함.',
+    isLatest: true,
+    changes: [
+      {
+        id: 'CHG-2921',
+        category: 'PROCESS',
+        categoryLabel: '추적·어필리에이트',
+        title: '범용 UTM/QR 추적 모듈(tracking) 및 테이블바로 전용 어필리에이트(/reserve/affiliate) 구축',
+        beforeSummary: '나도솔로 단일 어필리에이트 구조, 매장별 채널 유입 추적 및 QR 발급 기능 부재',
+        afterSummary: 'src/modules/tracking 신설, tablebaroPartnersEngine 분리, /reserve/affiliate 및 /biz 마케팅 탭(6대 채널 링크·QR 다운로드) 완비',
+        impactLabel: '온라인 UTM과 오프라인 QR 유입을 단일 어트리뷰션 모델로 추적 및 정산 분리',
+        status: 'VERIFIED',
+        affectedRoutes: ['/reserve/affiliate', '/biz', 'src/modules/tracking', 'tablebaro.preset.ts'],
+      },
+      {
+        id: 'CHG-2922',
+        category: 'ADMIN',
+        categoryLabel: '단계별심사게이트',
+        title: '매장 입점 승인 게이트(active:false) 및 관리자 나도솔로·테이블바로 통합 심사 뷰 구현',
+        beforeSummary: '입점 신청 시 즉시 active:true 저장, 테이블바로 어필리에이트 관리자 심사 경로 부재',
+        afterSummary: '입점 시 active:false 대기 및 관리자 단계별 필터(승인대기/정보미등록/운영중), AdminPartnersManager 서비스 전환 토글 적용',
+        impactLabel: '미승인 매장 노출 차단 및 전 단계 심사 관제 일원화',
+        status: 'VERIFIED',
+        affectedRoutes: ['/api/biz/apply', '/api/biz/auth', '/admin'],
+      },
+      {
+        id: 'CHG-2923',
+        category: 'CONSTITUTION',
+        categoryLabel: '독립분리아키텍처',
+        title: '예약 런타임 중립화(runtime.ts), 테이블바로 약관·SEO, AppShell Provider 격리 완결',
+        beforeSummary: '테이블바로 API가 nadosolo.ts를 import하고 모든 경로가 NadoSoloProvider 하위에 묶여 있음',
+        afterSummary: 'lib/reservation/runtime.ts 및 AppShell/TablebaroHeader 분리로 NadoSoloProvider 의존 0% 달성, 테이블바로 전용 약관·환불규정 및 /reserve 메타데이터·sitemap 적용',
+        impactLabel: '추후 별도 서비스·도메인으로 즉시 분리 가능한 독립 아키텍처 완성',
+        status: 'VERIFIED',
+        affectedRoutes: ['/reserve', '/biz', '/r/[token]', 'AppShell.tsx', 'TablebaroHeader.tsx'],
+      },
+    ],
+  },
+  {
     version: 'v2.9.1',
     releaseTitle: '용어 전역 단일화(매장검색·예약확인·입점신청·매장관리·파트너센터) · 테이블바로 선결제 예약 솔루션 블루 포인트(#3b82f6) 및 서비스 중심 카피라이트 완결',
     releaseDate: '2026-11-23',
     summary: '중복 사족 및 설명조 명칭(사장님 포털, 어필리에이트 포털, 내 예약 등)을 시스템 헌법에 따라 단일 명사형(매장검색, 예약확인, 입점신청, 매장관리, 파트너센터)으로 전역 통일. 테이블바로 푸터 로고 서브타이틀의 고유 블루(#3b82f6) 확정 및 SEO 강화를 위한 서비스명 중심의 저작권(Copyright TABLEBARO / NADOSOLO) 표기 구조 정립, 미종료 백그라운드 태스크 정리로 에이전트 즉각 응답성 회복.',
-    isLatest: true,
+    isLatest: false,
     changes: [
       {
         id: 'CHG-2911',

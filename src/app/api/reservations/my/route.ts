@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ReservationError } from '@/modules/reservation';
-import { getNadoSoloReservationDriver, getNadoSoloReservationEngine } from '@/lib/reservation/nadosolo';
+import { getReservationDriver, getReservationEngine } from '@/lib/reservation/runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,8 +19,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: '연락처를 정확히 입력해 주세요.' }, { status: 400 });
   }
 
-  const engine = getNadoSoloReservationEngine();
-  const driver = getNadoSoloReservationDriver();
+  const engine = getReservationEngine();
+  const driver = getReservationDriver();
   if (!engine || !driver) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
   }
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const engine = getNadoSoloReservationEngine();
+  const engine = getReservationEngine();
   if (!engine) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
   }

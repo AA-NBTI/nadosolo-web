@@ -56,10 +56,11 @@ export default function GlobalFooter() {
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-white font-mono font-semibold block">파트너</span>
+                  <span className="text-white font-mono font-semibold block">매장</span>
                   <div className="flex flex-col gap-1.5">
                     <Link href="/biz" prefetch={true} className="hover:text-white transition-colors">매장관리</Link>
                     <Link href="/biz?tab=signup" prefetch={true} className="hover:text-white transition-colors">입점신청</Link>
+                    <Link href="/reserve/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
                     <Link href="/" prefetch={true} className="hover:text-white transition-colors">나도솔로</Link>
                   </div>
                 </div>
@@ -135,11 +136,11 @@ export default function GlobalFooter() {
                 </div>
 
                 <div className="space-y-2">
-                  <span className="text-white font-mono font-semibold block">파트너</span>
+                  <span className="text-white font-mono font-semibold block">제휴</span>
                   <div className="flex flex-col gap-1.5">
                     <Link href="/reserve" prefetch={true} className="hover:text-white transition-colors">테이블바로</Link>
-                    <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">크리에이터</Link>
-                    <Link href="/partners/dashboard" prefetch={true} className="hover:text-white transition-colors">파트너센터</Link>
+                    <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
+                    <Link href="/partners/dashboard" prefetch={true} className="hover:text-white transition-colors">어필리에이트 관리</Link>
                     <Link href="/about" prefetch={true} className="hover:text-white transition-colors">브랜드 소개</Link>
                   </div>
                 </div>
@@ -234,11 +235,42 @@ export default function GlobalFooter() {
 
             <div className="text-sm text-zinc-300 space-y-3 font-light leading-relaxed">
               {activeModal === 'REFUND' && (
+                isTablebaro ? (
+                  <>
+                    <p className="font-medium text-white">제1조 (예약 취소 및 환불 정책)</p>
+                    <p>1. 매장별 예약 확정 전 또는 지정된 무료 취소 기한 내에는 예약확인 페이지에서 직접 취소 및 전액 환불이 가능합니다.</p>
+                    <p>2. 당일 취소 및 노쇼(No-Show)의 경우 매장 좌석 보증 정책에 따라 예약금 환불이 제한될 수 있습니다.</p>
+                    <p>3. 매장 사정으로 예약이 거절되거나 만료된 경우 결제 금액은 자동 전액 환불됩니다.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium text-white">제1조 (취소 및 환불 정책)</p>
+                    <p>1. 모임 시작 48시간 전까지는 대시보드에서 전액 무료 취소 또는 다음 회차로의 이월(참가권 1매 보존)이 가능합니다.</p>
+                    <p>2. 모임 시작 24시간 이내 취소 또는 당일 불참(노쇼)의 경우, 다른 참가자들과의 테이블 밸런스 및 예약 식당 좌석 보증을 위해 참가권이 보존되지 않으며 환불이 불가합니다.</p>
+                    <p>3. 최소 인원 미달 등으로 모임이 성사되지 않을 경우, 결제하신 참가권은 자동으로 다음 회차로 전액 보존 및 연장됩니다.</p>
+                  </>
+                )
+              )}
+              {activeModal === 'TERMS' && (
+                isTablebaro ? (
+                  <>
+                    <p className="font-medium text-white">제1조 (테이블바로 서비스 이용약관)</p>
+                    <p>1. 테이블바로는 매장 실시간 좌석 조회 및 선결제 예약 중개 솔루션을 제공합니다.</p>
+                    <p>2. 실제 매장 이용, 음식·공간 제공 및 현장 추가 결제는 각 입점 매장의 운영 정책에 따릅니다.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium text-white">제1조 (나도솔로 서비스 이용약관)</p>
+                    <p>1. 나도솔로는 소셜 다이닝 매칭 및 다면 관찰 리포트 서비스를 제공합니다.</p>
+                    <p>2. 참가자 간 상호 존중 및 비방 금지 원칙을 위반할 경우 서비스 이용이 제한될 수 있습니다.</p>
+                  </>
+                )
+              )}
+              {activeModal === 'PRIVACY' && (
                 <>
-                  <p className="font-medium text-white">제1조 (취소 및 환불 정책)</p>
-                  <p>1. 모임 시작 48시간 전까지는 대시보드에서 전액 무료 취소 또는 다음 회차로의 이월(참가권 1매 보존)이 가능합니다.</p>
-                  <p>2. 모임 시작 24시간 이내 취소 또는 당일 불참(노쇼)의 경우, 다른 참가자들과의 테이블 밸런스 및 예약 식당 좌석 보증을 위해 참가권이 보존되지 않으며 환불이 불가합니다.</p>
-                  <p>3. 최소 인원 미달 등으로 모임이 성사되지 않을 경우, 결제하신 참가권은 자동으로 다음 회차로 전액 보존 및 연장됩니다.</p>
+                  <p className="font-medium text-white">제1조 (개인정보 수집 및 이용)</p>
+                  <p>1. 예약 접수, 본인 확인, 알림 발송 및 정산 처리 목적에 한해 최소한의 연락처와 이름 정보를 수집·이용합니다.</p>
+                  <p>2. 수집된 개인정보는 목적 달성 및 법령상 보관 기간 경과 후 지체 없이 파기합니다.</p>
                 </>
               )}
             </div>

@@ -140,14 +140,14 @@ export default function AffiliateProgramPage() {
           {submitted ? (
             <div className="p-5 border border-white/20 bg-[#07080a] space-y-3 text-sm text-white">
               <p>
-                파트너 신청이 접수되었습니다. 등록하신 추천 코드({customCode})와 비밀번호로 파트너센터에 로그인하여 승인 상태와 실적을 확인하실 수 있습니다.
+                신청이 접수되었습니다. 등록하신 추천 코드({customCode})와 비밀번호로 로그인하여 승인 상태와 실적을 확인하실 수 있습니다.
               </p>
               <Link
                 href="/partners/dashboard"
                 prefetch={true}
                 className="inline-block px-4 py-2 bg-[#f04f74] text-white font-mono font-semibold"
               >
-                파트너센터
+                어필리에이트 관리
               </Link>
             </div>
           ) : (
@@ -198,7 +198,7 @@ export default function AffiliateProgramPage() {
                 type="submit"
                 className="sm:col-span-2 py-3 border border-white/30 bg-white/15 hover:bg-white/25 text-white font-mono font-semibold cursor-pointer"
               >
-                파트너 신청
+                신청
               </button>
             </form>
           )}
@@ -206,9 +206,9 @@ export default function AffiliateProgramPage() {
 
         <section className="p-6 border border-white/15 bg-[#0c0d12] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="font-serif-editorial text-2xl text-white font-normal">파트너스 전용 대시보드</h2>
+            <h2 className="font-serif-editorial text-2xl text-white font-normal">어필리에이트 대시보드</h2>
             <p className="text-sm text-zinc-400">
-              일반 이용회원 계정과 분리된 파트너 전용 로그인을 통해 클릭·결제 실적, 계좌 관리 및 출금 신청을 진행합니다.
+              어필리에이트 전용 로그인을 통해 클릭·결제 실적, 계좌 관리 및 출금 신청을 진행합니다.
             </p>
           </div>
           <Link
@@ -216,7 +216,7 @@ export default function AffiliateProgramPage() {
             prefetch={true}
             className="px-5 py-3 border border-white/30 bg-white/15 hover:bg-white/25 text-white text-sm font-mono font-semibold shrink-0 text-center"
           >
-            파트너스 로그인
+            로그인
           </Link>
         </section>
       </div>

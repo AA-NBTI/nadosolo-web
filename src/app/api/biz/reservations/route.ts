@@ -9,10 +9,10 @@ import {
   type WaitingStatus,
 } from '@/modules/reservation';
 import {
-  getNadoSoloReservationDriver,
-  getNadoSoloReservationEngine,
-  syncMeetupVenueOnFallback,
-} from '@/lib/reservation/nadosolo';
+  getReservationDriver,
+  getReservationEngine,
+} from '@/lib/reservation/runtime';
+import { syncMeetupVenueOnFallback } from '@/lib/reservation/nadosolo';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,8 +32,8 @@ export async function GET(request: Request) {
   if (!venueId) {
     return NextResponse.json({ ok: false, error: 'venueId 필요' }, { status: 400 });
   }
-  const engine = getNadoSoloReservationEngine();
-  const driver = getNadoSoloReservationDriver();
+  const engine = getReservationEngine();
+  const driver = getReservationDriver();
   if (!engine || !driver) {
     return NextResponse.json({ ok: true, enabled: false, bookings: [], windows: [], isClosedDay: false });
   }
@@ -94,8 +94,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const engine = getNadoSoloReservationEngine();
-  const driver = getNadoSoloReservationDriver();
+  const engine = getReservationEngine();
+  const driver = getReservationDriver();
   if (!engine || !driver) {
     return NextResponse.json({ ok: false, error: '예약 기능이 비활성화되어 있습니다.' }, { status: 503 });
   }

@@ -985,8 +985,8 @@ export default function PurchaseMainPage() {
                 <Link href="/affiliate" prefetch={true} className="px-4 py-2 border border-white/25 text-sm font-mono text-white hover:bg-white/10">
                   어필리에이트 →
                 </Link>
-                <Link href="/partners" prefetch={true} className="px-4 py-2 border border-[#f04f74]/60 bg-[#f04f74]/10 text-sm font-mono text-white hover:bg-[#f04f74]/20">
-                  제휴식당 입점 →
+                <Link href="/biz?tab=signup" prefetch={true} className="px-4 py-2 border border-[#f04f74]/60 bg-[#f04f74]/10 text-sm font-mono text-white hover:bg-[#f04f74]/20">
+                  입점신청 →
                 </Link>
               </div>
             </div>

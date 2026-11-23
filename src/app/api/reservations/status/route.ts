@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getNadoSoloReservationDriver, getNadoSoloReservationEngine } from '@/lib/reservation/nadosolo';
+import { getReservationDriver, getReservationEngine } from '@/lib/reservation/runtime';
 import { summarizeBookingState, type ReservationPublicState } from '@/lib/reservation/reveal';
 
 export const dynamic = 'force-dynamic';
@@ -13,8 +13,8 @@ export async function GET(request: Request) {
   if (!eventId) {
     return NextResponse.json({ ok: false, error: 'eventId 필요' }, { status: 400 });
   }
-  const engine = getNadoSoloReservationEngine();
-  const driver = getNadoSoloReservationDriver();
+  const engine = getReservationEngine();
+  const driver = getReservationDriver();
   if (!engine || !driver) {
     const state: ReservationPublicState = 'DISABLED';
     return NextResponse.json({ ok: true, state });

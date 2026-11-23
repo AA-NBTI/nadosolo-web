@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getNadoSoloReservationDriver } from '@/lib/reservation/nadosolo';
+import { getReservationDriver } from '@/lib/reservation/runtime';
 import {
   enqueueWaiting,
   findWaitingByPhone,
@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: false, error: 'resourceId 필요' }, { status: 400 });
   }
 
-  const driver = getNadoSoloReservationDriver();
+  const driver = getReservationDriver();
   if (!driver) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
   }
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const driver = getNadoSoloReservationDriver();
+  const driver = getReservationDriver();
   if (!driver) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
   }

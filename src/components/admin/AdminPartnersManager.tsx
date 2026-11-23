@@ -3,23 +3,16 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import type { BudgetTier, PartnerVenue } from '@/engine';
 import {
+  nadosoloPartnersEngine,
+  tablebaroPartnersEngine,
+} from '@/modules/partners';
+import {
   AffiliateApplicationRow,
   AffiliateEventLog,
   AffiliatePayoutRecord,
   PartnerMeta,
   VenuePartnerApplication,
-  clearCreatorPayoutRequest,
-  createAffiliateApplication,
-  deleteAffiliateApplication,
-  deleteAffiliatePayout,
-  fetchAffiliateApplications,
-  fetchAffiliateEvents,
-  fetchAffiliatePayouts,
-  fetchPartnerMetaMap,
   fetchVenueApplications,
-  saveAffiliatePayouts,
-  savePartnerMetaMap,
-  updateAffiliateStatusAndPromo,
   updateVenueApplicationStatus,
 } from '@/lib/affiliateDb';
 
@@ -36,11 +29,14 @@ interface Props {
 }
 
 const TITLES: Record<PartnersSection, string> = {
-  AFFILIATE: '파트너',
+  AFFILIATE: '어필리에이트',
   FUNNEL: '성과',
   PAYOUT: '정산',
   VENUE: '식당',
 };
+
+type ServiceChannel = 'NADOSOLO' | 'TABLEBARO';
+type StageFilter = 'ALL' | 'PENDING' | 'APPROVED' | 'PAYOUT_REQ';
 
 const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleString('ko-KR') : '-');
 
@@ -54,8 +50,12 @@ export default function AdminPartnersManager({
   onNotify,
 }: Props) {
   const notify = useCallback((m: string) => onNotify?.(m), [onNotify]);
+  const [service, setService] = useState<ServiceChannel>('NADOSOLO');
+  const [stageFilter, setStageFilter] = useState<StageFilter>('ALL');
   const [loading, setLoading] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
+
+  const engine = service === 'TABLEBARO' ? tablebaroPartnersEngine : nadosoloPartnersEngine;
 
   const [apps, setApps] = useState<AffiliateApplicationRow[]>([]);
   const [metaMap, setMetaMap] = useState<Record<string, PartnerMeta>>({});
@@ -106,10 +106,10 @@ export default function AdminPartnersManager({
     setLoading(true);
     try {
       const [a, m, ev, po, va] = await Promise.all([
-        fetchAffiliateApplications(),
-        fetchPartnerMetaMap(),
-        fetchAffiliateEvents(),
-        fetchAffiliatePayouts(),
+        engine.fetchApplications(),
+        engine.fetchMetaMap(),
+        engine.fetchEvents(),
+        engine.fetchPayouts(),
         fetchVenueApplications(),
       ]);
       setApps(a);
@@ -122,7 +122,7 @@ export default function AdminPartnersManager({
     } finally {
       setLoading(false);
     }
-  }, [notify]);
+  }, [engine, notify]);
 
   useEffect(() => {
     setOpenId(null);
@@ -148,9 +148,9 @@ export default function AdminPartnersManager({
   const handleSaveMeta = async (a: AffiliateApplicationRow) => {
     const nextMap = { ...metaMap, [a.code]: draftMeta };
     setMetaMap(nextMap);
-    await savePartnerMetaMap(nextMap);
+    await engine.saveMetaMap(nextMap);
     if (a.status === 'APPROVED') {
-      await updateAffiliateStatusAndPromo(a, 'APPROVED', draftMeta);
+      await engine.updateStatusAndPromo(a, 'APPROVED', draftMeta);
     }
     notify(`${a.partnerName} 설정 저장`);
     load();
@@ -163,13 +163,13 @@ export default function AdminPartnersManager({
       note: status === 'SUSPENDED' ? (cleanedNote ? `[정지] ${cleanedNote}` : '[정지]') : cleanedNote,
     };
     setDraftMeta(syncedDraft);
-    await updateAffiliateStatusAndPromo(a, status, syncedDraft);
+    await engine.updateStatusAndPromo(a, status, syncedDraft);
     notify(`${a.partnerName} → ${status}`);
     load();
   };
 
   const handleAddPartner = async () => {
-    const res = await createAffiliateApplication({
+    const res = await engine.createApplication({
       partnerName: newPartnerName,
       contactEmail: newPartnerEmail,
       channelUrl: newPartnerChannel,
@@ -177,19 +177,19 @@ export default function AdminPartnersManager({
       status: 'APPROVED',
     });
     if (!res.ok) {
-      notify(res.error || '파트너 추가 실패');
+      notify(res.error || '추가 실패');
       return;
     }
     setNewPartnerName('');
     setNewPartnerEmail('');
     setNewPartnerCode('');
     setNewPartnerChannel('');
-    notify('파트너 추가 완료');
+    notify('추가 완료');
     load();
   };
 
   const handleDeletePartner = async (a: AffiliateApplicationRow) => {
-    await deleteAffiliateApplication(a);
+    await engine.deleteApplication(a);
     setOpenId(null);
     notify(`${a.partnerName} 삭제`);
     load();
@@ -199,21 +199,15 @@ export default function AdminPartnersManager({
     if (balance <= 0) return notify('지급할 정산 잔액이 없습니다.');
     const bankInfo = metaMap[a.code]?.bankInfo?.trim();
     if (!bankInfo) {
-      return notify('파트너 탭에서 정산 계좌를 먼저 등록해 주세요.');
+      return notify('어필리에이트 탭에서 정산 계좌를 먼저 등록해 주세요.');
     }
-    const rec: AffiliatePayoutRecord = {
-      id: `PAY_${Date.now()}`,
+    const next = await engine.recordPayout({
       code: a.code,
       partnerName: a.partnerName,
       amountKrw: balance,
       bankInfo,
-      note: `${a.code} 정산 지급`,
-      paidAt: new Date().toISOString(),
-    };
-    const next = [rec, ...payouts];
+    });
     setPayouts(next);
-    await saveAffiliatePayouts(next);
-    await clearCreatorPayoutRequest(a.code);
     notify(`${a.partnerName} ₩${balance.toLocaleString()} 지급 확정`);
     void load();
   };
@@ -263,7 +257,7 @@ export default function AdminPartnersManager({
   };
 
   const handleCancelPayout = async (payoutId: string) => {
-    const next = await deleteAffiliatePayout(payoutId);
+    const next = await engine.deletePayout(payoutId);
     setPayouts(next);
     notify('지급 이력 취소');
   };
@@ -300,20 +294,69 @@ export default function AdminPartnersManager({
   );
 
   const refreshBtn = (
-    <button type="button" className={btnCls} onClick={load} disabled={loading}>
-      {loading ? '로딩' : '새로고침'}
-    </button>
+    <div className="flex items-center gap-2">
+      {section !== 'VENUE' && (
+        <div className="flex items-center border border-white/15">
+          {(['NADOSOLO', 'TABLEBARO'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                setService(s);
+                setOpenId(null);
+              }}
+              className={`px-2.5 py-1 text-sm font-mono cursor-pointer ${
+                service === s ? 'bg-white/15 text-white font-bold' : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              {s === 'NADOSOLO' ? '나도솔로' : '테이블바로'}
+            </button>
+          ))}
+        </div>
+      )}
+      <button type="button" className={btnCls} onClick={load} disabled={loading}>
+        {loading ? '로딩' : '새로고침'}
+      </button>
+    </div>
   );
 
-  // 1. 파트너 심사 · 커미션율 · 할인율 · 계좌 설정
+  // 1. 어필리에이트 심사 · 커미션율 · 할인율 · 계좌 설정
   if (section === 'AFFILIATE') {
+    const pendingCnt = apps.filter((a) => a.status === 'PENDING').length;
+    const approvedCnt = apps.filter((a) => a.status === 'APPROVED').length;
+    const payoutReqCnt = apps.filter((a) => Boolean(metaMap[a.code]?.payoutRequestedAt)).length;
+    const filteredApps = apps.filter((a) => {
+      if (stageFilter === 'PENDING') return a.status === 'PENDING';
+      if (stageFilter === 'APPROVED') return a.status === 'APPROVED';
+      if (stageFilter === 'PAYOUT_REQ') return Boolean(metaMap[a.code]?.payoutRequestedAt);
+      return true;
+    });
     return (
       <div className="space-y-3">
         {renderHeader(TITLES.AFFILIATE, apps.length, refreshBtn)}
+        <div className="flex flex-wrap gap-2">
+          {(
+            [
+              ['ALL', `전체 ${apps.length}`],
+              ['PENDING', `심사 ${pendingCnt}`],
+              ['APPROVED', `승인 ${approvedCnt}`],
+              ['PAYOUT_REQ', `출금요청 ${payoutReqCnt}`],
+            ] as const
+          ).map(([f, label]) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setStageFilter(f)}
+              className={`${btnCls} ${stageFilter === f ? 'border-white/40 bg-white/15 font-bold' : ''}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className={`p-3 ${boxCls} grid grid-cols-1 sm:grid-cols-5 gap-2`}>
           <input
             className={inputCls}
-            placeholder="파트너명"
+            placeholder="이름"
             value={newPartnerName}
             onChange={(e) => setNewPartnerName(e.target.value)}
           />
@@ -339,7 +382,7 @@ export default function AdminPartnersManager({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-          {apps.map((a) => {
+          {filteredApps.map((a) => {
             const key = a.id || a.code;
             const open = openId === key;
             const meta = metaMap[a.code] || { commissionRate: 10, discountRate: 10 };

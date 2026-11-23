@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ReservationError, extractUnits } from '@/modules/reservation';
-import { getNadoSoloReservationDriver, getNadoSoloReservationEngine } from '@/lib/reservation/nadosolo';
+import { getReservationDriver, getReservationEngine } from '@/lib/reservation/runtime';
+import { sanitizeAttribution } from '@/modules/tracking';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,8 +16,8 @@ export async function GET(request: Request) {
   const date = searchParams.get('date')?.trim();
   const partySize = Math.max(1, Number(searchParams.get('partySize') || '2'));
 
-  const engine = getNadoSoloReservationEngine();
-  const driver = getNadoSoloReservationDriver();
+  const engine = getReservationEngine();
+  const driver = getReservationDriver();
   if (!engine || !driver) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
   }
@@ -89,7 +90,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const engine = getNadoSoloReservationEngine();
+  const engine = getReservationEngine();
   if (!engine) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
   }
@@ -114,7 +115,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const driver = getNadoSoloReservationDriver();
+    const driver = getReservationDriver();
     if (driver) {
       const resource = await driver.getResource(resourceId);
       const blocked = Array.isArray(resource?.attributes?.blockedPhones)
@@ -146,7 +147,13 @@ export async function POST(request: Request) {
       partySize,
       ownerRef: `GUEST:${phone}`,
       attendee: { name, phone, requests: requests || undefined },
-      meta: { source: 'public_link', startsAtText },
+      meta: {
+        source: 'public_link',
+        startsAtText,
+        ...(sanitizeAttribution(body.attribution)
+          ? { attribution: sanitizeAttribution(body.attribution) }
+          : {}),
+      },
     });
 
     return NextResponse.json({ ok: true, booking });

@@ -1,33 +1,17 @@
 import {
   NADOSOLO_TABLE_SIZE,
-  createNadoSoloReservationEngine,
-  createSupabaseDriver,
   type Booking,
   type ReservationDriver,
   type ReservationEngine,
   type Resource,
 } from '@/modules/reservation';
 import type { BudgetTier, DietaryRestriction, PartnerVenue } from '@/engine/types';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { buildResponseUrl } from '@/lib/reservation/token';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { getReservationDriver, getReservationEngine } from '@/lib/reservation/runtime';
 
-/**
- * 나도솔로 ↔ 범용 예약 모듈 연결 계층.
- * - RESERVATION_ENABLED=true 이고 service role 키가 있을 때만 동작한다 (기본 꺼짐).
- * - 모든 호출은 실패해도 기존 방 확정 흐름을 막지 않도록 호출 측에서 격리한다.
- */
-export function getNadoSoloReservationDriver(): ReservationDriver | null {
-  if (process.env.RESERVATION_ENABLED !== 'true') return null;
-  const admin = createAdminClient();
-  if (!admin) return null;
-  return createSupabaseDriver(admin);
-}
-
-export function getNadoSoloReservationEngine(): ReservationEngine | null {
-  const driver = getNadoSoloReservationDriver();
-  if (!driver) return null;
-  return createNadoSoloReservationEngine({ driver });
-}
+export const getNadoSoloReservationDriver = getReservationDriver;
+export const getNadoSoloReservationEngine = getReservationEngine;
 
 /** '2026-11-20 (금) 19:30' 같은 슬롯 문자열(KST)을 ISO(UTC)로 변환. 실패 시 null. */
 export function parseScheduleSlot(slot: string): string | null {

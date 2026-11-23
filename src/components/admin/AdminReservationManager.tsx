@@ -76,7 +76,8 @@ export default function AdminReservationManager({
   const [contactEmail, setContactEmail] = useState('');
   const [pin, setPin] = useState('');
   const [guideNote, setGuideNote] = useState('');
-  const [unitName, setUnitName] = useState('6인 프라이빗 테이블');
+  const [unitName, setUnitName] = useState('메인 테이블');
+  const [resourceFilter, setResourceFilter] = useState<'ALL' | 'PENDING' | 'ONBOARDING' | 'ACTIVE'>('ALL');
   const [capacity, setCapacity] = useState(6);
   const [quantity, setQuantity] = useState(2);
   const [durationMinutes, setDurationMinutes] = useState(120);
@@ -511,13 +512,45 @@ export default function AdminReservationManager({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-          {resources.length === 0 ? (
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['ALL', `전체 ${resources.length}`],
+                ['PENDING', `승인대기 ${resources.filter((r) => !r.active).length}`],
+                ['ONBOARDING', `정보미등록 ${resources.filter((r) => r.active && r.attributes?.onboardingCompleted === false).length}`],
+                ['ACTIVE', `운영중 ${resources.filter((r) => r.active && r.attributes?.onboardingCompleted !== false).length}`],
+              ] as const
+            ).map(([k, label]) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setResourceFilter(k)}
+                className={`${btnCls} ${resourceFilter === k ? 'border-white/40 bg-white/15 font-bold' : ''}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+          {resources.filter((r) => {
+            if (resourceFilter === 'PENDING') return !r.active;
+            if (resourceFilter === 'ONBOARDING') return r.active && r.attributes?.onboardingCompleted === false;
+            if (resourceFilter === 'ACTIVE') return r.active && r.attributes?.onboardingCompleted !== false;
+            return true;
+          }).length === 0 ? (
             <div className={`col-span-full p-4 ${boxCls} text-sm font-mono ${subCls}`}>
-              등록된 자원이 없습니다. 상단 `+ 추가`를 눌러 업체를 등록해 주세요.
+              해당 단계의 매장이 없습니다.
             </div>
           ) : (
-            resources.map((r) => {
+            resources
+              .filter((r) => {
+                if (resourceFilter === 'PENDING') return !r.active;
+                if (resourceFilter === 'ONBOARDING') return r.active && r.attributes?.onboardingCompleted === false;
+                if (resourceFilter === 'ACTIVE') return r.active && r.attributes?.onboardingCompleted !== false;
+                return true;
+              })
+              .map((r) => {
               const isOpen = openId === r.id;
               const p = r.attributes?.profile as Record<string, any> | undefined;
               const units = (r.attributes?.units as any[]) || [];
@@ -598,6 +631,7 @@ export default function AdminReservationManager({
               );
             })
           )}
+          </div>
         </div>
       )}
     </div>

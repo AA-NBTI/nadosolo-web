@@ -1,12 +1,13 @@
 {
   "name": "nn-nadosolo",
-  "version": "2.9.1",
+  "version": "2.9.2",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "simulate": "npx tsx src/engine/simulate.ts",
+    "test:tracking": "npx tsx src/modules/tracking/__tests__/tracking.test.ts",
     "test:reservation": "npx tsx src/modules/reservation/__tests__/reservation.test.ts",
     "test:reservation:supabase": "npx tsx src/modules/reservation/__tests__/supabase-driver.test.ts",
     "test:reservation:token": "npx tsx src/lib/reservation/token.test.ts",
@@ -21,12 +22,14 @@
     "@tosspayments/payment-sdk": "^1.9.3",
     "lucide-react": "^0.460.0",
     "next": "^15.1.0",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^4.0.0",

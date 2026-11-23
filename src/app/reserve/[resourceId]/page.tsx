@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Calendar, Clock, MapPin, Phone, Users, CheckCircle2, RefreshCw } from 'lucide-react';
+import { loadAttribution } from '@/modules/tracking';
+import { TABLEBARO_ATTRIBUTION_KEY } from '@/components/AttributionCapture';
 
 interface PublicResource {
   id: string;
@@ -218,6 +220,7 @@ export default function PublicReservePage() {
           name: name.trim(),
           phone: phone.trim(),
           requests: requests.trim(),
+          attribution: loadAttribution(localStorage, TABLEBARO_ATTRIBUTION_KEY),
         }),
       });
       const data = await res.json();

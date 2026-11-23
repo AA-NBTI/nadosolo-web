@@ -159,7 +159,7 @@ export default function PartnerPortalDashboardPage() {
               required
               value={passwordPin}
               onChange={(e) => setPasswordPin(e.target.value)}
-              placeholder="파트너 비밀번호"
+              placeholder="비밀번호"
               className="w-full px-4 py-3 bg-[#07080a] border border-white/15 text-white font-mono"
             />
             {loginError && <p className="text-sm font-mono text-zinc-200 border-l-2 border-[#f04f74] pl-3">{loginError}</p>}
@@ -173,10 +173,7 @@ export default function PartnerPortalDashboardPage() {
 
           <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-sm font-mono text-zinc-400">
             <Link href="/affiliate" prefetch={true} className="hover:text-white">
-              크리에이터 신청 →
-            </Link>
-            <Link href="/biz" prefetch={true} className="hover:text-white">
-              매장관리(/biz) →
+              어필리에이트 신청 →
             </Link>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { getNadoSoloReservationEngine } from '@/lib/reservation/nadosolo';
+import { getReservationEngine } from '@/lib/reservation/runtime';
 import { getLinkSecret, verifyResponseToken } from '@/lib/reservation/token';
 import RespondButtons from './RespondButtons';
 
@@ -21,7 +21,7 @@ export default async function ReservationRespondPage({
 }) {
   const { token } = await params;
   const secret = getLinkSecret();
-  const engine = getNadoSoloReservationEngine();
+  const engine = getReservationEngine();
   if (!secret || !engine) return <Notice text="비활성" />;
 
   const verified = verifyResponseToken(decodeURIComponent(token), secret);

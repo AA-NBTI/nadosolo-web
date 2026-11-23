@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Copy, LogOut, RefreshCw } from 'lucide-react';
 import AddressAutocompleteInput, { type SelectedAddressInfo } from '@/components/biz/AddressAutocompleteInput';
+import BizMarketing from '@/components/biz/BizMarketing';
 
-const BIZ_SESSION_KEY = 'nadosolo_biz_session_v1';
+const BIZ_SESSION_KEY = 'tablebaro_biz_session_v1';
 
 interface BizSession {
   id: string;
@@ -97,7 +98,7 @@ function BizReservationPortalContent() {
   const [obError, setObError] = useState<string | null>(null);
   const [obBusy, setObBusy] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<'OPERATE' | 'SETTINGS'>('OPERATE');
+  const [activeTab, setActiveTab] = useState<'OPERATE' | 'SETTINGS' | 'MARKETING'>('OPERATE');
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [bookings, setBookings] = useState<any[]>([]);
@@ -147,7 +148,7 @@ function BizReservationPortalContent() {
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/partners/reservations?venueId=${encodeURIComponent(sess.id)}&date=${encodeURIComponent(selectedDate)}`
+          `/api/biz/reservations?venueId=${encodeURIComponent(sess.id)}&date=${encodeURIComponent(selectedDate)}`
         );
         const data = await res.json();
         setBookings(Array.isArray(data.bookings) ? data.bookings : []);
@@ -303,7 +304,7 @@ function BizReservationPortalContent() {
     }
     setObBusy(true);
     try {
-      const res = await fetch('/api/partners/reservations', {
+      const res = await fetch('/api/biz/reservations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -359,7 +360,7 @@ function BizReservationPortalContent() {
     setBusyKey(key);
     setNotice(null);
     try {
-      const res = await fetch('/api/partners/reservations', {
+      const res = await fetch('/api/biz/reservations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ venueId: session.id, ...payload }),
@@ -889,6 +890,15 @@ function BizReservationPortalContent() {
             </button>
             <button
               type="button"
+              onClick={() => setActiveTab('MARKETING')}
+              className={`px-3 py-1.5 border text-sm font-mono text-white cursor-pointer ${
+                activeTab === 'MARKETING' ? 'border-white/40 bg-white/15 font-bold' : 'border-white/15 bg-white/5'
+              }`}
+            >
+              마케팅
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 const url = `${window.location.origin}/reserve/${session.id}`;
                 void navigator.clipboard.writeText(url);
@@ -925,7 +935,9 @@ function BizReservationPortalContent() {
           </div>
         )}
 
-        {activeTab === 'SETTINGS' ? (
+        {activeTab === 'MARKETING' ? (
+          <BizMarketing venueId={session.id} bookings={bookings} />
+        ) : activeTab === 'SETTINGS' ? (
           <form onSubmit={handleSaveSettings} className="space-y-4 text-sm font-mono">
             {/* 매장 기본 정보 */}
             <section className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">

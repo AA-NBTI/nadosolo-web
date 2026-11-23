@@ -1,10 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { NadoSoloProvider } from '@/engine';
-import GlobalHeader from '@/components/GlobalHeader';
-import GlobalFooter from '@/components/GlobalFooter';
 import ChunkErrorRecovery from '@/components/ChunkErrorRecovery';
-import AdminViewerBanner from '@/components/admin/AdminViewerBanner';
+import AppShell from '@/components/AppShell';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nadosolo.com';
 
@@ -112,12 +109,7 @@ export default function RootLayout({
         className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-white/20 selection:text-white"
       >
         <ChunkErrorRecovery />
-        <NadoSoloProvider>
-          <AdminViewerBanner />
-          <GlobalHeader />
-          <div className="flex-1 flex flex-col">{children}</div>
-          <GlobalFooter />
-        </NadoSoloProvider>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

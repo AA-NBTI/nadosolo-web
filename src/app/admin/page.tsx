@@ -207,7 +207,7 @@ const ADMIN_CATEGORY_GROUPS: AdminCategoryGroup[] = [
   {
     groupTitle: '어필리에이트',
     items: [
-      { key: 'PT_AFFILIATE', label: '파트너' },
+      { key: 'PT_AFFILIATE', label: '어필리에이트' },
       { key: 'PT_FUNNEL', label: '성과' },
       { key: 'PT_PAYOUT', label: '정산' },
     ],

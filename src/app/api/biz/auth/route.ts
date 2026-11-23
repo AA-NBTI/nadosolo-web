@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getNadoSoloReservationDriver } from '@/lib/reservation/nadosolo';
+import { getReservationDriver } from '@/lib/reservation/runtime';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
  * - pin: 4자 이상 비밀번호 PIN
  */
 export async function POST(request: Request) {
-  const driver = getNadoSoloReservationDriver();
+  const driver = getReservationDriver();
   if (!driver) {
     return NextResponse.json({ ok: false, error: '예약 모듈 비활성' }, { status: 503 });
   }
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, error: '비밀번호가 일치하지 않습니다.' }, { status: 401 });
     }
     if (!matched.active) {
-      return NextResponse.json({ ok: false, error: '비활성화된 업체 계정입니다.' }, { status: 403 });
+      return NextResponse.json({ ok: false, error: '관리자 승인 대기 중인 계정입니다.' }, { status: 403 });
     }
 
     const profile = (matched.attributes?.profile as Record<string, any>) || {};
