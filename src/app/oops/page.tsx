@@ -26,6 +26,7 @@ import {
   Zap,
 } from 'lucide-react';
 import ThreatPulseChart from '@/components/oops/ThreatPulseChart';
+import CollisionClock from '@/components/oops/CollisionClock';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import { FEED_I18N } from '@/lib/oops/feedI18n';
 import type {
@@ -761,6 +762,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (OBSERVATORY 탭 전용) */}
         {viewMode === 'OBSERVATORY' && (
           <section aria-label="Global Threat Observatory Chart" className="space-y-6">
+            {/* 1. 회장님 지시: AI 충돌 예상 연도(2035)와 발발 확률(18.4%) 종말 시계 전진 배치 */}
+            <CollisionClock locale={locale} />
+
+            {/* 2. 6대 범용 위험 지수 레이더 다이어그램 */}
             <ThreatPulseChart initialThemeId="ai_collision" locale={locale} />
 
             {/* 언론사용 임베드 안내 배너 */}
