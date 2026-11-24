@@ -246,7 +246,7 @@ function OopsAppContent() {
               title="View Emblem"
             >
               <img
-                src="/oops-emblem.jpg"
+                src="/oops-icon.jpg"
                 alt="OOPS.MONSTER"
                 className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
               />
