@@ -1,4 +1,5 @@
-import webpush, { type PushSubscription } from 'web-push';
+import * as webpush from 'web-push';
+import type { PushSubscription } from 'web-push';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export interface OopsPushAgent {
