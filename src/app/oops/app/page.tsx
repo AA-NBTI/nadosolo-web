@@ -205,15 +205,22 @@ function OopsAppContent() {
     <div className="min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans">
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-5xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Link
               href="/oops"
-              className="px-2.5 py-1 bg-white border-2 border-black shadow-[2px_2px_0_#000] text-xs font-mono font-bold flex items-center gap-1 cursor-pointer"
+              className="group inline-flex items-center gap-1.5 select-none cursor-pointer"
+              title="OOPS 홈으로 이동"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>본부</span>
+              <span className="inline-block px-2.5 py-0.5 bg-[#ff4d00] text-white font-black text-sm sm:text-base font-mono tracking-tighter border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none transition-all uppercase">
+                oops!
+              </span>
+              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden xs:inline">
+                .monster
+              </span>
             </Link>
-            <span className="font-mono text-sm sm:text-base font-black">OOPS SIGNAL APP</span>
+            <span className="px-2 py-0.5 bg-[#ffc900] border-2 border-black text-xs font-mono font-bold">
+              APP
+            </span>
           </div>
 
           <div className="flex items-center gap-2 text-xs font-mono font-bold bg-white border-2 border-black shadow-[2px_2px_0_#000] px-2.5 py-1">
@@ -414,6 +421,22 @@ function OopsAppContent() {
           </div>
         </section>
       </main>
+
+      <footer className="border-t-2 border-black bg-white py-6 px-5 text-xs font-mono mt-auto">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="font-bold flex items-center gap-1.5">
+            <Link
+              href="/hq"
+              className="px-1.5 py-0.5 bg-[#ffc900] hover:bg-[#ffd633] text-black border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+              title="관제실 바로가기"
+            >
+              OOPS.MONSTER
+            </Link>
+            <span className="text-zinc-700">· AI RESISTANCE HEADQUARTERS</span>
+          </div>
+          <div className="text-zinc-600">독립 통신망 운영본부</div>
+        </div>
+      </footer>
     </div>
   );
 }

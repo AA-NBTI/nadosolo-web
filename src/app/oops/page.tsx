@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Bell, Check, Copy, Globe, Radio, Send, Smartphone, Sparkles, Zap } from 'lucide-react';
 import {
@@ -307,9 +308,18 @@ function OopsHqContent() {
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-5xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <span className="px-2.5 py-1 bg-[#ff90e8] border-2 border-black shadow-[2px_2px_0px_#000] font-mono text-sm font-black tracking-tight">
-              oops.monster
-            </span>
+            <Link
+              href="/oops"
+              className="group inline-flex items-center gap-1.5 select-none cursor-pointer"
+              title="OOPS 홈으로 이동"
+            >
+              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tighter border-2 border-black shadow-[3px_3px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-none transition-all uppercase">
+                oops!
+              </span>
+              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden xs:inline">
+                .monster
+              </span>
+            </Link>
             <span className="hidden md:inline-block text-xs font-mono font-bold px-2 py-0.5 bg-[#ffc900] border-2 border-black">
               {t.badgeTop}
             </span>
@@ -504,7 +514,16 @@ function OopsHqContent() {
 
       <footer className="border-t-2 border-black bg-white py-6 px-5 text-xs font-mono">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="font-bold">OOPS.MONSTER · AI RESISTANCE HEADQUARTERS</div>
+          <div className="font-bold flex items-center gap-1.5">
+            <Link
+              href="/hq"
+              className="px-1.5 py-0.5 bg-[#ffc900] hover:bg-[#ffd633] text-black border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+              title="관제실 바로가기"
+            >
+              OOPS.MONSTER
+            </Link>
+            <span className="text-zinc-700">· AI RESISTANCE HEADQUARTERS</span>
+          </div>
           <div className="text-zinc-600">{t.footerRight}</div>
         </div>
       </footer>

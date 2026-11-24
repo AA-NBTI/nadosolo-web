@@ -71,10 +71,10 @@ export default function TablebaroHeader() {
           prefetch={!subdomain}
           className="inline-flex flex-col items-start justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
         >
-          <span className="font-serif-editorial text-[24px] sm:text-[28px] font-light text-white tracking-[-0.02em] lowercase leading-none">
-            tablebaro
+          <span className="font-serif-editorial text-[22px] sm:text-[26px] font-normal text-white tracking-[0.04em] uppercase leading-none">
+            TABLEBARO
           </span>
-          <span className="text-[11px] font-mono tracking-[0.22em] text-[#f04f74] mt-1 leading-none font-semibold">
+          <span className="text-xs font-sans font-medium text-[#3b82f6] tracking-normal mt-1 leading-none">
             선결제예약 테이블바로
           </span>
         </Link>
