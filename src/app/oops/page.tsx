@@ -4,6 +4,7 @@ import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import {
+  Activity,
   Check,
   ChevronDown,
   Copy,
@@ -24,6 +25,7 @@ import {
   X,
   Zap,
 } from 'lucide-react';
+import ThreatPulseChart from '@/components/oops/ThreatPulseChart';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import { FEED_I18N } from '@/lib/oops/feedI18n';
 import type {
@@ -735,8 +737,13 @@ function OopsSnsMainContent() {
         </div>
       </div>
 
-      {/* 3. 메인 라이브 무전 피드 (트렌디한 First-Screen SNS) */}
+      {/* 3. 상단 인류 위험 날씨 관측 다이어그램 & 피드 영역 */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
+        {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (통계 기반 엔터프라이즈 바 차트) */}
+        <section aria-label="Global Threat Observatory Chart">
+          <ThreatPulseChart initialThemeId="ai_collision" />
+        </section>
+
         {/* 3-1. 로그인 없는 한 줄 타전기 (접이식 DISPATCH 바 & 아코디언) */}
         {!isComposerOpen ? (
           <div className="bg-white border-2 border-black shadow-[4px_4px_0px_#000] p-3 flex items-center justify-between gap-3 transition-all">
