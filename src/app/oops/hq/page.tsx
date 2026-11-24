@@ -35,6 +35,8 @@ export default function OopsHqAdminPage() {
   const [backers, setBackers] = useState<BackerRow[]>([]);
   const [signals, setSignals] = useState<OopsSignal[]>([]);
   const [bannedAgents, setBannedAgents] = useState<string[]>([]);
+  const [hqTrans, setHqTrans] = useState<Record<string, string>>({});
+  const [hqTransBusy, setHqTransBusy] = useState<string | null>(null);
 
   const [bcTitle, setBcTitle] = useState('OOPS HQ 공지');
   const [bcBody, setBcBody] = useState('');
@@ -78,6 +80,31 @@ export default function OopsHqAdminPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     void fetchDashboard(passkey.trim());
+  };
+
+  const translateInPlace = async (sig: OopsSignal) => {
+    if (hqTrans[sig.id]) {
+      setHqTrans((prev) => {
+        const next = { ...prev };
+        delete next[sig.id];
+        return next;
+      });
+      return;
+    }
+    setHqTransBusy(sig.id);
+    try {
+      const res = await fetch('/api/oops/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: sig.content, targetLang: 'ko' }),
+      });
+      const data = await res.json();
+      if (data.ok && data.translatedText) {
+        setHqTrans((prev) => ({ ...prev, [sig.id]: data.translatedText }));
+      }
+    } catch {} finally {
+      setHqTransBusy(null);
+    }
   };
 
   const handleModerate = async (
@@ -315,7 +342,7 @@ export default function OopsHqAdminPage() {
           <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
             {signals.map((sig) => {
               const isBanned = bannedAgents.includes(sig.authorAgentId);
-              const koTransUrl = `https://translate.google.com/?sl=auto&tl=ko&text=${encodeURIComponent(sig.content)}`;
+              const translated = hqTrans[sig.id];
 
               return (
                 <div
@@ -349,16 +376,21 @@ export default function OopsHqAdminPage() {
                   </div>
 
                   <p className="text-sm font-bold text-black">{sig.content}</p>
+                  {translated && (
+                    <div className="p-2 bg-white border-l-4 border-black text-xs font-medium text-zinc-800">
+                      {translated}
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <a
-                      href={koTransUrl}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      disabled={hqTransBusy === sig.id}
+                      onClick={() => translateInPlace(sig)}
                       className="px-2.5 py-1 bg-white hover:bg-zinc-100 border border-black text-xs font-mono font-bold cursor-pointer"
                     >
-                      한글 번역
-                    </a>
+                      {hqTransBusy === sig.id ? '번역 중...' : translated ? '번역 접기' : '한글 번역'}
+                    </button>
 
                     <button
                       type="button"

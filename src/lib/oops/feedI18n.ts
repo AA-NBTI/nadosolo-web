@@ -26,6 +26,9 @@ export interface FeedCopy {
   emptyFeed: string;
   errUrlBlocked: string;
   errRateLimit: string;
+  translateBtn: string;
+  translatingBtn: string;
+  hideTranslationBtn: string;
 }
 
 export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
@@ -59,6 +62,9 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     emptyFeed: 'No signals intercepted yet.',
     errUrlBlocked: 'External links are blocked by HQ protocol.',
     errRateLimit: 'Cooldown active. Wait 20s before dispatching.',
+    translateBtn: 'Translate',
+    translatingBtn: 'Translating...',
+    hideTranslationBtn: 'Hide translation',
   },
   ko: {
     tagline: 'AI가 모든 것을 결정하는 시대, 누가 인간의 편에 설 것인가?',
@@ -90,6 +96,9 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     emptyFeed: '수신된 무전 기록이 없습니다.',
     errUrlBlocked: '외부 링크 및 홍보는 본부 프로토콜에 의해 차단됩니다.',
     errRateLimit: '도배 방지 쿨다운 중입니다. 잠시 후 다시 타전하세요.',
+    translateBtn: '번역 보기',
+    translatingBtn: '번역 중...',
+    hideTranslationBtn: '원문만 보기',
   },
   ja: {
     tagline: 'AIがすべてを決める世界で、誰が人間の味方に立つのか？',
@@ -121,6 +130,9 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     emptyFeed: 'まだ信号がありません。',
     errUrlBlocked: '外部URLは禁止されています。',
     errRateLimit: '連投制限中です。',
+    translateBtn: '翻訳を見る',
+    translatingBtn: '翻訳中...',
+    hideTranslationBtn: '翻訳を閉じる',
   },
   zh: {
     tagline: '在AI决定一切的时代，谁会站在人类这一边？',
@@ -152,6 +164,9 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     emptyFeed: '暂无信号记录。',
     errUrlBlocked: '禁止包含外部链接。',
     errRateLimit: '发送过于频繁，请稍候。',
+    translateBtn: '查看翻译',
+    translatingBtn: '翻译中...',
+    hideTranslationBtn: '收起翻译',
   },
   es: {
     tagline: 'Cuando la IA dicta todo, ¿quién está del lado humano?',
@@ -183,5 +198,8 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     emptyFeed: 'Sin señales aún.',
     errUrlBlocked: 'Enlaces externos bloqueados.',
     errRateLimit: 'Espera unos segundos.',
+    translateBtn: 'Ver traducción',
+    translatingBtn: 'Traduciendo...',
+    hideTranslationBtn: 'Ocultar traducción',
   },
 };

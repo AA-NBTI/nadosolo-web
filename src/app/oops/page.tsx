@@ -6,6 +6,7 @@ import {
   Flame,
   Flag,
   Globe,
+  Languages,
   Pin,
   Radio,
   Receipt,
@@ -95,6 +96,11 @@ function OopsSnsMainContent() {
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
 
+  // Inline translation state
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const [visibleTransKeys, setVisibleTransKeys] = useState<Set<string>>(new Set());
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
+
   // Modals
   const [showManifesto, setShowManifesto] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
@@ -130,6 +136,35 @@ function OopsSnsMainContent() {
   const changeLocale = (next: OopsLocale) => {
     setLocale(next);
     localStorage.setItem('oops_locale_v1', next);
+  };
+
+  const toggleTranslate = async (sig: OopsSignal) => {
+    const key = `${sig.id}:${locale}`;
+    if (translations[key]) {
+      setVisibleTransKeys((prev) => {
+        const next = new Set(prev);
+        if (next.has(key)) next.delete(key);
+        else next.add(key);
+        return next;
+      });
+      return;
+    }
+
+    setTranslatingId(sig.id);
+    try {
+      const res = await fetch('/api/oops/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: sig.content, targetLang: locale }),
+      });
+      const data = await res.json();
+      if (data.ok && data.translatedText) {
+        setTranslations((prev) => ({ ...prev, [key]: data.translatedText }));
+        setVisibleTransKeys((prev) => new Set(prev).add(key));
+      }
+    } catch {} finally {
+      setTranslatingId(null);
+    }
   };
 
   const loadFeed = useCallback(
@@ -519,6 +554,38 @@ function OopsSnsMainContent() {
                   <p className="text-sm sm:text-base font-bold text-black leading-relaxed break-words">
                     {sig.content}
                   </p>
+
+                  {/* 인라인 번역 보기 / 접기 */}
+                  {(() => {
+                    const transKey = `${sig.id}:${locale}`;
+                    const translated = translations[transKey];
+                    const isVisible = visibleTransKeys.has(transKey);
+                    const isTranslating = translatingId === sig.id;
+                    return (
+                      <div className="space-y-2">
+                        {isVisible && translated && (
+                          <div className="p-2.5 bg-[#f4f4f0] border-l-4 border-black text-sm font-medium text-zinc-800 leading-relaxed">
+                            {translated}
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          disabled={isTranslating}
+                          onClick={() => toggleTranslate(sig)}
+                          className="inline-flex items-center gap-1 text-xs font-mono font-bold text-zinc-600 hover:text-black cursor-pointer"
+                        >
+                          <Languages className="w-3.5 h-3.5" />
+                          <span>
+                            {isTranslating
+                              ? f.translatingBtn
+                              : isVisible
+                                ? f.hideTranslationBtn
+                                : f.translateBtn}
+                          </span>
+                        </button>
+                      </div>
+                    );
+                  })()}
 
                   <div className="flex items-center justify-between pt-2 border-t border-black/15">
                     <div className="flex items-center gap-2">
