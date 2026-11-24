@@ -511,19 +511,29 @@ function OopsSnsMainContent() {
           <div className="flex items-center gap-2.5">
             <Link
               href="/oops"
-              className="group inline-flex items-center gap-1.5 select-none cursor-pointer"
+              className="group inline-flex items-center gap-2 select-none cursor-pointer"
               title="OOPS Home"
             >
-              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tighter border-2 border-black shadow-[3px_3px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-none transition-all uppercase">
-                oops!
-              </span>
-              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden sm:inline">
-                .monster
-              </span>
+              <img
+                src="/oops-emblem.jpg"
+                alt="OOPS.MONSTER"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
+              />
             </Link>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* 기존 팝업 로고 (매니페스토 왼쪽 옆) */}
+            <Link
+              href="/oops"
+              className="group inline-flex items-center select-none cursor-pointer mr-0.5"
+              title="OOPS Home"
+            >
+              <span className="inline-block px-2.5 py-1 bg-[#ff4d00] text-white font-black text-xs sm:text-sm font-mono tracking-tighter border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none transition-all uppercase">
+                oops!
+              </span>
+            </Link>
+
             <button
               type="button"
               onClick={() => setShowManifesto(true)}

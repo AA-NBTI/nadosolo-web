@@ -239,15 +239,14 @@ function OopsAppContent() {
           <div className="flex items-center gap-2.5">
             <Link
               href="/oops"
-              className="group inline-flex items-center gap-1.5 select-none cursor-pointer"
+              className="group inline-flex items-center gap-2 select-none cursor-pointer"
               title="OOPS Home"
             >
-              <span className="inline-block px-2.5 py-0.5 bg-[#ff4d00] text-white font-black text-sm sm:text-base font-mono tracking-tighter border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none transition-all uppercase">
-                oops!
-              </span>
-              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden xs:inline">
-                .monster
-              </span>
+              <img
+                src="/oops-emblem.jpg"
+                alt="OOPS.MONSTER"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
+              />
             </Link>
             <span className="px-2 py-0.5 bg-[#ffc900] border-2 border-black text-xs font-mono font-bold">
               APP
@@ -255,6 +254,16 @@ function OopsAppContent() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Link
+              href="/oops"
+              className="group inline-flex items-center select-none cursor-pointer"
+              title="OOPS Home"
+            >
+              <span className="inline-block px-2.5 py-1 bg-[#ff4d00] text-white font-black text-xs sm:text-sm font-mono tracking-tighter border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 transition-all uppercase">
+                oops!
+              </span>
+            </Link>
+
             <div className="flex items-center gap-2 text-xs font-mono font-bold bg-white border-2 border-black shadow-[2px_2px_0_#000] px-2.5 py-1">
               <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
               <span>{t.activeNodes} {agentsCount}</span>
