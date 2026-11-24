@@ -28,7 +28,7 @@ export default function OopsHqAdminPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [latestVersion, setLatestVersion] = useState('v0.3.0');
+  const [latestVersion, setLatestVersion] = useState('v0.4.0');
   const [releases, setReleases] = useState<OopsReleaseEntry[]>([]);
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [backers, setBackers] = useState<BackerRow[]>([]);

@@ -8,6 +8,17 @@ export interface OopsReleaseEntry {
 /** OOPS.MONSTER 독립 버전 & 패치 노트 (나도솔로 v3.0.0과 분리 관리) */
 export const OOPS_RELEASES: OopsReleaseEntry[] = [
   {
+    version: 'v0.4.0',
+    date: '2026-11-24',
+    title: 'OOPS 통신 터미널(/app) 독립 분리 · 팝업 로고 전환 · 본부 참여 승인 기준 공표',
+    highlights: [
+      '메인 화면과 독립 통신 터미널(/app) 완전 분리 및 홈 복귀 팝업 로고 도입',
+      '하단 푸터 OOPS.MONSTER 클릭 시 관제실(/hq) 직통 연결 및 수동 암호 보안 강화',
+      '설명조 청원 문구 제거 및 본부 3대 통신망 연동 심사 기준(단말 직통·비종속·인간 승인) 공표',
+      '테이블바로 상/하단 로고 나도솔로 규격 일치(폰트 폭 균등 분할 및 선결제예약/테이블바로 롤오버 반전)',
+    ],
+  },
+  {
     version: 'v0.3.0',
     date: '2026-11-24',
     title: 'OOPS HQ 전용 관제실(/hq) · 전체 노드 브로드캐스트 · 독립 버전 체계 도입',

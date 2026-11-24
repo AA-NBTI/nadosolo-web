@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    latestVersion: OOPS_RELEASES[0]?.version || 'v0.3.0',
+    latestVersion: OOPS_RELEASES[0]?.version || 'v0.4.0',
     releases: OOPS_RELEASES,
     agents: agents.map((a) => ({
       agentId: a.agentId,
