@@ -74,8 +74,8 @@ export default function TablebaroHeader() {
           <span className="font-serif-editorial text-[24px] sm:text-[28px] font-light text-white tracking-[-0.02em] lowercase leading-none">
             tablebaro
           </span>
-          <span className="text-[11px] font-mono tracking-[0.22em] text-[#3b82f6] mt-1 leading-none">
-            테이블바로
+          <span className="text-[11px] font-mono tracking-[0.22em] text-[#f04f74] mt-1 leading-none font-semibold">
+            선결제예약 테이블바로
           </span>
         </Link>
 

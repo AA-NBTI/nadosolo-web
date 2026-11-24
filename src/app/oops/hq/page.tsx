@@ -126,8 +126,7 @@ export default function OopsHqAdminPage() {
           </div>
 
           <p className="text-xs text-zinc-700 font-medium">
-            나도솔로 관리자와 분리된 <strong>oops.monster 전용 관제실</strong>입니다.
-            (기본 암호: <code className="bg-zinc-100 px-1 border border-zinc-300">oops-hq-2026</code> 또는 관리자 환경변수)
+            OOPS HQ 관제실 보안 인증이 필요합니다. 관리자 암호를 입력해 주세요.
           </p>
 
           <input

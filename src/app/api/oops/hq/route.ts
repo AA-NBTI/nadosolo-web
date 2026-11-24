@@ -7,7 +7,7 @@ import {
 import { OOPS_RELEASES } from '@/lib/oops/releases';
 
 function isAuthorized(req: NextRequest, bodyKey?: string): boolean {
-  const expected = process.env.OOPS_HQ_KEY || process.env.ADMIN_PASSWORD || 'oops-hq-2026';
+  const expected = process.env.OOPS_HQ_KEY || 'aa1111';
   const headerKey = req.headers.get('x-oops-hq-key') || '';
   const queryKey = req.nextUrl.searchParams.get('key') || '';
   const candidate = bodyKey || headerKey || queryKey;

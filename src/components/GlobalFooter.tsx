@@ -36,7 +36,7 @@ export default function GlobalFooter({
           
           {isTablebaro ? (
             <>
-              {/* 테이블바로 푸터 상단 브랜드 로고: 점 없이 순수 텍스트 + 선결제 예약 솔루션 (포인트컬러 적용) */}
+              {/* 테이블바로 푸터 상단 브랜드 로고: 점 없이 순수 텍스트 + 선결제예약 테이블바로 (포인트컬러 적용) */}
               <div className="flex flex-col items-center justify-center">
                 <Link
                   href="/reserve"
@@ -46,8 +46,8 @@ export default function GlobalFooter({
                   <span className="font-serif-editorial text-[24px] sm:text-[28px] font-normal text-white tracking-[-0.01em] leading-none">
                     TABLEBARO
                   </span>
-                  <span className="text-xs font-mono text-[#3b82f6] font-medium tracking-wider mt-1.5">
-                    선결제 예약 솔루션
+                  <span className="text-xs font-mono text-[#f04f74] font-semibold tracking-wider mt-1.5">
+                    선결제예약 테이블바로
                   </span>
                 </Link>
               </div>

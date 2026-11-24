@@ -2,7 +2,7 @@
 
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Bell, Check, Copy, Globe, Radio, Send, Sparkles, Zap } from 'lucide-react';
+import { Bell, Check, Copy, Globe, Radio, Send, Smartphone, Sparkles, Zap } from 'lucide-react';
 import {
   detectOopsLocale,
   OOPS_DICT,
@@ -315,7 +315,16 @@ function OopsHqContent() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            {/* APP 전용 메뉴 */}
+            <a
+              href="/app"
+              className="px-3 py-1.5 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1.5"
+            >
+              <Smartphone className="w-3.5 h-3.5" />
+              <span>APP</span>
+            </a>
+
             {/* 글로벌 언어 전환기 (EN / KO / JA / ZH / ES) */}
             <div className="flex items-center bg-white border-2 border-black shadow-[2px_2px_0px_#000] px-1 py-0.5 gap-0.5">
               <Globe className="w-3.5 h-3.5 mx-1 text-zinc-600 hidden sm:block" />
@@ -333,11 +342,6 @@ function OopsHqContent() {
                   {loc.label}
                 </button>
               ))}
-            </div>
-
-            <div className="hidden sm:flex items-center gap-1.5 text-xs font-mono font-bold bg-white border-2 border-black shadow-[2px_2px_0px_#000] px-2.5 py-1">
-              <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
-              <span>{t.activeNodes}: {agentsCount}</span>
             </div>
           </div>
         </div>
@@ -415,172 +419,27 @@ function OopsHqContent() {
           </div>
         </section>
 
-        {/* 3. 중간 삽입: Poolsuite.net 스타일 레트로 OS 윈도우 */}
-        <section className="bg-[#d6d3c9] border-2 border-black shadow-[8px_8px_0px_#000]">
-          <div className="bg-[#000080] text-white px-3 py-2 border-b-2 border-black flex items-center justify-between select-none">
-            <div className="flex items-center gap-2 font-mono text-xs sm:text-sm font-bold tracking-wide">
-              <span className="inline-block w-3 h-3 bg-[#ffc900] border border-white" />
-              <span>{t.terminalTitle}</span>
+        {/* 3. 저항군 본부 핵심 액션: OOPS APP 진입 배너 */}
+        <section className="bg-[#ffc900] border-2 border-black shadow-[8px_8px_0px_#000] p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-block px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
+              SIGNAL TERMINAL
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-5 h-5 bg-[#d6d3c9] text-black border border-black flex items-center justify-center text-xs font-black leading-none">
-                _
-              </span>
-              <span className="w-5 h-5 bg-[#d6d3c9] text-black border border-black flex items-center justify-center text-xs font-black leading-none">
-                □
-              </span>
-              <span className="w-5 h-5 bg-[#ff4d00] text-white border border-black flex items-center justify-center text-xs font-black leading-none">
-                ×
-              </span>
-            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-black">
+              회원 간 직통 호출망 (OOPS APP)
+            </h2>
+            <p className="text-sm text-zinc-900 font-medium max-w-xl">
+              거대 플랫폼과 메신저 없이 브라우저·단말기끼리 직접 몬스터 신호를 주고받는 독립 호출 전용 앱입니다.
+            </p>
           </div>
 
-          <div className="px-4 py-1.5 bg-[#ebe8df] border-b-2 border-black flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
-            <div className="flex items-center gap-4 font-bold">
-              {t.terminalMenus.map((m) => (
-                <span key={m}>{m}</span>
-              ))}
-            </div>
-            <span className="text-zinc-700">{t.terminalProtocol}</span>
-          </div>
-
-          <div className="p-5 sm:p-7 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 좌측 모듈 */}
-            <div className="bg-[#f4f4f0] border-2 border-black p-5 shadow-[4px_4px_0px_#000] space-y-4">
-              <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
-                <span className="font-mono text-sm font-black flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-[#ff4d00]" />
-                  <span>{t.step1Title}</span>
-                </span>
-                {myAgentId && (
-                  <span className="text-xs font-mono font-black px-2 py-0.5 bg-[#ffc900] border border-black">
-                    {myAgentId}
-                  </span>
-                )}
-              </div>
-
-              <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed">{t.step1Desc}</p>
-
-              <div className="space-y-2.5">
-                <input
-                  type="text"
-                  value={alias}
-                  onChange={(e) => setAlias(e.target.value)}
-                  placeholder={t.aliasPlaceholder}
-                  className="w-full px-3 py-2.5 bg-white border-2 border-black text-sm font-mono focus:outline-none focus:bg-[#ffc900]/15"
-                />
-                <button
-                  type="button"
-                  disabled={pushBusy}
-                  onClick={connectIndependentPush}
-                  className="w-full py-3 px-4 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-sm border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <Bell className="w-4 h-4" />
-                  <span>{pushBusy ? t.connectingBtn : myAgentId ? t.reconnectBtn : t.connectBtn}</span>
-                </button>
-              </div>
-
-              {pushMsg && (
-                <div className="p-2.5 bg-[#a3e635]/40 border-2 border-black text-xs font-mono font-bold">
-                  {pushMsg}
-                </div>
-              )}
-              {pushError && (
-                <div className="p-2.5 bg-[#ff4d00]/20 border-2 border-black text-xs font-bold text-red-900">
-                  {pushError}
-                </div>
-              )}
-
-              {myAgentId && (
-                <div className="p-3 bg-white border-2 border-black space-y-2">
-                  <div className="text-[11px] font-mono font-bold text-zinc-600">
-                    {t.shareLabel}
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <code className="text-xs font-mono font-bold truncate">
-                      https://oops.monster/?ping={myAgentId}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={copyShareUrl}
-                      className="shrink-0 px-2.5 py-1 bg-[#ff90e8] border-2 border-black text-xs font-mono font-bold flex items-center gap-1 cursor-pointer"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copied ? t.copiedBtn : t.copyBtn}</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <div className="text-xs font-mono text-zinc-700 pt-2 border-t border-black/20">
-                {t.iosTip}
-              </div>
-            </div>
-
-            {/* 우측 모듈 */}
-            <div className="bg-[#f4f4f0] border-2 border-black p-5 shadow-[4px_4px_0px_#000] space-y-4">
-              <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
-                <span className="font-mono text-sm font-black flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-[#ff4d00]" />
-                  <span>{t.step2Title}</span>
-                </span>
-                <span className="text-[11px] font-mono font-bold text-zinc-600">{t.step2Badge}</span>
-              </div>
-
-              <p className="text-xs sm:text-sm text-zinc-800 leading-relaxed">{t.step2Desc}</p>
-
-              <div className="space-y-2.5">
-                <input
-                  type="text"
-                  value={targetCode}
-                  onChange={(e) => setTargetCode(e.target.value.toUpperCase())}
-                  placeholder={t.targetPlaceholder}
-                  className="w-full px-3 py-2.5 bg-white border-2 border-black text-sm font-mono font-bold focus:outline-none focus:bg-[#ff90e8]/15"
-                />
-                <input
-                  type="text"
-                  value={pingTitle}
-                  onChange={(e) => setPingTitle(e.target.value)}
-                  placeholder={t.pingTitlePlaceholder}
-                  className="w-full px-3 py-2 bg-white border-2 border-black text-sm focus:outline-none"
-                />
-                <textarea
-                  rows={2}
-                  value={pingBody}
-                  onChange={(e) => setPingBody(e.target.value)}
-                  placeholder={t.pingBodyPlaceholder}
-                  className="w-full px-3 py-2 bg-white border-2 border-black text-sm focus:outline-none"
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    disabled={pingBusy}
-                    onClick={() => sendMonsterPing()}
-                    className="flex-1 py-3 px-4 bg-[#ff90e8] hover:bg-[#ffa6ed] text-black font-black text-sm border-2 border-black shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>{pingBusy ? t.firingBtn : t.fireBtn}</span>
-                  </button>
-                  {myAgentId && (
-                    <button
-                      type="button"
-                      disabled={pingBusy}
-                      onClick={() => sendMonsterPing(myAgentId)}
-                      className="px-4 py-3 bg-white hover:bg-zinc-100 border-2 border-black shadow-[3px_3px_0px_#000] text-xs font-mono font-black cursor-pointer"
-                    >
-                      {t.selfTestBtn}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {pingResult && (
-                <div className="p-2.5 bg-[#ffc900]/40 border-2 border-black text-xs font-mono font-bold">
-                  {pingResult}
-                </div>
-              )}
-            </div>
-          </div>
+          <a
+            href="/app"
+            className="shrink-0 px-8 py-4 bg-black hover:bg-zinc-800 text-white font-black text-base border-2 border-black shadow-[4px_4px_0_#ff90e8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer flex items-center gap-2"
+          >
+            <Smartphone className="w-5 h-5 text-[#ffc900]" />
+            <span>OOPS APP 실행 ➔</span>
+          </a>
         </section>
 
         {/* 4. Gumroad 스타일 창립 백커 합류 카드 */}

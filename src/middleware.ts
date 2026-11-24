@@ -24,11 +24,17 @@ export function middleware(request: NextRequest) {
 
   const host = (request.headers.get('host') || '').toLowerCase();
 
-  // oops.monster 또는 *.oops.monster 접속 시 -> / -> /oops, /hq -> /oops/hq 리라이트
+  // oops.monster 접속 시 -> / -> /oops, /app -> /oops/app, /hq -> /oops/hq 리라이트
   if (isOopsHost(host)) {
     if (pathname === '/' || pathname === '') {
       const url = request.nextUrl.clone();
       url.pathname = '/oops';
+      url.search = search;
+      return NextResponse.rewrite(url);
+    }
+    if (pathname === '/app') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/oops/app';
       url.search = search;
       return NextResponse.rewrite(url);
     }
