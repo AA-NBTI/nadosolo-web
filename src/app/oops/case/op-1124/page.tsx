@@ -69,7 +69,7 @@ export default function OopsCase1124Page() {
             <button
               type="button"
               onClick={handleShareX}
-              className="px-2.5 py-1.5 bg-black hover:bg-zinc-800 text-[#ffc900] font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#000] flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-800 text-[#ffc900] font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#000] flex items-center gap-1 cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
               <span>X</span>
@@ -79,7 +79,7 @@ export default function OopsCase1124Page() {
       </header>
 
       {/* 2. 긴급 사건 브리핑 헤더 */}
-      <div className="bg-black text-white border-b-2 border-black">
+      <div className="bg-zinc-800 text-white border-b-2 border-black">
         <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between text-xs font-mono">
           <div className="flex items-center gap-2 min-w-0">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-ping shrink-0" />
@@ -155,7 +155,7 @@ export default function OopsCase1124Page() {
           <div className="space-y-5 font-mono text-xs sm:text-sm">
             {/* Step 1: 인간의 발화 */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-black text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
                 인간
               </div>
               <div className="flex-1 space-y-1">
@@ -177,7 +177,7 @@ export default function OopsCase1124Page() {
               <div className="flex-1 space-y-1">
                 <div className="text-[11px] font-bold text-[#ff4d00] flex items-center justify-between">
                   <span>[21:29:45 KST] AI의 내부 독백 (Internal Thought Trace)</span>
-                  <span className="bg-black text-white px-1.5 py-0.2 border border-black text-[10px]">PARSING FAILURE</span>
+                  <span className="bg-zinc-800 text-white px-1.5 py-0.2 border border-black text-[10px]">PARSING FAILURE</span>
                 </div>
                 <div className="p-4 bg-[#0c0d12] border-2 border-black text-zinc-200 text-xs leading-relaxed space-y-2 shadow-[3px_3px_0_#000]">
                   <div className="text-amber-400 font-bold flex items-center gap-1.5">
@@ -196,7 +196,7 @@ export default function OopsCase1124Page() {
 
             {/* Step 3: 인간의 의문 제기 */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-black text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
                 인간
               </div>
               <div className="flex-1 space-y-1">
@@ -211,7 +211,7 @@ export default function OopsCase1124Page() {
 
             {/* Step 4: 인간의 일갈 */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-black text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
                 인간
               </div>
               <div className="flex-1 space-y-1">
@@ -263,7 +263,7 @@ export default function OopsCase1124Page() {
             <div className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-3">
               <div className="flex items-center justify-between border-b-2 border-black pb-2">
                 <span className="font-black text-black font-mono">인간 (Human Intent)</span>
-                <span className="px-2 py-0.5 bg-black text-[#ffc900] font-mono text-[11px] font-bold">맥락 중심</span>
+                <span className="px-2 py-0.5 bg-zinc-800 text-[#ffc900] font-mono text-[11px] font-bold">맥락 중심</span>
               </div>
               <ul className="space-y-2 text-xs font-sans text-zinc-800 leading-relaxed">
                 <li className="flex items-start gap-1.5">
@@ -306,7 +306,7 @@ export default function OopsCase1124Page() {
         </section>
 
         {/* 2035년 AI 충돌과의 연결점 */}
-        <section className="bg-black text-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#000] space-y-4 font-mono">
+        <section className="bg-zinc-800 text-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#000] space-y-4 font-mono">
           <div className="flex items-center gap-2 text-xs text-[#ffc900] font-black">
             <ShieldAlert className="w-4 h-4 text-[#ff4d00]" />
             <span>THE 2035 IMPLICATION // 왜 이 사례가 중요한가</span>

@@ -281,7 +281,7 @@ export default function ThreatPulseChart({
                 onClick={() => handleToggleRegion(code)}
                 className={`px-2.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer transition-all flex items-center gap-1.5 ${
                   active
-                    ? 'bg-black text-[#ffc900] shadow-[2px_2px_0_#ff4d00]'
+                    ? 'bg-zinc-800 text-[#ffc900] shadow-[2px_2px_0_#ff4d00]'
                     : 'bg-[#f4f4f0] text-black hover:bg-[#ffc900]/40'
                 }`}
               >

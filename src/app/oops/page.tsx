@@ -726,7 +726,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                       }}
                       className={`w-full text-left px-3 py-1.5 text-xs font-mono font-bold cursor-pointer transition-colors ${
                         locale === loc.code
-                          ? 'bg-black text-white'
+                          ? 'bg-zinc-800 text-white'
                           : 'text-black hover:bg-[#ffc900]'
                       }`}
                     >
@@ -741,7 +741,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
       </header>
 
       {/* 2. 한 줄 압축 슬로건 바 (모바일 2줄 최적화) */}
-      <div className="bg-black text-white border-b-2 border-black">
+      <div className="bg-zinc-800 text-white border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse shrink-0" />
@@ -872,7 +872,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                     key={p.id}
                     type="button"
                     onClick={() => handleApplyPrompt(p)}
-                    className="px-2 py-1 bg-[#f4f4f0] hover:bg-black hover:text-white border border-black text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
+                    className="px-2 py-1 bg-[#f4f4f0] hover:bg-zinc-800 hover:text-white border border-black text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
                   >
                     <span>{p.emoji}</span>
                     <span>{p.label[locale] || p.label.en}</span>
@@ -916,7 +916,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                     disabled={dispatchBusy || content.trim().length < 3}
                     className="px-5 py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm font-mono border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
                   >
-                    <span className="w-6 h-6 rounded-full bg-black border border-white/70 flex items-center justify-center p-0.5 shrink-0">
+                    <span className="w-6 h-6 rounded-full bg-zinc-800 border border-white/70 flex items-center justify-center p-0.5 shrink-0">
                       <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
                         <text
                           x="48"
@@ -1101,7 +1101,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         title={f.upvoteBtn}
                         className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasUp
-                            ? 'bg-black text-[#ffc900]'
+                            ? 'bg-zinc-800 text-[#ffc900]'
                             : 'bg-[#ffc900] hover:bg-[#ffd633] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
@@ -1119,7 +1119,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         title={f.skullBtn}
                         className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasSkull
-                            ? 'bg-black text-[#a3e635]'
+                            ? 'bg-zinc-800 text-[#a3e635]'
                             : 'bg-[#a3e635] hover:bg-[#b8f056] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
@@ -1137,7 +1137,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         title={f.fireBtn}
                         className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasFire
-                            ? 'bg-black text-[#ff90e8]'
+                            ? 'bg-zinc-800 text-[#ff90e8]'
                             : 'bg-[#ff90e8] hover:bg-[#ffa6ed] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
@@ -1154,7 +1154,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         onClick={() => toggleReplies(sig.id)}
                         className={`px-2 py-1 text-xs font-mono font-bold border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           isRepliesOpen
-                            ? 'bg-black text-white'
+                            ? 'bg-zinc-800 text-white'
                             : 'bg-white hover:bg-zinc-100 text-black shadow-[1.5px_1.5px_0_#000]'
                         }`}
                       >
@@ -1254,7 +1254,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         <button
                           type="submit"
                           disabled={replyBusy || replyText.trim().length < 2}
-                          className="px-3.5 py-1.5 bg-black hover:bg-zinc-800 text-white font-mono font-bold text-xs border-2 border-black cursor-pointer disabled:opacity-50"
+                          className="px-3.5 py-1.5 bg-zinc-800 hover:bg-zinc-800 text-white font-mono font-bold text-xs border-2 border-black cursor-pointer disabled:opacity-50"
                         >
                           {replyBusy ? '...' : f.replySubmitBtn}
                         </button>
@@ -1397,7 +1397,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl bg-[#f4f4f0] border-2 border-black shadow-[8px_8px_0_#000] max-h-[88vh] overflow-y-auto p-6 space-y-5">
             <div className="flex items-center justify-between border-b-2 border-black pb-3">
-              <span className="px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
+              <span className="px-2.5 py-0.5 bg-zinc-800 text-white text-xs font-mono font-bold">
                 {t.manifestoTag}
               </span>
               <button
@@ -1441,7 +1441,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl bg-white border-2 border-black shadow-[8px_8px_0_#000] max-h-[88vh] overflow-y-auto p-6 space-y-5">
             <div className="flex items-center justify-between border-b-2 border-black pb-3">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-zinc-800 text-white text-xs font-mono font-bold">
                 <Sparkles className="w-3.5 h-3.5 text-[#ffc900]" />
                 <span>{t.backerTag}</span>
               </div>
@@ -1494,7 +1494,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                 <button
                   type="submit"
                   disabled={backerBusy}
-                  className="px-6 py-2.5 bg-black hover:bg-zinc-800 text-white font-black text-sm border-2 border-black shadow-[3px_3px_0_#ff90e8] cursor-pointer disabled:opacity-50"
+                  className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-800 text-white font-black text-sm border-2 border-black shadow-[3px_3px_0_#ff90e8] cursor-pointer disabled:opacity-50"
                 >
                   {backerBusy ? t.submittingBtn : t.submitBtn}
                 </button>
@@ -1568,7 +1568,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <button
                 type="button"
                 onClick={shareReceiptOnX}
-                className="flex-1 py-2.5 bg-black hover:bg-zinc-800 text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#ff90e8] cursor-pointer"
+                className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-800 text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#ff90e8] cursor-pointer"
               >
                 {f.shareXBtn}
               </button>

@@ -56,7 +56,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
             {copy.clockTitle}
           </span>
         </div>
-        <span className="px-2.5 py-0.5 bg-black text-[#ffc900] font-black text-xs border border-black shadow-[2px_2px_0_#000]">
+        <span className="px-2.5 py-0.5 bg-zinc-800 text-[#ffc900] font-black text-xs border border-black shadow-[2px_2px_0_#000]">
           {copy.clockTarget}
         </span>
       </div>
@@ -97,14 +97,14 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
 
         {/* 실시간 초/밀리초 & 기준선 */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-1 border-t-2 border-black">
-          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
-            <div className="text-2xl sm:text-3xl font-black text-[#ff4d00] tracking-tight font-mono">
+          <div className="p-2.5 bg-[#dc2626] text-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-3xl font-black text-white tracking-tight font-mono">
               {String(timeLeft.seconds).padStart(2, '0')}
             </div>
-            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">{copy.secUnit}</div>
+            <div className="text-[10px] sm:text-xs text-white/90 font-black uppercase mt-0.5">{copy.secUnit}</div>
           </div>
 
-          <div className="p-2.5 bg-black text-[#ff90e8] border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+          <div className="p-2.5 bg-zinc-800 text-[#ff90e8] border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
             <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
               {String(timeLeft.milliseconds).padStart(2, '0')}
             </div>
@@ -183,7 +183,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
         <div className="space-y-4 font-sans text-xs sm:text-sm">
           {/* 인간의 질문 */}
           <div className="flex items-start gap-2.5 sm:gap-3">
-            <div className="w-11 h-9 rounded-none bg-black text-[#ffc900] font-mono font-black text-[11px] flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+            <div className="w-11 h-9 rounded-none bg-zinc-800 text-[#ffc900] font-mono font-black text-[11px] flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
               {copy.humanBadge}
             </div>
             <div className="flex-1 space-y-1">
