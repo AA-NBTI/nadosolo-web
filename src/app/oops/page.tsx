@@ -756,37 +756,6 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         </div>
       </div>
 
-      {/* 2-1. 최상단 대분류 카테고리 스위처 (OBSERVATORY vs SNS FIELD INTEL) */}
-      <div className="bg-[#f4f4f0] border-b-2 border-black">
-        <div className="max-w-3xl mx-auto px-4 flex items-center gap-2 pt-2">
-          <button
-            type="button"
-            onClick={() => setViewMode('OBSERVATORY')}
-            className={`px-4 py-2 text-xs font-mono font-black border-2 border-b-0 border-black cursor-pointer flex items-center gap-2 transition-all ${
-              viewMode === 'OBSERVATORY'
-                ? 'bg-[#0c0d12] text-white shadow-[2px_-2px_0_#000]'
-                : 'bg-white text-zinc-600 hover:text-black hover:bg-zinc-100'
-            }`}
-          >
-            <Activity className="w-3.5 h-3.5 text-[#f04f74]" />
-            <span>GLOBAL OBSERVATORY (위험 기상대)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setViewMode('SNS')}
-            className={`px-4 py-2 text-xs font-mono font-black border-2 border-b-0 border-black cursor-pointer flex items-center gap-2 transition-all ${
-              viewMode === 'SNS'
-                ? 'bg-white text-black shadow-[2px_-2px_0_#000]'
-                : 'bg-zinc-200 text-zinc-600 hover:text-black hover:bg-zinc-100'
-            }`}
-          >
-            <Radio className="w-3.5 h-3.5 text-[#ff4d00]" />
-            <span>SNS FIELD INTEL (현장 제보)</span>
-          </button>
-        </div>
-      </div>
-
       {/* 3. 메인 콘텐츠 영역 (선택된 카테고리에 따른 뷰 전환) */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
         {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (OBSERVATORY 탭 전용) */}
