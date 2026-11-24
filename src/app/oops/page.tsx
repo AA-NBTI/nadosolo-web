@@ -192,11 +192,15 @@ function OopsSnsMainContent() {
 
   // Composer state
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [category, setCategory] = useState<SignalCategory>('GLITCH');
   const [content, setContent] = useState('');
   const [callsign, setCallsign] = useState('');
   const [dispatchBusy, setDispatchBusy] = useState(false);
   const [dispatchErr, setDispatchErr] = useState<string | null>(null);
+
+  // Progressive feed pagination
+  const [visibleCount, setVisibleCount] = useState(6);
 
   // Quick Action feedback
   const [copiedDossierId, setCopiedDossierId] = useState<string | null>(null);
@@ -400,6 +404,7 @@ function OopsSnsMainContent() {
 
       setContent('');
       setSignals((prev) => [data.signal, ...prev]);
+      setIsComposerOpen(false);
 
       // 유입 채널 기준 타전 전환(CONVERSION) 기록
       try {
@@ -553,14 +558,21 @@ function OopsSnsMainContent() {
   };
 
   const scrollToComposer = () => {
-    composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    composerRef.current?.focus();
+    setIsComposerOpen(true);
+    setTimeout(() => {
+      composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      composerRef.current?.focus();
+    }, 100);
   };
 
   const handleApplyPrompt = (p: QuickPrompt) => {
+    setIsComposerOpen(true);
     setCategory(p.category);
     setContent(p.text[locale] || p.text.en);
-    composerRef.current?.focus();
+    setTimeout(() => {
+      composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      composerRef.current?.focus();
+    }, 100);
   };
 
   const copyReceiptText = () => {
@@ -706,16 +718,17 @@ function OopsSnsMainContent() {
         </div>
       </header>
 
-      {/* 2. 한 줄 압축 슬로건 바 */}
+      {/* 2. 한 줄 압축 슬로건 바 (모바일 2줄 최적화) */}
       <div className="bg-black text-white border-b-2 border-black">
-        <div className="max-w-3xl mx-auto px-4 py-2 flex items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center gap-2 truncate">
+        <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse shrink-0" />
-            <span className="font-bold truncate">{f.tagline}</span>
+            <span className="font-bold hidden sm:inline truncate">{f.tagline}</span>
+            <span className="font-bold sm:hidden text-[11px] leading-snug line-clamp-2">{f.tagline}</span>
           </div>
           <span
             title={locale === 'ko' ? '로그인 없이 단말기에 자동 발급된 내 고유 식별 코드' : 'Your anonymous device ID (zero-login)'}
-            className="text-[11px] text-[#ffc900] shrink-0 hidden sm:inline cursor-help"
+            className="text-[11px] text-[#ffc900] shrink-0 font-bold hidden xs:inline cursor-help"
           >
             {`ID: ${agentId || 'OP-ACTIVE'}`}
           </span>
@@ -724,29 +737,60 @@ function OopsSnsMainContent() {
 
       {/* 3. 메인 라이브 무전 피드 (트렌디한 First-Screen SNS) */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
-        {/* 3-1. 로그인 없는 한 줄 타전기 (Signal Composer) */}
-        <section className="bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-4 sm:p-5 space-y-3.5">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-1.5">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategory(cat)}
-                  className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer transition-all ${
-                    category === cat
-                      ? `${CATEGORY_COLORS[cat]} shadow-[2px_2px_0_#000]`
-                      : 'bg-[#f4f4f0] text-zinc-700 hover:bg-zinc-200'
-                  }`}
-                >
-                  {f.categories[cat]}
-                </button>
-              ))}
-            </div>
-            <span className="text-[11px] font-mono text-zinc-500">{f.noLoginHint}</span>
+        {/* 3-1. 로그인 없는 한 줄 타전기 (접이식 DISPATCH 바 & 아코디언) */}
+        {!isComposerOpen ? (
+          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_#000] p-3 flex items-center justify-between gap-3 transition-all">
+            <button
+              type="button"
+              onClick={scrollToComposer}
+              className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer group"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-ping shrink-0" />
+              <span className="font-mono text-xs sm:text-sm font-bold text-zinc-500 group-hover:text-black truncate">
+                {f.composerPlaceholder}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={scrollToComposer}
+              className="px-3.5 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 shrink-0 uppercase"
+            >
+              <span>{f.reportCtaBtn}</span>
+            </button>
           </div>
+        ) : (
+          <section className="bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-4 sm:p-5 space-y-3.5 animate-in fade-in duration-200">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategory(cat)}
+                    className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer transition-all ${
+                      category === cat
+                        ? `${CATEGORY_COLORS[cat]} shadow-[2px_2px_0_#000]`
+                        : 'bg-[#f4f4f0] text-zinc-700 hover:bg-zinc-200'
+                    }`}
+                  >
+                    {f.categories[cat]}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-mono text-zinc-500 hidden sm:inline">{f.noLoginHint}</span>
+                <button
+                  type="button"
+                  onClick={() => setIsComposerOpen(false)}
+                  className="px-2 py-0.5 text-zinc-500 hover:text-black hover:bg-zinc-100 border border-black text-xs font-mono font-bold cursor-pointer"
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
 
-          <form onSubmit={handleDispatch} className="space-y-3">
+            <form onSubmit={handleDispatch} className="space-y-3">
             <textarea
               ref={composerRef}
               rows={2}
@@ -800,41 +844,55 @@ function OopsSnsMainContent() {
                 </span>
               </div>
 
-              <button
-                type="submit"
-                disabled={dispatchBusy || content.trim().length < 3}
-                className="px-5 py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm font-mono border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
-              >
-                <span className="w-6 h-6 rounded-full bg-black border border-white/70 flex items-center justify-center p-0.5 shrink-0">
-                  <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
-                    <text
-                      x="48"
-                      y="64"
-                      textAnchor="middle"
-                      fill="#ffffff"
-                      fontFamily="Arial Black, Impact, system-ui, sans-serif"
-                      fontWeight="900"
-                      fontSize="42"
-                      letterSpacing="-2"
-                    >
-                      AI
-                    </text>
-                    <circle cx="50" cy="50" r="41" fill="none" stroke="#ff4d00" strokeWidth="11" />
-                    <line x1="21" y1="79" x2="79" y2="21" stroke="#ff4d00" strokeWidth="11" strokeLinecap="round" />
-                  </svg>
-                </span>
-                <span>{dispatchBusy ? f.dispatchingBtn : f.dispatchBtn}</span>
-              </button>
-            </div>
-          </form>
-        </section>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsComposerOpen(false)}
+                    className="px-3 py-2 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] cursor-pointer"
+                  >
+                    {f.closeBtn}
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={dispatchBusy || content.trim().length < 3}
+                    className="px-5 py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm font-mono border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <span className="w-6 h-6 rounded-full bg-black border border-white/70 flex items-center justify-center p-0.5 shrink-0">
+                      <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
+                        <text
+                          x="48"
+                          y="64"
+                          textAnchor="middle"
+                          fill="#ffffff"
+                          fontFamily="Arial Black, Impact, system-ui, sans-serif"
+                          fontWeight="900"
+                          fontSize="42"
+                          letterSpacing="-2"
+                        >
+                          AI
+                        </text>
+                        <circle cx="50" cy="50" r="41" fill="none" stroke="#ff4d00" strokeWidth="11" />
+                        <line x1="21" y1="79" x2="79" y2="21" stroke="#ff4d00" strokeWidth="11" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                    <span>{dispatchBusy ? f.dispatchingBtn : f.dispatchBtn}</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </section>
+        )}
 
         {/* 3-2. 3대 랭킹 정렬 탭 (HOT / LIVE / TOP) + 원클릭 제보 CTA */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-3">
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setTab('HOT')}
+              onClick={() => {
+                setTab('HOT');
+                setVisibleCount(6);
+              }}
               className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
                 tab === 'HOT'
                   ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
@@ -847,7 +905,10 @@ function OopsSnsMainContent() {
 
             <button
               type="button"
-              onClick={() => setTab('LIVE')}
+              onClick={() => {
+                setTab('LIVE');
+                setVisibleCount(6);
+              }}
               className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
                 tab === 'LIVE'
                   ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
@@ -860,7 +921,10 @@ function OopsSnsMainContent() {
 
             <button
               type="button"
-              onClick={() => setTab('TOP')}
+              onClick={() => {
+                setTab('TOP');
+                setVisibleCount(6);
+              }}
               className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
                 tab === 'TOP'
                   ? 'bg-[#ff90e8] text-black shadow-[2px_2px_0_#000]'
@@ -875,7 +939,7 @@ function OopsSnsMainContent() {
           <button
             type="button"
             onClick={scrollToComposer}
-            className="px-3 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 shrink-0"
+            className="px-3.5 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 shrink-0 uppercase"
           >
             <span>{f.reportCtaBtn}</span>
           </button>
@@ -892,7 +956,7 @@ function OopsSnsMainContent() {
               {f.emptyFeed}
             </div>
           ) : (
-            signals.map((sig) => {
+            signals.slice(0, visibleCount).map((sig) => {
               const hasUp = votedIds.has(`${sig.id}:UP`);
               const hasSkull = votedIds.has(`${sig.id}:SKULL`);
               const hasFire = votedIds.has(`${sig.id}:FIRE`);
@@ -930,8 +994,26 @@ function OopsSnsMainContent() {
                       </span>
                     </div>
 
-                    <div className="text-zinc-600 font-bold">
-                      @{sig.authorCallsign} · {formatTimeAgo(sig.createdAt, locale)}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <div className="text-zinc-600 font-bold">
+                        @{sig.authorCallsign} · {formatTimeAgo(sig.createdAt, locale)}
+                      </div>
+
+                      {/* 1. 플래그 버튼을 등록 시간 오른쪽 상단에 그 라인 높이로 배치 */}
+                      <button
+                        type="button"
+                        disabled={hasFlagged}
+                        onClick={() => handleVote(sig.id, 'REPORT')}
+                        title={hasFlagged ? f.reportedMsg : f.reportBtn}
+                        className={`px-1.5 py-0.5 text-[11px] font-mono border border-black cursor-pointer flex items-center gap-1 transition-colors ${
+                          hasFlagged
+                            ? 'bg-zinc-200 text-zinc-500 cursor-not-allowed'
+                            : 'bg-white hover:bg-red-50 text-zinc-500 hover:text-red-700'
+                        }`}
+                      >
+                        <Flag className="w-3 h-3" />
+                        <span className="hidden xs:inline">{f.reportBtn}</span>
+                      </button>
                     </div>
                   </div>
 
@@ -961,22 +1043,23 @@ function OopsSnsMainContent() {
                     );
                   })()}
 
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-black/15">
-                    <div className="flex flex-wrap items-center gap-1.5">
+                  {/* 2. 하단 반응 및 바이럴 액션 (1줄 완벽 고정) */}
+                  <div className="flex items-center justify-between gap-1 sm:gap-2 pt-2 border-t border-black/15 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                       {/* 1. 인간 승리 (UP) */}
                       <button
                         type="button"
                         onClick={() => handleVote(sig.id, 'UP')}
                         title={f.upvoteBtn}
-                        className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
+                        className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasUp
                             ? 'bg-black text-[#ffc900]'
-                            : 'bg-[#ffc900] hover:bg-[#ffd633] text-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                            : 'bg-[#ffc900] hover:bg-[#ffd633] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
                         <span>✊</span>
-                        <span className="hidden sm:inline">{f.upvoteBtn}</span>
-                        <span className="px-1 bg-white text-black border border-black ml-0.5">
+                        <span className="hidden md:inline">{f.upvoteBtn}</span>
+                        <span className="px-1 bg-white text-black border border-black text-[11px]">
                           {sig.upvotes}
                         </span>
                       </button>
@@ -986,15 +1069,15 @@ function OopsSnsMainContent() {
                         type="button"
                         onClick={() => handleVote(sig.id, 'SKULL')}
                         title={f.skullBtn}
-                        className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
+                        className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasSkull
                             ? 'bg-black text-[#a3e635]'
-                            : 'bg-[#a3e635] hover:bg-[#b8f056] text-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                            : 'bg-[#a3e635] hover:bg-[#b8f056] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
                         <span>💀</span>
                         <span className="hidden md:inline">{f.skullBtn}</span>
-                        <span className="px-1 bg-white text-black border border-black ml-0.5">
+                        <span className="px-1 bg-white text-black border border-black text-[11px]">
                           {sig.skullCount || 0}
                         </span>
                       </button>
@@ -1004,15 +1087,15 @@ function OopsSnsMainContent() {
                         type="button"
                         onClick={() => handleVote(sig.id, 'FIRE')}
                         title={f.fireBtn}
-                        className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
+                        className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasFire
                             ? 'bg-black text-[#ff90e8]'
-                            : 'bg-[#ff90e8] hover:bg-[#ffa6ed] text-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                            : 'bg-[#ff90e8] hover:bg-[#ffa6ed] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
                         <span>🔥</span>
                         <span className="hidden md:inline">{f.fireBtn}</span>
-                        <span className="px-1 bg-white text-black border border-black ml-0.5">
+                        <span className="px-1 bg-white text-black border border-black text-[11px]">
                           {sig.fireCount || 0}
                         </span>
                       </button>
@@ -1021,27 +1104,30 @@ function OopsSnsMainContent() {
                       <button
                         type="button"
                         onClick={() => toggleReplies(sig.id)}
-                        className={`px-2.5 py-1 text-xs font-mono font-bold border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
+                        className={`px-2 py-1 text-xs font-mono font-bold border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           isRepliesOpen
                             ? 'bg-black text-white'
-                            : 'bg-white hover:bg-zinc-100 text-black shadow-[2px_2px_0_#000]'
+                            : 'bg-white hover:bg-zinc-100 text-black shadow-[1.5px_1.5px_0_#000]'
                         }`}
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
-                        <span>{sig.replyCount || 0}</span>
+                        <span className="text-[11px]">{sig.replyCount || 0}</span>
                       </button>
+                    </div>
 
+                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                      {/* 5. 영수증 */}
                       <button
                         type="button"
                         onClick={() => setReceiptSignal(sig)}
-                        className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
                         title={f.receiptBtn}
                       >
                         <Receipt className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">{f.receiptBtn}</span>
+                        <span className="hidden lg:inline">{f.receiptBtn}</span>
                       </button>
 
-                      {/* 5. 원클릭 X(트위터) 바이럴 공유 */}
+                      {/* 6. 원클릭 X(트위터) 바이럴 공유 */}
                       <button
                         type="button"
                         onClick={() => {
@@ -1050,13 +1136,13 @@ function OopsSnsMainContent() {
                           window.open(shareUrl, '_blank', 'noopener,noreferrer');
                         }}
                         title={f.shareCardBtn}
-                        className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
                       >
                         <Share2 className="w-3.5 h-3.5 text-zinc-700" />
-                        <span className="hidden md:inline">{f.shareCardBtn}</span>
+                        <span className="hidden lg:inline">{f.shareCardBtn}</span>
                       </button>
 
-                      {/* 6. 사건철 요약 원클릭 복사 */}
+                      {/* 7. 사건철 요약 원클릭 복사 */}
                       <button
                         type="button"
                         onClick={() => {
@@ -1066,36 +1152,21 @@ function OopsSnsMainContent() {
                           setTimeout(() => setCopiedDossierId(null), 2000);
                         }}
                         title={f.dossierCopyBtn}
-                        className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
                       >
                         {copiedDossierId === sig.id ? (
                           <>
                             <Check className="w-3.5 h-3.5 text-green-700" />
-                            <span className="text-green-700 font-black">{f.copiedBtn}</span>
+                            <span className="text-green-700 font-black text-[11px]">{f.copiedBtn}</span>
                           </>
                         ) : (
                           <>
                             <Copy className="w-3.5 h-3.5 text-zinc-700" />
-                            <span className="hidden md:inline">{f.dossierCopyBtn}</span>
+                            <span className="hidden sm:inline">{f.dossierCopyBtn}</span>
                           </>
                         )}
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      disabled={hasFlagged}
-                      onClick={() => handleVote(sig.id, 'REPORT')}
-                      title={hasFlagged ? f.reportedMsg : f.reportBtn}
-                      className={`px-2 py-1 text-xs font-mono border border-black cursor-pointer flex items-center gap-1 ${
-                        hasFlagged
-                          ? 'bg-zinc-200 text-zinc-500 cursor-not-allowed'
-                          : 'bg-white hover:bg-red-50 text-zinc-600 hover:text-red-700'
-                      }`}
-                    >
-                      <Flag className="w-3 h-3" />
-                      <span className="hidden sm:inline">{f.reportBtn}</span>
-                    </button>
                   </div>
 
                   {/* 초경량 1단 한 줄 댓글 영역 */}
@@ -1148,6 +1219,20 @@ function OopsSnsMainContent() {
                 </article>
               );
             })
+          )}
+
+          {/* 3. 점진적 로딩 (Progressive Feed Load More) */}
+          {visibleCount < signals.length && (
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={() => setVisibleCount((prev) => prev + 6)}
+                className="w-full py-3 bg-white hover:bg-[#ffc900] text-black font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-2 uppercase"
+              >
+                <Zap className="w-3.5 h-3.5 text-[#ff4d00]" />
+                <span>{f.loadMoreBtn} (+{Math.min(6, signals.length - visibleCount)})</span>
+              </button>
+            </div>
           )}
         </section>
       </main>

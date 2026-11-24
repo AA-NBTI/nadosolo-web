@@ -41,6 +41,7 @@ export interface FeedCopy {
   dossierCopyBtn: string;
   dossierCopiedToast: string;
   shareCardBtn: string;
+  loadMoreBtn: string;
 }
 
 export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
@@ -84,11 +85,12 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: 'SEND',
     noReplies: 'No replies yet. Drop the first take.',
     showOriginalBtn: 'Show original',
-    reportCtaBtn: '+ REPORT AN OOPS',
+    reportCtaBtn: '⚡ DISPATCH',
     quickPromptsTitle: 'QUICK INSPIRATIONS',
     dossierCopyBtn: 'COPY',
     dossierCopiedToast: 'DOSSIER COPIED TO CLIPBOARD',
     shareCardBtn: 'SHARE',
+    loadMoreBtn: 'FETCH MORE SIGNALS',
   },
   ko: {
     tagline: 'AI가 인간보다 더 많은 것을 결정할 수 있는 세상에서, 누가 인간의 편에 설 것인가?',
@@ -130,11 +132,12 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: '전송',
     noReplies: '아직 답신이 없습니다. 첫 반응을 남기세요.',
     showOriginalBtn: '원문 보기',
-    reportCtaBtn: '+ AI 사고 즉시 제보',
+    reportCtaBtn: '⚡ 제보 타전',
     quickPromptsTitle: '원클릭 제보 예시',
     dossierCopyBtn: '사건 복사',
     dossierCopiedToast: '사건철이 클립보드에 복사되었습니다',
     shareCardBtn: '공유',
+    loadMoreBtn: '타전 신호 더 보기',
   },
   ja: {
     tagline: 'AIがすべてを決める世界で、誰が人間の味方に立つのか？',
@@ -176,11 +179,12 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: '送信',
     noReplies: 'まだ返信がありません。',
     showOriginalBtn: '原文を見る',
-    reportCtaBtn: '+ AI事故を通報',
+    reportCtaBtn: '⚡ 事件を発信',
     quickPromptsTitle: 'クイック通報例',
     dossierCopyBtn: '記録をコピー',
     dossierCopiedToast: '記録がコピーされました',
     shareCardBtn: '共有',
+    loadMoreBtn: '信号をもっと読み込む',
   },
   zh: {
     tagline: '在AI决定一切的时代，谁会站在人类这一边？',
@@ -222,11 +226,12 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: '发送',
     noReplies: '暂无回复。',
     showOriginalBtn: '查看原文',
-    reportCtaBtn: '+ 即刻通报AI事故',
+    reportCtaBtn: '⚡ 发送通报',
     quickPromptsTitle: '快速通报灵感',
     dossierCopyBtn: '复制案卷',
     dossierCopiedToast: '案卷已复制到剪贴板',
     shareCardBtn: '分享',
+    loadMoreBtn: '加载更多信号',
   },
   es: {
     tagline: 'Cuando la IA dicta todo, ¿quién está del lado humano?',
@@ -268,10 +273,11 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: 'ENVIAR',
     noReplies: 'Sin respuestas aún.',
     showOriginalBtn: 'Ver original',
-    reportCtaBtn: '+ REPORTAR UN OOPS',
+    reportCtaBtn: '⚡ DESPACHAR',
     quickPromptsTitle: 'INSPIRACIONES RÁPIDAS',
     dossierCopyBtn: 'COPIAR EXPEDIENTE',
     dossierCopiedToast: 'EXPEDIENTE COPIADO',
     shareCardBtn: 'COMPARTIR',
+    loadMoreBtn: 'CARGAR MÁS SEÑALES',
   },
 };
