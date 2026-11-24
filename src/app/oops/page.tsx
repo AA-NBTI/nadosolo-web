@@ -85,6 +85,52 @@ function OopsHqContent() {
   const [backerBusy, setBackerBusy] = useState(false);
   const [backerDone, setBackerDone] = useState<string | null>(null);
 
+  // 모바일/PWA 네이티브 설치 프롬프트 이벤트
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  useEffect(() => {
+    // 1) 이미 PWA 앱으로 띄워졌는지 감지
+    const inStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      Boolean((navigator as any).standalone);
+    setIsStandalone(inStandalone);
+
+    // 2) 안드로이드/크롬 설치 프롬프트 캡처
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+
+    // 3) 앱으로 실행되었는데 아직 알림 미연결 상태면 자동 알림 프롬프트 유도
+    if (inStandalone && Notification.permission === 'default') {
+      setShowInstallBanner(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    };
+  }, []);
+
+  const triggerAppInstall = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        setShowInstallBanner(false);
+        setDeferredPrompt(null);
+        // 설치 즉시 알림 승인 자동 트리거
+        void connectIndependentPush();
+      }
+    } else {
+      // 아이폰(iOS) 또는 브라우저 기본 설치 유도
+      void connectIndependentPush();
+    }
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem('oops_locale_v1');
     const detected = saved
@@ -296,6 +342,38 @@ function OopsHqContent() {
           </div>
         </div>
       </header>
+
+      {/* 모바일 1초 앱 설치 & 알림 자동 세팅 플로팅 바 */}
+      {showInstallBanner && (
+        <div className="bg-[#ffc900] border-b-2 border-black px-4 py-3 sticky top-16 z-30 shadow-[0_4px_0_#000]">
+          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm font-mono font-bold">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📲</span>
+              <span>
+                {isStandalone
+                  ? '앱 설치 완료! 알림 권한을 승인해야 백그라운드 몬스터 호출이 작동합니다.'
+                  : '홈 화면에 앱을 추가하면 알림 설정이 1초 만에 자동 연결됩니다.'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={triggerAppInstall}
+                className="flex-1 sm:flex-none px-4 py-2 bg-black text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#ff90e8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+              >
+                {isStandalone ? '알림 즉시 켜기 ➔' : '1초 앱 설치 & 알림 켜기 ➔'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowInstallBanner(false)}
+                className="px-2.5 py-2 bg-white text-black border-2 border-black text-xs font-black cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 max-w-5xl w-full mx-auto px-5 py-10 sm:py-14 space-y-14">
         {/* 2. Gumroad 베이스: 창립 선언문 + 몬스터 마스코트 */}

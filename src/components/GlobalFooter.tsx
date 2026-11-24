@@ -76,11 +76,14 @@ export default function GlobalFooter({
                       웁스
                     </a>
                     <Link href="/reserve/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
-                    {onTablebaroHost ? (
-                      <a href="https://nadosolo.com" className="hover:text-white transition-colors">나도솔로</a>
-                    ) : (
-                      <Link href="/" prefetch={true} className="hover:text-white transition-colors">나도솔로</Link>
-                    )}
+                    <a
+                      href="https://nadosolo.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-white transition-colors"
+                    >
+                      나도솔로
+                    </a>
                   </div>
                 </div>
 
@@ -157,7 +160,14 @@ export default function GlobalFooter({
                 <div className="space-y-2">
                   <span className="text-white font-mono font-semibold block">제휴</span>
                   <div className="flex flex-col gap-1.5">
-                    <Link href="/reserve" prefetch={true} className="hover:text-white transition-colors">테이블바로</Link>
+                    <a
+                      href="https://tablebaro.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-white transition-colors"
+                    >
+                      테이블바로
+                    </a>
                     <a
                       href="https://oops.monster"
                       target="_blank"
