@@ -318,7 +318,7 @@ function OopsSnsMainContent() {
     if (missing.length === 0) return;
 
     let cancelled = false;
-    void (async () => {
+    const fetchTranslations = async () => {
       try {
         const res = await fetch('/api/oops/translate', {
           method: 'POST',
@@ -333,18 +333,21 @@ function OopsSnsMainContent() {
           setTranslations((prev) => {
             const next = { ...prev };
             missing.forEach((s, idx) => {
-              next[`${s.id}:${locale}`] = data.translatedTexts[idx] || s.content;
+              const resText = data.translatedTexts[idx];
+              next[`${s.id}:${locale}`] = resText && typeof resText === 'string' ? resText : s.content;
             });
             return next;
           });
         }
       } catch {}
-    })();
+    };
+
+    void fetchTranslations();
 
     return () => {
       cancelled = true;
     };
-  }, [signals, locale, translations]);
+  }, [signals, locale]);
 
   const loadFeed = useCallback(
     async (activeTab: FeedSortTab, myId: string) => {
@@ -741,7 +744,7 @@ function OopsSnsMainContent() {
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
         {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (통계 기반 엔터프라이즈 바 차트) */}
         <section aria-label="Global Threat Observatory Chart">
-          <ThreatPulseChart initialThemeId="ai_collision" />
+          <ThreatPulseChart initialThemeId="ai_collision" locale={locale} />
         </section>
 
         {/* 3-1. 로그인 없는 한 줄 타전기 (접이식 DISPATCH 바 & 아코디언) */}

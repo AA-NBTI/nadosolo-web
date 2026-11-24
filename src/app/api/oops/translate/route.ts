@@ -17,7 +17,10 @@ async function translateSingle(text: string, targetLang: string): Promise<string
     )}&dt=t&q=${encodeURIComponent(clean)}`;
 
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': '*/*',
+      },
       cache: 'no-store',
     });
     if (!res.ok) return clean;
