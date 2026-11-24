@@ -906,7 +906,12 @@ export default function OopsHqAdminPage() {
                       </span>
                       <span className="text-zinc-400">{r.date}</span>
                     </div>
-                    <p className="text-zinc-300 font-sans">{r.summary}</p>
+                    <div className="text-white font-bold">{r.title}</div>
+                    <ul className="space-y-1 list-disc list-inside text-zinc-400 font-sans">
+                      {r.highlights.map((h, i) => (
+                        <li key={i}>{h}</li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
