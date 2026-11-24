@@ -51,7 +51,6 @@ export default function OopsHqAdminPage() {
         setError(data.error || '인증 실패');
         return;
       }
-      localStorage.setItem('oops_hq_key_v1', keyToUse);
       setAuthed(true);
       setLatestVersion(data.latestVersion || 'v0.3.0');
       setReleases(data.releases || []);
@@ -64,13 +63,12 @@ export default function OopsHqAdminPage() {
     }
   }, []);
 
+  // 링크 진입 시 기존 저장된 비밀번호 자동로그인 제거 (항상 암호 수동 입력 강제)
   useEffect(() => {
-    const saved = localStorage.getItem('oops_hq_key_v1');
-    if (saved) {
-      setPasskey(saved);
-      void fetchDashboard(saved);
-    }
-  }, [fetchDashboard]);
+    localStorage.removeItem('oops_hq_key_v1');
+    setPasskey('');
+    setAuthed(false);
+  }, []);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

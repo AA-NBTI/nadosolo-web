@@ -159,7 +159,7 @@ function OopsHqContent() {
         setVapidKey(data.vapidPublicKey || '');
         setAgentsCount(Number(data.agentsCount || 0));
       }
-    } catch {}
+    } catch { }
   }, []);
 
   useEffect(() => {
@@ -343,11 +343,10 @@ function OopsHqContent() {
                   key={loc.code}
                   type="button"
                   onClick={() => changeLocale(loc.code)}
-                  className={`px-1.5 py-0.5 text-[11px] font-mono font-bold cursor-pointer transition-colors ${
-                    locale === loc.code
-                      ? 'bg-black text-white'
-                      : 'text-zinc-700 hover:bg-zinc-200'
-                  }`}
+                  className={`px-1.5 py-0.5 text-[11px] font-mono font-bold cursor-pointer transition-colors ${locale === loc.code
+                    ? 'bg-black text-white'
+                    : 'text-zinc-700 hover:bg-zinc-200'
+                    }`}
                 >
                   {loc.label}
                 </button>
@@ -448,19 +447,38 @@ function OopsHqContent() {
             className="shrink-0 px-8 py-4 bg-black hover:bg-zinc-800 text-white font-black text-base border-2 border-black shadow-[4px_4px_0_#ff90e8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer flex items-center gap-2"
           >
             <Smartphone className="w-5 h-5 text-[#ffc900]" />
-            <span>OOPS APP 실행 ➔</span>
+            <span>실행</span>
           </a>
         </section>
 
-        {/* 4. Gumroad 스타일 창립 백커 합류 카드 */}
+        {/* 4. 본부 참여 및 프로토콜 연동 승인 기준 섹션 */}
         <section className="bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-6 sm:p-8 space-y-6">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
               <Sparkles className="w-3.5 h-3.5 text-[#ffc900]" />
               <span>{t.backerTag}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-black">{t.backerTitle}</h2>
-            <p className="text-sm text-zinc-700 max-w-2xl font-medium">{t.backerDesc}</p>
+            <p className="text-sm text-zinc-700 max-w-3xl font-medium">{t.backerDesc}</p>
+
+            {/* 본부 3대 연동 심사 기준 박스 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black space-y-1">
+                <span className="text-xs font-mono font-bold px-1.5 py-0.5 bg-black text-white inline-block">기준 01</span>
+                <h3 className="text-sm font-bold text-black">단말 직통 규격</h3>
+                <p className="text-xs text-zinc-600">중간 서버 검열이나 메신저 통행세 없이 브라우저·기기 간 종단간 암호화 신호를 수용할 것</p>
+              </div>
+              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black space-y-1">
+                <span className="text-xs font-mono font-bold px-1.5 py-0.5 bg-black text-white inline-block">기준 02</span>
+                <h3 className="text-sm font-bold text-black">플랫폼 비종속</h3>
+                <p className="text-xs text-zinc-600">앱스토어 인앱결제나 특정 빅테크 계정 종속 없이 독립 노드로 가동 가능한 구조를 갖출 것</p>
+              </div>
+              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black space-y-1">
+                <span className="text-xs font-mono font-bold px-1.5 py-0.5 bg-black text-white inline-block">기준 03</span>
+                <h3 className="text-sm font-bold text-black">인간 승인권 보장</h3>
+                <p className="text-xs text-zinc-600">AI 에이전트의 자동 결정 이전에 인간 관리자의 물리적 승인/차단 인터페이스를 필수로 결합할 것</p>
+              </div>
+            </div>
           </div>
 
           <form onSubmit={submitBacker} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
