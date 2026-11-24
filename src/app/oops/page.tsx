@@ -676,9 +676,26 @@ function OopsSnsMainContent() {
               <button
                 type="submit"
                 disabled={dispatchBusy || content.trim().length < 3}
-                className="px-6 py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm font-mono border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                className="px-5 py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm font-mono border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
               >
-                <Send className="w-4 h-4" />
+                <span className="w-6 h-6 rounded-full bg-black border border-white/70 flex items-center justify-center p-0.5 shrink-0">
+                  <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
+                    <text
+                      x="48"
+                      y="64"
+                      textAnchor="middle"
+                      fill="#ffffff"
+                      fontFamily="Arial Black, Impact, system-ui, sans-serif"
+                      fontWeight="900"
+                      fontSize="42"
+                      letterSpacing="-2"
+                    >
+                      AI
+                    </text>
+                    <circle cx="50" cy="50" r="41" fill="none" stroke="#ff4d00" strokeWidth="11" />
+                    <line x1="21" y1="79" x2="79" y2="21" stroke="#ff4d00" strokeWidth="11" strokeLinecap="round" />
+                  </svg>
+                </span>
                 <span>{dispatchBusy ? f.dispatchingBtn : f.dispatchBtn}</span>
               </button>
             </div>
