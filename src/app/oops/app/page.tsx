@@ -12,6 +12,7 @@ import {
   Radio,
   Send,
   Smartphone,
+  X,
   Zap,
 } from 'lucide-react';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
@@ -33,6 +34,7 @@ function OopsAppContent() {
 
   const [locale, setLocale] = useState<OopsLocale>('en');
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [showEmblemModal, setShowEmblemModal] = useState(false);
   const t = OOPS_DICT[locale];
 
   const [vapidKey, setVapidKey] = useState('');
@@ -237,17 +239,18 @@ function OopsAppContent() {
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <Link
-              href="/oops"
+            <button
+              type="button"
+              onClick={() => setShowEmblemModal(true)}
               className="group inline-flex items-center gap-2 select-none cursor-pointer"
-              title="OOPS Home"
+              title="View Emblem"
             >
               <img
                 src="/oops-emblem.jpg"
                 alt="OOPS.MONSTER"
                 className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
               />
-            </Link>
+            </button>
             <span className="px-2 py-0.5 bg-[#ffc900] border-2 border-black text-xs font-mono font-bold">
               APP
             </span>
@@ -256,11 +259,14 @@ function OopsAppContent() {
           <div className="flex items-center gap-2">
             <Link
               href="/oops"
-              className="group inline-flex items-center select-none cursor-pointer"
+              className="group inline-flex items-center gap-1 select-none cursor-pointer"
               title="OOPS Home"
             >
               <span className="inline-block px-2.5 py-1 bg-[#ff4d00] text-white font-black text-xs sm:text-sm font-mono tracking-tighter border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 transition-all uppercase">
                 oops!
+              </span>
+              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden sm:inline">
+                .monster
               </span>
             </Link>
 
@@ -511,7 +517,7 @@ function OopsAppContent() {
         </section>
       </main>
 
-      <footer className="border-t-2 border-black bg-white py-6 text-xs font-mono mt-auto">
+      <footer className="border-t-2 border-black bg-white py-6 text-xs font-mono mt-auto space-y-6">
         <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="font-bold flex items-center gap-1.5">
             <Link
@@ -525,7 +531,47 @@ function OopsAppContent() {
           </div>
           <div className="text-zinc-600">{t.footerRight}</div>
         </div>
+
+        <div className="max-w-3xl mx-auto px-4">
+          <button
+            type="button"
+            onClick={() => setShowEmblemModal(true)}
+            className="w-full block border-2 border-black shadow-[6px_6px_0_#000] overflow-hidden cursor-pointer group"
+            title="View Emblem"
+          >
+            <img
+              src="/oops-emblem.jpg"
+              alt="OOPS.MONSTER AI RESISTANCE HQ"
+              className="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform"
+            />
+          </button>
+        </div>
       </footer>
+
+      {showEmblemModal && (
+        <div
+          onClick={() => setShowEmblemModal(false)}
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-xl w-full bg-black border-4 border-white shadow-[8px_8px_0_#ffc900] cursor-default"
+          >
+            <button
+              type="button"
+              onClick={() => setShowEmblemModal(false)}
+              className="absolute top-3 right-3 z-10 p-1.5 bg-white text-black border-2 border-black cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src="/oops-emblem.jpg"
+              alt="OOPS.MONSTER Emblem"
+              className="w-full h-auto block"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

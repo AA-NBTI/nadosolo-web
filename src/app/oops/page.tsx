@@ -125,6 +125,7 @@ function OopsSnsMainContent() {
 
   // Modals & Dropdowns
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [showEmblemModal, setShowEmblemModal] = useState(false);
   const [showManifesto, setShowManifesto] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
   const [receiptSignal, setReceiptSignal] = useState<OopsSignal | null>(null);
@@ -509,28 +510,32 @@ function OopsSnsMainContent() {
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <Link
-              href="/oops"
+            <button
+              type="button"
+              onClick={() => setShowEmblemModal(true)}
               className="group inline-flex items-center gap-2 select-none cursor-pointer"
-              title="OOPS Home"
+              title="View Emblem"
             >
               <img
                 src="/oops-emblem.jpg"
                 alt="OOPS.MONSTER"
                 className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
               />
-            </Link>
+            </button>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* 기존 팝업 로고 (매니페스토 왼쪽 옆) */}
+            {/* 기존 팝업 로고 (.monster 포함 원형 그대로 매니페스토 왼쪽 옆 배치) */}
             <Link
               href="/oops"
-              className="group inline-flex items-center select-none cursor-pointer mr-0.5"
+              className="group inline-flex items-center gap-1 select-none cursor-pointer mr-1"
               title="OOPS Home"
             >
               <span className="inline-block px-2.5 py-1 bg-[#ff4d00] text-white font-black text-xs sm:text-sm font-mono tracking-tighter border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none transition-all uppercase">
                 oops!
+              </span>
+              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden sm:inline">
+                .monster
               </span>
             </Link>
 
@@ -952,8 +957,8 @@ function OopsSnsMainContent() {
         </section>
       </main>
 
-      {/* 4. 푸터 (맨 아래 OOPS.MONSTER 클릭 시 관제실 /hq 이동) */}
-      <footer className="border-t-2 border-black bg-white py-6 text-xs font-mono mt-auto">
+      {/* 4. 푸터 (맨 아래 OOPS.MONSTER 클릭 시 관제실 /hq 이동 + 하단 본문폭 엠블럼) */}
+      <footer className="border-t-2 border-black bg-white py-6 text-xs font-mono mt-auto space-y-6">
         <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="font-bold flex items-center gap-1.5">
             <Link
@@ -967,7 +972,48 @@ function OopsSnsMainContent() {
           </div>
           <div className="text-zinc-600">{t.footerRight}</div>
         </div>
+
+        <div className="max-w-3xl mx-auto px-4">
+          <button
+            type="button"
+            onClick={() => setShowEmblemModal(true)}
+            className="w-full block border-2 border-black shadow-[6px_6px_0_#000] overflow-hidden cursor-pointer group"
+            title="View Emblem"
+          >
+            <img
+              src="/oops-emblem.jpg"
+              alt="OOPS.MONSTER AI RESISTANCE HQ"
+              className="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform"
+            />
+          </button>
+        </div>
       </footer>
+
+      {/* 모달 0: 엠블럼 큰 화면 보기 */}
+      {showEmblemModal && (
+        <div
+          onClick={() => setShowEmblemModal(false)}
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-xl w-full bg-black border-4 border-white shadow-[8px_8px_0_#ffc900] cursor-default"
+          >
+            <button
+              type="button"
+              onClick={() => setShowEmblemModal(false)}
+              className="absolute top-3 right-3 z-10 p-1.5 bg-white text-black border-2 border-black cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src="/oops-emblem.jpg"
+              alt="OOPS.MONSTER Emblem"
+              className="w-full h-auto block"
+            />
+          </div>
+        </div>
+      )}
 
       {/* 모달 1: 선언문 (MANIFESTO) */}
       {showManifesto && (
