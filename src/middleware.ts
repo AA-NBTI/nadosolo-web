@@ -38,11 +38,12 @@ function detectOopsGeoLocale(req: NextRequest): 'en' | 'ko' | 'ja' | 'zh' | 'es'
 }
 
 export function middleware(request: NextRequest) {
-  const { pathname, search } = request.nextUrl;
+  const { pathname, search, searchParams } = request.nextUrl;
   const host = (request.headers.get('host') || '').toLowerCase();
+  const brandQuery = searchParams.get('brand') || searchParams.get('mode');
 
-  // oops.monster 전용 도메인 처리
-  if (isOopsHost(host)) {
+  // oops.monster 전용 도메인 처리 (또는 로컬 개발 환경에서 ?brand=oops 또는 oops.localhost)
+  if (isOopsHost(host) || brandQuery === 'oops') {
     const geoLocale = detectOopsGeoLocale(request);
 
     // 1) /oops -> 클린 URL https://oops.monster/ 로 308 영구 리다이렉트
