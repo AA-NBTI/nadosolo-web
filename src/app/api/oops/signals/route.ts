@@ -6,6 +6,7 @@ import {
   listSignals,
   type FeedSortTab,
   type SignalCategory,
+  type SignalVoteType,
   verifyPowChallenge,
   voteSignal,
 } from '@/lib/oops/signalStore';
@@ -97,7 +98,9 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const signalId = String(body?.signalId || '').trim();
     const agentId = String(body?.agentId || '').trim().slice(0, 32);
-    const voteType = String(body?.voteType || '').toUpperCase() === 'REPORT' ? 'REPORT' : 'UP';
+    const rawVote = String(body?.voteType || 'UP').toUpperCase();
+    const voteType: SignalVoteType =
+      rawVote === 'SKULL' || rawVote === 'FIRE' || rawVote === 'REPORT' ? rawVote : 'UP';
 
     if (!signalId || !agentId) {
       return NextResponse.json({ ok: false, error: 'Missing signalId or agentId.' }, { status: 400 });
@@ -113,7 +116,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      upvotes: res.upvotes,
+      count: res.count,
       autoHidden: res.autoHidden,
     });
   } catch (err) {

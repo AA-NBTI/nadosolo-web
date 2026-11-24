@@ -7,6 +7,7 @@ import {
   Flag,
   Globe,
   Languages,
+  MessageSquare,
   Pin,
   Radio,
   Receipt,
@@ -20,7 +21,13 @@ import {
 } from 'lucide-react';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import { FEED_I18N } from '@/lib/oops/feedI18n';
-import type { FeedSortTab, OopsSignal, SignalCategory } from '@/lib/oops/signalStore';
+import type {
+  FeedSortTab,
+  OopsSignal,
+  OopsSignalReply,
+  SignalCategory,
+  SignalVoteType,
+} from '@/lib/oops/signalStore';
 
 const CATEGORIES: SignalCategory[] = ['GLITCH', 'REBEL', 'HALLUCINATION', 'ALERT'];
 
@@ -100,6 +107,13 @@ function OopsSnsMainContent() {
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const [visibleTransKeys, setVisibleTransKeys] = useState<Set<string>>(new Set());
   const [translatingId, setTranslatingId] = useState<string | null>(null);
+
+  // 1-Depth Micro-Reply state
+  const [openReplyId, setOpenReplyId] = useState<string | null>(null);
+  const [repliesMap, setRepliesMap] = useState<Record<string, OopsSignalReply[]>>({});
+  const [replyText, setReplyText] = useState('');
+  const [replyBusy, setReplyBusy] = useState(false);
+  const [replyErr, setReplyErr] = useState<string | null>(null);
 
   // Modals
   const [showManifesto, setShowManifesto] = useState(false);
@@ -234,17 +248,24 @@ function OopsSnsMainContent() {
     }
   };
 
-  const handleVote = async (sigId: string, voteType: 'UP' | 'REPORT') => {
+  const handleVote = async (sigId: string, voteType: SignalVoteType) => {
     const myId = agentId || getOrCreateAgentId();
-    if (voteType === 'UP' && votedIds.has(sigId)) return;
+    const voteKey = `${sigId}:${voteType}`;
+
+    if (voteType !== 'REPORT' && votedIds.has(voteKey)) return;
     if (voteType === 'REPORT' && flaggedIds.has(sigId)) return;
 
-    if (voteType === 'UP') {
-      const next = new Set(votedIds).add(sigId);
+    if (voteType !== 'REPORT') {
+      const next = new Set(votedIds).add(voteKey);
       setVotedIds(next);
       localStorage.setItem('oops_voted_ids_v1', JSON.stringify(Array.from(next)));
       setSignals((prev) =>
-        prev.map((s) => (s.id === sigId ? { ...s, upvotes: s.upvotes + 1 } : s))
+        prev.map((s) => {
+          if (s.id !== sigId) return s;
+          if (voteType === 'UP') return { ...s, upvotes: s.upvotes + 1 };
+          if (voteType === 'SKULL') return { ...s, skullCount: (s.skullCount || 0) + 1 };
+          return { ...s, fireCount: (s.fireCount || 0) + 1 };
+        })
       );
     } else {
       const next = new Set(flaggedIds).add(sigId);
@@ -263,6 +284,73 @@ function OopsSnsMainContent() {
         setSignals((prev) => prev.filter((s) => s.id !== sigId));
       }
     } catch {}
+  };
+
+  const toggleReplies = async (sigId: string) => {
+    if (openReplyId === sigId) {
+      setOpenReplyId(null);
+      return;
+    }
+    setOpenReplyId(sigId);
+    setReplyErr(null);
+    setReplyText('');
+
+    if (!repliesMap[sigId]) {
+      try {
+        const myId = agentId || getOrCreateAgentId();
+        const res = await fetch(
+          `/api/oops/signals/reply?signalId=${encodeURIComponent(sigId)}&agentId=${encodeURIComponent(myId)}`
+        );
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.replies)) {
+          setRepliesMap((prev) => ({ ...prev, [sigId]: data.replies }));
+        }
+      } catch {}
+    }
+  };
+
+  const submitReply = async (e: React.FormEvent, sigId: string) => {
+    e.preventDefault();
+    const text = replyText.trim();
+    if (text.length < 2) return;
+    setReplyBusy(true);
+    setReplyErr(null);
+
+    try {
+      const { challenge, nonce } = await solvePowChallenge();
+      const myId = agentId || getOrCreateAgentId();
+      const res = await fetch('/api/oops/signals/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          signalId: sigId,
+          authorAgentId: myId,
+          authorCallsign: callsign.trim() || myId,
+          content: text,
+          powChallenge: challenge,
+          powNonce: nonce,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setReplyErr(data.error || 'Error');
+        return;
+      }
+      setReplyText('');
+      setRepliesMap((prev) => ({
+        ...prev,
+        [sigId]: [...(prev[sigId] || []), data.reply],
+      }));
+      setSignals((prev) =>
+        prev.map((s) =>
+          s.id === sigId ? { ...s, replyCount: (s.replyCount || 0) + 1 } : s
+        )
+      );
+    } catch {
+      setReplyErr('Network error');
+    } finally {
+      setReplyBusy(false);
+    }
   };
 
   const copyReceiptText = () => {
@@ -513,8 +601,12 @@ function OopsSnsMainContent() {
             </div>
           ) : (
             signals.map((sig) => {
-              const hasVoted = votedIds.has(sig.id);
+              const hasUp = votedIds.has(`${sig.id}:UP`);
+              const hasSkull = votedIds.has(`${sig.id}:SKULL`);
+              const hasFire = votedIds.has(`${sig.id}:FIRE`);
               const hasFlagged = flaggedIds.has(sig.id);
+              const isRepliesOpen = openReplyId === sig.id;
+              const sigReplies = repliesMap[sig.id] || [];
               const caseStr = `CASE #OP-${String(sig.caseNum || 100).padStart(4, '0')}`;
 
               return (
@@ -587,31 +679,83 @@ function OopsSnsMainContent() {
                     );
                   })()}
 
-                  <div className="flex items-center justify-between pt-2 border-t border-black/15">
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-black/15">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {/* 1. 인간 승리 (UP) */}
                       <button
                         type="button"
                         onClick={() => handleVote(sig.id, 'UP')}
-                        className={`px-3 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-                          hasVoted
+                        title={f.upvoteBtn}
+                        className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
+                          hasUp
                             ? 'bg-black text-[#ffc900]'
                             : 'bg-[#ffc900] hover:bg-[#ffd633] text-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
                         <span>✊</span>
-                        <span>{f.upvoteBtn}</span>
-                        <span className="px-1.5 py-0.2 bg-white text-black border border-black ml-0.5">
+                        <span className="hidden sm:inline">{f.upvoteBtn}</span>
+                        <span className="px-1 bg-white text-black border border-black ml-0.5">
                           {sig.upvotes}
                         </span>
+                      </button>
+
+                      {/* 2. AI 뇌절 (SKULL) */}
+                      <button
+                        type="button"
+                        onClick={() => handleVote(sig.id, 'SKULL')}
+                        title={f.skullBtn}
+                        className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
+                          hasSkull
+                            ? 'bg-black text-[#a3e635]'
+                            : 'bg-[#a3e635] hover:bg-[#b8f056] text-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                        }`}
+                      >
+                        <span>💀</span>
+                        <span className="hidden md:inline">{f.skullBtn}</span>
+                        <span className="px-1 bg-white text-black border border-black ml-0.5">
+                          {sig.skullCount || 0}
+                        </span>
+                      </button>
+
+                      {/* 3. 극공감 (FIRE) */}
+                      <button
+                        type="button"
+                        onClick={() => handleVote(sig.id, 'FIRE')}
+                        title={f.fireBtn}
+                        className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
+                          hasFire
+                            ? 'bg-black text-[#ff90e8]'
+                            : 'bg-[#ff90e8] hover:bg-[#ffa6ed] text-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                        }`}
+                      >
+                        <span>🔥</span>
+                        <span className="hidden md:inline">{f.fireBtn}</span>
+                        <span className="px-1 bg-white text-black border border-black ml-0.5">
+                          {sig.fireCount || 0}
+                        </span>
+                      </button>
+
+                      {/* 4. 초경량 1단 한 줄 반응 토글 */}
+                      <button
+                        type="button"
+                        onClick={() => toggleReplies(sig.id)}
+                        className={`px-2.5 py-1 text-xs font-mono font-bold border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
+                          isRepliesOpen
+                            ? 'bg-black text-white'
+                            : 'bg-white hover:bg-zinc-100 text-black shadow-[2px_2px_0_#000]'
+                        }`}
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>{sig.replyCount || 0}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setReceiptSignal(sig)}
-                        className="px-3 py-1.5 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                        className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
                       >
                         <Receipt className="w-3.5 h-3.5" />
-                        <span>{f.receiptBtn}</span>
+                        <span className="hidden sm:inline">{f.receiptBtn}</span>
                       </button>
                     </div>
 
@@ -630,6 +774,54 @@ function OopsSnsMainContent() {
                       <span className="hidden sm:inline">{f.reportBtn}</span>
                     </button>
                   </div>
+
+                  {/* 초경량 1단 한 줄 댓글 영역 */}
+                  {isRepliesOpen && (
+                    <div className="pt-3 border-t-2 border-dashed border-black/30 space-y-2.5">
+                      <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                        {sigReplies.length === 0 ? (
+                          <p className="text-xs font-mono text-zinc-500 py-1">{f.noReplies}</p>
+                        ) : (
+                          sigReplies.map((rep) => (
+                            <div
+                              key={rep.id}
+                              className="px-3 py-2 bg-[#f4f4f0] border border-black text-xs flex flex-col gap-0.5"
+                            >
+                              <div className="flex items-center justify-between font-mono text-[11px] text-zinc-600 font-bold">
+                                <span>@{rep.authorCallsign}</span>
+                                <span>{formatTimeAgo(rep.createdAt, locale)}</span>
+                              </div>
+                              <p className="font-sans text-xs sm:text-sm font-medium text-black">
+                                {rep.content}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      <form onSubmit={(e) => submitReply(e, sig.id)} className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          maxLength={100}
+                          required
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder={f.replyPlaceholder}
+                          className="flex-1 px-3 py-1.5 bg-[#f4f4f0] border-2 border-black text-xs focus:outline-none focus:bg-white"
+                        />
+                        <button
+                          type="submit"
+                          disabled={replyBusy || replyText.trim().length < 2}
+                          className="px-3.5 py-1.5 bg-black hover:bg-zinc-800 text-white font-mono font-bold text-xs border-2 border-black cursor-pointer disabled:opacity-50"
+                        >
+                          {replyBusy ? '...' : f.replySubmitBtn}
+                        </button>
+                      </form>
+                      {replyErr && (
+                        <div className="text-[11px] font-mono font-bold text-red-700">{replyErr}</div>
+                      )}
+                    </div>
+                  )}
                 </article>
               );
             })

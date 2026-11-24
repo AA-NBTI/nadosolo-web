@@ -29,6 +29,12 @@ export interface FeedCopy {
   translateBtn: string;
   translatingBtn: string;
   hideTranslationBtn: string;
+  skullBtn: string;
+  fireBtn: string;
+  replyBtn: string;
+  replyPlaceholder: string;
+  replySubmitBtn: string;
+  noReplies: string;
 }
 
 export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
@@ -65,6 +71,12 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     translateBtn: 'Translate',
     translatingBtn: 'Translating...',
     hideTranslationBtn: 'Hide translation',
+    skullBtn: 'BRAINDEAD',
+    fireBtn: 'SAME HERE',
+    replyBtn: 'REPLY',
+    replyPlaceholder: '1-line reaction (max 100 chars, no links)...',
+    replySubmitBtn: 'SEND',
+    noReplies: 'No replies yet. Drop the first take.',
   },
   ko: {
     tagline: 'AI가 모든 것을 결정하는 시대, 누가 인간의 편에 설 것인가?',
@@ -99,6 +111,12 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     translateBtn: '번역 보기',
     translatingBtn: '번역 중...',
     hideTranslationBtn: '원문만 보기',
+    skullBtn: 'AI 뇌절',
+    fireBtn: '극공감',
+    replyBtn: '한 줄 반응',
+    replyPlaceholder: '한 줄 반응 남기기 (최대 100자, 링크 금지)...',
+    replySubmitBtn: '등록',
+    noReplies: '아직 반응이 없습니다. 첫 한 줄을 남겨보세요.',
   },
   ja: {
     tagline: 'AIがすべてを決める世界で、誰が人間の味方に立つのか？',
@@ -133,6 +151,12 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     translateBtn: '翻訳を見る',
     translatingBtn: '翻訳中...',
     hideTranslationBtn: '翻訳を閉じる',
+    skullBtn: 'AI崩壊',
+    fireBtn: 'わかる',
+    replyBtn: '返信',
+    replyPlaceholder: '一言リアクション（最大100文字・URL禁止）...',
+    replySubmitBtn: '送信',
+    noReplies: 'まだ返信がありません。',
   },
   zh: {
     tagline: '在AI决定一切的时代，谁会站在人类这一边？',
@@ -167,6 +191,12 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     translateBtn: '查看翻译',
     translatingBtn: '翻译中...',
     hideTranslationBtn: '收起翻译',
+    skullBtn: 'AI降智',
+    fireBtn: '同感',
+    replyBtn: '回复',
+    replyPlaceholder: '一句话反应（限100字，禁链接）...',
+    replySubmitBtn: '发送',
+    noReplies: '暂无回复。',
   },
   es: {
     tagline: 'Cuando la IA dicta todo, ¿quién está del lado humano?',
@@ -201,5 +231,11 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     translateBtn: 'Ver traducción',
     translatingBtn: 'Traduciendo...',
     hideTranslationBtn: 'Ocultar traducción',
+    skullBtn: 'IA ROTA',
+    fireBtn: 'TAL CUAL',
+    replyBtn: 'RESPONDER',
+    replyPlaceholder: 'Respuesta rápida (máx 100 car., sin enlaces)...',
+    replySubmitBtn: 'ENVIAR',
+    noReplies: 'Sin respuestas aún.',
   },
 };
