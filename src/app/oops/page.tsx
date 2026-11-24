@@ -4,6 +4,7 @@ import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import {
+  ChevronDown,
   Flame,
   Flag,
   Globe,
@@ -122,7 +123,8 @@ function OopsSnsMainContent() {
   const [replyBusy, setReplyBusy] = useState(false);
   const [replyErr, setReplyErr] = useState<string | null>(null);
 
-  // Modals
+  // Modals & Dropdowns
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [showManifesto, setShowManifesto] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
   const [receiptSignal, setReceiptSignal] = useState<OopsSignal | null>(null);
@@ -457,7 +459,7 @@ function OopsSnsMainContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-[#ffc900] selection:text-black">
+    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-[#ffc900] selection:text-black">
       {/* 1. 상단 네비게이션 */}
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
@@ -501,23 +503,39 @@ function OopsSnsMainContent() {
               <span>{f.navApp}</span>
             </a>
 
-            {/* 언어 스위처 (EN 기본 / KO 검수 전환 가능) */}
-            <div className="flex items-center bg-white border-2 border-black shadow-[2px_2px_0px_#000] px-1 py-0.5 gap-0.5">
-              <Globe className="w-3.5 h-3.5 mx-1 text-zinc-600 hidden md:block" />
-              {OOPS_LOCALES.map((loc) => (
-                <button
-                  key={loc.code}
-                  type="button"
-                  onClick={() => changeLocale(loc.code)}
-                  className={`px-1.5 py-0.5 text-[11px] font-mono font-bold cursor-pointer transition-colors ${
-                    locale === loc.code
-                      ? 'bg-black text-white'
-                      : 'text-zinc-700 hover:bg-zinc-200'
-                  }`}
-                >
-                  {loc.label}
-                </button>
-              ))}
+            {/* 언어 드롭다운 (현재 언어만 노출, 클릭 시 5개 언어 선택) */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setLangMenuOpen((prev) => !prev)}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0px_#000] text-xs font-mono font-black cursor-pointer"
+              >
+                <Globe className="w-3.5 h-3.5 text-zinc-700" />
+                <span>{locale.toUpperCase()}</span>
+                <ChevronDown className="w-3 h-3" />
+              </button>
+
+              {langMenuOpen && (
+                <div className="absolute right-0 mt-1.5 w-24 bg-white border-2 border-black shadow-[4px_4px_0_#000] z-50 py-1">
+                  {OOPS_LOCALES.map((loc) => (
+                    <button
+                      key={loc.code}
+                      type="button"
+                      onClick={() => {
+                        changeLocale(loc.code);
+                        setLangMenuOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-1.5 text-xs font-mono font-bold cursor-pointer transition-colors ${
+                        locale === loc.code
+                          ? 'bg-black text-white'
+                          : 'text-black hover:bg-[#ffc900]'
+                      }`}
+                    >
+                      {loc.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -534,7 +552,7 @@ function OopsSnsMainContent() {
             title={locale === 'ko' ? '로그인 없이 단말기에 자동 발급된 내 고유 식별 코드' : 'Your anonymous device ID (zero-login)'}
             className="text-[11px] text-[#ffc900] shrink-0 hidden sm:inline cursor-help"
           >
-            {locale === 'ko' ? `내 ID: ${agentId || 'OP-ACTIVE'}` : `MY ID: ${agentId || 'OP-ACTIVE'}`}
+            {`ID: ${agentId || 'OP-ACTIVE'}`}
           </span>
         </div>
       </div>
