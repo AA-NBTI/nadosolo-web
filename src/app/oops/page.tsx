@@ -682,20 +682,18 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
 
             <a
               href="/app"
-              className="px-2.5 py-1.5 bg-black hover:bg-zinc-900 text-[#ffc900] font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
             >
               <Smartphone className="w-3.5 h-3.5" />
               <span>{f.navApp}</span>
             </a>
 
-            {/* APP 옆 SNS 카테고리 버튼 (회장님 확정 규격 완전 원상 복구) */}
+            {/* APP 옆 SNS 카테고리 버튼 (화이트 버튼 표준) */}
             <button
               type="button"
               onClick={() => setViewMode((prev) => (prev === 'SNS' ? 'OBSERVATORY' : 'SNS'))}
-              className={`px-2.5 py-1.5 font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
-                viewMode === 'SNS'
-                  ? 'bg-black text-[#ffc900]'
-                  : 'bg-white hover:bg-zinc-100 text-black'
+              className={`px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
+                viewMode === 'SNS' ? 'ring-2 ring-black font-black' : ''
               }`}
             >
               <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
@@ -740,7 +738,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         </div>
       </header>
 
-      {/* 2. 한 줄 압축 슬로건 바 (CASE #OP-1124 실제 사건 링크 포함) */}
+      {/* 2. 한 줄 압축 슬로건 바 (모바일 2줄 최적화) */}
       <div className="bg-black text-white border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -748,24 +746,12 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <span className="font-bold hidden sm:inline truncate">{f.tagline}</span>
             <span className="font-bold sm:hidden text-[11px] leading-snug line-clamp-2">{f.tagline}</span>
           </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Link
-              href="/case/op-1124"
-              className="px-2 py-0.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-mono font-black text-[11px] border border-black shadow-[1px_1px_0_#000] shrink-0 flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
-              title="인간과 AI의 실제 소통 붕괴 사례 열람"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              <span>CASE #OP-1124</span>
-            </Link>
-
-            <span
-              title={locale === 'ko' ? '로그인 없이 단말기에 자동 발급된 내 고유 식별 코드' : 'Your anonymous device ID (zero-login)'}
-              className="text-[11px] text-[#ffc900] font-bold hidden xs:inline cursor-help"
-            >
-              {`ID: ${agentId || 'OP-ACTIVE'}`}
-            </span>
-          </div>
+          <span
+            title={locale === 'ko' ? '로그인 없이 단말기에 자동 발급된 내 고유 식별 코드' : 'Your anonymous device ID (zero-login)'}
+            className="text-[11px] text-[#ffc900] shrink-0 font-bold hidden xs:inline cursor-help"
+          >
+            {`ID: ${agentId || 'OP-ACTIVE'}`}
+          </span>
         </div>
       </div>
 
@@ -1301,8 +1287,51 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         )}
       </main>
 
-      {/* 4. 푸터 (맨 아래 OOPS.MONSTER 클릭 시 관제실 /hq 이동 + 하단 본문폭 엠블럼) */}
+      {/* 4. 푸터 (사례 실증 아카이브 & 점수화 근거 섹션 + 엠블럼) */}
       <footer className="border-t-2 border-black bg-white py-6 text-xs font-mono mt-auto space-y-6">
+        {/* 실증 사례 아카이브 & 점수화 신뢰 근거 카드 */}
+        <div className="max-w-3xl mx-auto px-4">
+          <div className="p-4 sm:p-5 bg-[#ffc900] border-4 border-black shadow-[6px_6px_0_#000] space-y-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-ping" />
+                <span className="font-mono font-black text-xs sm:text-sm text-black uppercase">
+                  EMPIRICAL CASE ARCHIVE // 실증 사례 아카이브
+                </span>
+              </div>
+              <span className="text-[11px] font-mono font-black bg-black text-[#ffc900] px-2 py-0.5 border border-black shadow-[1px_1px_0_#000]">
+                EVIDENCE-BASED ENGINE
+              </span>
+            </div>
+
+            <p className="text-xs sm:text-sm font-sans font-medium text-zinc-900 leading-relaxed">
+              본 관측소의 2035년 충돌 시계와 체감 위험 온도는 허구가 아닙니다.  
+              실제 현장에서 발생한 인간-AI 소통 단절과 자율 침해 사례를 체계적으로 수집·검증하여 위험 지수 산출의 핵심 근거로 점수화합니다.
+            </p>
+
+            {/* 대표 사례 링크 및 아카이브 페이지 이동 버튼 */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <Link
+                href="/case/op-1124"
+                className="text-xs font-mono font-bold text-black hover:underline flex items-center gap-1.5"
+              >
+                <span className="bg-[#ff4d00] text-white px-1.5 py-0.2 border border-black text-[10px] font-black">
+                  CASE #OP-1124
+                </span>
+                <span>&ldquo;인간은 페인트를 칠하라 했고, AI는 벽을 허물었다&rdquo; ➔</span>
+              </Link>
+
+              <Link
+                href="/archive"
+                className="px-3.5 py-2 bg-white hover:bg-zinc-100 text-black font-mono font-black text-xs border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>사례 아카이브 열람 및 등록</span>
+                <span>↗</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
         <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="font-bold flex items-center gap-1.5">
             <Link
