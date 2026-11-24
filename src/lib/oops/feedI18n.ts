@@ -35,6 +35,7 @@ export interface FeedCopy {
   replyPlaceholder: string;
   replySubmitBtn: string;
   noReplies: string;
+  showOriginalBtn: string;
 }
 
 export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
@@ -77,6 +78,7 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replyPlaceholder: '1-line reaction (max 100 chars, no links)...',
     replySubmitBtn: 'SEND',
     noReplies: 'No replies yet. Drop the first take.',
+    showOriginalBtn: 'Show original',
   },
   ko: {
     tagline: 'AI가 인간보다 더 많은 것을 결정할 수 있는 세상에서, 누가 인간의 편에 설 것인가?',
@@ -117,6 +119,7 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replyPlaceholder: '한 줄 반응 남기기 (최대 100자, 링크 금지)...',
     replySubmitBtn: '등록',
     noReplies: '아직 반응이 없습니다. 첫 한 줄을 남겨보세요.',
+    showOriginalBtn: '원문 보기',
   },
   ja: {
     tagline: 'AIがすべてを決める世界で、誰が人間の味方に立つのか？',
@@ -157,6 +160,7 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replyPlaceholder: '一言リアクション（最大100文字・URL禁止）...',
     replySubmitBtn: '送信',
     noReplies: 'まだ返信がありません。',
+    showOriginalBtn: '原文を見る',
   },
   zh: {
     tagline: '在AI决定一切的时代，谁会站在人类这一边？',
@@ -197,6 +201,7 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replyPlaceholder: '一句话反应（限100字，禁链接）...',
     replySubmitBtn: '发送',
     noReplies: '暂无回复。',
+    showOriginalBtn: '查看原文',
   },
   es: {
     tagline: 'Cuando la IA dicta todo, ¿quién está del lado humano?',
@@ -237,5 +242,6 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replyPlaceholder: 'Respuesta rápida (máx 100 car., sin enlaces)...',
     replySubmitBtn: 'ENVIAR',
     noReplies: 'Sin respuestas aún.',
+    showOriginalBtn: 'Ver original',
   },
 };

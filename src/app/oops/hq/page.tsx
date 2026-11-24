@@ -191,7 +191,7 @@ export default function OopsHqAdminPage() {
 
   if (!authed) {
     return (
-      <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex items-center justify-center p-5 selection:bg-blue-600 selection:text-white">
+      <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex items-center justify-center p-5 selection:bg-zinc-300 selection:text-black">
         <form
           onSubmit={handleLogin}
           className="w-full max-w-md bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-6 space-y-5"
@@ -237,7 +237,7 @@ export default function OopsHqAdminPage() {
   }
 
   return (
-    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-zinc-300 selection:text-black">
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">

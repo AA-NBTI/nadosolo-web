@@ -111,10 +111,10 @@ function OopsSnsMainContent() {
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
   const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
 
-  // Inline translation state
+  // Auto full-page translation state (Chrome-style batch translation)
   const [translations, setTranslations] = useState<Record<string, string>>({});
-  const [visibleTransKeys, setVisibleTransKeys] = useState<Set<string>>(new Set());
-  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [replyTranslations, setReplyTranslations] = useState<Record<string, string>>({});
+  const [showOriginalIds, setShowOriginalIds] = useState<Set<string>>(new Set());
 
   // 1-Depth Micro-Reply state
   const [openReplyId, setOpenReplyId] = useState<string | null>(null);
@@ -201,34 +201,49 @@ function OopsSnsMainContent() {
     localStorage.setItem('oops_locale_v1', next);
   };
 
-  const toggleTranslate = async (sig: OopsSignal) => {
-    const key = `${sig.id}:${locale}`;
-    if (translations[key]) {
-      setVisibleTransKeys((prev) => {
-        const next = new Set(prev);
-        if (next.has(key)) next.delete(key);
-        else next.add(key);
-        return next;
-      });
-      return;
-    }
-
-    setTranslatingId(sig.id);
-    try {
-      const res = await fetch('/api/oops/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: sig.content, targetLang: locale }),
-      });
-      const data = await res.json();
-      if (data.ok && data.translatedText) {
-        setTranslations((prev) => ({ ...prev, [key]: data.translatedText }));
-        setVisibleTransKeys((prev) => new Set(prev).add(key));
-      }
-    } catch {} finally {
-      setTranslatingId(null);
-    }
+  const toggleShowOriginal = (sigId: string) => {
+    setShowOriginalIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(sigId)) next.delete(sigId);
+      else next.add(sigId);
+      return next;
+    });
   };
+
+  // 크롬 전체 번역처럼 피드 전체를 현재 선택된 언어로 자동 배치 번역
+  useEffect(() => {
+    if (signals.length === 0) return;
+    const missing = signals.filter((s) => !translations[`${s.id}:${locale}`]);
+    if (missing.length === 0) return;
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch('/api/oops/translate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            texts: missing.map((s) => s.content),
+            targetLang: locale,
+          }),
+        });
+        const data = await res.json();
+        if (!cancelled && data.ok && Array.isArray(data.translatedTexts)) {
+          setTranslations((prev) => {
+            const next = { ...prev };
+            missing.forEach((s, idx) => {
+              next[`${s.id}:${locale}`] = data.translatedTexts[idx] || s.content;
+            });
+            return next;
+          });
+        }
+      } catch {}
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [signals, locale, translations]);
 
   const loadFeed = useCallback(
     async (activeTab: FeedSortTab, myId: string) => {
@@ -368,7 +383,31 @@ function OopsSnsMainContent() {
         );
         const data = await res.json();
         if (data.ok && Array.isArray(data.replies)) {
-          setRepliesMap((prev) => ({ ...prev, [sigId]: data.replies }));
+          const list = data.replies as OopsSignalReply[];
+          setRepliesMap((prev) => ({ ...prev, [sigId]: list }));
+          if (list.length > 0) {
+            void fetch('/api/oops/translate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                texts: list.map((r) => r.content),
+                targetLang: locale,
+              }),
+            })
+              .then((r) => r.json())
+              .then((tr) => {
+                if (tr.ok && Array.isArray(tr.translatedTexts)) {
+                  setReplyTranslations((prev) => {
+                    const next = { ...prev };
+                    list.forEach((r, idx) => {
+                      next[`${r.id}:${locale}`] = tr.translatedTexts[idx] || r.content;
+                    });
+                    return next;
+                  });
+                }
+              })
+              .catch(() => {});
+          }
         }
       } catch {}
     }
@@ -465,7 +504,7 @@ function OopsSnsMainContent() {
   };
 
   return (
-    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-zinc-300 selection:text-black">
       {/* 1. 상단 네비게이션 */}
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
@@ -727,38 +766,28 @@ function OopsSnsMainContent() {
                     </div>
                   </div>
 
-                  <p className="text-sm sm:text-base font-bold text-black leading-relaxed break-words">
-                    {sig.content}
-                  </p>
-
-                  {/* 인라인 번역 보기 / 접기 */}
                   {(() => {
                     const transKey = `${sig.id}:${locale}`;
                     const translated = translations[transKey];
-                    const isVisible = visibleTransKeys.has(transKey);
-                    const isTranslating = translatingId === sig.id;
+                    const hasDiff = Boolean(translated && translated.trim() !== sig.content.trim());
+                    const showingOriginal = showOriginalIds.has(sig.id);
+                    const displayContent = hasDiff && !showingOriginal ? translated : sig.content;
+
                     return (
-                      <div className="space-y-2">
-                        {isVisible && translated && (
-                          <div className="p-2.5 bg-[#f4f4f0] border-l-4 border-black text-sm font-medium text-zinc-800 leading-relaxed">
-                            {translated}
-                          </div>
+                      <div className="space-y-1.5">
+                        <p className="text-sm sm:text-base font-bold text-black leading-relaxed break-words">
+                          {displayContent}
+                        </p>
+                        {hasDiff && (
+                          <button
+                            type="button"
+                            onClick={() => toggleShowOriginal(sig.id)}
+                            className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-zinc-500 hover:text-black cursor-pointer"
+                          >
+                            <Languages className="w-3 h-3" />
+                            <span>{showingOriginal ? f.translateBtn : f.showOriginalBtn}</span>
+                          </button>
                         )}
-                        <button
-                          type="button"
-                          disabled={isTranslating}
-                          onClick={() => toggleTranslate(sig)}
-                          className="inline-flex items-center gap-1 text-xs font-mono font-bold text-zinc-600 hover:text-black cursor-pointer"
-                        >
-                          <Languages className="w-3.5 h-3.5" />
-                          <span>
-                            {isTranslating
-                              ? f.translatingBtn
-                              : isVisible
-                                ? f.hideTranslationBtn
-                                : f.translateBtn}
-                          </span>
-                        </button>
                       </div>
                     );
                   })()}
@@ -876,7 +905,7 @@ function OopsSnsMainContent() {
                                 <span>{formatTimeAgo(rep.createdAt, locale)}</span>
                               </div>
                               <p className="font-sans text-xs sm:text-sm font-medium text-black">
-                                {rep.content}
+                                {replyTranslations[`${rep.id}:${locale}`] || rep.content}
                               </p>
                             </div>
                           ))
