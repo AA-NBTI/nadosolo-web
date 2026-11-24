@@ -101,7 +101,17 @@ export function middleware(request: NextRequest) {
       return res;
     }
 
-    // 6) /hq 접속 시 -> 내부적으로 /oops/hq 페이지로 리라이트
+    // 6) /case 접속 시 -> 내부적으로 /oops/case 페이지로 리라이트
+    if (pathname.startsWith('/case')) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/oops${pathname}`;
+      url.search = search;
+      const res = NextResponse.rewrite(url);
+      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
+      return res;
+    }
+
+    // 7) /hq 접속 시 -> 내부적으로 /oops/hq 페이지로 리라이트
     if (pathname === '/hq') {
       const url = request.nextUrl.clone();
       url.pathname = '/oops/hq';

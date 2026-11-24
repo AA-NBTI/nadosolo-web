@@ -688,6 +688,20 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <span>{f.navApp}</span>
             </a>
 
+            {/* APP 옆 SNS 카테고리 버튼 (회장님 확정 규격 완전 원상 복구) */}
+            <button
+              type="button"
+              onClick={() => setViewMode((prev) => (prev === 'SNS' ? 'OBSERVATORY' : 'SNS'))}
+              className={`px-2.5 py-1.5 font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
+                viewMode === 'SNS'
+                  ? 'bg-black text-[#ffc900]'
+                  : 'bg-white hover:bg-zinc-100 text-black'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
+              <span>SNS</span>
+            </button>
+
             {/* 언어 드롭다운 (현재 언어만 노출, 클릭 시 5개 언어 선택) */}
             <div className="relative">
               <button
@@ -726,50 +740,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         </div>
       </header>
 
-      {/* 2. 헤더 메인 카테고리 네비게이션 탭 (옐로우 #ffc900 & 로고 오렌지 #ff4d00 메인 테마 세팅) */}
-      <nav aria-label="Main Navigation Categories" className="bg-[#ffc900] border-b-2 border-black">
-        <div className="max-w-3xl mx-auto px-4 py-2 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setViewMode('OBSERVATORY')}
-              className={`px-3 py-1.5 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-                viewMode === 'OBSERVATORY'
-                  ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
-                  : 'bg-white text-black hover:bg-zinc-100 shadow-[1px_1px_0_#000]'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${viewMode === 'OBSERVATORY' ? 'bg-white animate-pulse' : 'bg-[#ff4d00]'}`} />
-              <span>⚡ {locale === 'ko' ? 'AI 충돌 관측소' : 'THREAT OBSERVATORY'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('SNS')}
-              className={`px-3 py-1.5 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-                viewMode === 'SNS'
-                  ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
-                  : 'bg-white text-black hover:bg-zinc-100 shadow-[1px_1px_0_#000]'
-              }`}
-            >
-              <Radio className="w-3.5 h-3.5" />
-              <span>📡 {locale === 'ko' ? '인간 저항 피드' : 'HUMAN DISPATCH'}</span>
-            </button>
-          </div>
-
-          {/* 실시간 기준선 배지 요약 */}
-          <div className="flex items-center gap-1.5 text-xs font-mono font-bold shrink-0">
-            <span className="px-2 py-0.5 bg-black text-[#ffc900] border border-black shadow-[1.5px_1.5px_0_#000]">
-              2035 D-9.0Y
-            </span>
-            <span className="px-2 py-0.5 bg-white text-black border border-black shadow-[1.5px_1.5px_0_#000] hidden sm:inline">
-              P(DOOM) 18.4%
-            </span>
-          </div>
-        </div>
-      </nav>
-
-      {/* 2. 한 줄 압축 슬로건 바 (모바일 2줄 최적화) */}
+      {/* 2. 한 줄 압축 슬로건 바 (CASE #OP-1124 실제 사건 링크 포함) */}
       <div className="bg-black text-white border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -777,12 +748,24 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <span className="font-bold hidden sm:inline truncate">{f.tagline}</span>
             <span className="font-bold sm:hidden text-[11px] leading-snug line-clamp-2">{f.tagline}</span>
           </div>
-          <span
-            title={locale === 'ko' ? '로그인 없이 단말기에 자동 발급된 내 고유 식별 코드' : 'Your anonymous device ID (zero-login)'}
-            className="text-[11px] text-[#ffc900] shrink-0 font-bold hidden xs:inline cursor-help"
-          >
-            {`ID: ${agentId || 'OP-ACTIVE'}`}
-          </span>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href="/case/op-1124"
+              className="px-2 py-0.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-mono font-black text-[11px] border border-black shadow-[1px_1px_0_#000] shrink-0 flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
+              title="인간과 AI의 실제 소통 붕괴 사례 열람"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              <span>CASE #OP-1124</span>
+            </Link>
+
+            <span
+              title={locale === 'ko' ? '로그인 없이 단말기에 자동 발급된 내 고유 식별 코드' : 'Your anonymous device ID (zero-login)'}
+              className="text-[11px] text-[#ffc900] font-bold hidden xs:inline cursor-help"
+            >
+              {`ID: ${agentId || 'OP-ACTIVE'}`}
+            </span>
+          </div>
         </div>
       </div>
 
