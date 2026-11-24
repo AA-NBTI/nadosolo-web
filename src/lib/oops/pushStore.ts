@@ -1,9 +1,7 @@
 import type { PushSubscription } from 'web-push';
-import { createAdminClient } from '@/lib/supabase/admin';
-
-// Turbopack / Next.js 15 CommonJS 호환 처리
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const webpush = require('web-push');
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export interface OopsPushAgent {
   agentId: string;
@@ -49,116 +47,156 @@ async function writeConfig<T>(key: string, value: T): Promise<void> {
   try {
     const supabase = createAdminClient();
     if (!supabase) return;
-    await supabase.from('app_configs').upsert({ key, value });
+    await supabase
+      .from('app_configs')
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   } catch {}
 }
 
-export async function getRegisteredAgents(): Promise<OopsPushAgent[]> {
-  const list = await readConfig<OopsPushAgent[]>(AGENTS_KEY, memAgents);
-  memAgents = list;
-  return list;
+export function getVapidPublicKey(): string {
+  return process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
 }
 
-export async function upsertRegisteredAgent(agent: OopsPushAgent): Promise<void> {
-  const list = await getRegisteredAgents();
-  const idx = list.findIndex((a) => a.agentId === agent.agentId);
-  if (idx >= 0) {
-    list[idx] = { ...list[idx], ...agent, lastPingAt: new Date().toISOString() };
-  } else {
-    list.unshift(agent);
+function ensureVapidConfigured(): boolean {
+  const pub = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+  const priv = process.env.VAPID_PRIVATE_KEY || '';
+  if (!pub || !priv) return false;
+  webpush.setVapidDetails('mailto:hq@oops.monster', pub, priv);
+  return true;
+}
+
+function makeAgentId(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let out = 'OP-';
+  for (let i = 0; i < 6; i++) {
+    out += chars[Math.floor(Math.random() * chars.length)];
   }
-  memAgents = list.slice(0, 5000);
-  await writeConfig(AGENTS_KEY, memAgents);
+  return out;
 }
 
-export async function removeRegisteredAgent(agentId: string): Promise<void> {
-  const list = await getRegisteredAgents();
-  memAgents = list.filter((a) => a.agentId !== agentId);
-  await writeConfig(AGENTS_KEY, memAgents);
+export async function listOopsAgents(): Promise<OopsPushAgent[]> {
+  const db = await readConfig<OopsPushAgent[]>(AGENTS_KEY, memAgents);
+  memAgents = db;
+  return db;
 }
 
-export async function getFoundingBackers(): Promise<OopsBackerRecord[]> {
-  const list = await readConfig<OopsBackerRecord[]>(BACKERS_KEY, memBackers);
-  memBackers = list;
-  return list;
+export async function upsertOopsAgent(params: {
+  subscription: PushSubscription;
+  alias?: string;
+}): Promise<OopsPushAgent> {
+  const list = await listOopsAgents();
+  const existing = list.find((a) => a.subscription?.endpoint === params.subscription.endpoint);
+  if (existing) {
+    existing.subscription = params.subscription;
+    if (params.alias?.trim()) existing.alias = params.alias.trim().slice(0, 40);
+    memAgents = list;
+    await writeConfig(AGENTS_KEY, list);
+    return existing;
+  }
+
+  const created: OopsPushAgent = {
+    agentId: makeAgentId(),
+    alias: params.alias?.trim().slice(0, 40) || '저항군 요원',
+    subscription: params.subscription,
+    createdAt: new Date().toISOString(),
+  };
+  const next = [created, ...list].slice(0, 500);
+  memAgents = next;
+  await writeConfig(AGENTS_KEY, next);
+  return created;
 }
 
-export async function addFoundingBacker(record: OopsBackerRecord): Promise<void> {
-  const list = await getFoundingBackers();
-  list.unshift(record);
-  memBackers = list.slice(0, 1000);
-  await writeConfig(BACKERS_KEY, memBackers);
-}
-
-export interface BroadcastResult {
-  total: number;
-  sent: number;
-  failed: number;
-  purged: number;
-}
-
-export async function broadcastPush(payload: {
+export async function sendOopsPush(params: {
+  agentId?: string;
+  subscription?: PushSubscription;
   title: string;
   body: string;
   url?: string;
-  tag?: string;
-}): Promise<BroadcastResult> {
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-  const privateKey = process.env.VAPID_PRIVATE_KEY;
-  const subject = process.env.VAPID_SUBJECT || 'mailto:ops@oops.monster';
+}): Promise<{ ok: boolean; error?: string }> {
+  if (!ensureVapidConfigured()) {
+    return { ok: false, error: 'VAPID 키가 설정되지 않았습니다.' };
+  }
 
-  const agents = await getRegisteredAgents();
-  const result: BroadcastResult = {
-    total: agents.length,
-    sent: 0,
-    failed: 0,
-    purged: 0,
+  let targetSub = params.subscription;
+  if (!targetSub && params.agentId) {
+    const list = await listOopsAgents();
+    const found = list.find((a) => a.agentId === params.agentId);
+    if (!found) return { ok: false, error: '해당 요원 코드를 찾을 수 없습니다.' };
+    targetSub = found.subscription;
+    found.lastPingAt = new Date().toISOString();
+    memAgents = list;
+    await writeConfig(AGENTS_KEY, list);
+  }
+
+  if (!targetSub) {
+    return { ok: false, error: '푸시 수신 대상이 없습니다.' };
+  }
+
+  try {
+    await webpush.sendNotification(
+      targetSub,
+      JSON.stringify({
+        title: params.title,
+        body: params.body,
+        url: params.url || '/',
+        tag: `oops-${Date.now()}`,
+      })
+    );
+    return { ok: true };
+  } catch (err) {
+    return {
+      ok: false,
+      error: err instanceof Error ? err.message : '푸시 발송 실패',
+    };
+  }
+}
+
+export async function listOopsBackers(): Promise<OopsBackerRecord[]> {
+  const db = await readConfig<OopsBackerRecord[]>(BACKERS_KEY, memBackers);
+  memBackers = db;
+  return db;
+}
+
+export async function addOopsBacker(params: {
+  name: string;
+  org: string;
+  email: string;
+  tier: string;
+  message: string;
+}): Promise<OopsBackerRecord> {
+  const list = await listOopsBackers();
+  const record: OopsBackerRecord = {
+    id: `BK-${Date.now().toString(36).toUpperCase()}`,
+    name: params.name.trim().slice(0, 60),
+    org: params.org.trim().slice(0, 80),
+    email: params.email.trim().slice(0, 120),
+    tier: params.tier.trim().slice(0, 40) || 'FOUNDING_BACKER',
+    message: params.message.trim().slice(0, 500),
+    createdAt: new Date().toISOString(),
   };
+  const next = [record, ...list].slice(0, 300);
+  memBackers = next;
+  await writeConfig(BACKERS_KEY, next);
+  return record;
+}
 
-  if (!publicKey || !privateKey) {
-    console.warn('[OOPS PUSH] VAPID keys not configured, skipping web-push dispatch');
-    return result;
+export async function broadcastOopsPush(params: {
+  title: string;
+  body: string;
+  url?: string;
+}): Promise<{ total: number; sent: number; failed: number }> {
+  const agents = await listOopsAgents();
+  let sent = 0;
+  let failed = 0;
+  for (const agent of agents) {
+    const res = await sendOopsPush({
+      subscription: agent.subscription,
+      title: params.title,
+      body: params.body,
+      url: params.url || '/',
+    });
+    if (res.ok) sent++;
+    else failed++;
   }
-
-  webpush.setVapidDetails(subject, publicKey, privateKey);
-
-  const payloadStr = JSON.stringify({
-    title: payload.title,
-    body: payload.body,
-    url: payload.url || 'https://oops.monster',
-    tag: payload.tag || 'oops-hq-broadcast',
-    icon: '/icon?size=192',
-    badge: '/icon?size=96',
-    timestamp: Date.now(),
-  });
-
-  const staleAgentIds: string[] = [];
-
-  await Promise.all(
-    agents.map(async (ag) => {
-      try {
-        await webpush.sendNotification(ag.subscription, payloadStr, {
-          TTL: 60 * 60 * 24, // 24시간
-          urgency: 'high',
-        });
-        result.sent++;
-      } catch (err: any) {
-        result.failed++;
-        const statusCode = err?.statusCode;
-        // 404/410 은 만료/해지된 엔드포인트 -> 자동 정리
-        if (statusCode === 404 || statusCode === 410) {
-          staleAgentIds.push(ag.agentId);
-        }
-      }
-    })
-  );
-
-  if (staleAgentIds.length > 0) {
-    const purgeSet = new Set(staleAgentIds);
-    memAgents = memAgents.filter((a) => !purgeSet.has(a.agentId));
-    await writeConfig(AGENTS_KEY, memAgents);
-    result.purged = staleAgentIds.length;
-  }
-
-  return result;
+  return { total: agents.length, sent, failed };
 }
