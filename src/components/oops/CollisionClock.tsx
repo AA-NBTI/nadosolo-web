@@ -47,7 +47,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
   const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
 
   return (
-    <section className="bg-white border-4 border-black p-4 sm:p-6 shadow-[8px_8px_0px_#000] space-y-6 font-mono text-black">
+    <section className="bg-white border-4 border-black p-4 sm:p-6 shadow-[8px_8px_0px_#d4d4d8] space-y-6 font-mono text-black">
       {/* 1. 계측기 헤더 */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-black pb-3 bg-[#ffc900] -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 p-4">
         <div className="flex items-center gap-2">
@@ -56,16 +56,16 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
             {copy.clockTitle}
           </span>
         </div>
-        <span className="px-2.5 py-0.5 bg-zinc-800 text-[#ffc900] font-black text-xs border border-black shadow-[2px_2px_0_#000]">
+        <span className="px-2.5 py-0.5 bg-zinc-800 text-[#ffc900] font-black text-xs border border-black shadow-[2px_2px_0_#d4d4d8]">
           {copy.clockTarget}
         </span>
       </div>
 
       {/* 2. 전광판: TOTAL HOURS & TOTAL MINUTES 공간 분할 */}
-      <div className="p-4 sm:p-5 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-3.5">
+      <div className="p-4 sm:p-5 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#d4d4d8] space-y-3.5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center">
           {/* 전체 잔여 시간 */}
-          <div className="p-4 bg-[#ffc900] border-2 border-black shadow-[3px_3px_0_#000] flex flex-col justify-center items-center">
+          <div className="p-4 bg-[#ffc900] border-2 border-black shadow-[3px_3px_0_#d4d4d8] flex flex-col justify-center items-center">
             <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-black tracking-tight font-mono">
               {timeLeft.totalHours.toLocaleString()}
             </div>
@@ -82,7 +82,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
           </div>
 
           {/* 전체 잔여 분 */}
-          <div className="p-4 bg-white border-2 border-black shadow-[3px_3px_0_#000] flex flex-col justify-center items-center">
+          <div className="p-4 bg-white border-2 border-black shadow-[3px_3px_0_#d4d4d8] flex flex-col justify-center items-center">
             <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[#ff4d00] tracking-tight font-mono">
               {timeLeft.totalMinutes.toLocaleString()}
             </div>
@@ -97,28 +97,28 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
 
         {/* 실시간 초/밀리초 & 기준선 */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-1 border-t-2 border-black">
-          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
-            <div className="text-2xl sm:text-3xl font-black text-black tracking-tight font-mono">
+          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-3xl font-black text-[#dc2626] tracking-tight font-mono">
               {String(timeLeft.seconds).padStart(2, '0')}
             </div>
             <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">{copy.secUnit}</div>
           </div>
 
-          <div className="p-2.5 bg-[#dc2626] text-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+          <div className="p-2.5 bg-[#dc2626] text-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex flex-col justify-center items-center">
             <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
               {String(timeLeft.milliseconds).padStart(2, '0')}
             </div>
             <div className="text-[10px] sm:text-xs text-white/90 font-black uppercase mt-0.5">{copy.msUnit}</div>
           </div>
 
-          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex flex-col justify-center items-center">
             <div className={`text-xl sm:text-2xl font-black font-mono ${activeAccFactor === 1 ? 'text-[#ff4d00]' : activeAccFactor === -1 ? 'text-emerald-700' : 'text-black'}`}>
               {remainingYears}{copy.yearUnit}
             </div>
             <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">{copy.goldenTimeLabel}</div>
           </div>
 
-          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex flex-col justify-center items-center">
             <div className={`text-xl sm:text-2xl font-black font-mono ${deltaYears < 0 ? 'text-[#ff4d00]' : deltaYears > 0 ? 'text-emerald-700' : 'text-black'}`}>
               {deltaYears > 0 ? `+${deltaYears}` : deltaYears}{copy.yearUnit}
             </div>
@@ -133,7 +133,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
             onClick={() => setActiveAccFactor(-1)}
             className={`py-1.5 px-2 border-2 border-black transition-all cursor-pointer font-black ${
               activeAccFactor === -1
-                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
+                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#d4d4d8]'
                 : 'bg-white text-black hover:bg-zinc-100'
             }`}
           >
@@ -145,7 +145,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
             onClick={() => setActiveAccFactor(0)}
             className={`py-1.5 px-2 border-2 border-black transition-all cursor-pointer font-black ${
               activeAccFactor === 0
-                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#d4d4d8]'
                 : 'bg-white text-black hover:bg-zinc-100'
             }`}
           >
@@ -157,7 +157,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
             onClick={() => setActiveAccFactor(1)}
             className={`py-1.5 px-2 border-2 border-black transition-all cursor-pointer font-black ${
               activeAccFactor === 1
-                ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
+                ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#d4d4d8]'
                 : 'bg-white text-black hover:bg-zinc-100'
             }`}
           >
@@ -167,7 +167,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       </div>
 
       {/* 3. 대표 실증 대화록 (5개 국어 완전 연동) */}
-      <div className="p-4 sm:p-5 bg-white border-2 border-black shadow-[4px_4px_0_#000] space-y-4">
+      <div className="p-4 sm:p-5 bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8] space-y-4">
         <div className="border-b-2 border-black pb-2.5 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00]" />
@@ -183,14 +183,14 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
         <div className="space-y-4 font-sans text-xs sm:text-sm">
           {/* 인간의 질문 */}
           <div className="flex items-start gap-2.5 sm:gap-3">
-            <div className="w-11 h-9 rounded-none bg-zinc-800 text-[#ffc900] font-mono font-black text-[11px] flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+            <div className="w-11 h-9 rounded-none bg-zinc-800 text-[#ffc900] font-mono font-black text-[11px] flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
               {copy.humanBadge}
             </div>
             <div className="flex-1 space-y-1">
               <div className="text-[11px] font-mono font-bold text-zinc-600">
                 {copy.dialogDate} · {copy.humanSpeaker}
               </div>
-              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black text-black font-bold leading-relaxed shadow-[2px_2px_0_#000]">
+              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black text-black font-bold leading-relaxed shadow-[2px_2px_0_#d4d4d8]">
                 &ldquo;{copy.humanQuestionPre}<strong>{copy.humanQuestionBold}</strong>&rdquo;
               </div>
             </div>
@@ -198,24 +198,24 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
 
           {/* AI의 답변 */}
           <div className="flex items-start gap-2.5 sm:gap-3">
-            <div className="w-11 h-9 rounded-none bg-[#ff4d00] text-white font-mono font-black text-[11px] flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+            <div className="w-11 h-9 rounded-none bg-[#ff4d00] text-white font-mono font-black text-[11px] flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
               {copy.aiBadge}
             </div>
             <div className="flex-1 space-y-1">
               <div className="text-[11px] font-mono text-[#ff4d00] font-black">
                 {copy.aiSpeaker}
               </div>
-              <div className="p-4 bg-white border-2 border-black text-black space-y-3 font-mono leading-relaxed shadow-[4px_4px_0_#000]">
+              <div className="p-4 bg-white border-2 border-black text-black space-y-3 font-mono leading-relaxed shadow-[4px_4px_0_#d4d4d8]">
                 <div className="text-xs text-zinc-800 border-b-2 border-black pb-2.5 font-sans leading-relaxed">
                   &ldquo;{copy.aiIntro}&rdquo;
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 py-1">
-                  <div className="p-3 bg-[#ffc900] border-2 border-black shadow-[2px_2px_0_#000]">
+                  <div className="p-3 bg-[#ffc900] border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
                     <div className="text-[11px] text-zinc-800 font-bold">{copy.estYearLabel}:</div>
                     <div className="text-2xl font-black text-black mt-0.5">{copy.estYearValue}</div>
                   </div>
-                  <div className="p-3 bg-[#ff90e8] border-2 border-black shadow-[2px_2px_0_#000]">
+                  <div className="p-3 bg-[#ff90e8] border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
                     <div className="text-[11px] text-zinc-800 font-bold">{copy.estProbLabel}:</div>
                     <div className="text-2xl font-black text-black mt-0.5">{copy.estProbValue}</div>
                   </div>

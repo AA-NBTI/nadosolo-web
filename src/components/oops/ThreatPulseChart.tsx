@@ -203,6 +203,45 @@ const YEAR_DATA: Record<number, Record<RegionCode, RegionSnapshot>> = {
   },
 };
 
+function ThermometerGraphic({ temp }: { temp: number }) {
+  const clamped = Math.max(6, Math.min(100, temp));
+  const fillColor =
+    temp >= 80
+      ? '#dc2626'
+      : temp >= 60
+      ? '#ff4d00'
+      : temp >= 30
+      ? '#ffc900'
+      : '#3b82f6';
+
+  return (
+    <div className="flex flex-col items-center justify-between select-none shrink-0 w-12 sm:w-14 py-1" aria-hidden="true">
+      <span className="text-[9px] font-mono font-black text-zinc-500 leading-none mb-1">100°</span>
+      <div className="relative flex flex-col items-center">
+        <div className="w-5 h-24 sm:h-28 bg-white border-2 border-black rounded-t-full overflow-hidden relative flex items-end shadow-[2px_2px_0_#d4d4d8]">
+          <div className="absolute inset-x-0 top-1/4 border-t border-black/25 z-10 pointer-events-none" />
+          <div className="absolute inset-x-0 top-2/4 border-t border-black/25 z-10 pointer-events-none" />
+          <div className="absolute inset-x-0 top-3/4 border-t border-black/25 z-10 pointer-events-none" />
+          <div
+            className="w-full transition-all duration-700 ease-out"
+            style={{
+              height: `${clamped}%`,
+              backgroundColor: fillColor,
+            }}
+          />
+        </div>
+        <div
+          className="w-9 h-9 -mt-2 rounded-full border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center justify-center relative z-20 transition-colors duration-500"
+          style={{ backgroundColor: fillColor }}
+        >
+          <div className="w-2.5 h-2.5 rounded-full bg-white/50 -translate-x-1 -translate-y-1" />
+        </div>
+      </div>
+      <span className="text-[9px] font-mono font-black text-zinc-500 leading-none mt-1">0°</span>
+    </div>
+  );
+}
+
 export default function ThreatPulseChart({
   isEmbed = false,
   locale = 'ko',
@@ -231,7 +270,7 @@ export default function ThreatPulseChart({
   const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
 
   return (
-    <section className={`w-full bg-white border-4 border-black shadow-[8px_8px_0_#000] text-black font-mono ${isEmbed ? 'p-4' : 'p-4 sm:p-6'} space-y-5`}>
+    <section className={`w-full bg-white border-4 border-black shadow-[8px_8px_0_#d4d4d8] text-black font-mono ${isEmbed ? 'p-4' : 'p-4 sm:p-6'} space-y-5`}>
       {/* 1. 계측기 헤더 */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-black pb-3 bg-[#ffc900] -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 p-4">
         <div className="flex items-center gap-2">
@@ -252,7 +291,7 @@ export default function ThreatPulseChart({
                 onClick={() => setSelectedYear(y)}
                 className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer transition-all ${
                   active
-                    ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
+                    ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#d4d4d8]'
                     : 'bg-white text-black hover:bg-zinc-100'
                 }`}
               >
@@ -306,7 +345,7 @@ export default function ThreatPulseChart({
           const statusLabel = copy.statusLabels[statusKey];
 
           return (
-            <div key={code} className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-3.5">
+            <div key={code} className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#d4d4d8] space-y-3.5">
               {/* 카드 상단: 국가명 & 온도 */}
               <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
                 <div>
@@ -330,38 +369,45 @@ export default function ThreatPulseChart({
                 </div>
               </div>
 
-              {/* 게이지 */}
-              <div className="w-full h-3.5 bg-white border-2 border-black overflow-hidden relative">
-                <div
-                  className={`h-full transition-all duration-500 ease-out ${
-                    snap.temp >= 80 ? 'bg-[#ff4d00]' :
-                    snap.temp >= 60 ? 'bg-[#ffc900]' :
-                    snap.temp >= 30 ? 'bg-[#a3e635]' : 'bg-blue-400'
-                  }`}
-                  style={{ width: `${Math.min(100, snap.temp)}%` }}
-                />
-              </div>
+              {/* 본체: 좌측 상징물 온도계 + 우측 게이지 및 산출 근거 */}
+              <div className="flex items-center gap-4">
+                <ThermometerGraphic temp={snap.temp} />
 
-              {/* 산출 근거 지표 */}
-              <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-                <div className="p-2 bg-white border border-black">
-                  <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.delegation}</div>
-                  <div className="text-sm font-black text-black mt-0.5">{snap.delegationRate}%</div>
-                </div>
-                <div className="p-2 bg-white border border-black">
-                  <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.cases}</div>
-                  <div className="text-sm font-black text-[#ff4d00] mt-0.5">{snap.caseCount.toLocaleString()}{copy.unitCases}</div>
-                </div>
-                <div className="p-2 bg-white border border-black">
-                  <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.tipping}</div>
-                  <div className="text-sm font-black text-black mt-0.5">
-                    {snap.yearsToTipping.toFixed(1)}{copy.yearUnit} <span className="text-[10px] text-zinc-500">[{statusLabel}]</span>
+                <div className="flex-1 space-y-3 min-w-0">
+                  {/* 게이지 */}
+                  <div className="w-full h-3.5 bg-white border-2 border-black overflow-hidden relative">
+                    <div
+                      className={`h-full transition-all duration-500 ease-out ${
+                        snap.temp >= 80 ? 'bg-[#dc2626]' :
+                        snap.temp >= 60 ? 'bg-[#ff4d00]' :
+                        snap.temp >= 30 ? 'bg-[#ffc900]' : 'bg-blue-400'
+                      }`}
+                      style={{ width: `${Math.min(100, snap.temp)}%` }}
+                    />
                   </div>
-                </div>
-                <div className="p-2 bg-white border border-black">
-                  <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.domain}</div>
-                  <div className="text-xs font-bold text-black mt-0.5 truncate" title={snap.domain[locale] || snap.domain.en}>
-                    {snap.domain[locale] || snap.domain.en}
+
+                  {/* 산출 근거 지표 */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 bg-white border border-black">
+                      <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.delegation}</div>
+                      <div className="text-sm font-black text-black mt-0.5">{snap.delegationRate}%</div>
+                    </div>
+                    <div className="p-2 bg-white border border-black">
+                      <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.cases}</div>
+                      <div className="text-sm font-black text-[#ff4d00] mt-0.5">{snap.caseCount.toLocaleString()}{copy.unitCases}</div>
+                    </div>
+                    <div className="p-2 bg-white border border-black">
+                      <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.tipping}</div>
+                      <div className="text-sm font-black text-black mt-0.5">
+                        {snap.yearsToTipping.toFixed(1)}{copy.yearUnit} <span className="text-[10px] text-zinc-500">[{statusLabel}]</span>
+                      </div>
+                    </div>
+                    <div className="p-2 bg-white border border-black">
+                      <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.domain}</div>
+                      <div className="text-xs font-bold text-black mt-0.5 truncate" title={snap.domain[locale] || snap.domain.en}>
+                        {snap.domain[locale] || snap.domain.en}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

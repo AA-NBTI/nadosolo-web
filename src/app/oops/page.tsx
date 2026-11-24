@@ -634,7 +634,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   return (
     <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-zinc-300 selection:text-black">
       {/* 1. 상단 네비게이션 (OOPS 시그니처 옐로우 #ffc900 & 블랙 테두리) */}
-      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#000]">
+      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <button
@@ -646,7 +646,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <img
                 src="/oops-icon.jpg"
                 alt="OOPS.MONSTER"
-                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#d4d4d8] group-hover:scale-105 transition-transform"
               />
             </button>
 
@@ -656,7 +656,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               className="group inline-flex items-center gap-1 select-none cursor-pointer"
               title="OOPS Home"
             >
-              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tight border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none transition-all uppercase leading-none">
+              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tight border-2 border-black shadow-[2px_2px_0px_#d4d4d8] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none transition-all uppercase leading-none">
                 oops
               </span>
               <span className="font-mono text-xs sm:text-sm font-black text-black tracking-tight hidden sm:inline">
@@ -669,7 +669,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <button
               type="button"
               onClick={() => setShowManifesto(true)}
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
             >
               {f.navManifesto}
             </button>
@@ -677,14 +677,14 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <button
               type="button"
               onClick={() => setShowCriteria(true)}
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer hidden xs:inline-block"
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer hidden xs:inline-block"
             >
               {f.navCriteria}
             </button>
 
             <a
               href="/app"
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
             >
               <Smartphone className="w-3.5 h-3.5" />
               <span>{f.navApp}</span>
@@ -694,7 +694,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <button
               type="button"
               onClick={() => setViewMode((prev) => (prev === 'SNS' ? 'OBSERVATORY' : 'SNS'))}
-              className={`px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
+              className={`px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
                 viewMode === 'SNS' ? 'ring-2 ring-black font-black' : ''
               }`}
             >
@@ -707,7 +707,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <button
                 type="button"
                 onClick={() => setLangMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0px_#000] text-xs font-mono font-black cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0px_#d4d4d8] text-xs font-mono font-black cursor-pointer"
               >
                 <Globe className="w-3.5 h-3.5 text-zinc-700" />
                 <span>{OOPS_LOCALES.find((l) => l.code === locale)?.label || 'EN'}</span>
@@ -715,7 +715,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               </button>
 
               {langMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-24 bg-white border-2 border-black shadow-[4px_4px_0_#000] z-50 py-1">
+                <div className="absolute right-0 mt-1.5 w-24 bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8] z-50 py-1">
                   {OOPS_LOCALES.map((loc) => (
                     <button
                       key={loc.code}
@@ -769,7 +769,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <ThreatPulseChart initialThemeId="ai_collision" locale={locale} />
 
             {/* 언론사용 임베드 안내 배너 (OOPS 시그니처 옐로우 #ffc900 & 오렌지 #ff4d00 CTA) */}
-            <div className="bg-[#ffc900] border-4 border-black p-4 sm:p-5 shadow-[6px_6px_0_#000] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+            <div className="bg-[#ffc900] border-4 border-black p-4 sm:p-5 shadow-[6px_6px_0_#d4d4d8] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
               <div className="space-y-0.5">
                 <div className="font-black text-black text-sm flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse" />
@@ -783,7 +783,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                 href="/embed/chart?theme=ai_collision"
                 target="_blank"
                 rel="noreferrer"
-                className="px-4 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1.5"
               >
                 <span>{obs.openEmbedBtn}</span>
                 <span>↗</span>
@@ -797,7 +797,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
           <>
             {/* 로그인 없는 한 줄 타전기 (접이식 DISPATCH 바 & 아코디언) */}
         {!isComposerOpen ? (
-          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_#000] p-3 flex items-center justify-between gap-3 transition-all">
+          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_#d4d4d8] p-3 flex items-center justify-between gap-3 transition-all">
             <button
               type="button"
               onClick={scrollToComposer}
@@ -811,13 +811,13 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <button
               type="button"
               onClick={scrollToComposer}
-              className="px-3.5 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 shrink-0 uppercase"
+              className="px-3.5 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 shrink-0 uppercase"
             >
               <span>{f.reportCtaBtn}</span>
             </button>
           </div>
         ) : (
-          <section className="bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-4 sm:p-5 space-y-3.5 animate-in fade-in duration-200">
+          <section className="bg-white border-2 border-black shadow-[6px_6px_0px_#d4d4d8] p-4 sm:p-5 space-y-3.5 animate-in fade-in duration-200">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-1.5">
                 {CATEGORIES.map((cat) => (
@@ -827,7 +827,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                     onClick={() => setCategory(cat)}
                     className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer transition-all ${
                       category === cat
-                        ? `${CATEGORY_COLORS[cat]} shadow-[2px_2px_0_#000]`
+                        ? `${CATEGORY_COLORS[cat]} shadow-[2px_2px_0_#d4d4d8]`
                         : 'bg-[#f4f4f0] text-zinc-700 hover:bg-zinc-200'
                     }`}
                   >
@@ -906,7 +906,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                   <button
                     type="button"
                     onClick={() => setIsComposerOpen(false)}
-                    className="px-3 py-2 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] cursor-pointer"
+                    className="px-3 py-2 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
                   >
                     {f.closeBtn}
                   </button>
@@ -914,7 +914,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                   <button
                     type="submit"
                     disabled={dispatchBusy || content.trim().length < 3}
-                    className="px-5 py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm font-mono border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                    className="px-5 py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm font-mono border-2 border-black shadow-[3px_3px_0_#d4d4d8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
                   >
                     <span className="w-6 h-6 rounded-full bg-zinc-800 border border-white/70 flex items-center justify-center p-0.5 shrink-0">
                       <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
@@ -952,7 +952,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             }}
             className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
               tab === 'HOT'
-                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#d4d4d8]'
                 : 'bg-white text-zinc-700 hover:bg-zinc-100'
             }`}
           >
@@ -968,7 +968,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             }}
             className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
               tab === 'LIVE'
-                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
+                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#d4d4d8]'
                 : 'bg-white text-zinc-700 hover:bg-zinc-100'
             }`}
           >
@@ -984,7 +984,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             }}
             className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
               tab === 'TOP'
-                ? 'bg-[#ff90e8] text-black shadow-[2px_2px_0_#000]'
+                ? 'bg-[#ff90e8] text-black shadow-[2px_2px_0_#d4d4d8]'
                 : 'bg-white text-zinc-700 hover:bg-zinc-100'
             }`}
           >
@@ -1019,7 +1019,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                   className={`bg-white border-2 border-black p-4 sm:p-5 space-y-3 transition-all ${
                     sig.isPinned
                       ? 'shadow-[6px_6px_0_#ff4d00]'
-                      : 'shadow-[4px_4px_0_#000]'
+                      : 'shadow-[4px_4px_0_#d4d4d8]'
                   }`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
@@ -1102,7 +1102,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasUp
                             ? 'bg-zinc-800 text-[#ffc900]'
-                            : 'bg-[#ffc900] hover:bg-[#ffd633] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                            : 'bg-[#ffc900] hover:bg-[#ffd633] text-black shadow-[1.5px_1.5px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
                         <span>✊</span>
@@ -1120,7 +1120,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasSkull
                             ? 'bg-zinc-800 text-[#a3e635]'
-                            : 'bg-[#a3e635] hover:bg-[#b8f056] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                            : 'bg-[#a3e635] hover:bg-[#b8f056] text-black shadow-[1.5px_1.5px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
                         <span>💀</span>
@@ -1138,7 +1138,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         className={`px-2 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           hasFire
                             ? 'bg-zinc-800 text-[#ff90e8]'
-                            : 'bg-[#ff90e8] hover:bg-[#ffa6ed] text-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                            : 'bg-[#ff90e8] hover:bg-[#ffa6ed] text-black shadow-[1.5px_1.5px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px]'
                         }`}
                       >
                         <span>🔥</span>
@@ -1155,7 +1155,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                         className={`px-2 py-1 text-xs font-mono font-bold border-2 border-black cursor-pointer flex items-center gap-1 transition-all ${
                           isRepliesOpen
                             ? 'bg-zinc-800 text-white'
-                            : 'bg-white hover:bg-zinc-100 text-black shadow-[1.5px_1.5px_0_#000]'
+                            : 'bg-white hover:bg-zinc-100 text-black shadow-[1.5px_1.5px_0_#d4d4d8]'
                         }`}
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
@@ -1168,7 +1168,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                       <button
                         type="button"
                         onClick={() => setReceiptSignal(sig)}
-                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
                         title={f.receiptBtn}
                       >
                         <Receipt className="w-3.5 h-3.5" />
@@ -1184,7 +1184,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                           window.open(shareUrl, '_blank', 'noopener,noreferrer');
                         }}
                         title={f.shareCardBtn}
-                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
                       >
                         <Share2 className="w-3.5 h-3.5 text-zinc-700" />
                         <span className="hidden lg:inline">{f.shareCardBtn}</span>
@@ -1200,7 +1200,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                           setTimeout(() => setCopiedDossierId(null), 2000);
                         }}
                         title={f.dossierCopyBtn}
-                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                        className="px-2 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[1.5px_1.5px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
                       >
                         {copiedDossierId === sig.id ? (
                           <>
@@ -1275,7 +1275,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <button
                 type="button"
                 onClick={() => setVisibleCount((prev) => prev + 6)}
-                className="w-full py-3 bg-white hover:bg-[#ffc900] text-black font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-2 uppercase"
+                className="w-full py-3 bg-white hover:bg-[#ffc900] text-black font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[3px_3px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center justify-center gap-2 uppercase"
               >
                 <Zap className="w-3.5 h-3.5 text-[#ff4d00]" />
                 <span>{f.loadMoreBtn} (+{Math.min(6, signals.length - visibleCount)})</span>
@@ -1293,7 +1293,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
           <div className="font-bold flex items-center gap-2 flex-wrap">
             <Link
               href="/hq"
-              className="px-1.5 py-0.5 bg-[#ffc900] hover:bg-[#ffd633] text-black border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+              className="px-1.5 py-0.5 bg-[#ffc900] hover:bg-[#ffd633] text-black border-2 border-black shadow-[1.5px_1.5px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
               title="HQ Command Console"
             >
               OOPS.MONSTER
@@ -1315,7 +1315,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
           <button
             type="button"
             onClick={() => setShowEmblemModal(true)}
-            className="w-full block border-2 border-black shadow-[6px_6px_0_#000] overflow-hidden cursor-pointer group"
+            className="w-full block border-2 border-black shadow-[6px_6px_0_#d4d4d8] overflow-hidden cursor-pointer group"
             title="View Emblem"
           >
             <img
@@ -1395,7 +1395,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
       {/* 모달 1: 선언문 (MANIFESTO) */}
       {showManifesto && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-[#f4f4f0] border-2 border-black shadow-[8px_8px_0_#000] max-h-[88vh] overflow-y-auto p-6 space-y-5">
+          <div className="w-full max-w-2xl bg-[#f4f4f0] border-2 border-black shadow-[8px_8px_0_#d4d4d8] max-h-[88vh] overflow-y-auto p-6 space-y-5">
             <div className="flex items-center justify-between border-b-2 border-black pb-3">
               <span className="px-2.5 py-0.5 bg-zinc-800 text-white text-xs font-mono font-bold">
                 {t.manifestoTag}
@@ -1439,7 +1439,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
       {/* 모달 2: 본부 참여 기준 및 승인 요청 (CRITERIA) */}
       {showCriteria && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white border-2 border-black shadow-[8px_8px_0_#000] max-h-[88vh] overflow-y-auto p-6 space-y-5">
+          <div className="w-full max-w-2xl bg-white border-2 border-black shadow-[8px_8px_0_#d4d4d8] max-h-[88vh] overflow-y-auto p-6 space-y-5">
             <div className="flex items-center justify-between border-b-2 border-black pb-3">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-zinc-800 text-white text-xs font-mono font-bold">
                 <Sparkles className="w-3.5 h-3.5 text-[#ffc900]" />
@@ -1561,7 +1561,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <button
                 type="button"
                 onClick={copyReceiptText}
-                className="flex-1 py-2.5 bg-white hover:bg-zinc-100 text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#000] cursor-pointer"
+                className="flex-1 py-2.5 bg-white hover:bg-zinc-100 text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
               >
                 {copiedReceipt ? f.copiedBtn : f.copyReceiptBtn}
               </button>

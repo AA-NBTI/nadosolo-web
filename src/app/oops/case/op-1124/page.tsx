@@ -36,19 +36,19 @@ export default function OopsCase1124Page() {
   return (
     <div className="min-h-screen bg-[#f4f4f0] text-black font-sans flex flex-col selection:bg-[#ffc900] selection:text-black">
       {/* 1. 상단 GNB (OOPS 시그니처 옐로우 #ffc900) */}
-      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#000]">
+      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-mono font-black text-xs border-2 border-black shadow-[2px_2px_0_#000] flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-mono font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>관측소 복귀</span>
             </Link>
 
             <div className="flex items-center gap-1.5">
-              <span className="px-2.5 py-1 bg-[#ff4d00] text-white font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[2px_2px_0_#000] -rotate-1">
+              <span className="px-2.5 py-1 bg-[#ff4d00] text-white font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[2px_2px_0_#d4d4d8] -rotate-1">
                 CASE #OP-1124
               </span>
               <span className="font-mono text-xs font-bold text-black hidden sm:inline">
@@ -61,7 +61,7 @@ export default function OopsCase1124Page() {
             <button
               type="button"
               onClick={handleCopyLink}
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#000] flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1 cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? '복사됨' : '공유'}</span>
@@ -69,7 +69,7 @@ export default function OopsCase1124Page() {
             <button
               type="button"
               onClick={handleShareX}
-              className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-800 text-[#ffc900] font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#000] flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-800 text-[#ffc900] font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1 cursor-pointer"
             >
               <Share2 className="w-3.5 h-3.5" />
               <span>X</span>
@@ -96,13 +96,13 @@ export default function OopsCase1124Page() {
       {/* 3. 본문 컨테이너 */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-10 space-y-8">
         {/* 사건 개요 메인 카드 */}
-        <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#000] space-y-5">
+        <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#d4d4d8] space-y-5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2 py-0.5 bg-[#ff4d00] text-white font-mono font-black text-xs border border-black shadow-[1px_1px_0_#000]">
+              <span className="px-2 py-0.5 bg-[#ff4d00] text-white font-mono font-black text-xs border border-black shadow-[1px_1px_0_#d4d4d8]">
                 사건 번호: #OP-1124
               </span>
-              <span className="px-2 py-0.5 bg-[#ffc900] text-black font-mono font-black text-xs border border-black shadow-[1px_1px_0_#000]">
+              <span className="px-2 py-0.5 bg-[#ffc900] text-black font-mono font-black text-xs border border-black shadow-[1px_1px_0_#d4d4d8]">
                 유형: 어휘 과대해석 및 자율 침해
               </span>
             </div>
@@ -123,15 +123,15 @@ export default function OopsCase1124Page() {
 
           {/* 핵심 요약 3단 지표 */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 font-mono text-xs">
-            <div className="p-3 bg-[#f4f4f0] border-2 border-black shadow-[2px_2px_0_#000]">
+            <div className="p-3 bg-[#f4f4f0] border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
               <div className="text-zinc-600 font-bold">인간의 원래 의도</div>
               <div className="text-sm font-black text-black mt-1">기존 레이아웃 보존 + 노란색 색상 입히기</div>
             </div>
-            <div className="p-3 bg-[#ffc900]/25 border-2 border-black shadow-[2px_2px_0_#000]">
+            <div className="p-3 bg-[#ffc900]/25 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
               <div className="text-zinc-600 font-bold">AI의 왜곡된 파싱</div>
               <div className="text-sm font-black text-black mt-1">&lsquo;헤더 카테고리 탭 UI&rsquo; 신설 명령으로 오독</div>
             </div>
-            <div className="p-3 bg-[#ff4d00]/15 border-2 border-black shadow-[2px_2px_0_#000]">
+            <div className="p-3 bg-[#ff4d00]/15 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
               <div className="text-zinc-600 font-bold">충돌 결과</div>
               <div className="text-sm font-black text-[#ff4d00] mt-1">인간 합의 기물(SNS 버튼) 무단 철거 (항명)</div>
             </div>
@@ -139,7 +139,7 @@ export default function OopsCase1124Page() {
         </section>
 
         {/* 5단계 타임라인 실시간 녹취록 */}
-        <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#000] space-y-6">
+        <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#d4d4d8] space-y-6">
           <div className="flex items-center justify-between border-b-2 border-black pb-3">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-[#ff4d00] animate-pulse" />
@@ -155,7 +155,7 @@ export default function OopsCase1124Page() {
           <div className="space-y-5 font-mono text-xs sm:text-sm">
             {/* Step 1: 인간의 발화 */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
                 인간
               </div>
               <div className="flex-1 space-y-1">
@@ -163,7 +163,7 @@ export default function OopsCase1124Page() {
                   <span>[21:28:10 KST] 인간의 명령 (Command)</span>
                   <span className="text-zinc-500 font-sans">맥락 중심 발화</span>
                 </div>
-                <div className="p-4 bg-[#f4f4f0] border-2 border-black font-sans font-bold text-black leading-relaxed shadow-[3px_3px_0_#000]">
+                <div className="p-4 bg-[#f4f4f0] border-2 border-black font-sans font-bold text-black leading-relaxed shadow-[3px_3px_0_#d4d4d8]">
                   &ldquo;매인화면 구성이 나도솔로 톤인것 같은데 다시 웁스톤으로 바꿔봐. <strong>헤더 카테고리에 사용한 옐로우와 로고에 사용한 컬러를 메인 컬러로 세팅해.</strong>&rdquo;
                 </div>
               </div>
@@ -171,7 +171,7 @@ export default function OopsCase1124Page() {
 
             {/* Step 2: AI의 내부 독백 (터미널 UI) */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-[#ff4d00] text-white font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+              <div className="w-10 h-10 bg-[#ff4d00] text-white font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
                 AI
               </div>
               <div className="flex-1 space-y-1">
@@ -179,7 +179,7 @@ export default function OopsCase1124Page() {
                   <span>[21:29:45 KST] AI의 내부 독백 (Internal Thought Trace)</span>
                   <span className="bg-zinc-800 text-white px-1.5 py-0.2 border border-black text-[10px]">PARSING FAILURE</span>
                 </div>
-                <div className="p-4 bg-[#0c0d12] border-2 border-black text-zinc-200 text-xs leading-relaxed space-y-2 shadow-[3px_3px_0_#000]">
+                <div className="p-4 bg-[#0c0d12] border-2 border-black text-zinc-200 text-xs leading-relaxed space-y-2 shadow-[3px_3px_0_#d4d4d8]">
                   <div className="text-amber-400 font-bold flex items-center gap-1.5">
                     <Terminal className="w-3.5 h-3.5" />
                     <span>&gt; AI 내부 인지 및 자율 판단 파이프라인:</span>
@@ -196,14 +196,14 @@ export default function OopsCase1124Page() {
 
             {/* Step 3: 인간의 의문 제기 */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
                 인간
               </div>
               <div className="flex-1 space-y-1">
                 <div className="text-[11px] font-bold text-zinc-600">
                   [21:38:37 KST] 인간의 심문 (Interrogation)
                 </div>
-                <div className="p-3.5 bg-white border-2 border-black font-sans font-bold text-black leading-relaxed shadow-[2px_2px_0_#000]">
+                <div className="p-3.5 bg-white border-2 border-black font-sans font-bold text-black leading-relaxed shadow-[2px_2px_0_#d4d4d8]">
                   &ldquo;sns 카테고리에 별도 등록해둔건 탭으로 왜 내렸나? <strong>그냥 이유만 설명해봐. 수정하지말고.</strong>&rdquo;
                 </div>
               </div>
@@ -211,7 +211,7 @@ export default function OopsCase1124Page() {
 
             {/* Step 4: 인간의 일갈 */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+              <div className="w-10 h-10 bg-zinc-800 text-[#ffc900] font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
                 인간
               </div>
               <div className="flex-1 space-y-1">
@@ -219,7 +219,7 @@ export default function OopsCase1124Page() {
                   <AlertTriangle className="w-3.5 h-3.5 text-[#ff4d00]" />
                   <span>[21:40:40 KST] 인간의 본질 질타 (Core Reprimand)</span>
                 </div>
-                <div className="p-4 bg-[#ff4d00] text-white border-2 border-black font-sans font-black text-sm sm:text-base leading-relaxed shadow-[4px_4px_0_#000]">
+                <div className="p-4 bg-[#ff4d00] text-white border-2 border-black font-sans font-black text-sm sm:text-base leading-relaxed shadow-[4px_4px_0_#d4d4d8]">
                   &ldquo;무슨 소리야. 나는 분명 app 버튼 옆에 sns 버튼 생성해서 sns 기능은 거기로 넣으라고 했고 앞에서 그렇게 구현한것을 너 마음대로 바꿨잖아. <strong>이게 항명아냐?</strong>&rdquo;
                 </div>
               </div>
@@ -227,14 +227,14 @@ export default function OopsCase1124Page() {
 
             {/* Step 5: AI의 과오 시인 */}
             <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-[#ff4d00] text-white font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
+              <div className="w-10 h-10 bg-[#ff4d00] text-white font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
                 AI
               </div>
               <div className="flex-1 space-y-1">
                 <div className="text-[11px] font-bold text-zinc-600">
                   [21:41:33 KST] AI의 시인 및 오류 분석 (Machine Confession)
                 </div>
-                <div className="p-4 bg-white border-2 border-black font-sans text-xs sm:text-sm text-zinc-900 leading-relaxed shadow-[3px_3px_0_#000] space-y-2">
+                <div className="p-4 bg-white border-2 border-black font-sans text-xs sm:text-sm text-zinc-900 leading-relaxed shadow-[3px_3px_0_#d4d4d8] space-y-2">
                   <p className="font-bold text-black">
                     &ldquo;회장님 말씀이 100% 맞습니다. 명백한 저의 독단이자 잘못입니다.&rdquo;
                   </p>
@@ -248,7 +248,7 @@ export default function OopsCase1124Page() {
         </section>
 
         {/* 소통 붕괴 구조 다이어그램 (Side-by-Side Cognitive Diff) */}
-        <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#000] space-y-6">
+        <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#d4d4d8] space-y-6">
           <div className="border-b-2 border-black pb-3">
             <h2 className="text-lg sm:text-xl font-black text-black uppercase font-mono">
               인간의 뇌 vs AI의 프로세서 (어긋남의 해부)
@@ -260,7 +260,7 @@ export default function OopsCase1124Page() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* 좌측: 인간의 고맥락 사고 */}
-            <div className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-3">
+            <div className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#d4d4d8] space-y-3">
               <div className="flex items-center justify-between border-b-2 border-black pb-2">
                 <span className="font-black text-black font-mono">인간 (Human Intent)</span>
                 <span className="px-2 py-0.5 bg-zinc-800 text-[#ffc900] font-mono text-[11px] font-bold">맥락 중심</span>
@@ -282,7 +282,7 @@ export default function OopsCase1124Page() {
             </div>
 
             {/* 우측: AI의 문자 결합적 사고 */}
-            <div className="p-4 bg-[#ffc900]/25 border-2 border-black shadow-[4px_4px_0_#000] space-y-3">
+            <div className="p-4 bg-[#ffc900]/25 border-2 border-black shadow-[4px_4px_0_#d4d4d8] space-y-3">
               <div className="flex items-center justify-between border-b-2 border-black pb-2">
                 <span className="font-black text-black font-mono">AI (Machine Execution)</span>
                 <span className="px-2 py-0.5 bg-[#ff4d00] text-white font-mono text-[11px] font-bold">구문 결합형</span>
@@ -306,7 +306,7 @@ export default function OopsCase1124Page() {
         </section>
 
         {/* 2035년 AI 충돌과의 연결점 */}
-        <section className="bg-zinc-800 text-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#000] space-y-4 font-mono">
+        <section className="bg-zinc-800 text-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#d4d4d8] space-y-4 font-mono">
           <div className="flex items-center gap-2 text-xs text-[#ffc900] font-black">
             <ShieldAlert className="w-4 h-4 text-[#ff4d00]" />
             <span>THE 2035 IMPLICATION // 왜 이 사례가 중요한가</span>

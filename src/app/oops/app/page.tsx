@@ -248,7 +248,7 @@ function OopsAppContent() {
               <img
                 src="/oops-icon.jpg"
                 alt="OOPS.MONSTER"
-                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#d4d4d8] group-hover:scale-105 transition-transform"
               />
             </button>
             <span className="px-2 py-0.5 bg-[#ffc900] border-2 border-black text-xs font-mono font-bold">
@@ -262,7 +262,7 @@ function OopsAppContent() {
               className="group inline-flex items-center gap-1 select-none cursor-pointer"
               title="OOPS Home"
             >
-              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tight border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 transition-all uppercase leading-none">
+              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tight border-2 border-black shadow-[2px_2px_0px_#d4d4d8] -rotate-2 group-hover:rotate-0 group-hover:scale-105 transition-all uppercase leading-none">
                 oops
               </span>
               <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden sm:inline">
@@ -270,7 +270,7 @@ function OopsAppContent() {
               </span>
             </Link>
 
-            <div className="flex items-center gap-2 text-xs font-mono font-bold bg-white border-2 border-black shadow-[2px_2px_0_#000] px-2.5 py-1">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold bg-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] px-2.5 py-1">
               <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
               <span>{t.activeNodes} {agentsCount}</span>
             </div>
@@ -280,7 +280,7 @@ function OopsAppContent() {
               <button
                 type="button"
                 onClick={() => setLangMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0px_#000] text-xs font-mono font-black cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0px_#d4d4d8] text-xs font-mono font-black cursor-pointer"
               >
                 <Globe className="w-3.5 h-3.5 text-zinc-700" />
                 <span>{OOPS_LOCALES.find((l) => l.code === locale)?.label || 'EN'}</span>
@@ -288,7 +288,7 @@ function OopsAppContent() {
               </button>
 
               {langMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-24 bg-white border-2 border-black shadow-[4px_4px_0_#000] z-50 py-1">
+                <div className="absolute right-0 mt-1.5 w-24 bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8] z-50 py-1">
                   {OOPS_LOCALES.map((loc) => (
                     <button
                       key={loc.code}
@@ -314,7 +314,7 @@ function OopsAppContent() {
       </header>
 
       {showInstallBanner && (
-        <div className="bg-[#ffc900] border-b-2 border-black px-4 py-2.5 sticky top-16 z-30 shadow-[0_3px_0_#000]">
+        <div className="bg-[#ffc900] border-b-2 border-black px-4 py-2.5 sticky top-16 z-30 shadow-[0_3px_0_#d4d4d8]">
           <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 text-xs font-mono font-bold">
             <span className="truncate">
               {locale === 'ko'
@@ -353,7 +353,7 @@ function OopsAppContent() {
 
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-10 space-y-8">
         {/* Poolsuite 레트로 터미널 창 */}
-        <section className="bg-[#d6d3c9] border-2 border-black shadow-[8px_8px_0_#000]">
+        <section className="bg-[#d6d3c9] border-2 border-black shadow-[8px_8px_0_#d4d4d8]">
           <div className="bg-[#000080] text-white px-3 py-2 border-b-2 border-black flex items-center justify-between select-none">
             <div className="flex items-center gap-2 font-mono text-xs sm:text-sm font-bold tracking-wide">
               <span className="inline-block w-3 h-3 bg-[#ffc900] border border-white" />
@@ -379,7 +379,7 @@ function OopsAppContent() {
 
           <div className="p-5 sm:p-7 grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* 좌: 내 기기 연결 */}
-            <div className="bg-[#f4f4f0] border-2 border-black p-5 shadow-[4px_4px_0_#000] space-y-4">
+            <div className="bg-[#f4f4f0] border-2 border-black p-5 shadow-[4px_4px_0_#d4d4d8] space-y-4">
               <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
                 <span className="font-mono text-sm font-black flex items-center gap-2">
                   <Smartphone className="w-4 h-4 text-[#ff4d00]" />
@@ -408,7 +408,7 @@ function OopsAppContent() {
                   type="button"
                   disabled={pushBusy}
                   onClick={connectIndependentPush}
-                  className="w-full py-3 px-4 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-sm border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-sm border-2 border-black shadow-[3px_3px_0_#d4d4d8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <Bell className="w-4 h-4" />
                   <span>{pushBusy ? t.connectingBtn : myAgentId ? t.reconnectBtn : t.connectBtn}</span>
@@ -449,7 +449,7 @@ function OopsAppContent() {
             </div>
 
             {/* 우: 몬스터 호출 발사 */}
-            <div className="bg-[#f4f4f0] border-2 border-black p-5 shadow-[4px_4px_0_#000] space-y-4">
+            <div className="bg-[#f4f4f0] border-2 border-black p-5 shadow-[4px_4px_0_#d4d4d8] space-y-4">
               <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
                 <span className="font-mono text-sm font-black flex items-center gap-2">
                   <Zap className="w-4 h-4 text-[#ff4d00]" />
@@ -489,7 +489,7 @@ function OopsAppContent() {
                     type="button"
                     disabled={pingBusy}
                     onClick={() => sendMonsterPing()}
-                    className="flex-1 py-3 px-4 bg-[#ff90e8] hover:bg-[#ffa6ed] text-black font-black text-sm border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 py-3 px-4 bg-[#ff90e8] hover:bg-[#ffa6ed] text-black font-black text-sm border-2 border-black shadow-[3px_3px_0_#d4d4d8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Send className="w-4 h-4" />
                     <span>{pingBusy ? t.firingBtn : t.fireBtn}</span>
@@ -499,7 +499,7 @@ function OopsAppContent() {
                       type="button"
                       disabled={pingBusy}
                       onClick={() => sendMonsterPing(myAgentId)}
-                      className="px-4 py-3 bg-white hover:bg-zinc-100 border-2 border-black shadow-[3px_3px_0_#000] text-xs font-mono font-black cursor-pointer"
+                      className="px-4 py-3 bg-white hover:bg-zinc-100 border-2 border-black shadow-[3px_3px_0_#d4d4d8] text-xs font-mono font-black cursor-pointer"
                     >
                       {t.selfTestBtn}
                     </button>
@@ -522,7 +522,7 @@ function OopsAppContent() {
           <div className="font-bold flex items-center gap-1.5">
             <Link
               href="/hq"
-              className="px-1.5 py-0.5 bg-[#ffc900] hover:bg-[#ffd633] text-black border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
+              className="px-1.5 py-0.5 bg-[#ffc900] hover:bg-[#ffd633] text-black border-2 border-black shadow-[1.5px_1.5px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
               title="HQ Command Console"
             >
               OOPS.MONSTER
@@ -536,7 +536,7 @@ function OopsAppContent() {
           <button
             type="button"
             onClick={() => setShowEmblemModal(true)}
-            className="w-full block border-2 border-black shadow-[6px_6px_0_#000] overflow-hidden cursor-pointer group"
+            className="w-full block border-2 border-black shadow-[6px_6px_0_#d4d4d8] overflow-hidden cursor-pointer group"
             title="View Emblem"
           >
             <img

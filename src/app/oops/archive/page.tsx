@@ -158,19 +158,19 @@ export default function OopsArchivePage() {
   return (
     <div className="min-h-screen bg-[#f4f4f0] text-black font-sans flex flex-col selection:bg-[#ffc900] selection:text-black">
       {/* 1. 상단 GNB (OOPS 시그니처 옐로우) */}
-      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#000]">
+      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#000] flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>관측소 복귀</span>
             </Link>
 
             <div className="flex items-center gap-1.5">
-              <span className="px-2.5 py-1 bg-[#ff4d00] text-white font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[2px_2px_0_#000] -rotate-1">
+              <span className="px-2.5 py-1 bg-[#ff4d00] text-white font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[2px_2px_0_#d4d4d8] -rotate-1">
                 EMPIRICAL ARCHIVE
               </span>
               <span className="font-mono text-xs font-bold text-black hidden sm:inline">
@@ -183,7 +183,7 @@ export default function OopsArchivePage() {
             <button
               type="button"
               onClick={() => setActiveTab('SUBMIT')}
-              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-800 text-[#ffc900] font-mono font-black text-xs border-2 border-black shadow-[2px_2px_0_#000] flex items-center gap-1 cursor-pointer active:translate-x-[1px] active:translate-y-[1px]"
+              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-800 text-[#ffc900] font-mono font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1 cursor-pointer active:translate-x-[1px] active:translate-y-[1px]"
             >
               <PlusCircle className="w-3.5 h-3.5 text-[#ff4d00]" />
               <span>사례 제보/등록</span>
@@ -210,7 +210,7 @@ export default function OopsArchivePage() {
       {/* 3. 본문 컨테이너 */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 space-y-6">
         {/* 개요 설명 배너 */}
-        <section className="bg-white border-4 border-black p-5 sm:p-6 shadow-[6px_6px_0_#000] space-y-3">
+        <section className="bg-white border-4 border-black p-5 sm:p-6 shadow-[6px_6px_0_#d4d4d8] space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-3">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse" />
@@ -218,7 +218,7 @@ export default function OopsArchivePage() {
                 왜 사례 아카이브인가? (THE EMPIRICAL GROUNDING)
               </h1>
             </div>
-            <span className="px-2 py-0.5 bg-[#ffc900] border border-black text-xs font-mono font-black shadow-[1px_1px_0_#000]">
+            <span className="px-2 py-0.5 bg-[#ffc900] border border-black text-xs font-mono font-black shadow-[1px_1px_0_#d4d4d8]">
               신뢰성 검증 원칙
             </span>
           </div>
@@ -255,7 +255,7 @@ export default function OopsArchivePage() {
             onClick={() => setActiveTab('DIRECTORY')}
             className={`px-4 py-2 font-mono font-black text-xs sm:text-sm border-2 border-black cursor-pointer transition-all ${
               activeTab === 'DIRECTORY'
-                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#d4d4d8]'
                 : 'bg-white text-zinc-700 hover:bg-zinc-100'
             }`}
           >
@@ -267,7 +267,7 @@ export default function OopsArchivePage() {
             onClick={() => setActiveTab('SUBMIT')}
             className={`px-4 py-2 font-mono font-black text-xs sm:text-sm border-2 border-black cursor-pointer transition-all flex items-center gap-1.5 ${
               activeTab === 'SUBMIT'
-                ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
+                ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#d4d4d8]'
                 : 'bg-white text-zinc-700 hover:bg-zinc-100'
             }`}
           >
@@ -285,7 +285,7 @@ export default function OopsArchivePage() {
                 className={`bg-white border-4 border-black p-4 sm:p-6 space-y-3.5 transition-all ${
                   c.isFlagship
                     ? 'shadow-[8px_8px_0_#ff4d00] border-[#ff4d00]'
-                    : 'shadow-[6px_6px_0_#000]'
+                    : 'shadow-[6px_6px_0_#d4d4d8]'
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2.5">
@@ -342,7 +342,7 @@ export default function OopsArchivePage() {
                   {c.link && (
                     <Link
                       href={c.link}
-                      className="px-3 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1"
+                      className="px-3 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1"
                     >
                       <span>사례 심층 분석 리포트 읽기</span>
                       <span>➔</span>
@@ -356,7 +356,7 @@ export default function OopsArchivePage() {
 
         {/* [모드 2] 새 사례 제보 및 위험도 점수화 신청 폼 */}
         {activeTab === 'SUBMIT' && (
-          <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#000] space-y-6">
+          <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#d4d4d8] space-y-6">
             <div className="border-b-2 border-black pb-3">
               <h2 className="text-lg sm:text-xl font-black text-black font-mono uppercase">
                 새로운 AI 소통 단절 / 오작동 사례 등록 및 점수화 신청
@@ -402,7 +402,7 @@ export default function OopsArchivePage() {
                         onClick={() => setCategory(cat)}
                         className={`p-2 border-2 border-black font-black text-xs transition-all cursor-pointer ${
                           category === cat
-                            ? `${CATEGORY_COLORS[cat]} shadow-[2px_2px_0_#000]`
+                            ? `${CATEGORY_COLORS[cat]} shadow-[2px_2px_0_#d4d4d8]`
                             : 'bg-white text-zinc-600 hover:bg-zinc-100'
                         }`}
                       >
@@ -456,7 +456,7 @@ export default function OopsArchivePage() {
                 </div>
 
                 {/* 실시간 위험 점수화 시뮬레이션 미리보기 */}
-                <div className="p-4 bg-[#ffc900]/25 border-2 border-black shadow-[3px_3px_0_#000] space-y-1.5">
+                <div className="p-4 bg-[#ffc900]/25 border-2 border-black shadow-[3px_3px_0_#d4d4d8] space-y-1.5">
                   <div className="text-xs font-black text-black flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-[#ff4d00]" />
                     <span>엔진 실시간 예상 점수화 (Threat Engine Score Preview)</span>
@@ -473,7 +473,7 @@ export default function OopsArchivePage() {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-mono font-black text-sm border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-mono font-black text-sm border-2 border-black shadow-[3px_3px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer disabled:opacity-50"
                 >
                   {submitting ? '엔진 점수화 및 등록 중...' : '사례 등록 및 글로벌 위험 지수 반영 신청'}
                 </button>
