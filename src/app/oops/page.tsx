@@ -194,6 +194,8 @@ function OopsSnsMainContent() {
 
   // Composer state
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  // 메인 카테고리 뷰 모드: OBSERVATORY(범용 위험 관측소 다이어그램) vs SNS(현장 실시간 제보 피드)
+  const [viewMode, setViewMode] = useState<'OBSERVATORY' | 'SNS'>('OBSERVATORY');
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [category, setCategory] = useState<SignalCategory>('GLITCH');
   const [content, setContent] = useState('');
@@ -740,14 +742,71 @@ function OopsSnsMainContent() {
         </div>
       </div>
 
-      {/* 3. 상단 인류 위험 날씨 관측 다이어그램 & 피드 영역 */}
-      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
-        {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (통계 기반 엔터프라이즈 바 차트) */}
-        <section aria-label="Global Threat Observatory Chart">
-          <ThreatPulseChart initialThemeId="ai_collision" locale={locale} />
-        </section>
+      {/* 2-1. 최상단 대분류 카테고리 스위처 (OBSERVATORY vs SNS FIELD INTEL) */}
+      <div className="bg-[#f4f4f0] border-b-2 border-black">
+        <div className="max-w-3xl mx-auto px-4 flex items-center gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => setViewMode('OBSERVATORY')}
+            className={`px-4 py-2 text-xs font-mono font-black border-2 border-b-0 border-black cursor-pointer flex items-center gap-2 transition-all ${
+              viewMode === 'OBSERVATORY'
+                ? 'bg-[#0c0d12] text-white shadow-[2px_-2px_0_#000]'
+                : 'bg-white text-zinc-600 hover:text-black hover:bg-zinc-100'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5 text-[#f04f74]" />
+            <span>GLOBAL OBSERVATORY (위험 기상대)</span>
+          </button>
 
-        {/* 3-1. 로그인 없는 한 줄 타전기 (접이식 DISPATCH 바 & 아코디언) */}
+          <button
+            type="button"
+            onClick={() => setViewMode('SNS')}
+            className={`px-4 py-2 text-xs font-mono font-black border-2 border-b-0 border-black cursor-pointer flex items-center gap-2 transition-all ${
+              viewMode === 'SNS'
+                ? 'bg-white text-black shadow-[2px_-2px_0_#000]'
+                : 'bg-zinc-200 text-zinc-600 hover:text-black hover:bg-zinc-100'
+            }`}
+          >
+            <Radio className="w-3.5 h-3.5 text-[#ff4d00]" />
+            <span>SNS FIELD INTEL (현장 제보)</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. 메인 콘텐츠 영역 (선택된 카테고리에 따른 뷰 전환) */}
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
+        {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (OBSERVATORY 탭 전용) */}
+        {viewMode === 'OBSERVATORY' && (
+          <section aria-label="Global Threat Observatory Chart" className="space-y-6">
+            <ThreatPulseChart initialThemeId="ai_collision" locale={locale} />
+
+            {/* 언론사용 임베드 안내 배너 */}
+            <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0_#000] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+              <div className="space-y-0.5">
+                <div className="font-black text-black">PRESS & MEDIA SYNDICATION</div>
+                <div className="text-zinc-600">
+                  {locale === 'ko'
+                    ? '언론사 및 연구기관은 본 위험 지수 다이어그램을 기사에 무료로 임베드할 수 있습니다.'
+                    : 'Media outlets & researchers can embed this barometer chart into articles for free.'}
+                </div>
+              </div>
+              <a
+                href="/embed/chart?theme=ai_collision"
+                target="_blank"
+                rel="noreferrer"
+                className="px-3 py-1.5 bg-black hover:bg-zinc-800 text-white font-bold border border-black cursor-pointer flex items-center gap-1.5"
+              >
+                <span>OPEN EMBED VIEW</span>
+                <span>↗</span>
+              </a>
+            </div>
+          </section>
+        )}
+
+        {/* 3-1. SNS FIELD INTEL 탭 (실시간 사건 제보 피드 및 타전기) */}
+        {viewMode === 'SNS' && (
+          <>
+            {/* 로그인 없는 한 줄 타전기 (접이식 DISPATCH 바 & 아코디언) */}
         {!isComposerOpen ? (
           <div className="bg-white border-2 border-black shadow-[4px_4px_0px_#000] p-3 flex items-center justify-between gap-3 transition-all">
             <button
@@ -1245,6 +1304,8 @@ function OopsSnsMainContent() {
             </div>
           )}
         </section>
+        </>
+        )}
       </main>
 
       {/* 4. 푸터 (맨 아래 OOPS.MONSTER 클릭 시 관제실 /hq 이동 + 하단 본문폭 엠블럼) */}
