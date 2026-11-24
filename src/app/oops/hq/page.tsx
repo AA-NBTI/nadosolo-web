@@ -416,8 +416,8 @@ export default function OopsHqAdminPage() {
                 <div className="pt-2 space-y-1.5">
                   <div className="text-xs font-mono font-bold text-zinc-600">채널별 유입 및 타전 전환율</div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {trackingSummary.bySource.map((row) => (
-                      <div key={row.source} className="p-2.5 bg-[#f4f4f0] border border-black text-xs font-mono">
+                    {trackingSummary.bySource.map((row, idx) => (
+                      <div key={`${row.source || 'direct'}-${idx}`} className="p-2.5 bg-[#f4f4f0] border border-black text-xs font-mono">
                         <div className="font-black text-black uppercase">{row.source}</div>
                         <div className="text-zinc-700 mt-0.5">
                           방문 {row.visits} / 타전 {row.conversions}
