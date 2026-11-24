@@ -31,6 +31,10 @@ const PRESET_PATHS: Record<TrackingService, Array<{ label: string; path: string 
     { label: '입점신청', path: '/biz' },
     { label: '어필리에이트', path: '/reserve/affiliate' },
   ],
+  OOPS: [
+    { label: '피드', path: '/oops' },
+    { label: '단말앱', path: '/oops/app' },
+  ],
 };
 
 const PRESET_CHANNELS = [

@@ -8,8 +8,12 @@ import {
 
 export const dynamic = 'force-dynamic';
 
-const parseService = (raw: string | null | undefined): TrackingService =>
-  String(raw || '').toUpperCase() === 'TABLEBARO' ? 'TABLEBARO' : 'NADOSOLO';
+const parseService = (raw: string | null | undefined): TrackingService => {
+  const s = String(raw || '').toUpperCase();
+  if (s === 'TABLEBARO') return 'TABLEBARO';
+  if (s === 'OOPS') return 'OOPS';
+  return 'NADOSOLO';
+};
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

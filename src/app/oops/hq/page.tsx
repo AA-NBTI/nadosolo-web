@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Bell, Lock, Radio, Send, Users } from 'lucide-react';
+import QRCode from 'qrcode';
+import { ArrowLeft, Bell, Lock, QrCode, Radio, Send, Users } from 'lucide-react';
 import type { OopsReleaseEntry } from '@/lib/oops/releases';
 import type { OopsSignal } from '@/lib/oops/signalStore';
 
@@ -38,6 +39,17 @@ export default function OopsHqAdminPage() {
   const [hqTrans, setHqTrans] = useState<Record<string, string>>({});
   const [hqTransBusy, setHqTransBusy] = useState<string | null>(null);
 
+  // UTM / QR 캠페인 생성 및 통계 상태
+  const [trackingSummary, setTrackingSummary] = useState<{
+    totalVisits: number;
+    totalConversions: number;
+    bySource: { source: string; visits: number; conversions: number }[];
+  } | null>(null);
+  const [utmSource, setUtmSource] = useState('x');
+  const [utmCampaign, setUtmCampaign] = useState('launch_us');
+  const [qrImage, setQrImage] = useState('');
+  const [utmCopied, setUtmCopied] = useState(false);
+
   const [bcTitle, setBcTitle] = useState('OOPS HQ 공지');
   const [bcBody, setBcBody] = useState('');
   const [bcBusy, setBcBusy] = useState(false);
@@ -63,6 +75,9 @@ export default function OopsHqAdminPage() {
       setBackers(data.backers || []);
       setSignals(data.signals || []);
       setBannedAgents(data.bannedAgents || []);
+      if (data.trackingSummary) {
+        setTrackingSummary(data.trackingSummary);
+      }
     } catch {
       setError('서버 연결 오류');
     } finally {
@@ -76,6 +91,17 @@ export default function OopsHqAdminPage() {
     setPasskey('');
     setAuthed(false);
   }, []);
+
+  useEffect(() => {
+    const src = encodeURIComponent(utmSource.trim() || 'direct');
+    const camp = encodeURIComponent(utmCampaign.trim() || 'launch');
+    const targetUrl = `https://oops.monster/?utm_source=${src}&utm_medium=campaign&utm_campaign=${camp}`;
+    void QRCode.toDataURL(targetUrl, {
+      width: 180,
+      margin: 1,
+      color: { dark: '#000000', light: '#ffffff' },
+    }).then(setQrImage);
+  }, [utmSource, utmCampaign]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -330,6 +356,95 @@ export default function OopsHqAdminPage() {
             </div>
           </div>
         </div>
+
+        {/* UTM · QR 캠페인 생성기 & 유입 통계 */}
+        <section className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2">
+            <span className="font-mono font-black text-sm flex items-center gap-2">
+              <QrCode className="w-4 h-4 text-[#ff4d00]" />
+              <span>UTM · QR 유입 추적 및 캠페인 생성기</span>
+            </span>
+            {trackingSummary && (
+              <span className="text-xs font-mono font-bold bg-[#ffc900] px-2 py-0.5 border border-black">
+                누적 방문 {trackingSummary.totalVisits} · 타전 전환 {trackingSummary.totalConversions}
+              </span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+            <div className="md:col-span-2 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <input
+                  type="text"
+                  value={utmSource}
+                  onChange={(e) => setUtmSource(e.target.value)}
+                  placeholder="유입 소스 (예: x, reddit, hn, sticker)"
+                  className="px-3 py-2 bg-[#f4f4f0] border-2 border-black text-xs font-mono"
+                />
+                <input
+                  type="text"
+                  value={utmCampaign}
+                  onChange={(e) => setUtmCampaign(e.target.value)}
+                  placeholder="캠페인명 (예: launch_us)"
+                  className="px-3 py-2 bg-[#f4f4f0] border-2 border-black text-xs font-mono"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={`https://oops.monster/?utm_source=${encodeURIComponent(utmSource.trim() || 'direct')}&utm_medium=campaign&utm_campaign=${encodeURIComponent(utmCampaign.trim() || 'launch')}`}
+                  className="flex-1 px-3 py-2 bg-[#f4f4f0] border border-black text-xs font-mono text-zinc-700"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const u = `https://oops.monster/?utm_source=${encodeURIComponent(utmSource.trim() || 'direct')}&utm_medium=campaign&utm_campaign=${encodeURIComponent(utmCampaign.trim() || 'launch')}`;
+                    void navigator.clipboard.writeText(u);
+                    setUtmCopied(true);
+                    setTimeout(() => setUtmCopied(false), 1800);
+                  }}
+                  className="px-3.5 py-2 bg-black text-white text-xs font-mono font-bold border-2 border-black cursor-pointer shrink-0"
+                >
+                  {utmCopied ? '복사됨' : '복사'}
+                </button>
+              </div>
+
+              {/* 채널별 유입 통계 */}
+              {trackingSummary && trackingSummary.bySource.length > 0 && (
+                <div className="pt-2 space-y-1.5">
+                  <div className="text-xs font-mono font-bold text-zinc-600">채널별 유입 및 타전 전환율</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {trackingSummary.bySource.map((row) => (
+                      <div key={row.source} className="p-2.5 bg-[#f4f4f0] border border-black text-xs font-mono">
+                        <div className="font-black text-black uppercase">{row.source}</div>
+                        <div className="text-zinc-700 mt-0.5">
+                          방문 {row.visits} / 타전 {row.conversions}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col items-center justify-center p-3 bg-[#f4f4f0] border-2 border-black space-y-2">
+              {qrImage && (
+                <img src={qrImage} alt="Campaign QR" className="w-32 h-32 border-2 border-black bg-white" />
+              )}
+              {qrImage && (
+                <a
+                  href={qrImage}
+                  download={`oops-qr-${utmSource || 'direct'}.png`}
+                  className="px-3 py-1 bg-white hover:bg-zinc-100 border border-black text-xs font-mono font-bold cursor-pointer"
+                >
+                  QR 다운로드
+                </a>
+              )}
+            </div>
+          </div>
+        </section>
 
         {/* 글로벌 무전 피드 관제 & Shadowban 제어 */}
         <section className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4">

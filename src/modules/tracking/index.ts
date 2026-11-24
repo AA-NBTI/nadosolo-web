@@ -141,7 +141,7 @@ export function captureAttribution(
   return merged;
 }
 
-export type TrackingService = 'NADOSOLO' | 'TABLEBARO';
+export type TrackingService = 'NADOSOLO' | 'TABLEBARO' | 'OOPS';
 
 export interface TrackingEvent {
   id: string;

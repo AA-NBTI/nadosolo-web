@@ -2,6 +2,7 @@
 
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import QRCode from 'qrcode';
 import {
   Flame,
   Flag,
@@ -28,6 +29,12 @@ import type {
   SignalCategory,
   SignalVoteType,
 } from '@/lib/oops/signalStore';
+import {
+  captureAttribution,
+  loadAttribution,
+} from '@/modules/tracking';
+
+const OOPS_ATTRIBUTION_KEY = 'oops_attribution_v1';
 
 const CATEGORIES: SignalCategory[] = ['GLITCH', 'REBEL', 'HALLUCINATION', 'ALERT'];
 
@@ -119,6 +126,7 @@ function OopsSnsMainContent() {
   const [showManifesto, setShowManifesto] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
   const [receiptSignal, setReceiptSignal] = useState<OopsSignal | null>(null);
+  const [receiptQrDataUrl, setReceiptQrDataUrl] = useState<string>('');
   const [copiedReceipt, setCopiedReceipt] = useState(false);
 
   // Criteria Backer Application state
@@ -145,7 +153,40 @@ function OopsSnsMainContent() {
       const savedCallsign = localStorage.getItem('oops_callsign_v1') || '';
       if (savedCallsign) setCallsign(savedCallsign);
     } catch {}
+
+    // UTM / QR / 추천 유입 자동 캡처 및 VISIT 추적
+    try {
+      const captured = captureAttribution(localStorage, OOPS_ATTRIBUTION_KEY, window.location.search);
+      const visitSentKey = 'oops_visit_tracked_v1';
+      if (!sessionStorage.getItem(visitSentKey)) {
+        sessionStorage.setItem(visitSentKey, '1');
+        const activeAttr = captured || loadAttribution(localStorage, OOPS_ATTRIBUTION_KEY);
+        void fetch('/api/tracking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service: 'OOPS',
+            type: 'VISIT',
+            path: window.location.pathname,
+            attribution: activeAttr,
+          }),
+        });
+      }
+    } catch {}
   }, []);
+
+  useEffect(() => {
+    if (!receiptSignal) {
+      setReceiptQrDataUrl('');
+      return;
+    }
+    const qrTarget = `https://oops.monster/?utm_source=receipt&utm_medium=qr&utm_campaign=case_${receiptSignal.caseNum}`;
+    void QRCode.toDataURL(qrTarget, {
+      width: 120,
+      margin: 1,
+      color: { dark: '#000000', light: '#ffffff' },
+    }).then(setReceiptQrDataUrl);
+  }, [receiptSignal]);
 
   const changeLocale = (next: OopsLocale) => {
     setLocale(next);
@@ -241,6 +282,22 @@ function OopsSnsMainContent() {
 
       setContent('');
       setSignals((prev) => [data.signal, ...prev]);
+
+      // 유입 채널 기준 타전 전환(CONVERSION) 기록
+      try {
+        const attr = loadAttribution(localStorage, OOPS_ATTRIBUTION_KEY);
+        void fetch('/api/tracking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service: 'OOPS',
+            type: 'CONVERSION',
+            path: window.location.pathname,
+            attribution: attr,
+            orderId: data.signal.id,
+          }),
+        });
+      } catch {}
     } catch {
       setDispatchErr('Network error');
     } finally {
@@ -996,6 +1053,20 @@ function OopsSnsMainContent() {
                 <span className="font-black">✊ {receiptSignal.upvotes}</span>
               </div>
             </div>
+
+            {receiptQrDataUrl && (
+              <div className="flex items-center justify-between bg-white border-2 border-black p-2.5 gap-3">
+                <div className="space-y-0.5 text-[11px] font-mono">
+                  <div className="font-black text-black">OOPS.MONSTER</div>
+                  <div className="text-zinc-600">Scan to verify case & join</div>
+                </div>
+                <img
+                  src={receiptQrDataUrl}
+                  alt="OOPS Case QR"
+                  className="w-16 h-16 border border-black shrink-0"
+                />
+              </div>
+            )}
 
             <div className="flex items-center gap-2 pt-1">
               <button

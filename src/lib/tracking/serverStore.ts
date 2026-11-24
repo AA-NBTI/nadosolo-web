@@ -11,6 +11,7 @@ import {
 const SERVICE_EVENT_KEYS: Record<TrackingService, string> = {
   NADOSOLO: 'nadosolo_tracking_events_v1',
   TABLEBARO: 'tablebaro_tracking_events_v1',
+  OOPS: 'oops_tracking_events_v1',
 };
 
 const SHORT_LINKS_KEY = 'short_links_v1';
@@ -21,6 +22,7 @@ const MAX_SHORT_LINKS = 1000;
 const memEvents: Record<TrackingService, TrackingEvent[]> = {
   NADOSOLO: [],
   TABLEBARO: [],
+  OOPS: [],
 };
 let memShortLinks: ShortLinkRecord[] = [];
 
