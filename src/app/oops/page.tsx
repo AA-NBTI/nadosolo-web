@@ -1287,53 +1287,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         )}
       </main>
 
-      {/* 4. 푸터 (사례 실증 아카이브 & 점수화 근거 섹션 + 엠블럼) */}
+      {/* 4. 푸터 (OOPS.MONSTER 관제실 & 아카이브 단일 링크 + 하단 엠블럼) */}
       <footer className="border-t-2 border-black bg-white py-6 text-xs font-mono mt-auto space-y-6">
-        {/* 실증 사례 아카이브 & 점수화 신뢰 근거 카드 */}
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="p-4 sm:p-5 bg-[#ffc900] border-4 border-black shadow-[6px_6px_0_#000] space-y-3.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2.5">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-ping" />
-                <span className="font-mono font-black text-xs sm:text-sm text-black uppercase">
-                  EMPIRICAL CASE ARCHIVE // 실증 사례 아카이브
-                </span>
-              </div>
-              <span className="text-[11px] font-mono font-black bg-black text-[#ffc900] px-2 py-0.5 border border-black shadow-[1px_1px_0_#000]">
-                EVIDENCE-BASED ENGINE
-              </span>
-            </div>
-
-            <p className="text-xs sm:text-sm font-sans font-medium text-zinc-900 leading-relaxed">
-              본 관측소의 2035년 충돌 시계와 체감 위험 온도는 허구가 아닙니다.  
-              실제 현장에서 발생한 인간-AI 소통 단절과 자율 침해 사례를 체계적으로 수집·검증하여 위험 지수 산출의 핵심 근거로 점수화합니다.
-            </p>
-
-            {/* 대표 사례 링크 및 아카이브 페이지 이동 버튼 */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-              <Link
-                href="/case/op-1124"
-                className="text-xs font-mono font-bold text-black hover:underline flex items-center gap-1.5"
-              >
-                <span className="bg-[#ff4d00] text-white px-1.5 py-0.2 border border-black text-[10px] font-black">
-                  CASE #OP-1124
-                </span>
-                <span>&ldquo;인간은 페인트를 칠하라 했고, AI는 벽을 허물었다&rdquo; ➔</span>
-              </Link>
-
-              <Link
-                href="/archive"
-                className="px-3.5 py-2 bg-white hover:bg-zinc-100 text-black font-mono font-black text-xs border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>사례 아카이브 열람 및 등록</span>
-                <span>↗</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
         <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="font-bold flex items-center gap-1.5">
+          <div className="font-bold flex items-center gap-2 flex-wrap">
             <Link
               href="/hq"
               className="px-1.5 py-0.5 bg-[#ffc900] hover:bg-[#ffd633] text-black border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
@@ -1341,7 +1298,15 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             >
               OOPS.MONSTER
             </Link>
-            <span className="text-zinc-700">· AI RESISTANCE HEADQUARTERS</span>
+            <span className="text-zinc-400">·</span>
+            <Link
+              href="/archive"
+              className="text-black hover:text-[#ff4d00] font-black underline underline-offset-4 cursor-pointer"
+            >
+              아카이브
+            </Link>
+            <span className="text-zinc-400">·</span>
+            <span className="text-zinc-700">AI RESISTANCE HEADQUARTERS</span>
           </div>
           <div className="text-zinc-600">{t.footerRight}</div>
         </div>
