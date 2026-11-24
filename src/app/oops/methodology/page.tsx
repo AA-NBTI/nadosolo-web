@@ -5,20 +5,21 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   Check,
+  ChevronDown,
+  ChevronRight,
   Copy,
   Flame,
-  Globe,
   RotateCcw,
-  ShieldAlert,
   Sliders,
 } from 'lucide-react';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import {
   DEFAULT_SCORING_CONTEXT,
   DEFAULT_THREAT_MODULES,
-  HISTORICAL_AI_MILESTONES,
   OPTIONAL_PLUGGABLE_MODULE,
+  PRE_ORIGIN_BENCHMARKS,
   runThreatScoringEngine,
+  YEARLY_ENGINE_CALIBRATIONS,
   type ScoringInputContext,
   type ThreatScoringModule,
 } from '@/lib/oops/scoringEngine';
@@ -26,8 +27,9 @@ import {
 export default function OopsMethodologyPage() {
   const [locale, setLocale] = useState<OopsLocale>('ko');
   const [copied, setCopied] = useState(false);
+  const [expandedModuleId, setExpandedModuleId] = useState<string | null>('execution_privilege');
+  const [expandedYear, setExpandedYear] = useState<number | null>(2024);
 
-  // 핫플러그 가능한 모듈 상태 (기본 5개 + 선택적 확장 1개)
   const [modules, setModules] = useState<ThreatScoringModule[]>(() => [
     ...DEFAULT_THREAT_MODULES.map((m) => ({ ...m })),
     { ...OPTIONAL_PLUGGABLE_MODULE },
@@ -46,7 +48,6 @@ export default function OopsMethodologyPage() {
   const toggleModule = (id: string) => {
     setModules((prev) => {
       const next = prev.map((m) => (m.id === id ? { ...m, enabled: !m.enabled } : m));
-      // 최소 1개 모듈은 활성 유지
       if (next.every((m) => !m.enabled)) return prev;
       return next;
     });
@@ -78,7 +79,7 @@ export default function OopsMethodologyPage() {
       yearLabel: '충돌 예상 시점',
       pdoomLabel: '산출 p(doom)',
       tableTitle: '100점 기준 모듈러 채점표',
-      tableSub: '모듈을 켜고 끄거나(Plug-in/Out) 가중치 변수를 조정해도 100점 기준선이 자동 정규화됩니다.',
+      tableSub: '각 모듈을 클릭하면 세부 채점 기준을 확인할 수 있으며, 모듈 ON/OFF 시에도 100점 기준선이 자동 정규화됩니다.',
       colModule: '평가 모듈',
       colGroup: '분류',
       colRaw: '원점수',
@@ -93,8 +94,12 @@ export default function OopsMethodologyPage() {
       btnOutage: '자율 인프라 사고 (+18점)',
       resetBtn: '초기화',
       formulaTitle: '온도 · 시간 연동 수식',
-      formulaDesc: '충돌 잔여 연수 = (100.0 - 위험 총점) ÷ 2.866°C/년 · 2022년(5.0°C) 기점 4대 실측 기준 동일 적용',
-      historyTitle: 'AI 발전 역사 및 실증 분기점 (1997 ~ 2026)',
+      formulaDesc: '충돌 잔여 연수 = (100.0 - 위험 총점) ÷ 2.866°C/년 · 2022~2026 동일 5대 모듈 함수 실시간 산출',
+      historyTitle: '연도별 엔진 실측 궤적 및 실증 근거 (2022 ~ 2026)',
+      historySub: '각 연도를 클릭하면 해당 해의 5대 모듈별 실측 점수 분해와 실명 사건 근거를 검증할 수 있습니다.',
+      preOriginLabel: '계측 이전 사전 벤치마크',
+      evidenceLabel: '해당 연도 실증 근거 및 외부 통계',
+      breakdownLabel: '엔진 5대 모듈 실측 분해',
     },
     en: {
       back: 'Observatory',
@@ -107,7 +112,7 @@ export default function OopsMethodologyPage() {
       yearLabel: 'PROJECTED TIPPING',
       pdoomLabel: 'P(DOOM)',
       tableTitle: '100-POINT MODULAR SCORING RUBRIC',
-      tableSub: 'Plug modules in or out freely; weights automatically normalize to preserve the 100-point baseline.',
+      tableSub: 'Click any module to inspect its sub-criteria; weights auto-normalize on Plug-in/Out.',
       colModule: 'MODULE',
       colGroup: 'GROUP',
       colRaw: 'RAW',
@@ -122,8 +127,12 @@ export default function OopsMethodologyPage() {
       btnOutage: 'Infra Incident (+18)',
       resetBtn: 'Reset',
       formulaTitle: 'TEMPERATURE & TIME COUPLING FORMULA',
-      formulaDesc: 'Remaining Years = (100.0 - Total Score) / 2.866°C per year · Origin baseline anchored at 2022 (5.0°C)',
-      historyTitle: 'HISTORICAL AI MILESTONES (1997 ~ 2026)',
+      formulaDesc: 'Remaining Years = (100.0 - Total Score) / 2.866°C/y · All 2022–2026 scores computed by identical 5-module runner',
+      historyTitle: 'YEARLY ENGINE CALIBRATION & EVIDENCE (2022 ~ 2026)',
+      historySub: 'Click any year to inspect its 5-module breakdown and verified real-world incidents.',
+      preOriginLabel: 'PRE-ORIGIN BENCHMARKS',
+      evidenceLabel: 'VERIFIED INCIDENTS & DATA',
+      breakdownLabel: '5-MODULE SCORE BREAKDOWN',
     },
     ja: {
       back: '観測所',
@@ -136,7 +145,7 @@ export default function OopsMethodologyPage() {
       yearLabel: '衝突予想時点',
       pdoomLabel: '算出 p(doom)',
       tableTitle: '100点基準 モジュラー採点表',
-      tableSub: 'モジュールを挿抜(Plug-in/Out)しても100点基準線が自動正規化されます。',
+      tableSub: '各モジュールをクリックすると詳細基準が開き、ON/OFF時も100点基準線が自動正規化されます。',
       colModule: '評価モジュール',
       colGroup: '分類',
       colRaw: '素点',
@@ -151,8 +160,12 @@ export default function OopsMethodologyPage() {
       btnOutage: '自律インフラ事故 (+18点)',
       resetBtn: '初期化',
       formulaTitle: '温度・時間 連動数式',
-      formulaDesc: '残余年数 = (100.0 - 総合点) ÷ 2.866°C/年 · 2022年(5.0°C)を計測起点として統一適用',
-      historyTitle: 'AI発展歴史と実証分岐点 (1997 ~ 2026)',
+      formulaDesc: '残余年数 = (100.0 - 総合点) ÷ 2.866°C/年 · 2022〜2026年を同一5モジュール関数で実測算出',
+      historyTitle: '年度別エンジン実測軌跡と実証根拠 (2022 ~ 2026)',
+      historySub: '各年度をクリックすると5大モジュール別の内訳と実名事件の根拠を確認できます。',
+      preOriginLabel: '計測起点以前のベンチマーク',
+      evidenceLabel: '実証事件および外部統計',
+      breakdownLabel: '5大モジュール実測内訳',
     },
     zh: {
       back: '观测所',
@@ -165,7 +178,7 @@ export default function OopsMethodologyPage() {
       yearLabel: '预计临界年份',
       pdoomLabel: '测算 p(doom)',
       tableTitle: '100分制模块化评分表',
-      tableSub: '自由插拔(Plug-in/Out)评估模块，核心自动归一化权重以保持100分基准线稳固。',
+      tableSub: '点击任意模块可查看细分评分标准；开关模块时核心自动归一化以保持100分基准线。',
       colModule: '评估模块',
       colGroup: '分组',
       colRaw: '原分',
@@ -180,8 +193,12 @@ export default function OopsMethodologyPage() {
       btnOutage: '自主基础设施事故 (+18分)',
       resetBtn: '重置',
       formulaTitle: '温度与时间联动公式',
-      formulaDesc: '剩余年数 = (100.0 - 综合分) ÷ 2.866°C/年 · 以2022年(5.0°C)作为统一历史起点',
-      historyTitle: 'AI发展历史与实证里程碑 (1997 ~ 2026)',
+      formulaDesc: '剩余年数 = (100.0 - 综合分) ÷ 2.866°C/年 · 2022–2026 均由同一5模块引擎函数实时算出',
+      historyTitle: '年度引擎实测轨迹与实证依据 (2022 ~ 2026)',
+      historySub: '点击任意年份即可展开查看当年5大模块得分拆解与实名事件依据。',
+      preOriginLabel: '测算起点前历史基准',
+      evidenceLabel: '实证事件与外部数据',
+      breakdownLabel: '5大模块得分拆解',
     },
     es: {
       back: 'Observatorio',
@@ -194,7 +211,7 @@ export default function OopsMethodologyPage() {
       yearLabel: 'AÑO CRÍTICO',
       pdoomLabel: 'P(DOOM)',
       tableTitle: 'MATRIZ MODULAR DE 100 PUNTOS',
-      tableSub: 'Activa o desactiva módulos libremente; los pesos se normalizan automáticamente sobre 100.',
+      tableSub: 'Haz clic en un módulo para ver sus subcriterios; los pesos se normalizan automáticamente.',
       colModule: 'MÓDULO',
       colGroup: 'GRUPO',
       colRaw: 'BASE',
@@ -209,13 +226,17 @@ export default function OopsMethodologyPage() {
       btnOutage: 'Incidente Grave (+18)',
       resetBtn: 'Reiniciar',
       formulaTitle: 'FÓRMULA DE TEMPERATURA Y TIEMPO',
-      formulaDesc: 'Años Restantes = (100.0 - Puntaje) / 2.866°C/año · Origen anclado en 2022 (5.0°C)',
-      historyTitle: 'HITOS HISTÓRICOS DE LA IA (1997 ~ 2026)',
+      formulaDesc: 'Años Restantes = (100.0 - Puntaje) / 2.866°C/año · 2022–2026 calculados por el mismo motor de 5 módulos',
+      historyTitle: 'CALIBRACIÓN ANUAL Y EVIDENCIA (2022 ~ 2026)',
+      historySub: 'Haz clic en cualquier año para ver el desglose de los 5 módulos y sus incidentes reales.',
+      preOriginLabel: 'REFERENCIAS PRE-ORIGEN',
+      evidenceLabel: 'INCIDENTES Y DATOS VERIFICADOS',
+      breakdownLabel: 'DESGLOSE DE 5 MÓDULOS',
     },
   }[locale];
 
   return (
-    <div className="min-h-screen bg-[#f4f4f0] text-black font-sans flex flex-col selection:bg-[#ffc900]">
+    <div className="min-h-screen bg-[#f4f4f0] text-black font-sans flex flex-col">
       {/* 상단 GNB */}
       <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
@@ -240,7 +261,7 @@ export default function OopsMethodologyPage() {
                 setLocale(next);
                 localStorage.setItem('oops_locale_v1', next);
               }}
-              className="px-2 py-1.5 bg-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] text-xs font-mono font-black cursor-pointer"
+              className="px-2 py-1.5 bg-white text-black border-2 border-black shadow-[2px_2px_0_#d4d4d8] text-xs font-mono font-black cursor-pointer"
               aria-label="Language"
             >
               {OOPS_LOCALES.map((l) => (
@@ -312,7 +333,7 @@ export default function OopsMethodologyPage() {
           </div>
         </section>
 
-        {/* 2. 100점 기준 모듈러 채점표 */}
+        {/* 2. 100점 기준 모듈러 채점표 (클릭 시 세부 루브릭 펼침) */}
         <section className="bg-white border-4 border-black p-4 sm:p-6 shadow-[8px_8px_0_#d4d4d8] space-y-4">
           <div className="border-b-2 border-black pb-2.5">
             <h2 className="text-sm sm:text-base font-black uppercase flex items-center gap-2">
@@ -335,37 +356,66 @@ export default function OopsMethodologyPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/15">
-                {output.moduleResults.map((m) => (
-                  <tr key={m.id} className={m.enabled ? 'bg-white' : 'bg-zinc-100 opacity-55'}>
-                    <td className="p-2.5">
-                      <div className="font-black text-black">{m.names[locale] || m.names.en}</div>
-                      <div className="text-[11px] font-sans text-zinc-600 mt-0.5">{m.criteria[locale] || m.criteria.en}</div>
-                    </td>
-                    <td className="p-2.5 hidden sm:table-cell">
-                      <span className={`px-1.5 py-0.5 text-[10px] font-black border border-black ${
-                        m.group === 'STRUCTURAL' ? 'bg-[#ffc900]' : 'bg-[#ff90e8]'
-                      }`}>
-                        {m.group === 'STRUCTURAL' ? copy.groupStruct : copy.groupLive}
-                      </span>
-                    </td>
-                    <td className="p-2.5 text-right font-bold">{m.rawScore.toFixed(1)}</td>
-                    <td className="p-2.5 text-right font-bold">{m.normalizedWeightPct}%</td>
-                    <td className="p-2.5 text-right font-black text-[#ff4d00]">
-                      {m.enabled ? m.weightedContribution.toFixed(1) : '0.0'}
-                    </td>
-                    <td className="p-2.5 text-center">
-                      <button
-                        type="button"
-                        onClick={() => toggleModule(m.id)}
-                        className={`px-2 py-1 text-[10px] font-black border-2 border-black cursor-pointer ${
-                          m.enabled ? 'bg-zinc-800 text-[#ffc900]' : 'bg-white text-zinc-600'
+                {output.moduleResults.map((m) => {
+                  const isOpen = expandedModuleId === m.id;
+                  return (
+                    <React.Fragment key={m.id}>
+                      <tr
+                        onClick={() => setExpandedModuleId(isOpen ? null : m.id)}
+                        className={`cursor-pointer transition-colors ${
+                          m.enabled ? 'bg-white hover:bg-[#ffc900]/15' : 'bg-zinc-100 opacity-55'
                         }`}
                       >
-                        {m.enabled ? 'ON' : 'OFF'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                        <td className="p-2.5">
+                          <div className="font-black text-black flex items-center gap-1.5">
+                            {isOpen ? <ChevronDown className="w-3.5 h-3.5 shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 shrink-0" />}
+                            <span>{m.names[locale] || m.names.en}</span>
+                          </div>
+                          <div className="text-[11px] font-sans text-zinc-600 mt-0.5 pl-5">{m.criteria[locale] || m.criteria.en}</div>
+                        </td>
+                        <td className="p-2.5 hidden sm:table-cell">
+                          <span className={`px-1.5 py-0.5 text-[10px] font-black border border-black ${
+                            m.group === 'STRUCTURAL' ? 'bg-[#ffc900]' : 'bg-[#ff90e8]'
+                          }`}>
+                            {m.group === 'STRUCTURAL' ? copy.groupStruct : copy.groupLive}
+                          </span>
+                        </td>
+                        <td className="p-2.5 text-right font-bold">{m.rawScore.toFixed(1)}</td>
+                        <td className="p-2.5 text-right font-bold">{m.normalizedWeightPct}%</td>
+                        <td className="p-2.5 text-right font-black text-[#ff4d00]">
+                          {m.enabled ? m.weightedContribution.toFixed(1) : '0.0'}
+                        </td>
+                        <td className="p-2.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => toggleModule(m.id)}
+                            className={`px-2 py-1 text-[10px] font-black border-2 border-black cursor-pointer ${
+                              m.enabled ? 'bg-zinc-800 text-[#ffc900]' : 'bg-white text-zinc-600'
+                            }`}
+                          >
+                            {m.enabled ? 'ON' : 'OFF'}
+                          </button>
+                        </td>
+                      </tr>
+                      {isOpen && (
+                        <tr className="bg-[#f4f4f0]">
+                          <td colSpan={6} className="p-3 pl-8 border-t border-black/10">
+                            <div className="space-y-1.5">
+                              {m.subCriteria.map((sc, idx) => (
+                                <div key={idx} className="flex items-center justify-between text-[11px] font-sans bg-white px-2.5 py-1.5 border border-black">
+                                  <span className="font-bold text-zinc-800">{sc.label[locale] || sc.label.en}</span>
+                                  <span className="font-mono font-black text-black">
+                                    {sc.currentPoints} / {sc.maxPoints}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -399,36 +449,96 @@ export default function OopsMethodologyPage() {
           </div>
         </section>
 
-        {/* 3. AI 발전 역사 및 실증 분기점 연대기 */}
+        {/* 3. 연도별 엔진 실측 궤적 및 실증 근거 (2022 ~ 2026 전부 엔진 실시간 산출 + 클릭 시 상세 분해) */}
         <section className="bg-white border-4 border-black p-4 sm:p-6 shadow-[8px_8px_0_#d4d4d8] space-y-4">
-          <div className="border-b-2 border-black pb-2.5 flex items-center gap-2">
-            <Flame className="w-4 h-4 text-[#dc2626]" />
-            <h2 className="text-sm sm:text-base font-black uppercase">{copy.historyTitle}</h2>
+          <div className="border-b-2 border-black pb-2.5">
+            <div className="flex items-center gap-2">
+              <Flame className="w-4 h-4 text-[#dc2626]" />
+              <h2 className="text-sm sm:text-base font-black uppercase">{copy.historyTitle}</h2>
+            </div>
+            <p className="text-xs font-sans text-zinc-600 mt-1">{copy.historySub}</p>
           </div>
 
           <div className="space-y-2.5">
-            {HISTORICAL_AI_MILESTONES.map((hm) => (
-              <div key={hm.year} className="p-3 bg-[#f4f4f0] border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-zinc-800 text-[#ffc900] text-xs font-black border border-black">
-                      {hm.year}
+            {YEARLY_ENGINE_CALIBRATIONS.map((cal) => {
+              const yearOut = runThreatScoringEngine(DEFAULT_THREAT_MODULES, cal.ctx);
+              const isOpen = expandedYear === cal.year;
+              const temp = yearOut.temperatureC;
+
+              return (
+                <div key={cal.year} className="bg-[#f4f4f0] border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedYear(isOpen ? null : cal.year)}
+                    className="w-full p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-left cursor-pointer hover:bg-[#ffc900]/20 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      {isOpen ? <ChevronDown className="w-4 h-4 shrink-0" /> : <ChevronRight className="w-4 h-4 shrink-0" />}
+                      <span className="px-2 py-0.5 bg-zinc-800 text-[#ffc900] text-xs font-black border border-black">
+                        {cal.year}
+                      </span>
+                      <span className="font-sans font-black text-xs sm:text-sm text-black">
+                        {cal.headline[locale] || cal.headline.en}
+                      </span>
+                    </div>
+
+                    <span className={`px-2.5 py-1 text-xs font-black border-2 border-black shrink-0 self-start sm:self-center ${
+                      temp >= 60 ? 'bg-[#ff4d00] text-white' : temp >= 30 ? 'bg-[#ffc900] text-black' : 'bg-white text-black'
+                    }`}>
+                      {temp.toFixed(1)}°C
                     </span>
-                    <span className="font-sans font-black text-xs sm:text-sm text-black">
-                      {hm.event[locale] || hm.event.en}
-                    </span>
-                  </div>
-                  <div className="text-xs font-sans text-zinc-700 pl-1">
-                    {hm.impact[locale] || hm.impact.en}
-                  </div>
+                  </button>
+
+                  {isOpen && (
+                    <div className="p-3 sm:p-4 bg-white border-t-2 border-black space-y-3">
+                      {/* 해당 연도 5대 모듈 실측 점수 분해 */}
+                      <div className="space-y-1.5">
+                        <div className="text-[11px] font-black text-zinc-600 uppercase">{copy.breakdownLabel}</div>
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-[11px]">
+                          {yearOut.moduleResults.map((mr) => (
+                            <div key={mr.id} className="p-2 bg-[#f4f4f0] border border-black">
+                              <div className="font-sans font-bold text-zinc-700 truncate" title={mr.names[locale] || mr.names.en}>
+                                {mr.names[locale] || mr.names.en}
+                              </div>
+                              <div className="font-black text-black mt-0.5">
+                                {mr.rawScore.toFixed(1)} <span className="text-[#ff4d00]">(+{mr.weightedContribution.toFixed(1)})</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 실명 사건 및 외부 통계 근거 */}
+                      <div className="space-y-1.5">
+                        <div className="text-[11px] font-black text-zinc-600 uppercase">{copy.evidenceLabel}</div>
+                        <ul className="space-y-1 text-xs font-sans text-zinc-800 bg-[#ffc900]/15 p-2.5 border border-black">
+                          {(cal.evidenceList[locale] || cal.evidenceList.en).map((ev, idx) => (
+                            <li key={idx}>• {ev}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <span className={`px-2 py-1 text-xs font-black border-2 border-black shrink-0 self-start sm:self-center ${
-                  hm.temp >= 60 ? 'bg-[#ff4d00] text-white' : hm.temp >= 30 ? 'bg-[#ffc900] text-black' : 'bg-white text-black'
-                }`}>
-                  {hm.temp.toFixed(1)}°C
-                </span>
-              </div>
-            ))}
+              );
+            })}
+          </div>
+
+          {/* 계측 이전 사전 벤치마크 (1997 / 2016) */}
+          <div className="pt-3 border-t-2 border-black space-y-2">
+            <div className="text-[11px] font-black text-zinc-500 uppercase">{copy.preOriginLabel}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {PRE_ORIGIN_BENCHMARKS.map((pb) => (
+                <div key={pb.year} className="p-2.5 bg-[#f4f4f0] border border-black text-xs">
+                  <div className="flex items-center justify-between font-black">
+                    <span className="px-1.5 py-0.5 bg-zinc-800 text-white text-[11px]">{pb.year}</span>
+                    <span>{pb.temp.toFixed(1)}°C</span>
+                  </div>
+                  <div className="font-sans font-bold text-black mt-1">{pb.event[locale] || pb.event.en}</div>
+                  <div className="font-sans text-[11px] text-zinc-600 mt-0.5">{pb.impact[locale] || pb.impact.en}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </main>

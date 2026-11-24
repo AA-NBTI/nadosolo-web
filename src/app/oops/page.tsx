@@ -200,9 +200,9 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [signals, setSignals] = useState<OopsSignal[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const liveEngineOutput = React.useMemo(() => {
+  const liveCtx = React.useMemo(() => {
     if (!signals || signals.length === 0) {
-      return runThreatScoringEngine(DEFAULT_THREAT_MODULES, DEFAULT_SCORING_CONTEXT);
+      return DEFAULT_SCORING_CONTEXT;
     }
     const totalFire = signals.reduce((acc, s) => acc + (s.fireCount || 0) + (s.skullCount || 0), 0);
     const totalUp = signals.reduce((acc, s) => acc + (s.upvotes || 0), 0);
@@ -212,12 +212,17 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
     const alertCount = signals.filter((s) => s.category === 'ALERT' || s.category === 'REBEL').length;
     const incidentDelta = Number(Math.min(10, Math.max(-5, (alertCount - 2) * 0.6)).toFixed(2));
 
-    return runThreatScoringEngine(DEFAULT_THREAT_MODULES, {
+    return {
       ...DEFAULT_SCORING_CONTEXT,
       snsFearRatio: blendedFearRatio,
       incidentDelta,
-    });
+    };
   }, [signals]);
+
+  const liveEngineOutput = React.useMemo(
+    () => runThreatScoringEngine(DEFAULT_THREAT_MODULES, liveCtx),
+    [liveCtx]
+  );
 
   // Composer state
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -789,7 +794,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <CollisionClock locale={locale} engineOutput={liveEngineOutput} />
 
             {/* 2. 6대 범용 위험 지수 레이더 다이어그램 */}
-            <ThreatPulseChart initialThemeId="ai_collision" locale={locale} engineOutput={liveEngineOutput} />
+            <ThreatPulseChart initialThemeId="ai_collision" locale={locale} liveCtx={liveCtx} />
 
             {/* 언론사용 임베드 안내 배너 (OOPS 시그니처 옐로우 #ffc900 & 오렌지 #ff4d00 CTA) */}
             <div className="bg-[#ffc900] border-4 border-black p-4 sm:p-5 shadow-[6px_6px_0_#d4d4d8] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
