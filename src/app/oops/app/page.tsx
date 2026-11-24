@@ -55,6 +55,12 @@ function OopsAppContent() {
     const savedLoc = localStorage.getItem('oops_locale_v1') as OopsLocale | null;
     if (savedLoc && OOPS_DICT[savedLoc]) {
       setLocale(savedLoc);
+    } else {
+      const cookieMatch = document.cookie.match(/(?:^|;\s*)oops_geo_locale=(en|ko|ja|zh|es)/);
+      const geoLoc = cookieMatch?.[1] as OopsLocale | undefined;
+      if (geoLoc && OOPS_DICT[geoLoc]) {
+        setLocale(geoLoc);
+      }
     }
   }, []);
 
@@ -262,7 +268,7 @@ function OopsAppContent() {
                 className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0px_#000] text-xs font-mono font-black cursor-pointer"
               >
                 <Globe className="w-3.5 h-3.5 text-zinc-700" />
-                <span>{locale.toUpperCase()}</span>
+                <span>{OOPS_LOCALES.find((l) => l.code === locale)?.label || 'EN'}</span>
                 <ChevronDown className="w-3 h-3" />
               </button>
 

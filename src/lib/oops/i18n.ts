@@ -4,7 +4,7 @@ export const OOPS_LOCALES: { code: OopsLocale; label: string }[] = [
   { code: 'en', label: 'EN' },
   { code: 'ko', label: 'KO' },
   { code: 'ja', label: 'JA' },
-  { code: 'zh', label: 'ZH' },
+  { code: 'zh', label: 'CN' },
   { code: 'es', label: 'ES' },
 ];
 

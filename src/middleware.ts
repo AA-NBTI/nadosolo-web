@@ -16,27 +16,63 @@ const PASSTHROUGH_PREFIXES = [
   '/favicon.ico',
 ];
 
+const SPANISH_COUNTRIES = new Set([
+  'ES', 'MX', 'AR', 'CO', 'CL', 'PE', 'VE', 'EC', 'GT', 'CU',
+  'BO', 'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'PR',
+]);
+
+function detectOopsGeoLocale(req: NextRequest): 'en' | 'ko' | 'ja' | 'zh' | 'es' {
+  const country = (req.headers.get('x-vercel-ip-country') || '').toUpperCase();
+  if (country === 'KR') return 'ko';
+  if (country === 'JP') return 'ja';
+  if (country === 'CN' || country === 'TW' || country === 'HK' || country === 'MO') return 'zh';
+  if (SPANISH_COUNTRIES.has(country)) return 'es';
+  if (country) return 'en';
+
+  const acceptLang = (req.headers.get('accept-language') || '').toLowerCase();
+  if (acceptLang.startsWith('ko')) return 'ko';
+  if (acceptLang.startsWith('ja')) return 'ja';
+  if (acceptLang.startsWith('zh')) return 'zh';
+  if (acceptLang.startsWith('es')) return 'es';
+  return 'en';
+}
+
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
+  const host = (request.headers.get('host') || '').toLowerCase();
+
+  if (pathname.startsWith('/oops')) {
+    const res = NextResponse.next();
+    res.cookies.set('oops_geo_locale', detectOopsGeoLocale(request), {
+      path: '/',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24,
+    });
+    return res;
+  }
+
   if (PASSTHROUGH_PREFIXES.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
-  const host = (request.headers.get('host') || '').toLowerCase();
-
-  // oops.monster 접속 시 -> / -> /oops, /app -> /oops/app, /hq -> /oops/hq 리라이트
+  // oops.monster 접속 시 -> / -> /oops, /app -> /oops/app, /hq -> /oops/hq 리라이트 + IP 언어 쿠키 전달
   if (isOopsHost(host)) {
+    const geoLocale = detectOopsGeoLocale(request);
     if (pathname === '/' || pathname === '') {
       const url = request.nextUrl.clone();
       url.pathname = '/oops';
       url.search = search;
-      return NextResponse.rewrite(url);
+      const res = NextResponse.rewrite(url);
+      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
+      return res;
     }
     if (pathname === '/app') {
       const url = request.nextUrl.clone();
       url.pathname = '/oops/app';
       url.search = search;
-      return NextResponse.rewrite(url);
+      const res = NextResponse.rewrite(url);
+      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
+      return res;
     }
     if (pathname === '/hq') {
       const url = request.nextUrl.clone();
