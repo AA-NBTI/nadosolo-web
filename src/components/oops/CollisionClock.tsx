@@ -102,12 +102,13 @@ const HISTORICAL_REGIONAL_DATA: Record<number, YearRegionTemp> = {
 export default function CollisionClock({ locale }: CollisionClockProps) {
   const [timeLeft, setTimeLeft] = useState<{
     totalHours: number;
+    totalMinutes: number;
     days: number;
     hoursInDay: number;
     minutes: number;
     seconds: number;
     milliseconds: number;
-  }>({ totalHours: 71000, days: 2959, hoursInDay: 0, minutes: 0, seconds: 0, milliseconds: 0 });
+  }>({ totalHours: 71000, totalMinutes: 4260000, days: 2959, hoursInDay: 0, minutes: 0, seconds: 0, milliseconds: 0 });
 
   useEffect(() => {
     const targetDate = new Date('2035-01-01T00:00:00Z').getTime();
@@ -117,13 +118,14 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       const diff = Math.max(0, targetDate - now);
 
       const totalHours = Math.floor(diff / (1000 * 60 * 60));
+      const totalMinutes = Math.floor(diff / (1000 * 60));
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hoursInDay = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
       const milliseconds = Math.floor((diff % 1000) / 10);
 
-      setTimeLeft({ totalHours, days, hoursInDay, minutes, seconds, milliseconds });
+      setTimeLeft({ totalHours, totalMinutes, days, hoursInDay, minutes, seconds, milliseconds });
     }, 47);
 
     return () => clearInterval(interval);
@@ -142,10 +144,12 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
     ko: {
       badge: 'OOPS 인류 AI 주권 충돌 관측소 // 실시간 째깍 초시계',
       tickerTitle: '2035년 기준선 실시간 카운트다운 (TICKING LIVE)',
-      goldenTimeLabel: '인류에게 남은 골든타임',
-      deltaLabel: '2035 기준선 대비 여유/단축',
+      goldenTimeLabel: '남은 골든타임',
+      deltaLabel: '2035 대비 변동',
       totalHoursUnit: '전체 잔여 시간 (TOTAL HOURS)',
+      totalMinutesUnit: '전체 잔여 분 (TOTAL MINUTES)',
       daysConversionNote: '일수 환산: 약',
+      minutesSubNote: '임계점까지 실시간 분 감산',
       yearSliderTitle: '연도별 글로벌 AI 체감온도 타임머신 (2024 ➔ 2035):',
       regionalComparisonTitle: '대륙별·국가별 AI 충돌 체감온도 격차',
       simTitle: '새로운 사건 유입 시 골든타임 실시간 반응:',
@@ -162,10 +166,12 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
     en: {
       badge: 'OOPS AI SOVEREIGNTY OBSERVATORY // LIVE MILLISECOND TICKER',
       tickerTitle: '2035 BASELINE LIVE COUNTDOWN (TICKING LIVE)',
-      goldenTimeLabel: 'HUMAN GOLDEN TIME REMAINING',
-      deltaLabel: 'SURPLUS / DEFICIT vs 2035 BASELINE',
+      goldenTimeLabel: 'GOLDEN TIME LEFT',
+      deltaLabel: '2035 VARIANCE',
       totalHoursUnit: 'TOTAL HOURS REMAINING',
+      totalMinutesUnit: 'TOTAL MINUTES REMAINING',
       daysConversionNote: 'Equivalent to',
+      minutesSubNote: 'Live minute subtraction to tipping point',
       yearSliderTitle: 'GLOBAL REGIONAL TEMPERATURE TIMEMACHINE (2024 ➔ 2035):',
       regionalComparisonTitle: 'REGIONAL TEMPERATURE DIVERGENCE BY CONTINENT',
       simTitle: 'INCIDENT IMPACT ON GOLDEN TIME:',
@@ -182,10 +188,12 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
     ja: {
       badge: 'OOPS 人類AI主権衝突観測所 // リアルタイム秒針計',
       tickerTitle: '2035年基準線 リアルタイム秒針カウントダウン',
-      goldenTimeLabel: '人類に残されたゴールデンタイム',
-      deltaLabel: '2035基準線対比 猶予/短縮',
+      goldenTimeLabel: '残り猶予時間',
+      deltaLabel: '2035対比変動',
       totalHoursUnit: '全残余時間 (TOTAL HOURS)',
+      totalMinutesUnit: '全残余分 (TOTAL MINUTES)',
       daysConversionNote: '日数換算: 約',
+      minutesSubNote: '臨界点までリアルタイム分減算',
       yearSliderTitle: '年度別グローバル体感温度タイムマシン (2024 ➔ 2035):',
       regionalComparisonTitle: '大陸別・国家別AI衝突体感温度格差',
       simTitle: '新規事件流入時のゴールデンタイム反応:',
@@ -202,10 +210,12 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
     zh: {
       badge: 'OOPS 人类AI主权冲突观测所 // 毫秒倒计时与年度区域演化对比',
       tickerTitle: '2035基准线实时毫秒倒计时 (TICKING LIVE)',
-      goldenTimeLabel: '人类剩余黄金窗口',
-      deltaLabel: '对比2035基准线宽限/缩减差',
+      goldenTimeLabel: '剩余黄金窗口',
+      deltaLabel: '2035对比变动',
       totalHoursUnit: '全量剩余小时数 (TOTAL HOURS)',
+      totalMinutesUnit: '全量剩余分钟数 (TOTAL MINUTES)',
       daysConversionNote: '换算天数: 约',
+      minutesSubNote: '距临界点实时分钟递减',
       yearSliderTitle: '全球区域风险体感温度时间演化机 (2024 ➔ 2035):',
       regionalComparisonTitle: '各大陆与主要国家AI冲突体感温差',
       simTitle: '新事故输入对黄金防卫窗口的实时影响:',
@@ -222,10 +232,12 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
     es: {
       badge: 'OOPS OBSERVATORIO DE SOBERANÍA IA // CRONÓMETRO EN VIVO',
       tickerTitle: 'CUENTA REGRESIVA EN VIVO LÍNEA BASE 2035 (TICKING LIVE)',
-      goldenTimeLabel: 'TIEMPO DE ORO RESTANTE',
-      deltaLabel: 'VENTAJA / DÉFICIT FRENTE A 2035',
+      goldenTimeLabel: 'TIEMPO RESTANTE',
+      deltaLabel: 'VARIACIÓN 2035',
       totalHoursUnit: 'TOTAL DE HORAS RESTANTES',
+      totalMinutesUnit: 'TOTAL DE MINUTOS RESTANTES',
       daysConversionNote: 'Equivalente a',
+      minutesSubNote: 'Descuento en vivo en minutos hacia 2035',
       yearSliderTitle: 'MÁQUINA DEL TIEMPO DE TEMPERATURA REGIONAL (2024 ➔ 2035):',
       regionalComparisonTitle: 'DIVERGENCIA DE TEMPERATURA POR CONTINENTES',
       simTitle: 'IMPACTO EN TIEMPO REAL:',
@@ -260,71 +272,80 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
         </div>
       </div>
 
-      {/* 2. 대형 전광판: 전체 시간 (TOTAL HOURS) ➔ OOPS 시그니처 옐로우 & 네오브루탈 섀도우 */}
-      <div className="p-4 sm:p-5 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-4">
+      {/* 2. 대형 전광판: 전체 시간(TOTAL HOURS) & 전체 분(TOTAL MINUTES) 독립 공간 분할 ➔ OOPS 시그니처 옐로우 & 네오브루탈 섀도우 */}
+      <div className="p-4 sm:p-5 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-3.5">
         <div className="flex items-center justify-between text-xs font-mono border-b-2 border-black pb-2">
           <span className="font-black text-black flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse" />
             {copy.tickerTitle}
           </span>
-          <span className="bg-[#ff4d00] text-white px-2 py-0.5 font-black text-[11px] border border-black">
+          <span className="bg-[#ff4d00] text-white px-2 py-0.5 font-black text-[11px] border border-black shadow-[1px_1px_0_#000]">
             ACTIVE STREAM
           </span>
         </div>
 
-        {/* 4단 통합 전광판: 전체 시간 (TOTAL HOURS) ➔ MINS ➔ SECS ➔ MS */}
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-center py-1">
-          {/* 전체 시간 (HOURS) 대형 통합 박스 (6열) */}
-          <div className="sm:col-span-6 p-4 bg-[#ffc900] border-2 border-black shadow-[3px_3px_0_#000] flex flex-col justify-center items-center">
-            <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-black tracking-tight">
+        {/* 1단계: 2대 핵심 누적 전광판 (TOTAL HOURS & TOTAL MINUTES 독립 공간 2열 배치) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center">
+          {/* 공간 A: 전체 누적 시간 (TOTAL HOURS) */}
+          <div className="p-4 bg-[#ffc900] border-2 border-black shadow-[3px_3px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-black tracking-tight font-mono">
               {timeLeft.totalHours.toLocaleString()}
             </div>
             <div className="text-xs text-black font-black uppercase mt-1">
               {copy.totalHoursUnit}
             </div>
-            <div className="text-[11px] text-zinc-800 font-sans mt-0.5 font-bold">
-              {copy.daysConversionNote} <strong className="text-black bg-white px-1.5 py-0.2 border border-black">{timeLeft.days.toLocaleString()}일</strong> ({timeLeft.hoursInDay}시간 잔여)
+            <div className="text-[11px] text-zinc-900 font-sans mt-1 font-bold">
+              {copy.daysConversionNote} <strong className="text-black bg-white px-1.5 py-0.5 border border-black shadow-[1px_1px_0_#000]">{timeLeft.days.toLocaleString()}일</strong> ({timeLeft.hoursInDay}시간 잔여)
             </div>
           </div>
 
-          {/* MINS (분) */}
-          <div className="sm:col-span-2 p-3 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
-            <div className="text-2xl sm:text-4xl font-black text-black tracking-tight">
-              {String(timeLeft.minutes).padStart(2, '0')}
+          {/* 공간 B: 전체 누적 분 (TOTAL MINUTES) - 35년 특정 시점까지 분 단위 환산 독립 공간 */}
+          <div className="p-4 bg-white border-2 border-black shadow-[3px_3px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-[#ff4d00] tracking-tight font-mono">
+              {timeLeft.totalMinutes.toLocaleString()}
             </div>
-            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-1">MINS (분)</div>
-          </div>
-
-          {/* SECS (초) */}
-          <div className="sm:col-span-2 p-3 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
-            <div className="text-2xl sm:text-4xl font-black text-[#ff4d00] tracking-tight">
-              {String(timeLeft.seconds).padStart(2, '0')}
+            <div className="text-xs text-black font-black uppercase mt-1">
+              {copy.totalMinutesUnit}
             </div>
-            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-1">SECS (초)</div>
-          </div>
-
-          {/* MS (밀리초) */}
-          <div className="sm:col-span-2 p-3 bg-black text-[#ff90e8] border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
-            <div className="text-2xl sm:text-4xl font-black tracking-tight font-mono">
-              {String(timeLeft.milliseconds).padStart(2, '0')}
+            <div className="text-[11px] text-zinc-800 font-sans mt-1 font-bold">
+              <span className="bg-[#ffc900] text-black px-1.5 py-0.5 border border-black font-mono font-bold shadow-[1px_1px_0_#000] mr-1">2035.0</span>
+              {copy.minutesSubNote}
             </div>
-            <div className="text-[10px] sm:text-xs text-white/80 font-black uppercase mt-1">MS (밀리초)</div>
           </div>
         </div>
 
-        {/* 잔여 연수 및 델타 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs border-t-2 border-black">
-          <div className="flex items-center justify-between p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000]">
-            <span className="text-zinc-700 font-bold">{copy.goldenTimeLabel}:</span>
-            <span className={`text-base font-black ${activeAccFactor === 1 ? 'text-[#ff4d00]' : activeAccFactor === -1 ? 'text-emerald-700' : 'text-black'}`}>
-              {remainingYears}년
-            </span>
+        {/* 2단계: 실시간 레이더 펄스 (SECS 초 ➔ MS 밀리초 ➔ 골든타임 ➔ 델타) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-1 border-t-2 border-black">
+          {/* SECS (초) */}
+          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-3xl font-black text-[#ff4d00] tracking-tight font-mono">
+              {String(timeLeft.seconds).padStart(2, '0')}
+            </div>
+            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">SECS (실시간 초)</div>
           </div>
-          <div className="flex items-center justify-between p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000]">
-            <span className="text-zinc-700 font-bold">{copy.deltaLabel}:</span>
-            <span className={`text-base font-black ${deltaYears < 0 ? 'text-[#ff4d00]' : deltaYears > 0 ? 'text-emerald-700' : 'text-black'}`}>
-              {deltaYears > 0 ? `+${deltaYears}` : deltaYears}년 변동
-            </span>
+
+          {/* MS (밀리초) */}
+          <div className="p-2.5 bg-black text-[#ff90e8] border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight font-mono">
+              {String(timeLeft.milliseconds).padStart(2, '0')}
+            </div>
+            <div className="text-[10px] sm:text-xs text-white/80 font-black uppercase mt-0.5">MS (밀리초)</div>
+          </div>
+
+          {/* 잔여 연수 골든타임 */}
+          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+            <div className={`text-xl sm:text-2xl font-black font-mono ${activeAccFactor === 1 ? 'text-[#ff4d00]' : activeAccFactor === -1 ? 'text-emerald-700' : 'text-black'}`}>
+              {remainingYears}년
+            </div>
+            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">{copy.goldenTimeLabel}</div>
+          </div>
+
+          {/* 기준선 델타 */}
+          <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+            <div className={`text-xl sm:text-2xl font-black font-mono ${deltaYears < 0 ? 'text-[#ff4d00]' : deltaYears > 0 ? 'text-emerald-700' : 'text-black'}`}>
+              {deltaYears > 0 ? `+${deltaYears}` : deltaYears}년
+            </div>
+            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">{copy.deltaLabel}</div>
           </div>
         </div>
       </div>
