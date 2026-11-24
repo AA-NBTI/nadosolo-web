@@ -262,8 +262,8 @@ function OopsAppContent() {
               className="group inline-flex items-center gap-1 select-none cursor-pointer"
               title="OOPS Home"
             >
-              <span className="inline-block px-2.5 py-1 bg-[#ff4d00] text-white font-black text-xs sm:text-sm font-mono tracking-tighter border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 transition-all uppercase">
-                oops!
+              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tight border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 transition-all uppercase leading-none">
+                oops
               </span>
               <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden sm:inline">
                 .monster
@@ -542,6 +542,7 @@ function OopsAppContent() {
             <img
               src="/oops-emblem.jpg"
               alt="OOPS.MONSTER AI RESISTANCE HQ"
+              loading="lazy"
               className="w-full h-auto object-cover group-hover:scale-[1.01] transition-transform"
             />
           </button>
