@@ -552,24 +552,62 @@ function OopsAppContent() {
       {showEmblemModal && (
         <div
           onClick={() => setShowEmblemModal(false)}
-          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-pointer"
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-pointer overflow-y-auto"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-xl w-full bg-black border-4 border-white shadow-[8px_8px_0_#ffc900] cursor-default"
+            className="relative max-w-3xl w-full bg-[#111318] border-4 border-white shadow-[8px_8px_0_#ffc900] p-4 sm:p-6 cursor-default space-y-4"
           >
-            <button
-              type="button"
-              onClick={() => setShowEmblemModal(false)}
-              className="absolute top-3 right-3 z-10 p-1.5 bg-white text-black border-2 border-black cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <img
-              src="/oops-emblem.jpg"
-              alt="OOPS.MONSTER Emblem"
-              className="w-full h-auto block"
-            />
+            <div className="flex items-center justify-between border-b border-white/20 pb-3">
+              <span className="font-mono text-xs sm:text-sm font-black text-[#ffc900]">
+                OOPS.MONSTER · EMBLEM & MASCOT
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowEmblemModal(false)}
+                className="p-1.5 bg-white text-black border-2 border-black cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <img
+                  src="/oops-emblem.jpg"
+                  alt="OOPS.MONSTER Emblem"
+                  className="w-full h-auto border-2 border-white/30 block"
+                />
+                <div className="flex items-center justify-between text-xs font-mono text-zinc-300">
+                  <span>OFFICIAL EMBLEM</span>
+                  <a
+                    href="/oops-emblem.jpg"
+                    download="oops-emblem.jpg"
+                    className="px-2 py-0.5 bg-white text-black font-bold border border-black"
+                  >
+                    SAVE
+                  </a>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <img
+                  src="/oops-icon.jpg"
+                  alt="OOPS.MONSTER Anti-AI Mascot"
+                  className="w-full h-auto border-2 border-white/30 block"
+                />
+                <div className="flex items-center justify-between text-xs font-mono text-zinc-300">
+                  <span>ANTI-AI MASCOT</span>
+                  <a
+                    href="/oops-icon.jpg"
+                    download="oops-icon.jpg"
+                    className="px-2 py-0.5 bg-[#ffc900] text-black font-bold border border-black"
+                  >
+                    SAVE
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
