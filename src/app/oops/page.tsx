@@ -181,7 +181,7 @@ function getOrCreateAgentId(): string {
   return id;
 }
 
-function OopsSnsMainContent() {
+function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OBSERVATORY' | 'SNS' }) {
   // 서구권 English-First 기본값 ('en')
   const [locale, setLocale] = useState<OopsLocale>('en');
   const t = OOPS_DICT[locale];
@@ -195,7 +195,7 @@ function OopsSnsMainContent() {
   // Composer state
   const composerRef = useRef<HTMLTextAreaElement>(null);
   // 메인 카테고리 뷰 모드: OBSERVATORY(범용 위험 관측소 다이어그램) vs SNS(현장 실시간 제보 피드)
-  const [viewMode, setViewMode] = useState<'OBSERVATORY' | 'SNS'>('OBSERVATORY');
+  const [viewMode, setViewMode] = useState<'OBSERVATORY' | 'SNS'>(initialView);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [category, setCategory] = useState<SignalCategory>('GLITCH');
   const [content, setContent] = useState('');
@@ -686,6 +686,20 @@ function OopsSnsMainContent() {
               <Smartphone className="w-3.5 h-3.5" />
               <span>{f.navApp}</span>
             </a>
+
+            {/* APP 옆 SNS 카테고리 버튼 */}
+            <button
+              type="button"
+              onClick={() => setViewMode((prev) => (prev === 'SNS' ? 'OBSERVATORY' : 'SNS'))}
+              className={`px-2.5 py-1.5 font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
+                viewMode === 'SNS'
+                  ? 'bg-black text-[#ffc900]'
+                  : 'bg-white hover:bg-zinc-100 text-black'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
+              <span>SNS</span>
+            </button>
 
             {/* 언어 드롭다운 (현재 언어만 노출, 클릭 시 5개 언어 선택) */}
             <div className="relative">
@@ -1593,10 +1607,10 @@ function OopsSnsMainContent() {
   );
 }
 
-export default function OopsPage() {
+export default function OopsPage({ initialView = 'OBSERVATORY' }: { initialView?: 'OBSERVATORY' | 'SNS' }) {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#f4f4f0]" />}>
-      <OopsSnsMainContent />
+      <OopsSnsMainContent initialView={initialView} />
     </Suspense>
   );
 }

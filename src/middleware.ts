@@ -93,6 +93,13 @@ export function middleware(request: NextRequest) {
       return res;
     }
 
+    // 5-1) /sns 접속 시 -> 내부적으로 /sns 페이지(SNS 전용 뷰)로 라우팅
+    if (pathname === '/sns') {
+      const res = NextResponse.next();
+      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
+      return res;
+    }
+
     // 6) /hq 접속 시 -> 내부적으로 /oops/hq 페이지로 리라이트
     if (pathname === '/hq') {
       const url = request.nextUrl.clone();
