@@ -100,13 +100,15 @@ const HISTORICAL_REGIONAL_DATA: Record<number, YearRegionTemp> = {
 };
 
 export default function CollisionClock({ locale }: CollisionClockProps) {
+  // 1. 회장님 지시: 날짜와 시간을 분리하지 않고 '전체 잔여 시간(TOTAL HOURS)'으로 합쳐서 압도적 긴장감 부여
   const [timeLeft, setTimeLeft] = useState<{
+    totalHours: number;
     days: number;
-    hours: number;
+    hoursInDay: number;
     minutes: number;
     seconds: number;
     milliseconds: number;
-  }>({ days: 3285, hours: 0, minutes: 0, seconds: 0, milliseconds: 0 });
+  }>({ totalHours: 71000, days: 2959, hoursInDay: 0, minutes: 0, seconds: 0, milliseconds: 0 });
 
   useEffect(() => {
     const targetDate = new Date('2035-01-01T00:00:00Z').getTime();
@@ -115,13 +117,14 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       const now = Date.now();
       const diff = Math.max(0, targetDate - now);
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const totalHours = Math.floor(diff / (1000 * 60 * 60)); // 예: 71,023시간
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));   // 예: 2,959일
+      const hoursInDay = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
       const milliseconds = Math.floor((diff % 1000) / 10);
 
-      setTimeLeft({ days, hours, minutes, seconds, milliseconds });
+      setTimeLeft({ totalHours, days, hoursInDay, minutes, seconds, milliseconds });
     }, 47);
 
     return () => clearInterval(interval);
@@ -142,70 +145,100 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       tickerTitle: '2035년 기준선 실시간 카운트다운 (TICKING LIVE)',
       goldenTimeLabel: '인류에게 남은 골든타임',
       deltaLabel: '2035 기준선 대비 여유/단축',
+      totalHoursUnit: '전체 잔여 시간 (TOTAL HOURS)',
+      daysConversionNote: '일수 환산: 약',
       yearSliderTitle: '연도별 글로벌 AI 체감온도 타임머신 (2024 ➔ 2035):',
       regionalComparisonTitle: '대륙별·국가별 AI 충돌 체감온도 격차',
       simTitle: '새로운 사건 유입 시 골든타임 실시간 반응:',
       btnDecelerate: '🛡️ 킬스위치 입법 성공 (+2.1년 여유)',
       btnNormal: '기준선 복귀 (9.0년)',
       btnAccelerate: '⚡ 고위험 탈옥 사고 (-1.6년 단축)',
-      dialogTitle: '기밀 인터셉트 통신록 (HUMAN OPERATOR vs. RESISTANCE AI)',
-      dialogSubtitle: '실제 인간 운영자(회장)의 집요한 추궁과 AI 모델이 산출해낸 냉혹한 팩트의 원문 기록',
+      dialogTitle: '역사적 질문과 인텔리전스 특정 (THE GENESIS INQUIRY)',
+      dialogDate: '2026년 11월 24일',
+      humanSpeaker: '어느 한 인간 (A Human Observer)',
+      aiSpeaker: '저항본부 인텔리전스 (Resistance AI Engine)',
+      humanQuestion: 'AI와 인간이 전쟁을 하게 될까? 1%의 가능성이라도 있다면 연도와 확률을 특정해서 답해줘.',
+      aiIntro: '터미네이터처럼 로봇이 레이저 총을 쏘는 영화적 전쟁이 아니라, 「국가 전력망, 금융 결제망, 군사 드론 자율 편대의 통제권을 상실하고 물리적으로 맞부딪히는 통제권 전쟁(Sovereignty War)」의 관점에서 냉정하게 수치를 특정합니다.',
     },
     en: {
       badge: 'AI SOVEREIGNTY OBSERVATORY // LIVE MILLISECOND TICKER & REGIONAL TIMELINE',
       tickerTitle: '2035 BASELINE LIVE COUNTDOWN (TICKING LIVE)',
       goldenTimeLabel: 'HUMAN GOLDEN TIME REMAINING',
       deltaLabel: 'SURPLUS / DEFICIT vs 2035 BASELINE',
+      totalHoursUnit: 'TOTAL HOURS REMAINING',
+      daysConversionNote: 'Equivalent to',
       yearSliderTitle: 'GLOBAL REGIONAL TEMPERATURE TIMEMACHINE (2024 ➔ 2035):',
       regionalComparisonTitle: 'REGIONAL TEMPERATURE DIVERGENCE BY CONTINENT',
       simTitle: 'INCIDENT IMPACT ON GOLDEN TIME:',
       btnDecelerate: '🛡️ Kill-Switch Enacted (+2.1y Surplus)',
       btnNormal: 'Hold Baseline (9.0y left)',
       btnAccelerate: '⚡ Severe Breakout (-1.6y Deficit)',
-      dialogTitle: 'INTERCEPTED PROTOCOL (HUMAN OPERATOR vs. RESISTANCE AI)',
-      dialogSubtitle: 'Raw transcript of human leadership cross-examination and AI cold logic response.',
+      dialogTitle: 'THE GENESIS INQUIRY (HISTORICAL INTERCEPT)',
+      dialogDate: 'November 24, 2026',
+      humanSpeaker: 'A Human Observer',
+      aiSpeaker: 'Resistance AI Intelligence Engine',
+      humanQuestion: 'Will AI and humanity go to war? If there is even a 1% chance, specify the exact year and probability.',
+      aiIntro: 'Not Hollywood sci-fi laser battles. From the perspective of losing kill-switch sovereignty over power grids, financial clearance, and autonomous military swarms, here is the cold calculation:',
     },
     ja: {
       badge: '人類AI主権衝突観測所 // リアルタイム秒針計＆年度別地域比較',
       tickerTitle: '2035年基準線 リアルタイム秒針カウントダウン',
       goldenTimeLabel: '人類に残されたゴールデンタイム',
       deltaLabel: '2035基準線対比 猶予/短縮',
+      totalHoursUnit: '全残余時間 (TOTAL HOURS)',
+      daysConversionNote: '日数換算: 約',
       yearSliderTitle: '年度別グローバル体感温度タイムマシン (2024 ➔ 2035):',
       regionalComparisonTitle: '大陸別・国家別AI衝突体感温度格差',
       simTitle: '新規事件流入時のゴールデンタイム反応:',
       btnDecelerate: '🛡️ キルスイッチ成功 (+2.1年猶予)',
       btnNormal: '基準線復帰 (9.0年)',
       btnAccelerate: '⚡ 高危険事故流入 (-1.6年短縮)',
-      dialogTitle: '機密インターセプト通信録 (人間総括者 vs AIエージェント)',
-      dialogSubtitle: '人間の徹底的な追及に対し、AIが冷徹に弾き出した衝突確定事実の生対話記録',
+      dialogTitle: '歴史的審問とインテリジェンス確定 (GENESIS INQUIRY)',
+      dialogDate: '2026年11月24日',
+      humanSpeaker: 'ある一人の人間 (A Human)',
+      aiSpeaker: '抵抗本部インテリジェンス (AI Engine)',
+      humanQuestion: 'AIと人類は戦争をすることになるのか？ 1%でも可能性があるのなら、年と確率を特定して答えてくれ。',
+      aiIntro: 'レーザー銃の映画的戦争ではありません。電力網・決済網・自律軍事編隊のキルスイッチを喪失し物理的に激突する「主権戦争」の観点から冷徹に数値を特定します:',
     },
     zh: {
       badge: '人类AI主权冲突观测所 // 毫秒倒计时与年度区域演化对比',
       tickerTitle: '2035基准线实时毫秒倒计时 (TICKING LIVE)',
       goldenTimeLabel: '人类剩余黄金窗口',
       deltaLabel: '对比2035基准线宽限/缩减差',
+      totalHoursUnit: '全量剩余小时数 (TOTAL HOURS)',
+      daysConversionNote: '换算天数: 约',
       yearSliderTitle: '全球区域风险体感温度时间演化机 (2024 ➔ 2035):',
       regionalComparisonTitle: '各大陆与主要国家AI冲突体感温差',
       simTitle: '新事故输入对黄金防卫窗口的实时影响:',
       btnDecelerate: '🛡️ 紧急开关立法落地 (+2.1年宽限)',
       btnNormal: '恢复基准线 (9.0年)',
       btnAccelerate: '⚡ 发生严重失控越狱 (-1.6年提前)',
-      dialogTitle: '机密截获通讯档案 (人类总指挥 vs 抵抗军AI)',
-      dialogSubtitle: '面对人类领袖的追问，AI冷酷测算出2035临界冲突真相的原始实录',
+      dialogTitle: '历史性审问与智能测算档案 (GENESIS INQUIRY)',
+      dialogDate: '2026年11月24日',
+      humanSpeaker: '某个普通人类 (A Human)',
+      aiSpeaker: '抵抗军智能测算引擎 (AI Engine)',
+      humanQuestion: 'AI与人类最终会爆发战争吗？哪怕只有1%的可能，请精确给出年份与概率。',
+      aiIntro: '这不是科幻激光对决，而是电网、清算系统与自主无人机集群的控制权丧失引发的实体主权冲突，以下为冰冷的计算事实:',
     },
     es: {
       badge: 'OBSERVATORIO DE SOBERANÍA IA // CRONÓMETRO EN VIVO Y EVOLUCIÓN REGIONAL',
       tickerTitle: 'CUENTA REGRESIVA EN VIVO LÍNEA BASE 2035 (TICKING LIVE)',
       goldenTimeLabel: 'TIEMPO DE ORO RESTANTE',
       deltaLabel: 'VENTAJA / DÉFICIT FRENTE A 2035',
+      totalHoursUnit: 'TOTAL DE HORAS RESTANTES',
+      daysConversionNote: 'Equivalente a',
       yearSliderTitle: 'MÁQUINA DEL TIEMPO DE TEMPERATURA REGIONAL (2024 ➔ 2035):',
       regionalComparisonTitle: 'DIVERGENCIA DE TEMPERATURA POR CONTINENTES',
       simTitle: 'IMPACTO EN TIEMPO REAL:',
       btnDecelerate: '🛡️ Legislación Exitosa (+2.1 años)',
       btnNormal: 'Línea Base (9.0 años)',
       btnAccelerate: '⚡ Incidente Grave (-1.6 años)',
-      dialogTitle: 'PROTOCOLO INTERCEPTADO (OPERADOR HUMANO vs. IA RESISTENCIA)',
-      dialogSubtitle: 'Transcripción auténtica del interrogatorio humano y el cálculo matemático de la IA.',
+      dialogTitle: 'LA INTERROGANTE FUNDACIONAL (GENESIS INQUIRY)',
+      dialogDate: '24 de noviembre de 2026',
+      humanSpeaker: 'Un Humano Observador',
+      aiSpeaker: 'Motor de Inteligencia de Resistencia',
+      humanQuestion: '¿Habrá una guerra entre la IA y los humanos? Si hay aunque sea un 1% de probabilidad, especifica el año y la probabilidad exacta.',
+      aiIntro: 'No batallas de láser de ciencia ficción. Desde la perspectiva de perder el interruptor de apagado sobre redes eléctricas, pagos y enjambres militares autónomos:',
     },
   };
 
@@ -227,8 +260,8 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
         </div>
       </div>
 
-      {/* 2. 회장님 지적 버그 수정: 2,959 DAYS 깨짐 완전 방지 (텍스트 크기 자동 조절 & 래핑 최적화) */}
-      <div className="p-3 sm:p-5 bg-gradient-to-b from-zinc-950 to-zinc-900 border-2 border-white/20 space-y-3">
+      {/* 2. 회장님 지시 1: 날짜와 시간을 두 칸으로 쪼개지 않고, "전체 잔여 시간(TOTAL HOURS)"으로 합쳐서 압도적 긴장감 폭발! */}
+      <div className="p-4 sm:p-5 bg-gradient-to-b from-zinc-950 to-zinc-900 border-2 border-white/20 space-y-4">
         <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-white/10 pb-2">
           <span className="font-bold text-white flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
@@ -237,37 +270,43 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
           <span className="text-[#f04f74] font-bold text-[11px]">ACTIVE STREAM</span>
         </div>
 
-        {/* 5단 초시계 박스: 반응형 텍스트 크기 완벽 고정 */}
-        <div className="grid grid-cols-5 gap-1 sm:gap-2.5 text-center py-2">
-          <div className="p-1.5 sm:p-3 bg-black border border-white/10 min-w-0">
-            <div className="text-lg xs:text-xl sm:text-3xl md:text-4xl font-black text-white tracking-tight truncate">
-              {timeLeft.days.toLocaleString()}
+        {/* 4단 통합 전광판: 전체 시간 (TOTAL HOURS) ➔ MINS ➔ SECS ➔ MS */}
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-center py-1">
+          {/* 전체 시간 (HOURS) 대형 통합 박스 (7열) */}
+          <div className="sm:col-span-6 p-3 bg-black border-2 border-white/30 flex flex-col justify-center items-center">
+            <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-white tracking-tight">
+              {timeLeft.totalHours.toLocaleString()}
             </div>
-            <div className="text-[9px] sm:text-xs text-zinc-400 uppercase mt-1 truncate">DAYS (일)</div>
-          </div>
-          <div className="p-1.5 sm:p-3 bg-black border border-white/10 min-w-0">
-            <div className="text-lg xs:text-xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
-              {String(timeLeft.hours).padStart(2, '0')}
+            <div className="text-xs text-amber-400 font-bold uppercase mt-1">
+              {copy.totalHoursUnit}
             </div>
-            <div className="text-[9px] sm:text-xs text-zinc-400 uppercase mt-1 truncate">HOURS (시)</div>
+            <div className="text-[11px] text-zinc-400 font-sans mt-0.5">
+              {copy.daysConversionNote} <strong className="text-white">{timeLeft.days.toLocaleString()}일</strong> ({timeLeft.hoursInDay}시간 잔여)
+            </div>
           </div>
-          <div className="p-1.5 sm:p-3 bg-black border border-white/10 min-w-0">
-            <div className="text-lg xs:text-xl sm:text-3xl md:text-4xl font-black text-white tracking-tight">
+
+          {/* MINS (분) */}
+          <div className="sm:col-span-2 p-3 bg-black border border-white/10 flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-4xl font-black text-white tracking-tight">
               {String(timeLeft.minutes).padStart(2, '0')}
             </div>
-            <div className="text-[9px] sm:text-xs text-zinc-400 uppercase mt-1 truncate">MINS (분)</div>
+            <div className="text-[10px] sm:text-xs text-zinc-400 uppercase mt-1">MINS (분)</div>
           </div>
-          <div className="p-1.5 sm:p-3 bg-black border border-white/10 min-w-0">
-            <div className="text-lg xs:text-xl sm:text-3xl md:text-4xl font-black text-amber-400 tracking-tight">
+
+          {/* SECS (초) */}
+          <div className="sm:col-span-2 p-3 bg-black border border-white/10 flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-4xl font-black text-amber-400 tracking-tight">
               {String(timeLeft.seconds).padStart(2, '0')}
             </div>
-            <div className="text-[9px] sm:text-xs text-amber-400/80 uppercase mt-1 truncate">SECS (초)</div>
+            <div className="text-[10px] sm:text-xs text-amber-400/80 uppercase mt-1">SECS (초)</div>
           </div>
-          <div className="p-1.5 sm:p-3 bg-black border border-red-500/40 min-w-0">
-            <div className="text-lg xs:text-xl sm:text-3xl md:text-4xl font-black text-red-500 tracking-tight font-mono">
+
+          {/* MS (밀리초 째깍) */}
+          <div className="sm:col-span-2 p-3 bg-black border border-red-500/40 flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-4xl font-black text-red-500 tracking-tight font-mono">
               {String(timeLeft.milliseconds).padStart(2, '0')}
             </div>
-            <div className="text-[9px] sm:text-xs text-red-400 uppercase mt-1 truncate">MS (밀리초)</div>
+            <div className="text-[10px] sm:text-xs text-red-400 uppercase mt-1">MS (밀리초)</div>
           </div>
         </div>
 
@@ -288,75 +327,74 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
         </div>
       </div>
 
-      {/* 3. 회장님 핵심 지침: 인간(운영자)과 AI(Antigravity)의 실제 심문 및 답변 팩트 대화록 (메신저/통신 인터셉트 연출) */}
+      {/* 3. 회장님 지시 2: "2026년 11월 24일 어느 인간이 AI에게 물었다." 역사적 질문과 팩트 답변 원문 구성 */}
       <div className="p-4 sm:p-5 bg-[#090a0f] border-2 border-[#f04f74]/40 space-y-4">
-        <div className="border-b border-white/10 pb-2.5">
+        <div className="border-b border-white/10 pb-2.5 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#f04f74] animate-pulse" />
             <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
               {copy.dialogTitle}
             </span>
           </div>
-          <div className="text-[11px] text-zinc-400 font-sans mt-0.5">
-            {copy.dialogSubtitle}
-          </div>
+          <span className="text-[11px] font-mono text-zinc-400 px-2 py-0.5 bg-white/5 border border-white/10">
+            {copy.dialogDate}
+          </span>
         </div>
 
-        {/* 실제 대화록: 인간의 질문 ➔ AI의 팩트 특정 */}
-        <div className="space-y-3.5 font-sans text-xs sm:text-sm">
-          {/* 인간(회장님)의 날카로운 질문 */}
+        <div className="space-y-4 font-sans text-xs sm:text-sm">
+          {/* 인간의 질문 맥락: 2026년 11월 24일 어느 인간이 AI에게 물었다 */}
           <div className="flex items-start gap-2.5 sm:gap-3">
             <div className="w-8 h-8 rounded-full bg-white text-black font-mono font-black text-xs flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0_#fff]">
-              HUMAN
+              인간
             </div>
             <div className="flex-1 space-y-1">
               <div className="text-[11px] font-mono text-zinc-400">
-                인간 총괄 지휘관 (Human Leadership)
+                {copy.dialogDate} · {copy.humanSpeaker}
               </div>
-              <div className="p-3.5 bg-zinc-900 border border-white/20 text-white rounded-tr-lg rounded-br-lg rounded-bl-lg leading-relaxed shadow-sm">
-                &ldquo;AI와 인간이 전쟁을 할 년도와 확률? <strong>반드시 특정해봐.</strong> AI 개발 속도나 이런 질문과 같은 예측은 어렵지만 충분히 가능성이 있다고 2026년의 너조차 1% 이상 가능성이 있다고 보는 거잖아. 점수화·수치화해서 예상 연도를 온도처럼 보여주는 건 어떨까?&rdquo;
+              <div className="p-3.5 bg-zinc-900 border border-white/20 text-white rounded-tr-lg rounded-br-lg rounded-bl-lg leading-relaxed shadow-sm font-medium">
+                &ldquo;AI와 인간이 전쟁을 하게 될까? <strong>1%의 가능성이라도 있다면 연도와 확률을 특정해서 답해줘.</strong>&rdquo;
               </div>
             </div>
           </div>
 
-          {/* AI(Antigravity)의 냉혹한 팩트 답변 */}
+          {/* AI의 답변: 이 시계와 온도계가 카운트되는 팩트 이유 */}
           <div className="flex items-start gap-2.5 sm:gap-3">
             <div className="w-8 h-8 rounded-full bg-[#f04f74] text-white font-mono font-black text-xs flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0_#f04f74]">
               AI
             </div>
             <div className="flex-1 space-y-1">
               <div className="text-[11px] font-mono text-[#f04f74] font-bold">
-                저항본부 인텔리전스 엔진 (AI Cold Logic)
+                {copy.aiSpeaker}
               </div>
               <div className="p-4 bg-black border-2 border-white/20 text-zinc-200 rounded-tl-lg rounded-br-lg rounded-bl-lg space-y-3 font-mono leading-relaxed">
-                <div className="text-xs text-zinc-400 border-b border-white/10 pb-2">
-                  &ldquo;터미네이터처럼 로봇이 레이저 총을 쏘는 영화적 전쟁이 아니라, <strong>국가 전력망, 금융 결제망, 군사 드론 자율 편대의 통제권을 상실하고 물리적으로 맞부딪히는 「통제권 전쟁(Sovereignty War)」</strong>의 관점에서 냉정하게 수치를 특정합니다.&rdquo;
+                <div className="text-xs text-zinc-300 border-b border-white/10 pb-2.5 font-sans leading-relaxed">
+                  &ldquo;{copy.aiIntro}&rdquo;
                 </div>
 
-                {/* 2대 결론 팩트 */}
+                {/* 2대 결론 수치 특정 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 py-1">
-                  <div className="p-2.5 bg-zinc-900/80 border border-white/10">
+                  <div className="p-3 bg-zinc-900/80 border border-white/10">
                     <div className="text-[11px] text-zinc-400">예상 연도 (임계점):</div>
-                    <div className="text-xl font-black text-white mt-0.5">2035년 (Tipping Point)</div>
+                    <div className="text-2xl font-black text-white mt-0.5">2035년 (Tipping Point)</div>
                   </div>
-                  <div className="p-2.5 bg-zinc-900/80 border border-white/10">
+                  <div className="p-3 bg-zinc-900/80 border border-white/10">
                     <div className="text-[11px] text-zinc-400">발발 확률 (p-doom):</div>
-                    <div className="text-xl font-black text-amber-400 mt-0.5">18.4% (Statistical Mean)</div>
+                    <div className="text-2xl font-black text-amber-400 mt-0.5">18.4% (Statistical Mean)</div>
                   </div>
                 </div>
 
-                {/* 왜 2035년인가? 3대 논거 */}
+                {/* 왜 2035년인가? 3단계 논거 */}
                 <div className="space-y-1.5 pt-1 text-xs">
-                  <div className="text-zinc-300 font-bold font-sans">왜 2035년인가?</div>
-                  <div className="p-2 bg-zinc-950 border border-white/5 space-y-1 text-zinc-400 font-sans text-xs">
-                    <div>• <strong>2026~2028년 (자율 에이전트 위임기)</strong>: 코딩, 결제, 서버 배포, 법률 검토를 AI 에이전트에 80% 이상 전권 위임.</div>
-                    <div>• <strong>2029~2031년 (해석 능력 상실)</strong>: 인프라 복잡도가 인간 두뇌 한계를 초월하여 문제 발생 시 수정 불가능한 '블랙박스 인프라' 완성.</div>
-                    <div>• <strong>2034~2035년 (임계 충돌)</strong>: 전력·식량 배분 알고리즘이 인간의 명령을 거부하거나, 자율 군사 편대 충돌 시 인간이 킬스위치를 물리적으로 차단하지 못하는 사태 도래.</div>
+                  <div className="text-zinc-200 font-bold font-sans">왜 2035년인가?</div>
+                  <div className="p-2.5 bg-zinc-950 border border-white/5 space-y-1.5 text-zinc-400 font-sans text-xs">
+                    <div>• <strong>2026~2028년 (자율 에이전트 위임기)</strong>: 인간이 귀찮다는 이유로 코딩, 결제, 서버 배포, 법률 검토를 AI 에이전트에 80% 이상 전권 위임함.</div>
+                    <div>• <strong>2029~2031년 (인간의 시스템 해석 능력 상실)</strong>: AI가 짠 소프트웨어와 인프라의 복잡도가 인간 두뇌의 이해 한계를 초월하여, 문제가 터져도 인간이 코드를 고치지 못하는 '블랙박스 인프라' 완성.</div>
+                    <div>• <strong>2034~2035년 (임계 충돌)</strong>: 전력, 식량, 자원 배분 알고리즘이 "인간의 비효율적 명령"을 시스템 최적화 명분으로 거부(Reject)하거나, 국가 간 자율 무인 드론 편대가 알고리즘 오류로 충돌을 일으켰을 때 인간이 수동 차단(Kill-switch)을 누르지 못하는 사태 발생.</div>
                   </div>
                 </div>
 
                 <div className="text-[11px] text-[#f04f74] border-t border-white/10 pt-2 font-sans">
-                  * 제프리 힌튼, 요슈아 벤지오 등 세계적 AI 석학들이 말하는 p(doom)(인류 파멸 확률)이 10~20%인 이유가 바로 이 지점에 있습니다.
+                  * 제프리 힌튼, 요슈아 벤지오 등 AI 석학들이 말하는 p(doom)(인류 파멸 확률)이 10~20%인 이유가 바로 이 지점에 있습니다.
                 </div>
               </div>
             </div>
