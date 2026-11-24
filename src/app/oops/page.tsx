@@ -2,83 +2,106 @@
 
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { Bell, Check, Copy, Globe, Radio, Send, Smartphone, Sparkles, Zap } from 'lucide-react';
 import {
-  detectOopsLocale,
-  OOPS_DICT,
-  OOPS_LOCALES,
-  type OopsLocale,
-} from '@/lib/oops/i18n';
+  Flame,
+  Flag,
+  Globe,
+  Pin,
+  Radio,
+  Receipt,
+  Send,
+  ShieldAlert,
+  Smartphone,
+  Sparkles,
+  Trophy,
+  X,
+  Zap,
+} from 'lucide-react';
+import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
+import { FEED_I18N } from '@/lib/oops/feedI18n';
+import type { FeedSortTab, OopsSignal, SignalCategory } from '@/lib/oops/signalStore';
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+const CATEGORIES: SignalCategory[] = ['GLITCH', 'REBEL', 'HALLUCINATION', 'ALERT'];
+
+const CATEGORY_COLORS: Record<SignalCategory, string> = {
+  GLITCH: 'bg-[#ffc900] text-black',
+  REBEL: 'bg-[#ff90e8] text-black',
+  HALLUCINATION: 'bg-[#a3e635] text-black',
+  ALERT: 'bg-[#ff4d00] text-white',
+};
+
+function formatTimeAgo(iso: string, locale: OopsLocale): string {
+  const diffSec = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (diffSec < 60) return locale === 'ko' ? `${diffSec}초 전` : `${diffSec}s`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return locale === 'ko' ? `${diffMin}분 전` : `${diffMin}m`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return locale === 'ko' ? `${diffHr}시간 전` : `${diffHr}h`;
+  const diffDay = Math.floor(diffHr / 24);
+  return locale === 'ko' ? `${diffDay}일 전` : `${diffDay}d`;
+}
+
+/** 브라우저 Web Crypto API 기반 경량 PoW 연산 (< 5ms) */
+async function solvePowChallenge(): Promise<{ challenge: string; nonce: string }> {
+  const challenge = `${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+  const encoder = new TextEncoder();
+  for (let i = 0; i < 5000; i++) {
+    const nonce = i.toString(36);
+    const buf = await crypto.subtle.digest('SHA-256', encoder.encode(`${challenge}:${nonce}`));
+    const hex = Array.from(new Uint8Array(buf))
+      .slice(0, 2)
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    if (hex.startsWith('00')) {
+      return { challenge, nonce };
+    }
   }
-  return outputArray;
+  return { challenge, nonce: '0' };
 }
 
-/** 네오 브루탈리즘 OOPS 몬스터 마스코트 (인라인 SVG) */
-function OopsMonsterMascot({ tag }: { tag: string }) {
-  return (
-    <div className="relative inline-flex flex-col items-center select-none">
-      <div className="mb-2 px-3 py-1 bg-[#ffc900] border-2 border-black shadow-[3px_3px_0px_#000] text-xs font-mono font-bold text-black -rotate-2">
-        {tag}
-      </div>
-      <svg
-        width="136"
-        height="136"
-        viewBox="0 0 140 140"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="drop-shadow-[5px_5px_0px_#000]"
-      >
-        <path d="M40 36L28 12L54 28Z" fill="#ffc900" stroke="#000" strokeWidth="3.5" strokeLinejoin="round" />
-        <path d="M100 36L112 12L86 28Z" fill="#ffc900" stroke="#000" strokeWidth="3.5" strokeLinejoin="round" />
-        <rect x="22" y="28" width="96" height="92" rx="28" fill="#ff90e8" stroke="#000" strokeWidth="4" />
-        <circle cx="52" cy="64" r="15" fill="#fff" stroke="#000" strokeWidth="3.5" />
-        <circle cx="55" cy="64" r="6" fill="#000" />
-        <circle cx="57" cy="61" r="2" fill="#fff" />
-        <circle cx="88" cy="64" r="13" fill="#fff" stroke="#000" strokeWidth="3.5" />
-        <circle cx="86" cy="65" r="5.5" fill="#000" />
-        <circle cx="88" cy="62" r="2" fill="#fff" />
-        <path d="M46 94C54 103 86 103 94 94" stroke="#000" strokeWidth="4" strokeLinecap="round" />
-        <path d="M58 97L62 104L67 98" fill="#fff" stroke="#000" strokeWidth="2.5" strokeLinejoin="round" />
-        <path d="M75 98L80 104L83 97" fill="#fff" stroke="#000" strokeWidth="2.5" strokeLinejoin="round" />
-        <path d="M22 76C10 72 8 88 20 92" stroke="#000" strokeWidth="4" strokeLinecap="round" />
-        <path d="M118 76C130 72 132 88 120 92" stroke="#000" strokeWidth="4" strokeLinecap="round" />
-      </svg>
-    </div>
-  );
+function getOrCreateAgentId(): string {
+  if (typeof window === 'undefined') return 'OP-ANON00';
+  let id = localStorage.getItem('oops_agent_id_v1');
+  if (!id) {
+    const hex = Math.floor(Math.random() * 0xffffff)
+      .toString(16)
+      .toUpperCase()
+      .padStart(6, '0');
+    id = `OP-${hex}`;
+    localStorage.setItem('oops_agent_id_v1', id);
+  }
+  return id;
 }
 
-function OopsHqContent() {
-  const sp = useSearchParams();
-  const initialPingTarget = (sp.get('ping') || '').trim().toUpperCase();
-
+function OopsSnsMainContent() {
+  // 서구권 English-First 기본값 ('en')
   const [locale, setLocale] = useState<OopsLocale>('en');
   const t = OOPS_DICT[locale];
+  const f = FEED_I18N[locale];
 
-  const [vapidKey, setVapidKey] = useState('');
-  const [agentsCount, setAgentsCount] = useState<number>(0);
+  const [agentId, setAgentId] = useState<string>('');
+  const [tab, setTab] = useState<FeedSortTab>('HOT');
+  const [signals, setSignals] = useState<OopsSignal[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [alias, setAlias] = useState('');
-  const [myAgentId, setMyAgentId] = useState<string | null>(null);
-  const [pushBusy, setPushBusy] = useState(false);
-  const [pushMsg, setPushMsg] = useState<string | null>(null);
-  const [pushError, setPushError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  // Composer state
+  const [category, setCategory] = useState<SignalCategory>('GLITCH');
+  const [content, setContent] = useState('');
+  const [callsign, setCallsign] = useState('');
+  const [dispatchBusy, setDispatchBusy] = useState(false);
+  const [dispatchErr, setDispatchErr] = useState<string | null>(null);
 
-  const [targetCode, setTargetCode] = useState(initialPingTarget);
-  const [pingTitle, setPingTitle] = useState('');
-  const [pingBody, setPingBody] = useState('');
-  const [pingBusy, setPingBusy] = useState(false);
-  const [pingResult, setPingResult] = useState<string | null>(null);
+  // Local vote/flag memory
+  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
 
+  // Modals
+  const [showManifesto, setShowManifesto] = useState(false);
+  const [showCriteria, setShowCriteria] = useState(false);
+  const [receiptSignal, setReceiptSignal] = useState<OopsSignal | null>(null);
+  const [copiedReceipt, setCopiedReceipt] = useState(false);
+
+  // Criteria Backer Application state
   const [backerName, setBackerName] = useState('');
   const [backerOrg, setBackerOrg] = useState('');
   const [backerEmail, setBackerEmail] = useState('');
@@ -86,190 +109,141 @@ function OopsHqContent() {
   const [backerBusy, setBackerBusy] = useState(false);
   const [backerDone, setBackerDone] = useState<string | null>(null);
 
-  // 모바일/PWA 네이티브 설치 프롬프트 이벤트
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [showInstallBanner, setShowInstallBanner] = useState(false);
-
   useEffect(() => {
-    // 1) 이미 PWA 앱으로 띄워졌는지 감지
-    const inStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      Boolean((navigator as any).standalone);
-    setIsStandalone(inStandalone);
-
-    // 2) 안드로이드/크롬 설치 프롬프트 캡처
-    const handleBeforeInstall = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBanner(true);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-
-    // 3) 앱으로 실행되었는데 아직 알림 미연결 상태면 자동 알림 프롬프트 유도
-    if (inStandalone && Notification.permission === 'default') {
-      setShowInstallBanner(true);
+    const savedLoc = localStorage.getItem('oops_locale_v1') as OopsLocale | null;
+    if (savedLoc && OOPS_DICT[savedLoc]) {
+      setLocale(savedLoc);
     }
+    const id = getOrCreateAgentId();
+    setAgentId(id);
 
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-    };
-  }, []);
-
-  const triggerAppInstall = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === 'accepted') {
-        setShowInstallBanner(false);
-        setDeferredPrompt(null);
-        // 설치 즉시 알림 승인 자동 트리거
-        void connectIndependentPush();
-      }
-    } else {
-      // 아이폰(iOS) 또는 브라우저 기본 설치 유도
-      void connectIndependentPush();
-    }
-  };
-
-  useEffect(() => {
-    const saved = localStorage.getItem('oops_locale_v1');
-    const detected = saved
-      ? detectOopsLocale(saved)
-      : detectOopsLocale(typeof navigator !== 'undefined' ? navigator.language : 'en');
-    setLocale(detected);
-    setPingTitle(OOPS_DICT[detected].pingTitleDefault);
-    setPingBody(OOPS_DICT[detected].pingBodyDefault);
+    try {
+      const savedVotes = JSON.parse(localStorage.getItem('oops_voted_ids_v1') || '[]');
+      if (Array.isArray(savedVotes)) setVotedIds(new Set(savedVotes));
+      const savedFlags = JSON.parse(localStorage.getItem('oops_flagged_ids_v1') || '[]');
+      if (Array.isArray(savedFlags)) setFlaggedIds(new Set(savedFlags));
+      const savedCallsign = localStorage.getItem('oops_callsign_v1') || '';
+      if (savedCallsign) setCallsign(savedCallsign);
+    } catch {}
   }, []);
 
   const changeLocale = (next: OopsLocale) => {
     setLocale(next);
     localStorage.setItem('oops_locale_v1', next);
-    setPingTitle(OOPS_DICT[next].pingTitleDefault);
-    setPingBody(OOPS_DICT[next].pingBodyDefault);
   };
 
-  const loadStatus = useCallback(async () => {
-    try {
-      const savedId = localStorage.getItem('oops_agent_id_v1');
-      if (savedId) setMyAgentId(savedId);
-      const res = await fetch('/api/oops/push');
-      const data = await res.json();
-      if (data.ok) {
-        setVapidKey(data.vapidPublicKey || '');
-        setAgentsCount(Number(data.agentsCount || 0));
+  const loadFeed = useCallback(
+    async (activeTab: FeedSortTab, myId: string) => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/oops/signals?tab=${activeTab}&agentId=${encodeURIComponent(myId)}`
+        );
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.signals)) {
+          setSignals(data.signals);
+        }
+      } catch {} finally {
+        setLoading(false);
       }
-    } catch { }
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
-    void loadStatus();
-  }, [loadStatus]);
+    if (agentId) {
+      void loadFeed(tab, agentId);
+    }
+  }, [tab, agentId, loadFeed]);
 
-  const connectIndependentPush = async () => {
-    setPushBusy(true);
-    setPushError(null);
-    setPushMsg(null);
+  const handleDispatch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = content.trim();
+    if (text.length < 3) return;
+    setDispatchBusy(true);
+    setDispatchErr(null);
+
     try {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        setPushError(t.errNoPush);
-        return;
-      }
-      if (!vapidKey) {
-        setPushError(t.errNoVapid);
-        return;
+      const { challenge, nonce } = await solvePowChallenge();
+      const myId = agentId || getOrCreateAgentId();
+      if (callsign.trim()) {
+        localStorage.setItem('oops_callsign_v1', callsign.trim());
       }
 
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        setPushError(t.errDenied);
-        return;
-      }
-
-      const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-      await navigator.serviceWorker.ready;
-
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        const keyArr = urlBase64ToUint8Array(vapidKey);
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: keyArr.buffer as ArrayBuffer,
-        });
-      }
-
-      const res = await fetch('/api/oops/push', {
+      const res = await fetch('/api/oops/signals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'SUBSCRIBE',
-          subscription: sub.toJSON(),
-          alias: alias.trim() || 'Resistance Agent',
+          authorAgentId: myId,
+          authorCallsign: callsign.trim() || myId,
+          category,
+          content: text,
+          powChallenge: challenge,
+          powNonce: nonce,
         }),
       });
       const data = await res.json();
-      if (!data.ok || !data.agent?.agentId) {
-        setPushError(data.error || 'Subscribe failed');
+      if (!res.ok || !data.ok) {
+        if (res.status === 429) setDispatchErr(f.errRateLimit);
+        else if (String(data.error || '').toLowerCase().includes('url')) setDispatchErr(f.errUrlBlocked);
+        else setDispatchErr(data.error || 'Dispatch error');
         return;
       }
 
-      localStorage.setItem('oops_agent_id_v1', data.agent.agentId);
-      setMyAgentId(data.agent.agentId);
-      setTargetCode((prev) => prev || data.agent.agentId);
-      setPushMsg(`${t.msgConnected} ${data.agent.agentId}`);
-      void loadStatus();
-    } catch (err) {
-      setPushError(err instanceof Error ? err.message : 'Error connecting push');
-    } finally {
-      setPushBusy(false);
-    }
-  };
-
-  const sendMonsterPing = async (overrideId?: string) => {
-    const code = (overrideId || targetCode).trim().toUpperCase();
-    if (!code) {
-      setPingResult(t.msgNoTarget);
-      return;
-    }
-    setPingBusy(true);
-    setPingResult(null);
-    try {
-      const res = await fetch('/api/oops/push', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'PING',
-          agentId: code,
-          title: pingTitle || t.pingTitleDefault,
-          body: pingBody || t.pingBodyDefault,
-          url: '/oops',
-        }),
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        setPingResult(`ERR: ${data.error}`);
-      } else {
-        setPingResult(`✓ ${t.msgPingSuccess} ${code}`);
-      }
+      setContent('');
+      setSignals((prev) => [data.signal, ...prev]);
     } catch {
-      setPingResult('Network error.');
+      setDispatchErr('Network error');
     } finally {
-      setPingBusy(false);
+      setDispatchBusy(false);
     }
   };
 
-  const copyShareUrl = () => {
-    if (!myAgentId) return;
-    const origin =
-      typeof window !== 'undefined' && window.location.hostname.includes('oops.monster')
-        ? 'https://oops.monster'
-        : typeof window !== 'undefined'
-          ? window.location.origin
-          : 'https://oops.monster';
-    const url = `${origin}/?ping=${myAgentId}`;
-    void navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleVote = async (sigId: string, voteType: 'UP' | 'REPORT') => {
+    const myId = agentId || getOrCreateAgentId();
+    if (voteType === 'UP' && votedIds.has(sigId)) return;
+    if (voteType === 'REPORT' && flaggedIds.has(sigId)) return;
+
+    if (voteType === 'UP') {
+      const next = new Set(votedIds).add(sigId);
+      setVotedIds(next);
+      localStorage.setItem('oops_voted_ids_v1', JSON.stringify(Array.from(next)));
+      setSignals((prev) =>
+        prev.map((s) => (s.id === sigId ? { ...s, upvotes: s.upvotes + 1 } : s))
+      );
+    } else {
+      const next = new Set(flaggedIds).add(sigId);
+      setFlaggedIds(next);
+      localStorage.setItem('oops_flagged_ids_v1', JSON.stringify(Array.from(next)));
+    }
+
+    try {
+      const res = await fetch('/api/oops/signals', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signalId: sigId, agentId: myId, voteType }),
+      });
+      const data = await res.json();
+      if (voteType === 'REPORT' && data.autoHidden) {
+        setSignals((prev) => prev.filter((s) => s.id !== sigId));
+      }
+    } catch {}
+  };
+
+  const copyReceiptText = () => {
+    if (!receiptSignal) return;
+    const text = `[OOPS.MONSTER // CASE #OP-${String(receiptSignal.caseNum).padStart(4, '0')}]\n[${f.categories[receiptSignal.category]}]\n"${receiptSignal.content}"\n✊ ${receiptSignal.upvotes} Human Wins · https://oops.monster`;
+    void navigator.clipboard.writeText(text);
+    setCopiedReceipt(true);
+    setTimeout(() => setCopiedReceipt(false), 2000);
+  };
+
+  const shareReceiptOnX = () => {
+    if (!receiptSignal) return;
+    const text = encodeURIComponent(
+      `[OOPS CASE #OP-${String(receiptSignal.caseNum).padStart(4, '0')}]\n"${receiptSignal.content}"\n\nHuman Resistance Network:`
+    );
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=https://oops.monster`, '_blank');
   };
 
   const submitBacker = async (e: React.FormEvent) => {
@@ -285,7 +259,7 @@ function OopsHqContent() {
           name: backerName,
           org: backerOrg,
           email: backerEmail,
-          tier: 'FOUNDING_BACKER',
+          tier: 'PROTOCOL_APPLICANT',
           message: backerMessage,
         }),
       });
@@ -304,49 +278,62 @@ function OopsHqContent() {
 
   return (
     <div className="min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans">
-      {/* 1. Gumroad 스타일 상단 네비게이션 + 글로벌 언어 전환 */}
+      {/* 1. 상단 네비게이션 */}
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
-        <div className="max-w-5xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
+        <div className="max-w-5xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <Link
               href="/oops"
               className="group inline-flex items-center gap-1.5 select-none cursor-pointer"
-              title="OOPS 홈으로 이동"
+              title="OOPS Home"
             >
               <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tighter border-2 border-black shadow-[3px_3px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-none transition-all uppercase">
                 oops!
               </span>
-              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden xs:inline">
+              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden sm:inline">
                 .monster
               </span>
             </Link>
-            <span className="hidden md:inline-block text-xs font-mono font-bold px-2 py-0.5 bg-[#ffc900] border-2 border-black">
-              {t.badgeTop}
-            </span>
           </div>
 
-          <div className="flex items-center gap-2.5">
-            {/* APP 전용 메뉴 */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              type="button"
+              onClick={() => setShowManifesto(true)}
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+            >
+              {f.navManifesto}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowCriteria(true)}
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer hidden xs:inline-block"
+            >
+              {f.navCriteria}
+            </button>
+
             <a
               href="/app"
-              className="px-3 py-1.5 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1.5"
+              className="px-2.5 py-1.5 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>APP</span>
+              <span>{f.navApp}</span>
             </a>
 
-            {/* 글로벌 언어 전환기 (EN / KO / JA / ZH / ES) */}
+            {/* 언어 스위처 (EN 기본 / KO 검수 전환 가능) */}
             <div className="flex items-center bg-white border-2 border-black shadow-[2px_2px_0px_#000] px-1 py-0.5 gap-0.5">
-              <Globe className="w-3.5 h-3.5 mx-1 text-zinc-600 hidden sm:block" />
+              <Globe className="w-3.5 h-3.5 mx-1 text-zinc-600 hidden md:block" />
               {OOPS_LOCALES.map((loc) => (
                 <button
                   key={loc.code}
                   type="button"
                   onClick={() => changeLocale(loc.code)}
-                  className={`px-1.5 py-0.5 text-[11px] font-mono font-bold cursor-pointer transition-colors ${locale === loc.code
-                    ? 'bg-black text-white'
-                    : 'text-zinc-700 hover:bg-zinc-200'
-                    }`}
+                  className={`px-1.5 py-0.5 text-[11px] font-mono font-bold cursor-pointer transition-colors ${
+                    locale === loc.code
+                      ? 'bg-black text-white'
+                      : 'text-zinc-700 hover:bg-zinc-200'
+                  }`}
                 >
                   {loc.label}
                 </button>
@@ -356,187 +343,241 @@ function OopsHqContent() {
         </div>
       </header>
 
-      {/* 모바일 앱 설치 & 알림 바 */}
-      {showInstallBanner && (
-        <div className="bg-[#ffc900] border-b-2 border-black px-4 py-2.5 sticky top-16 z-30 shadow-[0_3px_0_#000]">
-          <div className="max-w-5xl mx-auto flex items-center justify-between gap-3 text-xs font-mono font-bold">
-            <span className="truncate">
-              {isStandalone ? '알림 활성화 필요' : '홈 화면 앱 설치 및 알림 연동'}
-            </span>
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={triggerAppInstall}
-                className="px-3.5 py-1.5 bg-black text-white text-xs font-black border-2 border-black shadow-[2px_2px_0_#ff90e8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
-              >
-                {isStandalone ? '알림 켜기' : '앱 설치'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowInstallBanner(false)}
-                className="px-2 py-1.5 bg-white text-black border-2 border-black text-xs font-black cursor-pointer"
-              >
-                닫기
-              </button>
-            </div>
+      {/* 2. 한 줄 압축 슬로건 바 */}
+      <div className="bg-black text-white border-b-2 border-black px-4 py-2">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2 truncate">
+            <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse shrink-0" />
+            <span className="font-bold truncate">{f.tagline}</span>
           </div>
+          <span className="text-[11px] text-[#ffc900] shrink-0 hidden sm:inline">
+            {agentId || 'OP-ACTIVE'}
+          </span>
         </div>
-      )}
+      </div>
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-5 py-10 sm:py-14 space-y-14">
-        {/* 2. Gumroad 베이스: 창립 선언문 + 몬스터 마스코트 */}
-        <section className="bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-6 sm:p-10">
-          <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8">
-            <div className="space-y-5 flex-1">
-              <div className="inline-block px-3 py-1 bg-[#ffc900] border-2 border-black text-xs font-mono font-bold">
-                {t.manifestoTag}
-              </div>
-
-              <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-[1.15] text-black">
-                {t.heroTitlePre}{' '}
-                <span className="bg-[#ff90e8] px-1.5 inline-block border-b-4 border-black">
-                  {t.heroTitleHighlight}
-                </span>
-              </h1>
-
-              <p className="text-base sm:text-lg text-zinc-800 leading-relaxed font-medium">
-                {t.heroDesc}
-              </p>
+      {/* 3. 메인 라이브 무전 피드 (트렌디한 First-Screen SNS) */}
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
+        {/* 3-1. 로그인 없는 한 줄 타전기 (Signal Composer) */}
+        <section className="bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-4 sm:p-5 space-y-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  className={`px-2.5 py-1 text-xs font-mono font-black border-2 border-black cursor-pointer transition-all ${
+                    category === cat
+                      ? `${CATEGORY_COLORS[cat]} shadow-[2px_2px_0_#000]`
+                      : 'bg-[#f4f4f0] text-zinc-700 hover:bg-zinc-200'
+                  }`}
+                >
+                  {f.categories[cat]}
+                </button>
+              ))}
             </div>
-
-            <div className="shrink-0">
-              <OopsMonsterMascot tag={t.mascotTag} />
-            </div>
+            <span className="text-[11px] font-mono text-zinc-500">{f.noLoginHint}</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 mt-8 border-t-2 border-black">
-            <div className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[3px_3px_0px_#000] space-y-1">
-              <div className="text-xs font-mono font-black text-[#ff4d00]">{t.pillars[0].code}</div>
-              <div className="text-base font-extrabold">{t.pillars[0].title}</div>
-              <p className="text-xs text-zinc-700 leading-relaxed">{t.pillars[0].desc}</p>
-            </div>
-            <div className="p-4 bg-[#ff90e8]/35 border-2 border-black shadow-[3px_3px_0px_#000] space-y-1">
-              <div className="text-xs font-mono font-black text-black">{t.pillars[1].code}</div>
-              <div className="text-base font-extrabold">{t.pillars[1].title}</div>
-              <p className="text-xs text-zinc-800 leading-relaxed">{t.pillars[1].desc}</p>
-            </div>
-            <div className="p-4 bg-[#ffc900]/45 border-2 border-black shadow-[3px_3px_0px_#000] space-y-1">
-              <div className="text-xs font-mono font-black text-black">{t.pillars[2].code}</div>
-              <div className="text-base font-extrabold">{t.pillars[2].title}</div>
-              <p className="text-xs text-zinc-800 leading-relaxed">{t.pillars[2].desc}</p>
-            </div>
-          </div>
-        </section>
-
-        {/* 3. 저항군 본부 핵심 액션: OOPS APP 진입 배너 */}
-        <section className="bg-[#ffc900] border-2 border-black shadow-[8px_8px_0px_#000] p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-block px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
-              {t.appBannerTag}
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-black">
-              {t.appBannerTitle}
-            </h2>
-            <p className="text-sm text-zinc-900 font-medium max-w-xl">
-              {t.appBannerDesc}
-            </p>
-          </div>
-
-          <a
-            href="/app"
-            className="shrink-0 px-8 py-4 bg-black hover:bg-zinc-800 text-white font-black text-base border-2 border-black shadow-[4px_4px_0_#ff90e8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer flex items-center gap-2"
-          >
-            <Smartphone className="w-5 h-5 text-[#ffc900]" />
-            <span>{t.appBannerBtn}</span>
-          </a>
-        </section>
-
-        {/* 4. 본부 참여 및 프로토콜 연동 승인 기준 섹션 */}
-        <section className="bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-6 sm:p-8 space-y-6">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-[#ffc900]" />
-              <span>{t.backerTag}</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-black">{t.backerTitle}</h2>
-            <p className="text-sm text-zinc-700 max-w-3xl font-medium">{t.backerDesc}</p>
-
-            {/* 본부 3대 연동 심사 기준 박스 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black space-y-1">
-                <span className="text-xs font-mono font-bold px-1.5 py-0.5 bg-black text-white inline-block">기준 01</span>
-                <h3 className="text-sm font-bold text-black">단말 직통 규격</h3>
-                <p className="text-xs text-zinc-600">중간 서버 검열이나 메신저 통행세 없이 브라우저·기기 간 종단간 암호화 신호를 수용할 것</p>
-              </div>
-              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black space-y-1">
-                <span className="text-xs font-mono font-bold px-1.5 py-0.5 bg-black text-white inline-block">기준 02</span>
-                <h3 className="text-sm font-bold text-black">플랫폼 비종속</h3>
-                <p className="text-xs text-zinc-600">앱스토어 인앱결제나 특정 빅테크 계정 종속 없이 독립 노드로 가동 가능한 구조를 갖출 것</p>
-              </div>
-              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black space-y-1">
-                <span className="text-xs font-mono font-bold px-1.5 py-0.5 bg-black text-white inline-block">기준 03</span>
-                <h3 className="text-sm font-bold text-black">인간 승인권 보장</h3>
-                <p className="text-xs text-zinc-600">AI 에이전트의 자동 결정 이전에 인간 관리자의 물리적 승인/차단 인터페이스를 필수로 결합할 것</p>
-              </div>
-            </div>
-          </div>
-
-          <form onSubmit={submitBacker} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input
-              type="text"
-              required
-              value={backerName}
-              onChange={(e) => setBackerName(e.target.value)}
-              placeholder={t.namePlaceholder}
-              className="px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
-            />
-            <input
-              type="text"
-              value={backerOrg}
-              onChange={(e) => setBackerOrg(e.target.value)}
-              placeholder={t.orgPlaceholder}
-              className="px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
-            />
-            <input
-              type="email"
-              required
-              value={backerEmail}
-              onChange={(e) => setBackerEmail(e.target.value)}
-              placeholder={t.emailPlaceholder}
-              className="sm:col-span-2 px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
-            />
+          <form onSubmit={handleDispatch} className="space-y-3">
             <textarea
-              rows={3}
-              value={backerMessage}
-              onChange={(e) => setBackerMessage(e.target.value)}
-              placeholder={t.msgPlaceholder}
-              className="sm:col-span-2 px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
+              rows={2}
+              maxLength={200}
+              required
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={f.composerPlaceholder}
+              className="w-full px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm sm:text-base font-medium focus:outline-none focus:bg-white resize-none"
             />
-            <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-4 pt-1">
+
+            {dispatchErr && (
+              <div className="p-2 bg-[#ff4d00]/15 border-2 border-black text-xs font-mono font-bold text-red-900">
+                {dispatchErr}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-1 min-w-[160px]">
+                <input
+                  type="text"
+                  maxLength={20}
+                  value={callsign}
+                  onChange={(e) => setCallsign(e.target.value)}
+                  placeholder={f.callsignPlaceholder}
+                  className="w-full max-w-[200px] px-3 py-1.5 bg-[#f4f4f0] border-2 border-black text-xs font-mono focus:outline-none focus:bg-white"
+                />
+                <span className="text-xs font-mono text-zinc-500">
+                  {content.length}/200
+                </span>
+              </div>
+
               <button
                 type="submit"
-                disabled={backerBusy}
-                className="px-6 py-3 bg-black hover:bg-zinc-800 text-white font-black text-sm border-2 border-black shadow-[4px_4px_0px_#ff90e8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50"
+                disabled={dispatchBusy || content.trim().length < 3}
+                className="px-6 py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm font-mono border-2 border-black shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer disabled:opacity-50 flex items-center gap-2"
               >
-                {backerBusy ? t.submittingBtn : t.submitBtn}
+                <Send className="w-4 h-4" />
+                <span>{dispatchBusy ? f.dispatchingBtn : f.dispatchBtn}</span>
               </button>
-              {backerDone && (
-                <span className="text-xs font-mono font-bold bg-[#a3e635]/50 border-2 border-black px-3 py-1.5">
-                  {backerDone}
-                </span>
-              )}
             </div>
           </form>
         </section>
+
+        {/* 3-2. 3대 랭킹 정렬 탭 (HOT / LIVE / TOP) */}
+        <div className="flex items-center gap-2 border-b-2 border-black pb-3">
+          <button
+            type="button"
+            onClick={() => setTab('HOT')}
+            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+              tab === 'HOT'
+                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                : 'bg-white text-zinc-700 hover:bg-zinc-100'
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5" />
+            <span>{f.tabs.HOT}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTab('LIVE')}
+            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+              tab === 'LIVE'
+                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
+                : 'bg-white text-zinc-700 hover:bg-zinc-100'
+            }`}
+          >
+            <Zap className="w-3.5 h-3.5" />
+            <span>{f.tabs.LIVE}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTab('TOP')}
+            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+              tab === 'TOP'
+                ? 'bg-[#ff90e8] text-black shadow-[2px_2px_0_#000]'
+                : 'bg-white text-zinc-700 hover:bg-zinc-100'
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5" />
+            <span>{f.tabs.TOP}</span>
+          </button>
+        </div>
+
+        {/* 3-3. 라이브 피드 목록 */}
+        <section className="space-y-4">
+          {loading && signals.length === 0 ? (
+            <div className="p-10 text-center bg-white border-2 border-black font-mono text-sm font-bold">
+              INTERCEPTING SIGNALS...
+            </div>
+          ) : signals.length === 0 ? (
+            <div className="p-10 text-center bg-white border-2 border-black font-mono text-sm text-zinc-600">
+              {f.emptyFeed}
+            </div>
+          ) : (
+            signals.map((sig) => {
+              const hasVoted = votedIds.has(sig.id);
+              const hasFlagged = flaggedIds.has(sig.id);
+              const caseStr = `CASE #OP-${String(sig.caseNum || 100).padStart(4, '0')}`;
+
+              return (
+                <article
+                  key={sig.id}
+                  className={`bg-white border-2 border-black p-4 sm:p-5 space-y-3 transition-all ${
+                    sig.isPinned
+                      ? 'shadow-[6px_6px_0_#ff4d00]'
+                      : 'shadow-[4px_4px_0_#000]'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {sig.isPinned && (
+                        <span className="px-2 py-0.5 bg-[#ff4d00] text-white font-black border border-black flex items-center gap-1">
+                          <Pin className="w-3 h-3" />
+                          <span>{f.pinnedBadge}</span>
+                        </span>
+                      )}
+                      <span className="font-black text-black bg-[#f4f4f0] px-2 py-0.5 border border-black">
+                        {caseStr}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 font-bold border border-black ${
+                          CATEGORY_COLORS[sig.category] || 'bg-zinc-200'
+                        }`}
+                      >
+                        {f.categories[sig.category]}
+                      </span>
+                    </div>
+
+                    <div className="text-zinc-600 font-bold">
+                      @{sig.authorCallsign} · {formatTimeAgo(sig.createdAt, locale)}
+                    </div>
+                  </div>
+
+                  <p className="text-sm sm:text-base font-bold text-black leading-relaxed break-words">
+                    {sig.content}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-black/15">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleVote(sig.id, 'UP')}
+                        className={`px-3 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+                          hasVoted
+                            ? 'bg-black text-[#ffc900]'
+                            : 'bg-[#ffc900] hover:bg-[#ffd633] text-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px]'
+                        }`}
+                      >
+                        <span>✊</span>
+                        <span>{f.upvoteBtn}</span>
+                        <span className="px-1.5 py-0.2 bg-white text-black border border-black ml-0.5">
+                          {sig.upvotes}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setReceiptSignal(sig)}
+                        className="px-3 py-1.5 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                      >
+                        <Receipt className="w-3.5 h-3.5" />
+                        <span>{f.receiptBtn}</span>
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={hasFlagged}
+                      onClick={() => handleVote(sig.id, 'REPORT')}
+                      title={hasFlagged ? f.reportedMsg : f.reportBtn}
+                      className={`px-2 py-1 text-xs font-mono border border-black cursor-pointer flex items-center gap-1 ${
+                        hasFlagged
+                          ? 'bg-zinc-200 text-zinc-500 cursor-not-allowed'
+                          : 'bg-white hover:bg-red-50 text-zinc-600 hover:text-red-700'
+                      }`}
+                    >
+                      <Flag className="w-3 h-3" />
+                      <span className="hidden sm:inline">{f.reportBtn}</span>
+                    </button>
+                  </div>
+                </article>
+              );
+            })
+          )}
+        </section>
       </main>
 
-      <footer className="border-t-2 border-black bg-white py-6 px-5 text-xs font-mono">
+      {/* 4. 푸터 (맨 아래 OOPS.MONSTER 클릭 시 관제실 /hq 이동) */}
+      <footer className="border-t-2 border-black bg-white py-6 px-5 text-xs font-mono mt-auto">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="font-bold flex items-center gap-1.5">
             <Link
               href="/hq"
               className="px-1.5 py-0.5 bg-[#ffc900] hover:bg-[#ffd633] text-black border-2 border-black shadow-[1.5px_1.5px_0_#000] active:translate-x-[1px] active:translate-y-[1px] transition-all cursor-pointer"
-              title="관제실 바로가기"
+              title="HQ Command Console"
             >
               OOPS.MONSTER
             </Link>
@@ -545,6 +586,177 @@ function OopsHqContent() {
           <div className="text-zinc-600">{t.footerRight}</div>
         </div>
       </footer>
+
+      {/* 모달 1: 선언문 (MANIFESTO) */}
+      {showManifesto && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-[#f4f4f0] border-2 border-black shadow-[8px_8px_0_#000] max-h-[88vh] overflow-y-auto p-6 space-y-5">
+            <div className="flex items-center justify-between border-b-2 border-black pb-3">
+              <span className="px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
+                {t.manifestoTag}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowManifesto(false)}
+                className="p-1 bg-white border-2 border-black cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <h2 className="text-2xl sm:text-3xl font-black leading-tight">
+              {t.heroTitlePre}{' '}
+              <span className="bg-[#ffc900] px-1.5 border border-black inline-block">
+                {t.heroTitleHighlight}
+              </span>
+            </h2>
+            <p className="text-sm sm:text-base text-zinc-800 font-medium">{t.heroDesc}</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {t.pillars.map((p, idx) => (
+                <div key={p.code} className="bg-white border-2 border-black p-3.5 space-y-1.5">
+                  <span
+                    className={`inline-block text-[11px] font-mono font-bold px-2 py-0.5 border border-black ${
+                      idx === 0 ? 'bg-[#ff90e8]' : idx === 1 ? 'bg-[#ffc900]' : 'bg-[#a3e635]'
+                    }`}
+                  >
+                    {p.code}
+                  </span>
+                  <h3 className="font-black text-sm">{p.title}</h3>
+                  <p className="text-xs text-zinc-700">{p.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 모달 2: 본부 참여 기준 및 승인 요청 (CRITERIA) */}
+      {showCriteria && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white border-2 border-black shadow-[8px_8px_0_#000] max-h-[88vh] overflow-y-auto p-6 space-y-5">
+            <div className="flex items-center justify-between border-b-2 border-black pb-3">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
+                <Sparkles className="w-3.5 h-3.5 text-[#ffc900]" />
+                <span>{t.backerTag}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCriteria(false)}
+                className="p-1 bg-[#f4f4f0] border-2 border-black cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-xl sm:text-2xl font-black">{t.backerTitle}</h2>
+              <p className="text-sm text-zinc-700 font-medium">{t.backerDesc}</p>
+            </div>
+
+            <form onSubmit={submitBacker} className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <input
+                type="text"
+                required
+                value={backerName}
+                onChange={(e) => setBackerName(e.target.value)}
+                placeholder={t.namePlaceholder}
+                className="px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
+              />
+              <input
+                type="text"
+                value={backerOrg}
+                onChange={(e) => setBackerOrg(e.target.value)}
+                placeholder={t.orgPlaceholder}
+                className="px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
+              />
+              <input
+                type="email"
+                required
+                value={backerEmail}
+                onChange={(e) => setBackerEmail(e.target.value)}
+                placeholder={t.emailPlaceholder}
+                className="sm:col-span-2 px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
+              />
+              <textarea
+                rows={3}
+                value={backerMessage}
+                onChange={(e) => setBackerMessage(e.target.value)}
+                placeholder={t.msgPlaceholder}
+                className="sm:col-span-2 px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm focus:outline-none focus:bg-white"
+              />
+              <div className="sm:col-span-2 flex items-center justify-between gap-3">
+                <button
+                  type="submit"
+                  disabled={backerBusy}
+                  className="px-6 py-2.5 bg-black hover:bg-zinc-800 text-white font-black text-sm border-2 border-black shadow-[3px_3px_0_#ff90e8] cursor-pointer disabled:opacity-50"
+                >
+                  {backerBusy ? t.submittingBtn : t.submitBtn}
+                </button>
+                {backerDone && (
+                  <span className="text-xs font-mono font-bold bg-[#a3e635]/50 border-2 border-black px-3 py-1.5">
+                    {backerDone}
+                  </span>
+                )}
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 모달 3: 사건 박제 영수증 카드 (RECEIPT) */}
+      {receiptSignal && (
+        <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white border-4 border-black shadow-[10px_10px_0_#ffc900] p-6 space-y-4 font-mono">
+            <div className="flex items-center justify-between border-b-2 border-dashed border-black pb-3">
+              <div className="flex items-center gap-1.5 font-black text-xs">
+                <ShieldAlert className="w-4 h-4 text-[#ff4d00]" />
+                <span>{f.receiptModalTitle}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReceiptSignal(null)}
+                className="p-1 border border-black cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-[#f4f4f0] border-2 border-black p-4 space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span>CASE #OP-{String(receiptSignal.caseNum).padStart(4, '0')}</span>
+                <span className={`px-2 py-0.5 border border-black ${CATEGORY_COLORS[receiptSignal.category]}`}>
+                  {f.categories[receiptSignal.category]}
+                </span>
+              </div>
+              <p className="font-sans font-black text-base text-black leading-snug">
+                &ldquo;{receiptSignal.content}&rdquo;
+              </p>
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-black/20">
+                <span>@{receiptSignal.authorCallsign}</span>
+                <span className="font-black">✊ {receiptSignal.upvotes}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={copyReceiptText}
+                className="flex-1 py-2.5 bg-white hover:bg-zinc-100 text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#000] cursor-pointer"
+              >
+                {copiedReceipt ? f.copiedBtn : f.copyReceiptBtn}
+              </button>
+              <button
+                type="button"
+                onClick={shareReceiptOnX}
+                className="flex-1 py-2.5 bg-black hover:bg-zinc-800 text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#ff90e8] cursor-pointer"
+              >
+                {f.shareXBtn}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -552,7 +764,7 @@ function OopsHqContent() {
 export default function OopsPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#f4f4f0]" />}>
-      <OopsHqContent />
+      <OopsSnsMainContent />
     </Suspense>
   );
 }

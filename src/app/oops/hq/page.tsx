@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Bell, Lock, Radio, Send, Users } from 'lucide-react';
 import type { OopsReleaseEntry } from '@/lib/oops/releases';
+import type { OopsSignal } from '@/lib/oops/signalStore';
 
 interface AgentRow {
   agentId: string;
@@ -32,6 +33,8 @@ export default function OopsHqAdminPage() {
   const [releases, setReleases] = useState<OopsReleaseEntry[]>([]);
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [backers, setBackers] = useState<BackerRow[]>([]);
+  const [signals, setSignals] = useState<OopsSignal[]>([]);
+  const [bannedAgents, setBannedAgents] = useState<string[]>([]);
 
   const [bcTitle, setBcTitle] = useState('OOPS HQ 공지');
   const [bcBody, setBcBody] = useState('');
@@ -56,6 +59,8 @@ export default function OopsHqAdminPage() {
       setReleases(data.releases || []);
       setAgents(data.agents || []);
       setBackers(data.backers || []);
+      setSignals(data.signals || []);
+      setBannedAgents(data.bannedAgents || []);
     } catch {
       setError('서버 연결 오류');
     } finally {
@@ -73,6 +78,31 @@ export default function OopsHqAdminPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     void fetchDashboard(passkey.trim());
+  };
+
+  const handleModerate = async (
+    modAction: 'PIN' | 'UNPIN' | 'HIDE' | 'RESTORE' | 'SHADOWBAN' | 'UNBAN',
+    signalId?: string,
+    agentId?: string
+  ) => {
+    try {
+      const res = await fetch('/api/oops/hq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-oops-hq-key': passkey.trim(),
+        },
+        body: JSON.stringify({
+          action: 'MODERATE',
+          modAction,
+          signalId,
+          agentId,
+        }),
+      });
+      if (res.ok) {
+        void fetchDashboard(passkey.trim());
+      }
+    } catch {}
   };
 
   const handleBroadcast = async (e: React.FormEvent) => {
@@ -273,6 +303,96 @@ export default function OopsHqAdminPage() {
             </div>
           </div>
         </div>
+
+        {/* 글로벌 무전 피드 관제 & Shadowban 제어 */}
+        <section className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2">
+            <span className="font-mono font-black text-sm">
+              글로벌 무전 피드 관제 ({signals.length}건 · 그림자 차단 요원 {bannedAgents.length}명)
+            </span>
+          </div>
+
+          <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
+            {signals.map((sig) => {
+              const isBanned = bannedAgents.includes(sig.authorAgentId);
+              const koTransUrl = `https://translate.google.com/?sl=auto&tl=ko&text=${encodeURIComponent(sig.content)}`;
+
+              return (
+                <div
+                  key={sig.id}
+                  className={`p-3.5 border-2 border-black space-y-2 ${
+                    sig.isHidden ? 'bg-zinc-200 opacity-75' : 'bg-[#f4f4f0]'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                    <div className="flex items-center gap-2">
+                      <span className="font-black bg-white px-1.5 py-0.5 border border-black">
+                        CASE #OP-{String(sig.caseNum || 100).padStart(4, '0')}
+                      </span>
+                      <span className="font-bold">[{sig.category}]</span>
+                      <span className="text-zinc-600">
+                        {sig.authorCallsign} ({sig.authorAgentId})
+                      </span>
+                      {sig.isPinned && (
+                        <span className="px-1.5 py-0.5 bg-[#ff4d00] text-white font-black">고정됨</span>
+                      )}
+                      {sig.isHidden && (
+                        <span className="px-1.5 py-0.5 bg-black text-white font-black">숨김</span>
+                      )}
+                      {isBanned && (
+                        <span className="px-1.5 py-0.5 bg-red-700 text-white font-black">SHADOWBAN</span>
+                      )}
+                    </div>
+                    <div className="font-bold">
+                      ✊ {sig.upvotes} · 🚩 {sig.reports}
+                    </div>
+                  </div>
+
+                  <p className="text-sm font-bold text-black">{sig.content}</p>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-1">
+                    <a
+                      href={koTransUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-2.5 py-1 bg-white hover:bg-zinc-100 border border-black text-xs font-mono font-bold cursor-pointer"
+                    >
+                      한글 번역
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() => handleModerate(sig.isPinned ? 'UNPIN' : 'PIN', sig.id)}
+                      className="px-2.5 py-1 bg-[#ffc900] hover:bg-[#ffd633] border border-black text-xs font-mono font-bold cursor-pointer"
+                    >
+                      {sig.isPinned ? '고정 해제' : '핀 고정'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleModerate(sig.isHidden ? 'RESTORE' : 'HIDE', sig.id)}
+                      className="px-2.5 py-1 bg-white hover:bg-zinc-100 border border-black text-xs font-mono font-bold cursor-pointer"
+                    >
+                      {sig.isHidden ? '복구' : '숨김'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleModerate(isBanned ? 'UNBAN' : 'SHADOWBAN', undefined, sig.authorAgentId)
+                      }
+                      className={`px-2.5 py-1 border border-black text-xs font-mono font-bold cursor-pointer ${
+                        isBanned ? 'bg-black text-white' : 'bg-[#ff90e8] text-black'
+                      }`}
+                    >
+                      {isBanned ? '차단 해제' : '그림자 차단'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
 
         {/* 창립 백커 신청 내역 */}
         <section className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4">

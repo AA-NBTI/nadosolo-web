@@ -5,6 +5,11 @@ import {
   listOopsBackers,
 } from '@/lib/oops/pushStore';
 import { OOPS_RELEASES } from '@/lib/oops/releases';
+import {
+  hqModerateSignal,
+  listBannedAgents,
+  listSignals,
+} from '@/lib/oops/signalStore';
 
 function isAuthorized(req: NextRequest, bodyKey?: string): boolean {
   const expected = process.env.OOPS_HQ_KEY || 'aa1111';
@@ -19,7 +24,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: '인증 암호가 일치하지 않습니다.' }, { status: 401 });
   }
 
-  const [agents, backers] = await Promise.all([listOopsAgents(), listOopsBackers()]);
+  const [agents, backers, signals, bannedAgents] = await Promise.all([
+    listOopsAgents(),
+    listOopsBackers(),
+    listSignals({ tab: 'LIVE', includeHidden: true, limit: 150 }),
+    listBannedAgents(),
+  ]);
 
   return NextResponse.json({
     ok: true,
@@ -32,6 +42,8 @@ export async function GET(req: NextRequest) {
       lastPingAt: a.lastPingAt || null,
     })),
     backers,
+    signals,
+    bannedAgents,
   });
 }
 
@@ -51,6 +63,19 @@ export async function POST(req: NextRequest) {
       }
       const result = await broadcastOopsPush({ title, body: msg, url: '/' });
       return NextResponse.json({ ok: true, result });
+    }
+
+    if (action === 'MODERATE') {
+      const modAction = String(body?.modAction || '').toUpperCase();
+      if (!['PIN', 'UNPIN', 'HIDE', 'RESTORE', 'SHADOWBAN', 'UNBAN'].includes(modAction)) {
+        return NextResponse.json({ ok: false, error: '유효하지 않은 제어 명령입니다.' }, { status: 400 });
+      }
+      await hqModerateSignal({
+        action: modAction as any,
+        signalId: body?.signalId ? String(body.signalId) : undefined,
+        agentId: body?.agentId ? String(body.agentId) : undefined,
+      });
+      return NextResponse.json({ ok: true });
     }
 
     return NextResponse.json({ ok: false, error: '지원하지 않는 요청입니다.' }, { status: 400 });
