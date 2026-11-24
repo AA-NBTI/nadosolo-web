@@ -1,4 +1,4 @@
-export type NotifyProvider = 'TEST' | 'SOLAPI' | 'ALIGO';
+export type NotifyProvider = 'TEST' | 'SOLAPI' | 'ALIGO' | 'OOPS';
 
 export type NotifyService = 'NADOSOLO' | 'TABLEBARO';
 
@@ -15,6 +15,8 @@ export interface NotifyRequest {
   title: string;
   body: string;
   linkUrl?: string;
+  /** OOPS 독립 푸시용 요원 코드 (예: OP-XXXXXX 또는 ALL) */
+  oopsTarget?: string;
 }
 
 export interface NotifyResult {
@@ -109,7 +111,77 @@ export function createSolapiNotifyAdapter(apiKey: string, apiSecret: string, sen
   };
 }
 
+/**
+ * [OOPS 범용 알림 어댑터]
+ * 나도솔로/테이블바로에서 OOPS REST API v1(/api/oops/v1/send)을 호출하여 발송하는 표준 클라이언트
+ */
+export function createOopsNotifyAdapter(options?: {
+  apiBaseUrl?: string;
+  apiKey?: string;
+}): NotifyAdapter {
+  return {
+    provider: 'OOPS',
+    async send(req) {
+      const baseUrl =
+        options?.apiBaseUrl ||
+        process.env.OOPS_API_BASE_URL ||
+        (process.env.NEXT_PUBLIC_SITE_URL ? `${process.env.NEXT_PUBLIC_SITE_URL}` : 'https://oops.monster');
+      const apiKey =
+        options?.apiKey ||
+        process.env.OOPS_API_KEY ||
+        process.env.ADMIN_PASSWORD ||
+        'oops_secret_key_2026';
+
+      const target = req.oopsTarget || 'ALL';
+
+      try {
+        const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/oops/v1/send`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            target,
+            title: `[${req.service}] ${req.title}`,
+            body: req.body,
+            url: req.linkUrl || '/',
+            sourceService: req.service,
+          }),
+        });
+
+        const data = (await res.json().catch(() => ({}))) as Record<string, any>;
+        if (!res.ok || !data.ok) {
+          return {
+            ok: false,
+            provider: 'OOPS',
+            messageId: '',
+            error: data?.error || 'OOPS API 호출 실패',
+          };
+        }
+
+        return {
+          ok: true,
+          provider: 'OOPS',
+          messageId: String(data.messageId || `oops_${Date.now()}`),
+        };
+      } catch (e) {
+        return {
+          ok: false,
+          provider: 'OOPS',
+          messageId: '',
+          error: (e as Error).message,
+        };
+      }
+    },
+  };
+}
+
 export function getDefaultNotifyAdapter(): NotifyAdapter {
+  // 1순위: OOPS 범용 알림 사용 플래그 활성화 시 OOPS 어댑터 우선 사용
+  if (process.env.USE_OOPS_NOTIFY === 'true' || process.env.NEXT_PUBLIC_USE_OOPS === 'true') {
+    return createOopsNotifyAdapter();
+  }
   const solKey = process.env.SOLAPI_API_KEY?.trim();
   const solSec = process.env.SOLAPI_API_SECRET?.trim();
   const sender = process.env.NOTIFY_SENDER_PHONE?.trim() || '';
