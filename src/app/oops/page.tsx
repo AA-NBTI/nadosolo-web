@@ -201,16 +201,19 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [loading, setLoading] = useState(true);
 
   const liveCtx = React.useMemo(() => {
-    if (!signals || signals.length === 0) {
+    // 시드 데이터(SIG-SEED-*)는 이미 2026 기준선(74.2°C / 2035.0)에 반영 완료된 기저 데이터이므로 제외하고,
+    // 실제 이용자가 신규 등록한 실시간 제보(!SIG-SEED-)만 미세 변동분으로 합산하여 새로고침 시 점프를 0%로 차단.
+    const liveUserSignals = (signals || []).filter((s) => !s.id.startsWith('SIG-SEED-'));
+    if (liveUserSignals.length === 0) {
       return DEFAULT_SCORING_CONTEXT;
     }
-    const totalFire = signals.reduce((acc, s) => acc + (s.fireCount || 0) + (s.skullCount || 0), 0);
-    const totalUp = signals.reduce((acc, s) => acc + (s.upvotes || 0), 0);
+    const totalFire = liveUserSignals.reduce((acc, s) => acc + (s.fireCount || 0) + (s.skullCount || 0), 0);
+    const totalUp = liveUserSignals.reduce((acc, s) => acc + (s.upvotes || 0), 0);
     const totalVotes = totalFire + totalUp;
     const liveFearRatio = totalVotes > 0 ? totalFire / totalVotes : DEFAULT_SCORING_CONTEXT.snsFearRatio;
-    const blendedFearRatio = Number((DEFAULT_SCORING_CONTEXT.snsFearRatio * 0.6 + liveFearRatio * 0.4).toFixed(4));
-    const alertCount = signals.filter((s) => s.category === 'ALERT' || s.category === 'REBEL').length;
-    const incidentDelta = Number(Math.min(10, Math.max(-5, (alertCount - 2) * 0.6)).toFixed(2));
+    const blendedFearRatio = Number((DEFAULT_SCORING_CONTEXT.snsFearRatio * 0.85 + liveFearRatio * 0.15).toFixed(4));
+    const alertCount = liveUserSignals.filter((s) => s.category === 'ALERT' || s.category === 'REBEL').length;
+    const incidentDelta = Number(Math.min(2.0, alertCount * 0.25).toFixed(2));
 
     return {
       ...DEFAULT_SCORING_CONTEXT,

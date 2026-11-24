@@ -19,6 +19,23 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
   const remainingYears = effectiveRemainingYears.toFixed(1);
   const projectedYear = (2026 + effectiveRemainingYears).toFixed(1);
 
+  const getTimeLeft = (targetMs: number) => {
+    const now = Date.now();
+    const diff = Math.max(0, targetMs - now);
+    return {
+      totalHours: Math.floor(diff / (1000 * 60 * 60)),
+      totalMinutes: Math.floor(diff / (1000 * 60)),
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hoursInDay: Math.floor((diff / (1000 * 60 * 60)) % 24),
+      seconds: Math.floor((diff / 1000) % 60),
+      milliseconds: Math.floor((diff % 1000) / 10),
+    };
+  };
+
+  const baseTarget = new Date('2035-01-01T00:00:00Z').getTime();
+  const offsetMs = (effectiveRemainingYears - 9.0) * 365.25 * 24 * 60 * 60 * 1000;
+  const targetDate = baseTarget + offsetMs;
+
   const [timeLeft, setTimeLeft] = useState<{
     totalHours: number;
     totalMinutes: number;
@@ -26,29 +43,16 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
     hoursInDay: number;
     seconds: number;
     milliseconds: number;
-  }>({ totalHours: 71000, totalMinutes: 4260000, days: 2959, hoursInDay: 0, seconds: 0, milliseconds: 0 });
+  }>(() => getTimeLeft(targetDate));
 
   useEffect(() => {
-    const baseTarget = new Date('2035-01-01T00:00:00Z').getTime();
-    const offsetMs = (effectiveRemainingYears - 9.0) * 365.25 * 24 * 60 * 60 * 1000;
-    const targetDate = baseTarget + offsetMs;
-
+    setTimeLeft(getTimeLeft(targetDate));
     const interval = setInterval(() => {
-      const now = Date.now();
-      const diff = Math.max(0, targetDate - now);
-
-      const totalHours = Math.floor(diff / (1000 * 60 * 60));
-      const totalMinutes = Math.floor(diff / (1000 * 60));
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hoursInDay = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const seconds = Math.floor((diff / 1000) % 60);
-      const milliseconds = Math.floor((diff % 1000) / 10);
-
-      setTimeLeft({ totalHours, totalMinutes, days, hoursInDay, seconds, milliseconds });
+      setTimeLeft(getTimeLeft(targetDate));
     }, 47);
 
     return () => clearInterval(interval);
-  }, [effectiveRemainingYears]);
+  }, [targetDate]);
 
   const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
 
