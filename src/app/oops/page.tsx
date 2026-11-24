@@ -1607,10 +1607,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   );
 }
 
-export default function OopsPage({ initialView = 'OBSERVATORY' }: { initialView?: 'OBSERVATORY' | 'SNS' }) {
+export default function OopsPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#f4f4f0]" />}>
-      <OopsSnsMainContent initialView={initialView} />
+      <OopsSnsMainContent initialView="OBSERVATORY" />
     </Suspense>
   );
 }

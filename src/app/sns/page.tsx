@@ -1,5 +1,5 @@
-import React from 'react';
-import OopsMainPage from '../oops/page';
+import React, { Suspense } from 'react';
+import OopsPage from '../oops/page';
 
 export const metadata = {
   title: 'OOPS.MONSTER // SNS FIELD INTEL',
@@ -7,5 +7,9 @@ export const metadata = {
 };
 
 export default function SnsPage() {
-  return <OopsMainPage initialView="SNS" />;
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f4f4f0]" />}>
+      <OopsPage />
+    </Suspense>
+  );
 }
