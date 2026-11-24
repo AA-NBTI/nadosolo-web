@@ -460,7 +460,7 @@ function OopsSnsMainContent() {
     <div className="min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-[#ffc900] selection:text-black">
       {/* 1. 상단 네비게이션 */}
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
-        <div className="max-w-5xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-2">
+        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <Link
               href="/oops"
@@ -524,14 +524,17 @@ function OopsSnsMainContent() {
       </header>
 
       {/* 2. 한 줄 압축 슬로건 바 */}
-      <div className="bg-black text-white border-b-2 border-black px-4 py-2">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 text-xs font-mono">
+      <div className="bg-black text-white border-b-2 border-black">
+        <div className="max-w-3xl mx-auto px-4 py-2 flex items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 truncate">
             <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse shrink-0" />
             <span className="font-bold truncate">{f.tagline}</span>
           </div>
-          <span className="text-[11px] text-[#ffc900] shrink-0 hidden sm:inline">
-            {agentId || 'OP-ACTIVE'}
+          <span
+            title={locale === 'ko' ? '로그인 없이 단말기에 자동 발급된 내 고유 식별 코드' : 'Your anonymous device ID (zero-login)'}
+            className="text-[11px] text-[#ffc900] shrink-0 hidden sm:inline cursor-help"
+          >
+            {locale === 'ko' ? `내 ID: ${agentId || 'OP-ACTIVE'}` : `MY ID: ${agentId || 'OP-ACTIVE'}`}
           </span>
         </div>
       </div>
@@ -887,8 +890,8 @@ function OopsSnsMainContent() {
       </main>
 
       {/* 4. 푸터 (맨 아래 OOPS.MONSTER 클릭 시 관제실 /hq 이동) */}
-      <footer className="border-t-2 border-black bg-white py-6 px-5 text-xs font-mono mt-auto">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="border-t-2 border-black bg-white py-6 text-xs font-mono mt-auto">
+        <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="font-bold flex items-center gap-1.5">
             <Link
               href="/hq"

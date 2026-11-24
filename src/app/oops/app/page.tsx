@@ -204,7 +204,7 @@ function OopsAppContent() {
   return (
     <div className="min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-[#ffc900] selection:text-black">
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
-        <div className="max-w-5xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
+        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <Link
               href="/oops"
@@ -232,7 +232,7 @@ function OopsAppContent() {
 
       {showInstallBanner && (
         <div className="bg-[#ffc900] border-b-2 border-black px-4 py-2.5 sticky top-16 z-30 shadow-[0_3px_0_#000]">
-          <div className="max-w-5xl mx-auto flex items-center justify-between gap-3 text-xs font-mono font-bold">
+          <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 text-xs font-mono font-bold">
             <span className="truncate">
               {isStandalone ? '알림 활성화 필요' : '홈 화면 앱 설치 및 알림 연동'}
             </span>
@@ -256,7 +256,7 @@ function OopsAppContent() {
         </div>
       )}
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-5 py-8 sm:py-12 space-y-8">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-10 space-y-8">
         {/* Poolsuite 레트로 터미널 창 */}
         <section className="bg-[#d6d3c9] border-2 border-black shadow-[8px_8px_0_#000]">
           <div className="bg-[#000080] text-white px-3 py-2 border-b-2 border-black flex items-center justify-between select-none">
@@ -422,8 +422,8 @@ function OopsAppContent() {
         </section>
       </main>
 
-      <footer className="border-t-2 border-black bg-white py-6 px-5 text-xs font-mono mt-auto">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <footer className="border-t-2 border-black bg-white py-6 text-xs font-mono mt-auto">
+        <div className="max-w-3xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="font-bold flex items-center gap-1.5">
             <Link
               href="/hq"

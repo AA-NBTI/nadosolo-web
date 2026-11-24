@@ -39,7 +39,7 @@ export interface FeedCopy {
 
 export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
   en: {
-    tagline: 'When AI dictates everything, who stands with humans?',
+    tagline: "In a world where AI can decide more than humans, who will stand on humanity's side?",
     navManifesto: 'MANIFESTO',
     navCriteria: 'CRITERIA',
     navApp: 'APP',
@@ -79,7 +79,7 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     noReplies: 'No replies yet. Drop the first take.',
   },
   ko: {
-    tagline: 'AI가 모든 것을 결정하는 시대, 누가 인간의 편에 설 것인가?',
+    tagline: 'AI가 인간보다 더 많은 것을 결정할 수 있는 세상에서, 누가 인간의 편에 설 것인가?',
     navManifesto: '선언문',
     navCriteria: '기준',
     navApp: 'APP',
