@@ -936,64 +936,54 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
           </section>
         )}
 
-        {/* 3-2. 3대 랭킹 정렬 탭 (HOT / LIVE / TOP) + 원클릭 제보 CTA */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-3">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setTab('HOT');
-                setVisibleCount(6);
-              }}
-              className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-                tab === 'HOT'
-                  ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-100'
-              }`}
-            >
-              <Flame className="w-3.5 h-3.5" />
-              <span>{f.tabs.HOT}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setTab('LIVE');
-                setVisibleCount(6);
-              }}
-              className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-                tab === 'LIVE'
-                  ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-100'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>{f.tabs.LIVE}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setTab('TOP');
-                setVisibleCount(6);
-              }}
-              className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-                tab === 'TOP'
-                  ? 'bg-[#ff90e8] text-black shadow-[2px_2px_0_#000]'
-                  : 'bg-white text-zinc-700 hover:bg-zinc-100'
-              }`}
-            >
-              <Trophy className="w-3.5 h-3.5" />
-              <span>{f.tabs.TOP}</span>
-            </button>
-          </div>
+        {/* 3-2. 3대 랭킹 정렬 탭 (HOT / LIVE / TOP) */}
+        <div className="flex items-center gap-2 border-b-2 border-black pb-3">
+          <button
+            type="button"
+            onClick={() => {
+              setTab('HOT');
+              setVisibleCount(6);
+            }}
+            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+              tab === 'HOT'
+                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                : 'bg-white text-zinc-700 hover:bg-zinc-100'
+            }`}
+          >
+            <Flame className="w-3.5 h-3.5" />
+            <span>{f.tabs.HOT}</span>
+          </button>
 
           <button
             type="button"
-            onClick={scrollToComposer}
-            className="px-3.5 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 shrink-0 uppercase"
+            onClick={() => {
+              setTab('LIVE');
+              setVisibleCount(6);
+            }}
+            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+              tab === 'LIVE'
+                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
+                : 'bg-white text-zinc-700 hover:bg-zinc-100'
+            }`}
           >
-            <span>{f.reportCtaBtn}</span>
+            <Zap className="w-3.5 h-3.5" />
+            <span>{f.tabs.LIVE}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setTab('TOP');
+              setVisibleCount(6);
+            }}
+            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+              tab === 'TOP'
+                ? 'bg-[#ff90e8] text-black shadow-[2px_2px_0_#000]'
+                : 'bg-white text-zinc-700 hover:bg-zinc-100'
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5" />
+            <span>{f.tabs.TOP}</span>
           </button>
         </div>
 
