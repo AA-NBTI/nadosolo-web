@@ -343,30 +343,25 @@ function OopsHqContent() {
         </div>
       </header>
 
-      {/* 모바일 1초 앱 설치 & 알림 자동 세팅 플로팅 바 */}
+      {/* 모바일 앱 설치 & 알림 바 */}
       {showInstallBanner && (
-        <div className="bg-[#ffc900] border-b-2 border-black px-4 py-3 sticky top-16 z-30 shadow-[0_4px_0_#000]">
-          <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm font-mono font-bold">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">📲</span>
-              <span>
-                {isStandalone
-                  ? '앱 설치 완료! 알림 권한을 승인해야 백그라운드 몬스터 호출이 작동합니다.'
-                  : '홈 화면에 앱을 추가하면 알림 설정이 1초 만에 자동 연결됩니다.'}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="bg-[#ffc900] border-b-2 border-black px-4 py-2.5 sticky top-16 z-30 shadow-[0_3px_0_#000]">
+          <div className="max-w-5xl mx-auto flex items-center justify-between gap-3 text-xs font-mono font-bold">
+            <span className="truncate">
+              {isStandalone ? '알림 활성화 필요' : '홈 화면 앱 설치 및 알림 연동'}
+            </span>
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={triggerAppInstall}
-                className="flex-1 sm:flex-none px-4 py-2 bg-black text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#ff90e8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
+                className="px-3.5 py-1.5 bg-black text-white text-xs font-black border-2 border-black shadow-[2px_2px_0_#ff90e8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
               >
-                {isStandalone ? '알림 즉시 켜기 ➔' : '1초 앱 설치 & 알림 켜기 ➔'}
+                {isStandalone ? '알림 켜기' : '앱 설치'}
               </button>
               <button
                 type="button"
                 onClick={() => setShowInstallBanner(false)}
-                className="px-2.5 py-2 bg-white text-black border-2 border-black text-xs font-black cursor-pointer"
+                className="px-2 py-1.5 bg-white text-black border-2 border-black text-xs font-black cursor-pointer"
               >
                 닫기
               </button>
