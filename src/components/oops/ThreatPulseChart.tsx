@@ -3,11 +3,13 @@
 import React, { useState } from 'react';
 import type { OopsLocale } from '@/lib/oops/i18n';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
+import type { EngineEvaluationOutput } from '@/lib/oops/scoringEngine';
 
 interface ThreatPulseChartProps {
   initialThemeId?: string;
   isEmbed?: boolean;
   locale?: OopsLocale;
+  engineOutput?: EngineEvaluationOutput;
 }
 
 interface RegionSnapshot {
@@ -363,11 +365,13 @@ function HumanTempAvatar({ temp }: { temp: number }) {
 export default function ThreatPulseChart({
   isEmbed = false,
   locale = 'ko',
+  engineOutput,
 }: ThreatPulseChartProps) {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedRegions, setSelectedRegions] = useState<RegionCode[]>(['GLOBAL']);
 
   const yearDataset = YEAR_DATA[selectedYear] || YEAR_DATA[2026];
+  const liveDeltaTemp = selectedYear === 2026 && engineOutput ? engineOutput.temperatureC - 74.2 : 0;
 
   const handleToggleRegion = (code: RegionCode) => {
     if (code === 'GLOBAL') {
@@ -457,7 +461,13 @@ export default function ThreatPulseChart({
       {/* 3. 선택된 대상 집중 관제 뷰 (단일 또는 복수 대조) */}
       <div className={`grid gap-4 ${selectedRegions.length > 1 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
         {selectedRegions.map((code) => {
-          const snap = yearDataset[code];
+          const baseSnap = yearDataset[code];
+          const liveTemp = Math.max(0, Math.min(100, Number((baseSnap.temp + liveDeltaTemp).toFixed(1))));
+          const snap = {
+            ...baseSnap,
+            temp: liveTemp,
+            yearsToTipping: selectedYear === 2026 && code === 'GLOBAL' && engineOutput ? engineOutput.remainingYears : baseSnap.yearsToTipping,
+          };
           const regionName = snap.name[locale] || snap.name.en;
           const statusKey = snap.temp >= 80 ? 'CRITICAL' : snap.temp >= 60 ? 'HIGH' : snap.temp >= 30 ? 'MED' : 'LOW';
           const statusLabel = copy.statusLabels[statusKey];

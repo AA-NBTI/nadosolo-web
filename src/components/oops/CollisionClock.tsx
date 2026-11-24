@@ -3,12 +3,22 @@
 import React, { useState, useEffect } from 'react';
 import type { OopsLocale } from '@/lib/oops/i18n';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
+import type { EngineEvaluationOutput } from '@/lib/oops/scoringEngine';
 
 interface CollisionClockProps {
   locale: OopsLocale;
+  engineOutput?: EngineEvaluationOutput;
 }
 
-export default function CollisionClock({ locale }: CollisionClockProps) {
+export default function CollisionClock({ locale, engineOutput }: CollisionClockProps) {
+  const [activeAccFactor, setActiveAccFactor] = useState<number>(0);
+
+  const baselineRemainingYears = engineOutput ? engineOutput.remainingYears : 9.0;
+  const deltaYears = activeAccFactor === 1 ? -1.6 : activeAccFactor === -1 ? 2.1 : 0.0;
+  const effectiveRemainingYears = Math.max(0.1, baselineRemainingYears + deltaYears);
+  const remainingYears = effectiveRemainingYears.toFixed(1);
+  const projectedYear = (2026 + effectiveRemainingYears).toFixed(1);
+
   const [timeLeft, setTimeLeft] = useState<{
     totalHours: number;
     totalMinutes: number;
@@ -19,7 +29,9 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
   }>({ totalHours: 71000, totalMinutes: 4260000, days: 2959, hoursInDay: 0, seconds: 0, milliseconds: 0 });
 
   useEffect(() => {
-    const targetDate = new Date('2035-01-01T00:00:00Z').getTime();
+    const baseTarget = new Date('2035-01-01T00:00:00Z').getTime();
+    const offsetMs = (effectiveRemainingYears - 9.0) * 365.25 * 24 * 60 * 60 * 1000;
+    const targetDate = baseTarget + offsetMs;
 
     const interval = setInterval(() => {
       const now = Date.now();
@@ -36,13 +48,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
     }, 47);
 
     return () => clearInterval(interval);
-  }, []);
-
-  const [activeAccFactor, setActiveAccFactor] = useState<number>(0);
-
-  const baselineRemainingYears = 9.0;
-  const deltaYears = activeAccFactor === 1 ? -1.6 : activeAccFactor === -1 ? 2.1 : 0.0;
-  const remainingYears = (baselineRemainingYears + deltaYears).toFixed(1);
+  }, [effectiveRemainingYears]);
 
   const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
 
@@ -57,7 +63,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
           </span>
         </div>
         <span className="px-2.5 py-0.5 bg-zinc-800 text-[#ffc900] font-black text-xs border border-black shadow-[2px_2px_0_#d4d4d8]">
-          {copy.clockTarget}
+          {projectedYear}
         </span>
       </div>
 

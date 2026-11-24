@@ -30,6 +30,11 @@ import CollisionClock from '@/components/oops/CollisionClock';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import { FEED_I18N } from '@/lib/oops/feedI18n';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
+import {
+  DEFAULT_SCORING_CONTEXT,
+  DEFAULT_THREAT_MODULES,
+  runThreatScoringEngine,
+} from '@/lib/oops/scoringEngine';
 import type {
   FeedSortTab,
   OopsSignal,
@@ -194,6 +199,25 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [tab, setTab] = useState<FeedSortTab>('HOT');
   const [signals, setSignals] = useState<OopsSignal[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const liveEngineOutput = React.useMemo(() => {
+    if (!signals || signals.length === 0) {
+      return runThreatScoringEngine(DEFAULT_THREAT_MODULES, DEFAULT_SCORING_CONTEXT);
+    }
+    const totalFire = signals.reduce((acc, s) => acc + (s.fireCount || 0) + (s.skullCount || 0), 0);
+    const totalUp = signals.reduce((acc, s) => acc + (s.upvotes || 0), 0);
+    const totalVotes = totalFire + totalUp;
+    const liveFearRatio = totalVotes > 0 ? totalFire / totalVotes : DEFAULT_SCORING_CONTEXT.snsFearRatio;
+    const blendedFearRatio = Number((DEFAULT_SCORING_CONTEXT.snsFearRatio * 0.6 + liveFearRatio * 0.4).toFixed(4));
+    const alertCount = signals.filter((s) => s.category === 'ALERT' || s.category === 'REBEL').length;
+    const incidentDelta = Number(Math.min(10, Math.max(-5, (alertCount - 2) * 0.6)).toFixed(2));
+
+    return runThreatScoringEngine(DEFAULT_THREAT_MODULES, {
+      ...DEFAULT_SCORING_CONTEXT,
+      snsFearRatio: blendedFearRatio,
+      incidentDelta,
+    });
+  }, [signals]);
 
   // Composer state
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -762,10 +786,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         {viewMode === 'OBSERVATORY' && (
           <section aria-label="Global Threat Observatory Chart" className="space-y-6">
             {/* 1. 회장님 지시: AI 충돌 예상 연도(2035)와 발발 확률(18.4%) 종말 시계 전진 배치 */}
-            <CollisionClock locale={locale} />
+            <CollisionClock locale={locale} engineOutput={liveEngineOutput} />
 
             {/* 2. 6대 범용 위험 지수 레이더 다이어그램 */}
-            <ThreatPulseChart initialThemeId="ai_collision" locale={locale} />
+            <ThreatPulseChart initialThemeId="ai_collision" locale={locale} engineOutput={liveEngineOutput} />
 
             {/* 언론사용 임베드 안내 배너 (OOPS 시그니처 옐로우 #ffc900 & 오렌지 #ff4d00 CTA) */}
             <div className="bg-[#ffc900] border-4 border-black p-4 sm:p-5 shadow-[6px_6px_0_#d4d4d8] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
