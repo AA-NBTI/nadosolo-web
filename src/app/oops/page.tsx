@@ -513,14 +513,44 @@ function OopsSnsMainContent() {
             <button
               type="button"
               onClick={() => setShowEmblemModal(true)}
-              className="group inline-flex items-center gap-2 select-none cursor-pointer"
-              title="View Emblem"
+              className="group inline-flex items-center select-none cursor-pointer"
+              title="View Emblem & Mascot"
             >
-              <img
-                src="/oops-icon.jpg"
-                alt="OOPS.MONSTER"
-                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
-              />
+              <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-[#1d1f27] border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform flex items-center justify-center p-1">
+                <svg viewBox="0 0 100 100" className="w-full h-full" aria-label="No AI">
+                  {/* 흰색 볼드 AI 텍스트 */}
+                  <text
+                    x="48"
+                    y="64"
+                    textAnchor="middle"
+                    fill="#ffffff"
+                    fontFamily="Arial Black, Impact, system-ui, sans-serif"
+                    fontWeight="900"
+                    fontSize="42"
+                    letterSpacing="-2"
+                  >
+                    AI
+                  </text>
+                  {/* 오렌지 금지 원형 + 사선 */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="41"
+                    fill="none"
+                    stroke="#ff4d00"
+                    strokeWidth="10"
+                  />
+                  <line
+                    x1="21"
+                    y1="79"
+                    x2="79"
+                    y2="21"
+                    stroke="#ff4d00"
+                    strokeWidth="10"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
             </button>
           </div>
 
