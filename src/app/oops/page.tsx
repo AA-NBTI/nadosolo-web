@@ -631,8 +631,8 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
 
   return (
     <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-zinc-300 selection:text-black">
-      {/* 1. 상단 네비게이션 */}
-      <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
+      {/* 1. 상단 네비게이션 (OOPS 시그니처 옐로우 #ffc900 & 블랙 테두리) */}
+      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#000]">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <button
@@ -647,23 +647,23 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                 className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform"
               />
             </button>
-          </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* 기존 팝업 로고 (.monster 포함 원형 그대로 매니페스토 왼쪽 옆 배치) */}
             <Link
               href="/"
-              className="group inline-flex items-center gap-1 select-none cursor-pointer mr-1"
+              className="group inline-flex items-center gap-1 select-none cursor-pointer"
               title="OOPS Home"
             >
               <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tight border-2 border-black shadow-[2px_2px_0px_#000] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none transition-all uppercase leading-none">
                 oops
               </span>
-              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden sm:inline">
+              <span className="font-mono text-xs sm:text-sm font-black text-black tracking-tight hidden sm:inline">
                 .monster
               </span>
             </Link>
+          </div>
 
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => setShowManifesto(true)}
@@ -682,25 +682,11 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
 
             <a
               href="/app"
-              className="px-2.5 py-1.5 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+              className="px-2.5 py-1.5 bg-black hover:bg-zinc-900 text-[#ffc900] font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
             >
               <Smartphone className="w-3.5 h-3.5" />
               <span>{f.navApp}</span>
             </a>
-
-            {/* APP 옆 SNS 카테고리 버튼 */}
-            <button
-              type="button"
-              onClick={() => setViewMode((prev) => (prev === 'SNS' ? 'OBSERVATORY' : 'SNS'))}
-              className={`px-2.5 py-1.5 font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
-                viewMode === 'SNS'
-                  ? 'bg-black text-[#ffc900]'
-                  : 'bg-white hover:bg-zinc-100 text-black'
-              }`}
-            >
-              <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
-              <span>SNS</span>
-            </button>
 
             {/* 언어 드롭다운 (현재 언어만 노출, 클릭 시 5개 언어 선택) */}
             <div className="relative">
@@ -740,6 +726,49 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         </div>
       </header>
 
+      {/* 2. 헤더 메인 카테고리 네비게이션 탭 (옐로우 #ffc900 & 로고 오렌지 #ff4d00 메인 테마 세팅) */}
+      <nav aria-label="Main Navigation Categories" className="bg-[#ffc900] border-b-2 border-black">
+        <div className="max-w-3xl mx-auto px-4 py-2 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode('OBSERVATORY')}
+              className={`px-3 py-1.5 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+                viewMode === 'OBSERVATORY'
+                  ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
+                  : 'bg-white text-black hover:bg-zinc-100 shadow-[1px_1px_0_#000]'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${viewMode === 'OBSERVATORY' ? 'bg-white animate-pulse' : 'bg-[#ff4d00]'}`} />
+              <span>⚡ {locale === 'ko' ? 'AI 충돌 관측소' : 'THREAT OBSERVATORY'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('SNS')}
+              className={`px-3 py-1.5 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+                viewMode === 'SNS'
+                  ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
+                  : 'bg-white text-black hover:bg-zinc-100 shadow-[1px_1px_0_#000]'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5" />
+              <span>📡 {locale === 'ko' ? '인간 저항 피드' : 'HUMAN DISPATCH'}</span>
+            </button>
+          </div>
+
+          {/* 실시간 기준선 배지 요약 */}
+          <div className="flex items-center gap-1.5 text-xs font-mono font-bold shrink-0">
+            <span className="px-2 py-0.5 bg-black text-[#ffc900] border border-black shadow-[1.5px_1.5px_0_#000]">
+              2035 D-9.0Y
+            </span>
+            <span className="px-2 py-0.5 bg-white text-black border border-black shadow-[1.5px_1.5px_0_#000] hidden sm:inline">
+              P(DOOM) 18.4%
+            </span>
+          </div>
+        </div>
+      </nav>
+
       {/* 2. 한 줄 압축 슬로건 바 (모바일 2줄 최적화) */}
       <div className="bg-black text-white border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
@@ -768,11 +797,14 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             {/* 2. 6대 범용 위험 지수 레이더 다이어그램 */}
             <ThreatPulseChart initialThemeId="ai_collision" locale={locale} />
 
-            {/* 언론사용 임베드 안내 배너 */}
-            <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0_#000] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+            {/* 언론사용 임베드 안내 배너 (OOPS 시그니처 옐로우 #ffc900 & 오렌지 #ff4d00 CTA) */}
+            <div className="bg-[#ffc900] border-4 border-black p-4 sm:p-5 shadow-[6px_6px_0_#000] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
               <div className="space-y-0.5">
-                <div className="font-black text-black">PRESS & MEDIA SYNDICATION</div>
-                <div className="text-zinc-600">
+                <div className="font-black text-black text-sm flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse" />
+                  <span>PRESS & MEDIA SYNDICATION</span>
+                </div>
+                <div className="text-zinc-900 font-sans font-medium text-xs">
                   {locale === 'ko'
                     ? '언론사 및 연구기관은 본 위험 지수 다이어그램을 기사에 무료로 임베드할 수 있습니다.'
                     : 'Media outlets & researchers can embed this barometer chart into articles for free.'}
@@ -782,7 +814,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                 href="/embed/chart?theme=ai_collision"
                 target="_blank"
                 rel="noreferrer"
-                className="px-3 py-1.5 bg-black hover:bg-zinc-800 text-white font-bold border border-black cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1.5"
               >
                 <span>OPEN EMBED VIEW</span>
                 <span>↗</span>

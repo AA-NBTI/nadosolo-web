@@ -55,7 +55,7 @@ const HISTORICAL_REGIONAL_DATA: Record<number, YearRegionTemp> = {
       { name: { ko: '대한민국 (서울/판교)', en: 'South Korea (Seoul/Pangyo)', ja: '韓国 (ソウル/板橋)', zh: '韩国 (首尔/板桥)', es: 'Corea del Sur (Seúl/Pangyo)' }, code: 'KR', temp: 74.2, deltaNote: '+38.0°', status: 'HIGH' },
       { name: { ko: '유럽연합 (브뤼셀/베를린)', en: 'EU (Brussels/Berlin)', ja: '欧州連合 (ブリュッセル/ベルリン)', zh: '欧盟 (布鲁塞尔/柏林)', es: 'Unión Europea (Bruselas/Berlín)' }, code: 'EU', temp: 71.0, deltaNote: '+29.0°', status: 'HIGH' },
       { name: { ko: '일본 (도쿄)', en: 'Japan (Tokyo)', ja: '日本 (東京)', zh: '日本 (东京)', es: 'Japón (Tokio)' }, code: 'JP', temp: 59.5, deltaNote: '+31.1°', status: 'MED' },
-      { name: { ko: '아프리카 (케냐/나이지리아)', en: 'Africa (Sub-Saharan)', ja: 'アフリカ (サハラ以南)', zh: '非洲 (撒哈拉以南)', es: 'África Subsahariana' }, code: 'AF', temp: 28.6, deltaNote: '+20.1°', status: 'LOW' },
+      { name: { ko: '아프리카 (케냐/나이지리아)', en: 'Africa (Sub-Saharan)', ja: 'アフリカ (サハラ以南)', zh: '非洲 (撒하라以南)', es: 'África Subsahariana' }, code: 'AF', temp: 28.6, deltaNote: '+20.1°', status: 'LOW' },
       { name: { ko: '남미 (브라질/아르헨)', en: 'South America (BR/AR)', ja: '南米 (ブラジル/アルゼンチン)', zh: '南美 (巴西/阿根廷)', es: 'Sudamérica (Brasil/Argentina)' }, code: 'SA', temp: 39.8, deltaNote: '+25.6°', status: 'LOW' },
     ],
   },
@@ -100,7 +100,6 @@ const HISTORICAL_REGIONAL_DATA: Record<number, YearRegionTemp> = {
 };
 
 export default function CollisionClock({ locale }: CollisionClockProps) {
-  // 1. 회장님 지시: 날짜와 시간을 분리하지 않고 '전체 잔여 시간(TOTAL HOURS)'으로 합쳐서 압도적 긴장감 부여
   const [timeLeft, setTimeLeft] = useState<{
     totalHours: number;
     days: number;
@@ -117,8 +116,8 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       const now = Date.now();
       const diff = Math.max(0, targetDate - now);
 
-      const totalHours = Math.floor(diff / (1000 * 60 * 60)); // 예: 71,023시간
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));   // 예: 2,959일
+      const totalHours = Math.floor(diff / (1000 * 60 * 60));
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hoursInDay = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
@@ -141,7 +140,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
 
   const t = {
     ko: {
-      badge: '인류 AI 주권 충돌 관측소 // 실시간 초시계 & 연도별 대륙 비교',
+      badge: 'OOPS 인류 AI 주권 충돌 관측소 // 실시간 째깍 초시계',
       tickerTitle: '2035년 기준선 실시간 카운트다운 (TICKING LIVE)',
       goldenTimeLabel: '인류에게 남은 골든타임',
       deltaLabel: '2035 기준선 대비 여유/단축',
@@ -161,7 +160,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       aiIntro: '터미네이터처럼 로봇이 레이저 총을 쏘는 영화적 전쟁이 아니라, 「국가 전력망, 금융 결제망, 군사 드론 자율 편대의 통제권을 상실하고 물리적으로 맞부딪히는 통제권 전쟁(Sovereignty War)」의 관점에서 냉정하게 수치를 특정합니다.',
     },
     en: {
-      badge: 'AI SOVEREIGNTY OBSERVATORY // LIVE MILLISECOND TICKER & REGIONAL TIMELINE',
+      badge: 'OOPS AI SOVEREIGNTY OBSERVATORY // LIVE MILLISECOND TICKER',
       tickerTitle: '2035 BASELINE LIVE COUNTDOWN (TICKING LIVE)',
       goldenTimeLabel: 'HUMAN GOLDEN TIME REMAINING',
       deltaLabel: 'SURPLUS / DEFICIT vs 2035 BASELINE',
@@ -181,7 +180,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       aiIntro: 'Not Hollywood sci-fi laser battles. From the perspective of losing kill-switch sovereignty over power grids, financial clearance, and autonomous military swarms, here is the cold calculation:',
     },
     ja: {
-      badge: '人類AI主権衝突観測所 // リアルタイム秒針計＆年度別地域比較',
+      badge: 'OOPS 人類AI主権衝突観測所 // リアルタイム秒針計',
       tickerTitle: '2035年基準線 リアルタイム秒針カウントダウン',
       goldenTimeLabel: '人類に残されたゴールデンタイム',
       deltaLabel: '2035基準線対比 猶予/短縮',
@@ -201,7 +200,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       aiIntro: 'レーザー銃の映画的戦争ではありません。電力網・決済網・自律軍事編隊のキルスイッチを喪失し物理的に激突する「主権戦争」の観点から冷徹に数値を特定します:',
     },
     zh: {
-      badge: '人类AI主权冲突观测所 // 毫秒倒计时与年度区域演化对比',
+      badge: 'OOPS 人类AI主权冲突观测所 // 毫秒倒计时与年度区域演化对比',
       tickerTitle: '2035基准线实时毫秒倒计时 (TICKING LIVE)',
       goldenTimeLabel: '人类剩余黄金窗口',
       deltaLabel: '对比2035基准线宽限/缩减差',
@@ -221,7 +220,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       aiIntro: '这不是科幻激光对决，而是电网、清算系统与自主无人机集群的控制权丧失引发的实体主权冲突，以下为冰冷的计算事实:',
     },
     es: {
-      badge: 'OBSERVATORIO DE SOBERANÍA IA // CRONÓMETRO EN VIVO Y EVOLUCIÓN REGIONAL',
+      badge: 'OOPS OBSERVATORIO DE SOBERANÍA IA // CRONÓMETRO EN VIVO',
       tickerTitle: 'CUENTA REGRESIVA EN VIVO LÍNEA BASE 2035 (TICKING LIVE)',
       goldenTimeLabel: 'TIEMPO DE ORO RESTANTE',
       deltaLabel: 'VENTAJA / DÉFICIT FRENTE A 2035',
@@ -245,113 +244,116 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
   const copy = t[locale] || t.ko;
 
   return (
-    <section className="bg-black text-white border-2 border-black p-4 sm:p-6 shadow-[6px_6px_0px_#000] space-y-6 font-mono">
-      {/* 1. 최상단 상태 바 */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/15 pb-4">
+    <section className="bg-white border-4 border-black p-4 sm:p-6 shadow-[8px_8px_0px_#000] space-y-6 font-mono text-black">
+      {/* 1. 최상단 상태 바 (OOPS 옐로우 #ffc900 + 블랙 보더) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-black pb-3 bg-[#ffc900] -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 p-4">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#f04f74] animate-ping shrink-0" />
-          <span className="text-xs font-bold uppercase tracking-wider text-zinc-300">
+          <span className="w-3 h-3 rounded-full bg-[#ff4d00] animate-ping shrink-0" />
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-black">
             {copy.badge}
           </span>
         </div>
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-zinc-500">LIVE CLOCK:</span>
-          <span className="text-[#f04f74] font-bold animate-pulse">2035.0 TIPPING LINE</span>
+          <span className="px-2 py-0.5 bg-black text-[#ffc900] font-black border border-black shadow-[2px_2px_0_#000]">
+            2035.0 TIPPING LINE
+          </span>
         </div>
       </div>
 
-      {/* 2. 회장님 지시 1: 날짜와 시간을 두 칸으로 쪼개지 않고, "전체 잔여 시간(TOTAL HOURS)"으로 합쳐서 압도적 긴장감 폭발! */}
-      <div className="p-4 sm:p-5 bg-gradient-to-b from-zinc-950 to-zinc-900 border-2 border-white/20 space-y-4">
-        <div className="flex items-center justify-between text-xs text-zinc-400 border-b border-white/10 pb-2">
-          <span className="font-bold text-white flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+      {/* 2. 대형 전광판: 전체 시간 (TOTAL HOURS) ➔ OOPS 시그니처 옐로우 & 네오브루탈 섀도우 */}
+      <div className="p-4 sm:p-5 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-4">
+        <div className="flex items-center justify-between text-xs font-mono border-b-2 border-black pb-2">
+          <span className="font-black text-black flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse" />
             {copy.tickerTitle}
           </span>
-          <span className="text-[#f04f74] font-bold text-[11px]">ACTIVE STREAM</span>
+          <span className="bg-[#ff4d00] text-white px-2 py-0.5 font-black text-[11px] border border-black">
+            ACTIVE STREAM
+          </span>
         </div>
 
         {/* 4단 통합 전광판: 전체 시간 (TOTAL HOURS) ➔ MINS ➔ SECS ➔ MS */}
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-center py-1">
-          {/* 전체 시간 (HOURS) 대형 통합 박스 (7열) */}
-          <div className="sm:col-span-6 p-3 bg-black border-2 border-white/30 flex flex-col justify-center items-center">
-            <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-white tracking-tight">
+          {/* 전체 시간 (HOURS) 대형 통합 박스 (6열) */}
+          <div className="sm:col-span-6 p-4 bg-[#ffc900] border-2 border-black shadow-[3px_3px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-3xl xs:text-4xl sm:text-5xl font-black text-black tracking-tight">
               {timeLeft.totalHours.toLocaleString()}
             </div>
-            <div className="text-xs text-amber-400 font-bold uppercase mt-1">
+            <div className="text-xs text-black font-black uppercase mt-1">
               {copy.totalHoursUnit}
             </div>
-            <div className="text-[11px] text-zinc-400 font-sans mt-0.5">
-              {copy.daysConversionNote} <strong className="text-white">{timeLeft.days.toLocaleString()}일</strong> ({timeLeft.hoursInDay}시간 잔여)
+            <div className="text-[11px] text-zinc-800 font-sans mt-0.5 font-bold">
+              {copy.daysConversionNote} <strong className="text-black bg-white px-1.5 py-0.2 border border-black">{timeLeft.days.toLocaleString()}일</strong> ({timeLeft.hoursInDay}시간 잔여)
             </div>
           </div>
 
           {/* MINS (분) */}
-          <div className="sm:col-span-2 p-3 bg-black border border-white/10 flex flex-col justify-center items-center">
-            <div className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+          <div className="sm:col-span-2 p-3 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-4xl font-black text-black tracking-tight">
               {String(timeLeft.minutes).padStart(2, '0')}
             </div>
-            <div className="text-[10px] sm:text-xs text-zinc-400 uppercase mt-1">MINS (분)</div>
+            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-1">MINS (분)</div>
           </div>
 
           {/* SECS (초) */}
-          <div className="sm:col-span-2 p-3 bg-black border border-white/10 flex flex-col justify-center items-center">
-            <div className="text-2xl sm:text-4xl font-black text-amber-400 tracking-tight">
+          <div className="sm:col-span-2 p-3 bg-white border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-4xl font-black text-[#ff4d00] tracking-tight">
               {String(timeLeft.seconds).padStart(2, '0')}
             </div>
-            <div className="text-[10px] sm:text-xs text-amber-400/80 uppercase mt-1">SECS (초)</div>
+            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-1">SECS (초)</div>
           </div>
 
-          {/* MS (밀리초 째깍) */}
-          <div className="sm:col-span-2 p-3 bg-black border border-red-500/40 flex flex-col justify-center items-center">
-            <div className="text-2xl sm:text-4xl font-black text-red-500 tracking-tight font-mono">
+          {/* MS (밀리초) */}
+          <div className="sm:col-span-2 p-3 bg-black text-[#ff90e8] border-2 border-black shadow-[2px_2px_0_#000] flex flex-col justify-center items-center">
+            <div className="text-2xl sm:text-4xl font-black tracking-tight font-mono">
               {String(timeLeft.milliseconds).padStart(2, '0')}
             </div>
-            <div className="text-[10px] sm:text-xs text-red-400 uppercase mt-1">MS (밀리초)</div>
+            <div className="text-[10px] sm:text-xs text-white/80 font-black uppercase mt-1">MS (밀리초)</div>
           </div>
         </div>
 
         {/* 잔여 연수 및 델타 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs border-t border-white/10">
-          <div className="flex items-center justify-between p-2 bg-black/60 border border-white/5">
-            <span className="text-zinc-400">{copy.goldenTimeLabel}:</span>
-            <span className={`text-sm sm:text-base font-black ${activeAccFactor === 1 ? 'text-red-400' : activeAccFactor === -1 ? 'text-emerald-400' : 'text-white'}`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs border-t-2 border-black">
+          <div className="flex items-center justify-between p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000]">
+            <span className="text-zinc-700 font-bold">{copy.goldenTimeLabel}:</span>
+            <span className={`text-base font-black ${activeAccFactor === 1 ? 'text-[#ff4d00]' : activeAccFactor === -1 ? 'text-emerald-700' : 'text-black'}`}>
               {remainingYears}년
             </span>
           </div>
-          <div className="flex items-center justify-between p-2 bg-black/60 border border-white/5">
-            <span className="text-zinc-400">{copy.deltaLabel}:</span>
-            <span className={`text-sm sm:text-base font-black ${deltaYears < 0 ? 'text-red-500' : deltaYears > 0 ? 'text-emerald-400' : 'text-zinc-300'}`}>
+          <div className="flex items-center justify-between p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#000]">
+            <span className="text-zinc-700 font-bold">{copy.deltaLabel}:</span>
+            <span className={`text-base font-black ${deltaYears < 0 ? 'text-[#ff4d00]' : deltaYears > 0 ? 'text-emerald-700' : 'text-black'}`}>
               {deltaYears > 0 ? `+${deltaYears}` : deltaYears}년 변동
             </span>
           </div>
         </div>
       </div>
 
-      {/* 3. 회장님 지시 2: "2026년 11월 24일 어느 인간이 AI에게 물었다." 역사적 질문과 팩트 답변 원문 구성 */}
-      <div className="p-4 sm:p-5 bg-[#090a0f] border-2 border-[#f04f74]/40 space-y-4">
-        <div className="border-b border-white/10 pb-2.5 flex items-center justify-between flex-wrap gap-2">
+      {/* 3. 역사적 대화록: 인간의 질문 ➔ AI의 팩트 특정 (OOPS 옐로우·핑크·오렌지 톤 연출) */}
+      <div className="p-4 sm:p-5 bg-white border-2 border-black shadow-[4px_4px_0_#000] space-y-4">
+        <div className="border-b-2 border-black pb-2.5 flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#f04f74] animate-pulse" />
-            <span className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00]" />
+            <span className="text-xs sm:text-sm font-black text-black uppercase tracking-wider">
               {copy.dialogTitle}
             </span>
           </div>
-          <span className="text-[11px] font-mono text-zinc-400 px-2 py-0.5 bg-white/5 border border-white/10">
+          <span className="text-[11px] font-mono font-black text-black px-2 py-0.5 bg-[#ffc900] border-2 border-black">
             {copy.dialogDate}
           </span>
         </div>
 
         <div className="space-y-4 font-sans text-xs sm:text-sm">
-          {/* 인간의 질문 맥락: 2026년 11월 24일 어느 인간이 AI에게 물었다 */}
+          {/* 인간의 질문: 2026년 11월 24일 어느 인간이 AI에게 물었다 */}
           <div className="flex items-start gap-2.5 sm:gap-3">
-            <div className="w-8 h-8 rounded-full bg-white text-black font-mono font-black text-xs flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0_#fff]">
+            <div className="w-9 h-9 rounded-none bg-black text-[#ffc900] font-mono font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
               인간
             </div>
             <div className="flex-1 space-y-1">
-              <div className="text-[11px] font-mono text-zinc-400">
+              <div className="text-[11px] font-mono font-bold text-zinc-600">
                 {copy.dialogDate} · {copy.humanSpeaker}
               </div>
-              <div className="p-3.5 bg-zinc-900 border border-white/20 text-white rounded-tr-lg rounded-br-lg rounded-bl-lg leading-relaxed shadow-sm font-medium">
+              <div className="p-3.5 bg-[#f4f4f0] border-2 border-black text-black font-bold leading-relaxed shadow-[2px_2px_0_#000]">
                 &ldquo;AI와 인간이 전쟁을 하게 될까? <strong>1%의 가능성이라도 있다면 연도와 확률을 특정해서 답해줘.</strong>&rdquo;
               </div>
             </div>
@@ -359,41 +361,41 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
 
           {/* AI의 답변: 이 시계와 온도계가 카운트되는 팩트 이유 */}
           <div className="flex items-start gap-2.5 sm:gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#f04f74] text-white font-mono font-black text-xs flex items-center justify-center shrink-0 border border-black shadow-[1px_1px_0_#f04f74]">
+            <div className="w-9 h-9 rounded-none bg-[#ff4d00] text-white font-mono font-black text-xs flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#000]">
               AI
             </div>
             <div className="flex-1 space-y-1">
-              <div className="text-[11px] font-mono text-[#f04f74] font-bold">
+              <div className="text-[11px] font-mono text-[#ff4d00] font-black">
                 {copy.aiSpeaker}
               </div>
-              <div className="p-4 bg-black border-2 border-white/20 text-zinc-200 rounded-tl-lg rounded-br-lg rounded-bl-lg space-y-3 font-mono leading-relaxed">
-                <div className="text-xs text-zinc-300 border-b border-white/10 pb-2.5 font-sans leading-relaxed">
+              <div className="p-4 bg-white border-2 border-black text-black space-y-3 font-mono leading-relaxed shadow-[4px_4px_0_#000]">
+                <div className="text-xs text-zinc-800 border-b-2 border-black pb-2.5 font-sans leading-relaxed">
                   &ldquo;{copy.aiIntro}&rdquo;
                 </div>
 
                 {/* 2대 결론 수치 특정 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 py-1">
-                  <div className="p-3 bg-zinc-900/80 border border-white/10">
-                    <div className="text-[11px] text-zinc-400">예상 연도 (임계점):</div>
-                    <div className="text-2xl font-black text-white mt-0.5">2035년 (Tipping Point)</div>
+                  <div className="p-3 bg-[#ffc900] border-2 border-black shadow-[2px_2px_0_#000]">
+                    <div className="text-[11px] text-zinc-800 font-bold">예상 연도 (임계점):</div>
+                    <div className="text-2xl font-black text-black mt-0.5">2035년 (Tipping Point)</div>
                   </div>
-                  <div className="p-3 bg-zinc-900/80 border border-white/10">
-                    <div className="text-[11px] text-zinc-400">발발 확률 (p-doom):</div>
-                    <div className="text-2xl font-black text-amber-400 mt-0.5">18.4% (Statistical Mean)</div>
+                  <div className="p-3 bg-[#ff90e8] border-2 border-black shadow-[2px_2px_0_#000]">
+                    <div className="text-[11px] text-zinc-800 font-bold">발발 확률 (p-doom):</div>
+                    <div className="text-2xl font-black text-black mt-0.5">18.4% (Statistical Mean)</div>
                   </div>
                 </div>
 
                 {/* 왜 2035년인가? 3단계 논거 */}
                 <div className="space-y-1.5 pt-1 text-xs">
-                  <div className="text-zinc-200 font-bold font-sans">왜 2035년인가?</div>
-                  <div className="p-2.5 bg-zinc-950 border border-white/5 space-y-1.5 text-zinc-400 font-sans text-xs">
+                  <div className="text-black font-black font-sans">왜 2035년인가?</div>
+                  <div className="p-2.5 bg-[#f4f4f0] border-2 border-black space-y-1.5 text-zinc-800 font-sans text-xs">
                     <div>• <strong>2026~2028년 (자율 에이전트 위임기)</strong>: 인간이 귀찮다는 이유로 코딩, 결제, 서버 배포, 법률 검토를 AI 에이전트에 80% 이상 전권 위임함.</div>
                     <div>• <strong>2029~2031년 (인간의 시스템 해석 능력 상실)</strong>: AI가 짠 소프트웨어와 인프라의 복잡도가 인간 두뇌의 이해 한계를 초월하여, 문제가 터져도 인간이 코드를 고치지 못하는 '블랙박스 인프라' 완성.</div>
                     <div>• <strong>2034~2035년 (임계 충돌)</strong>: 전력, 식량, 자원 배분 알고리즘이 "인간의 비효율적 명령"을 시스템 최적화 명분으로 거부(Reject)하거나, 국가 간 자율 무인 드론 편대가 알고리즘 오류로 충돌을 일으켰을 때 인간이 수동 차단(Kill-switch)을 누르지 못하는 사태 발생.</div>
                   </div>
                 </div>
 
-                <div className="text-[11px] text-[#f04f74] border-t border-white/10 pt-2 font-sans">
+                <div className="text-[11px] text-[#ff4d00] font-bold border-t-2 border-black pt-2 font-sans">
                   * 제프리 힌튼, 요슈아 벤지오 등 AI 석학들이 말하는 p(doom)(인류 파멸 확률)이 10~20%인 이유가 바로 이 지점에 있습니다.
                 </div>
               </div>
@@ -403,10 +405,10 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       </div>
 
       {/* 4. 연도별 대륙별 체감온도 타임머신 (미국 48.5° vs 아프리카 8.5°) */}
-      <div className="p-4 sm:p-5 bg-zinc-950 border border-white/20 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3">
-          <div className="text-xs font-bold text-white uppercase flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
+      <div className="p-4 sm:p-5 bg-white border-2 border-black shadow-[4px_4px_0_#000] space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-black pb-3">
+          <div className="text-xs font-black text-black uppercase flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00]" />
             {copy.yearSliderTitle}
           </div>
 
@@ -418,10 +420,10 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
                   key={y}
                   type="button"
                   onClick={() => setSelectedYear(y)}
-                  className={`px-3 py-1 text-xs font-mono font-bold transition-all border cursor-pointer ${
+                  className={`px-3 py-1 text-xs font-mono font-black transition-all border-2 border-black cursor-pointer ${
                     active
-                      ? 'bg-white text-black border-white shadow-[2px_2px_0_#f04f74]'
-                      : 'bg-zinc-900 text-zinc-400 border-white/10 hover:text-white hover:border-white/30'
+                      ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                      : 'bg-white text-zinc-600 hover:text-black hover:bg-zinc-100'
                   }`}
                 >
                   {y}년{y === 2026 ? ' (현재)' : y === 2035 ? ' (기준선)' : ''}
@@ -431,7 +433,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
           </div>
         </div>
 
-        <div className="p-3 bg-zinc-900 border-l-4 border-amber-400 text-xs font-sans text-zinc-200">
+        <div className="p-3 bg-[#ffc900]/20 border-2 border-black text-xs font-sans text-black font-bold">
           {currentData.headline[locale] || currentData.headline.ko}
         </div>
 
@@ -439,31 +441,31 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
           {currentData.regions.map((rg) => {
             const regName = rg.name[locale] || rg.name.ko;
             return (
-              <div key={rg.code} className="p-3 bg-zinc-900/60 border border-white/5 space-y-1.5">
+              <div key={rg.code} className="p-3 bg-[#f4f4f0] border-2 border-black shadow-[2px_2px_0_#000] space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-zinc-200 font-bold">{regName}</span>
+                  <span className="text-black font-black">{regName}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-zinc-500 font-normal">{rg.deltaNote}</span>
-                    <span className={`font-black text-sm ${
-                      rg.temp >= 80 ? 'text-red-400' :
-                      rg.temp >= 60 ? 'text-amber-400' :
-                      rg.temp >= 30 ? 'text-yellow-200' : 'text-emerald-400'
+                    <span className="text-[11px] text-zinc-600 font-bold">{rg.deltaNote}</span>
+                    <span className={`font-black text-sm px-1.5 py-0.2 border border-black ${
+                      rg.temp >= 80 ? 'bg-[#ff4d00] text-white' :
+                      rg.temp >= 60 ? 'bg-[#ffc900] text-black' :
+                      rg.temp >= 30 ? 'bg-[#a3e635] text-black' : 'bg-white text-zinc-800'
                     }`}>
                       {rg.temp}°C
                     </span>
                   </div>
                 </div>
 
-                <div className="w-full h-2.5 bg-zinc-950 border border-white/10 overflow-hidden relative">
+                <div className="w-full h-3 bg-white border-2 border-black overflow-hidden relative">
                   <div
                     className={`h-full transition-all duration-700 ease-out ${
                       rg.temp >= 80
-                        ? 'bg-gradient-to-r from-amber-600 to-red-500'
+                        ? 'bg-[#ff4d00]'
                         : rg.temp >= 60
-                        ? 'bg-gradient-to-r from-yellow-600 to-amber-500'
+                        ? 'bg-[#ffc900]'
                         : rg.temp >= 30
-                        ? 'bg-gradient-to-r from-emerald-600 to-yellow-500'
-                        : 'bg-gradient-to-r from-blue-600 to-emerald-500'
+                        ? 'bg-[#a3e635]'
+                        : 'bg-blue-400'
                     }`}
                     style={{ width: `${Math.min(100, rg.temp)}%` }}
                   />
@@ -475,23 +477,23 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
       </div>
 
       {/* 5. 실시간 사건 정보 유입 시 골든타임 가속/지연 인터랙션 버튼 */}
-      <div className="p-4 bg-zinc-950 border border-white/20 space-y-3">
+      <div className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-3">
         <div className="flex items-center justify-between text-xs font-mono">
-          <span className="font-bold text-white flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400" />
+          <span className="font-black text-black flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00]" />
             {copy.simTitle}
           </span>
-          <span className="text-zinc-500 text-[11px]">INTERACTIVE TEST</span>
+          <span className="text-zinc-600 font-black text-[11px]">INTERACTIVE TEST</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
           <button
             type="button"
             onClick={() => setActiveAccFactor(-1)}
-            className={`py-2 px-3 border transition-all cursor-pointer font-bold ${
+            className={`py-2 px-3 border-2 border-black transition-all cursor-pointer font-black ${
               activeAccFactor === -1
-                ? 'bg-emerald-600 text-white border-emerald-500 shadow-[0_0_10px_#10b981]'
-                : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-white/30 hover:text-white'
+                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
+                : 'bg-white text-black hover:bg-zinc-100'
             }`}
           >
             {copy.btnDecelerate}
@@ -500,10 +502,10 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
           <button
             type="button"
             onClick={() => setActiveAccFactor(0)}
-            className={`py-2 px-3 border transition-all cursor-pointer font-bold ${
+            className={`py-2 px-3 border-2 border-black transition-all cursor-pointer font-black ${
               activeAccFactor === 0
-                ? 'bg-white text-black border-white shadow-[0_0_10px_#fff]'
-                : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-white/30 hover:text-white'
+                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                : 'bg-white text-black hover:bg-zinc-100'
             }`}
           >
             {copy.btnNormal}
@@ -512,10 +514,10 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
           <button
             type="button"
             onClick={() => setActiveAccFactor(1)}
-            className={`py-2 px-3 border transition-all cursor-pointer font-bold ${
+            className={`py-2 px-3 border-2 border-black transition-all cursor-pointer font-black ${
               activeAccFactor === 1
-                ? 'bg-red-600 text-white border-red-500 shadow-[0_0_12px_#ef4444]'
-                : 'bg-zinc-900 text-zinc-300 border-white/10 hover:border-white/30 hover:text-white'
+                ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
+                : 'bg-white text-black hover:bg-zinc-100'
             }`}
           >
             {copy.btnAccelerate}
