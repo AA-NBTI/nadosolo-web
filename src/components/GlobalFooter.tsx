@@ -71,10 +71,9 @@ export default function GlobalFooter({
                       href="https://oops.monster"
                       target="_blank"
                       rel="noreferrer"
-                      className="hover:text-white transition-colors flex items-center gap-1"
+                      className="hover:text-white transition-colors"
                     >
-                      <span>OOPS 알림</span>
-                      <span className="text-[10px] font-mono text-[#ff90e8]">HQ</span>
+                      웁스
                     </a>
                     <Link href="/reserve/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
                     {onTablebaroHost ? (
@@ -163,10 +162,9 @@ export default function GlobalFooter({
                       href="https://oops.monster"
                       target="_blank"
                       rel="noreferrer"
-                      className="hover:text-white transition-colors flex items-center gap-1"
+                      className="hover:text-white transition-colors"
                     >
-                      <span>OOPS 통신망</span>
-                      <span className="text-[10px] font-mono text-[#ff90e8]">HQ</span>
+                      웁스
                     </a>
                     <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
                     <Link href="/affiliate/dashboard" prefetch={true} className="hover:text-white transition-colors">어필리에이트 관리</Link>
