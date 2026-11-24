@@ -3,9 +3,27 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import QRCode from 'qrcode';
-import { ArrowLeft, Bell, Lock, QrCode, Radio, Send, Users } from 'lucide-react';
+import {
+  Activity,
+  ArrowLeft,
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  Database,
+  Globe,
+  Lock,
+  Pin,
+  QrCode,
+  Radio,
+  Send,
+  Shield,
+  Smartphone,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import type { OopsReleaseEntry } from '@/lib/oops/releases';
 import type { OopsSignal } from '@/lib/oops/signalStore';
+import { getAllThreatThemes, ThreatTheme } from '@/lib/oops/universalThreatEngine';
 
 interface AgentRow {
   agentId: string;
@@ -24,11 +42,32 @@ interface BackerRow {
   createdAt: string;
 }
 
+type HqTabKey =
+  | 'OVERVIEW'
+  | 'THREAT_ENGINE'
+  | 'FEED_SIGNALS'
+  | 'PUSH_BROADCAST'
+  | 'CAMPAIGN_TRACKING'
+  | 'BACKERS'
+  | 'RELEASES';
+
+interface HqNavCategory {
+  title: string;
+  items: {
+    key: HqTabKey;
+    label: string;
+    badge?: string | number;
+  }[];
+}
+
 export default function OopsHqAdminPage() {
   const [passkey, setPasskey] = useState('');
   const [authed, setAuthed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 현재 활성 탭
+  const [activeTab, setActiveTab] = useState<HqTabKey>('OVERVIEW');
 
   const [latestVersion, setLatestVersion] = useState('v0.4.0');
   const [releases, setReleases] = useState<OopsReleaseEntry[]>([]);
@@ -39,7 +78,7 @@ export default function OopsHqAdminPage() {
   const [hqTrans, setHqTrans] = useState<Record<string, string>>({});
   const [hqTransBusy, setHqTransBusy] = useState<string | null>(null);
 
-  // UTM / QR 캠페인 생성 및 통계 상태
+  // UTM / QR 캠페인 통계
   const [trackingSummary, setTrackingSummary] = useState<{
     totalVisits: number;
     totalConversions: number;
@@ -50,62 +89,113 @@ export default function OopsHqAdminPage() {
   const [qrImage, setQrImage] = useState('');
   const [utmCopied, setUtmCopied] = useState(false);
 
-  const [bcTitle, setBcTitle] = useState('OOPS HQ 공지');
+  // 브로드캐스트
+  const [bcTitle, setBcTitle] = useState('OOPS HQ 긴급 타전');
   const [bcBody, setBcBody] = useState('');
   const [bcBusy, setBcBusy] = useState(false);
   const [bcResult, setBcResult] = useState<string | null>(null);
+
+  // 위험 지수 테마 목록
+  const threatThemes = getAllThreatThemes();
 
   const fetchDashboard = useCallback(async (keyToUse: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/oops/hq', {
-        headers: { 'x-oops-hq-key': keyToUse },
-      });
+      const res = await fetch(`/api/oops/hq?key=${encodeURIComponent(keyToUse)}`);
       const data = await res.json();
       if (!res.ok || !data.ok) {
+        setError(data.error || '접근이 거부되었습니다. 암호키를 확인하십시오.');
         setAuthed(false);
-        setError(data.error || '인증 실패');
         return;
       }
       setAuthed(true);
-      setLatestVersion(data.latestVersion || 'v0.3.0');
+      setLatestVersion(data.latestVersion || 'v0.4.0');
       setReleases(data.releases || []);
       setAgents(data.agents || []);
       setBackers(data.backers || []);
       setSignals(data.signals || []);
       setBannedAgents(data.bannedAgents || []);
-      if (data.trackingSummary) {
-        setTrackingSummary(data.trackingSummary);
-      }
+      setTrackingSummary(data.trackingSummary || null);
     } catch {
-      setError('서버 연결 오류');
+      setError('서버 연결 실패');
+      setAuthed(false);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // 링크 진입 시 기존 저장된 비밀번호 자동로그인 제거 (항상 암호 수동 입력 강제)
   useEffect(() => {
-    localStorage.removeItem('oops_hq_key_v1');
-    setPasskey('');
-    setAuthed(false);
-  }, []);
+    const saved = localStorage.getItem('oops_hq_key_v1');
+    if (saved) {
+      setPasskey(saved);
+      void fetchDashboard(saved);
+    }
+  }, [fetchDashboard]);
 
+  // QR 코드 실시간 생성
   useEffect(() => {
-    const src = encodeURIComponent(utmSource.trim() || 'direct');
-    const camp = encodeURIComponent(utmCampaign.trim() || 'launch');
-    const targetUrl = `https://oops.monster/?utm_source=${src}&utm_medium=campaign&utm_campaign=${camp}`;
-    void QRCode.toDataURL(targetUrl, {
-      width: 180,
-      margin: 1,
-      color: { dark: '#000000', light: '#ffffff' },
-    }).then(setQrImage);
-  }, [utmSource, utmCampaign]);
+    if (!authed) return;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://oops.monster';
+    const targetUrl = `${origin}?utm_source=${encodeURIComponent(utmSource)}&utm_campaign=${encodeURIComponent(utmCampaign)}`;
+    QRCode.toDataURL(targetUrl, { width: 240, margin: 1 })
+      .then((url) => setQrImage(url))
+      .catch(() => {});
+  }, [authed, utmSource, utmCampaign]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    void fetchDashboard(passkey.trim());
+    if (!passkey.trim()) return;
+    localStorage.setItem('oops_hq_key_v1', passkey.trim());
+    await fetchDashboard(passkey.trim());
+  };
+
+  const handleBroadcast = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bcBody.trim()) return;
+    setBcBusy(true);
+    setBcResult(null);
+    try {
+      const res = await fetch('/api/oops/hq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'BROADCAST',
+          passkey,
+          title: bcTitle.trim(),
+          body: bcBody.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setBcResult(`발송 성공: ${data.result?.sent || 0}건 전송됨 (실패 ${data.result?.failed || 0}건)`);
+        setBcBody('');
+      } else {
+        setBcResult(`발송 실패: ${data.error || 'Unknown error'}`);
+      }
+    } catch {
+      setBcResult('네트워크 에러 발생');
+    } finally {
+      setBcBusy(false);
+    }
+  };
+
+  const handleModerate = async (
+    action: 'PIN' | 'UNPIN' | 'HIDE' | 'RESTORE' | 'SHADOWBAN' | 'UNBAN',
+    signalId?: string,
+    agentId?: string
+  ) => {
+    try {
+      const res = await fetch('/api/oops/hq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, passkey, signalId, agentId }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        await fetchDashboard(passkey);
+      }
+    } catch {}
   };
 
   const translateInPlace = async (sig: OopsSignal) => {
@@ -133,467 +223,697 @@ export default function OopsHqAdminPage() {
     }
   };
 
-  const handleModerate = async (
-    modAction: 'PIN' | 'UNPIN' | 'HIDE' | 'RESTORE' | 'SHADOWBAN' | 'UNBAN',
-    signalId?: string,
-    agentId?: string
-  ) => {
-    try {
-      const res = await fetch('/api/oops/hq', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-oops-hq-key': passkey.trim(),
-        },
-        body: JSON.stringify({
-          action: 'MODERATE',
-          modAction,
-          signalId,
-          agentId,
-        }),
-      });
-      if (res.ok) {
-        void fetchDashboard(passkey.trim());
-      }
-    } catch {}
-  };
+  // 나도솔로 관제실 헌법 규격의 네비게이션 카테고리 구성
+  const NAV_CATEGORIES: HqNavCategory[] = [
+    {
+      title: '관제 및 지표',
+      items: [
+        { key: 'OVERVIEW', label: '종합 관제 대시보드' },
+        { key: 'THREAT_ENGINE', label: '범용 위험 지수 엔진', badge: threatThemes.length },
+        { key: 'CAMPAIGN_TRACKING', label: 'UTM / QR 유입 추적', badge: trackingSummary?.totalVisits || 0 },
+      ],
+    },
+    {
+      title: '현장 제보 및 피드',
+      items: [
+        { key: 'FEED_SIGNALS', label: '글로벌 무전 피드 관제', badge: signals.length },
+      ],
+    },
+    {
+      title: '통신 및 백커 네트워크',
+      items: [
+        { key: 'PUSH_BROADCAST', label: '긴급 브로드캐스트 타전', badge: agents.length },
+        { key: 'BACKERS', label: '창립 백커 네트워크', badge: backers.length },
+        { key: 'RELEASES', label: '시스템 릴리즈 이력', badge: latestVersion },
+      ],
+    },
+  ];
 
-  const handleBroadcast = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBcBusy(true);
-    setBcResult(null);
-    try {
-      const res = await fetch('/api/oops/hq', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-oops-hq-key': passkey.trim(),
-        },
-        body: JSON.stringify({
-          action: 'BROADCAST',
-          title: bcTitle,
-          body: bcBody,
-        }),
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        setBcResult(`실패: ${data.error}`);
-      } else {
-        setBcResult(
-          `발송 완료 (전체 ${data.result.total} / 성공 ${data.result.sent} / 실패 ${data.result.failed})`
-        );
-        setBcBody('');
-      }
-    } finally {
-      setBcBusy(false);
-    }
-  };
-
+  // 1. 로그인 락 스크린 (나도솔로 관제실 헌법 규격: 무채색 모노크롬)
   if (!authed) {
     return (
-      <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex items-center justify-center p-5 selection:bg-zinc-300 selection:text-black">
-        <form
-          onSubmit={handleLogin}
-          className="w-full max-w-md bg-white border-2 border-black shadow-[6px_6px_0px_#000] p-6 space-y-5"
-        >
-          <div className="flex items-center justify-between border-b-2 border-black pb-3">
-            <span className="font-mono font-black text-base flex items-center gap-2">
-              <Lock className="w-4 h-4 text-[#ff4d00]" />
-              <span>OOPS HQ CONSOLE</span>
-            </span>
-            <span className="text-xs font-mono font-bold px-2 py-0.5 bg-[#ffc900] border border-black">
+      <div className="min-h-screen bg-[#07080a] text-zinc-100 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-[#0c0d12] border border-white/10 p-8 space-y-6 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
+              <h1 className="font-serif-editorial text-lg text-white font-normal">
+                OOPS HQ CONSOLE
+              </h1>
+            </div>
+            <span className="text-xs font-mono text-zinc-400 border border-white/10 px-2 py-0.5">
               RESTRICTED
             </span>
           </div>
 
-          <p className="text-xs text-zinc-700 font-medium">
-            OOPS HQ 관제실 보안 인증이 필요합니다. 관리자 암호를 입력해 주세요.
+          <p className="text-sm text-zinc-400">
+            OOPS 글로벌 위험 기상대 및 저항군 본부 관제실입니다. 관리자 전용 보안 암호키를 입력하십시오.
           </p>
 
-          <input
-            type="password"
-            value={passkey}
-            onChange={(e) => setPasskey(e.target.value)}
-            placeholder="HQ 접속 암호 입력"
-            className="w-full px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm font-mono focus:outline-none focus:bg-white"
-          />
-
-          {error && (
-            <div className="p-2.5 bg-[#ff4d00]/15 border-2 border-black text-xs font-bold text-red-900">
-              {error}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-mono text-zinc-400 mb-1.5 uppercase">
+                SECURITY PASSKEY
+              </label>
+              <input
+                type="password"
+                value={passkey}
+                onChange={(e) => setPasskey(e.target.value)}
+                placeholder="비밀 암호키 입력 (기본: admin)"
+                className="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-white/40"
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-black text-white font-black text-sm border-2 border-black shadow-[3px_3px_0px_#ff90e8] cursor-pointer"
-          >
-            {loading ? '확인 중...' : 'HQ 관제실 입장 ➔'}
-          </button>
-        </form>
+            {error && (
+              <div className="p-3 bg-red-950/30 border border-red-500/30 text-xs font-mono text-red-300">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 bg-white hover:bg-zinc-200 text-black font-mono font-bold text-sm border border-white transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {loading ? '검증 중...' : '관제실 입장'}
+            </button>
+          </form>
+
+          <div className="pt-2 text-center">
+            <Link
+              href="/oops"
+              className="text-xs font-mono text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              ← OOPS 메인으로 돌아가기
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
+  // 2. 인증 완료: 나도솔로 관제실 헌법 규격의 2단 그리드 + 독립 사이드바 아키텍처
   return (
-    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-zinc-300 selection:text-black">
-      <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
-        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+    <div className="min-h-screen bg-[#07080a] text-zinc-100 flex flex-col font-sans">
+      {/* 2-1. 최상단 마스터 헤더 (표준 테두리 박스 규격) */}
+      <header className="sticky top-0 z-40 bg-[#0c0d12] border-b border-white/10">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link
-              href="/oops"
-              className="px-2.5 py-1 bg-white border-2 border-black shadow-[2px_2px_0px_#000] text-xs font-mono font-bold flex items-center gap-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>oops.monster</span>
-            </Link>
-            <span className="font-mono font-black text-sm sm:text-base">OOPS HQ CONSOLE</span>
-            <span className="px-2 py-0.5 bg-[#ff90e8] border-2 border-black text-xs font-mono font-black">
+            <span className="w-2 h-2 rounded-full bg-[#f04f74]" />
+            <span className="font-serif-editorial text-lg text-white font-normal">
+              OOPS GLOBAL HQ CONSOLE
+            </span>
+            <span className="px-2 py-0.5 border border-white/10 text-xs font-mono text-zinc-400">
               {latestVersion}
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              localStorage.removeItem('oops_hq_key_v1');
-              setAuthed(false);
-            }}
-            className="px-3 py-1 bg-white border-2 border-black text-xs font-mono font-bold cursor-pointer"
-          >
-            잠금
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/oops"
+              target="_blank"
+              className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5"
+            >
+              <span>라이브 뷰</span>
+              <span>↗</span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.removeItem('oops_hq_key_v1');
+                setAuthed(false);
+              }}
+              className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-mono text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              관제실 잠금
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-6xl w-full mx-auto px-5 py-8 space-y-8">
-        {/* 상단 지표 3카드 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_#000] p-5">
-            <div className="text-xs font-mono font-bold text-zinc-600 flex items-center gap-1.5">
-              <Radio className="w-3.5 h-3.5 text-[#ff4d00]" />
-              <span>연결 노드 (PUSH AGENTS)</span>
-            </div>
-            <div className="text-3xl font-black mt-2 font-mono">{agents.length}</div>
-          </div>
-          <div className="bg-white border-2 border-black shadow-[4px_4px_0px_#000] p-5">
-            <div className="text-xs font-mono font-bold text-zinc-600 flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-black" />
-              <span>창립 백커 신청 (BACKERS)</span>
-            </div>
-            <div className="text-3xl font-black mt-2 font-mono">{backers.length}</div>
-          </div>
-          <div className="bg-[#ffc900] border-2 border-black shadow-[4px_4px_0px_#000] p-5">
-            <div className="text-xs font-mono font-bold text-black">OOPS 독립 버전</div>
-            <div className="text-3xl font-black mt-2 font-mono">{latestVersion}</div>
-          </div>
-        </div>
-
-        {/* 전체 노드 브로드캐스트 + 요원 목록 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <form
-            onSubmit={handleBroadcast}
-            className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4"
-          >
-            <div className="font-mono font-black text-sm border-b-2 border-black pb-2 flex items-center gap-2">
-              <Bell className="w-4 h-4 text-[#ff4d00]" />
-              <span>전체 저항군 노드 일괄 푸시 발송 (BROADCAST)</span>
-            </div>
-            <input
-              type="text"
-              value={bcTitle}
-              onChange={(e) => setBcTitle(e.target.value)}
-              placeholder="공지 제목"
-              className="w-full px-3 py-2 bg-[#f4f4f0] border-2 border-black text-sm"
-            />
-            <textarea
-              rows={3}
-              required
-              value={bcBody}
-              onChange={(e) => setBcBody(e.target.value)}
-              placeholder="연결된 모든 기기에 보낼 공지 메시지"
-              className="w-full px-3 py-2 bg-[#f4f4f0] border-2 border-black text-sm"
-            />
-            <button
-              type="submit"
-              disabled={bcBusy}
-              className="w-full py-2.5 bg-[#ff90e8] border-2 border-black shadow-[3px_3px_0px_#000] font-black text-sm flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Send className="w-4 h-4" />
-              <span>{bcBusy ? '발송 중...' : `전체 ${agents.length}개 노드에 즉시 발사`}</span>
-            </button>
-            {bcResult && (
-              <div className="p-2.5 bg-[#a3e635]/40 border-2 border-black text-xs font-mono font-bold">
-                {bcResult}
-              </div>
-            )}
-          </form>
-
-          {/* 연결 요원 목록 */}
-          <div className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-3">
-            <div className="font-mono font-black text-sm border-b-2 border-black pb-2">
-              연결된 요원 단말기 ({agents.length})
-            </div>
-            <div className="max-h-60 overflow-y-auto space-y-2">
-              {agents.length === 0 ? (
-                <div className="text-xs text-zinc-500 font-mono py-6 text-center">
-                  아직 연결된 푸시 노드가 없습니다.
+      {/* 2-2. 2컬럼 레이아웃 (좌측 독립 스크롤 사이드바 + 우측 2단 컴팩트 메인 콘텐츠) */}
+      <div className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+        {/* 좌측 사이드바: 헌법 제6조 원칙 4 (독립 스크롤 & 위치 고정) */}
+        <aside className="lg:h-[calc(100vh-6.5rem)] lg:overflow-y-auto lg:sticky lg:top-20 space-y-6 pr-2">
+          <nav className="space-y-5">
+            {NAV_CATEGORIES.map((cat) => (
+              <div key={cat.title} className="space-y-1.5">
+                <div className="text-xs font-mono text-zinc-400 font-bold px-2 uppercase tracking-wider">
+                  {cat.title}
                 </div>
-              ) : (
-                agents.map((a) => (
-                  <div
-                    key={a.agentId}
-                    className="flex items-center justify-between px-3 py-2 bg-[#f4f4f0] border border-black text-xs font-mono"
-                  >
-                    <div>
-                      <span className="font-black">{a.agentId}</span> · {a.alias}
-                    </div>
-                    <div className="text-zinc-600">{a.createdAt.slice(0, 10)}</div>
+                <div className="space-y-0.5">
+                  {cat.items.map((item) => {
+                    const active = activeTab === item.key;
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setActiveTab(item.key)}
+                        className={`w-full text-left px-3 py-2 text-sm font-mono transition-all flex items-center justify-between cursor-pointer border-l-2 ${
+                          active
+                            ? 'bg-white/[0.08] text-white font-bold border-[#f04f74] pl-2.5'
+                            : 'bg-transparent hover:bg-white/[0.03] text-zinc-400 hover:text-white border-transparent pl-2.5'
+                        }`}
+                      >
+                        <span className="truncate">{item.label}</span>
+                        {item.badge !== undefined && (
+                          <span className="px-1.5 py-0.2 text-xs font-mono border border-white/10 text-zinc-400 shrink-0">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
+
+          <div className="p-3 border border-white/10 bg-[#0c0d12] space-y-2 text-xs font-mono text-zinc-400">
+            <div className="text-white font-bold">OOPS OBSERVER SSOT</div>
+            <div>네트워크 노드: {agents.length}개</div>
+            <div>접수된 사건: {signals.length}건</div>
+            <div>관측 국가: 42개국</div>
+          </div>
+        </aside>
+
+        {/* 우측 메인 콘텐츠: 헌법 제6조 원칙 3 & 원칙 5 (2열 컴팩트 그리드 + 한 화면 조망) */}
+        <main className="space-y-6">
+          {/* 1. 종합 관제 대시보드 (OVERVIEW) */}
+          {activeTab === 'OVERVIEW' && (
+            <div className="space-y-6">
+              {/* 상단 컨트롤 바: 헌법 제6조 원칙 6 (표준 테두리 박스 규격) */}
+              <div className="p-3 border border-white/10 bg-[#0c0d12] flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg text-white font-normal">
+                    글로벌 위험 기상 및 통신망 관제 현황
+                  </h2>
+                </div>
+                <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                  REALTIME SSOT
+                </span>
+              </div>
+
+              {/* 핵심 지표 4열 컴팩트 카드 */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono">
+                <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-1">
+                  <div className="text-xs text-zinc-400">연결 푸시 노드</div>
+                  <div className="text-2xl font-bold text-white">{agents.length}</div>
+                </div>
+                <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-1">
+                  <div className="text-xs text-zinc-400">접수된 시민 제보</div>
+                  <div className="text-2xl font-bold text-white">{signals.length}</div>
+                </div>
+                <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-1">
+                  <div className="text-xs text-zinc-400">창립 백커 신청</div>
+                  <div className="text-2xl font-bold text-white">{backers.length}</div>
+                </div>
+                <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-1">
+                  <div className="text-xs text-zinc-400">누적 방문 / 타전 전환</div>
+                  <div className="text-2xl font-bold text-white">
+                    {trackingSummary?.totalVisits || 0} / {trackingSummary?.totalConversions || 0}
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* UTM · QR 캠페인 생성기 & 유입 통계 */}
-        <section className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2">
-            <span className="font-mono font-black text-sm flex items-center gap-2">
-              <QrCode className="w-4 h-4 text-[#ff4d00]" />
-              <span>UTM · QR 유입 추적 및 캠페인 생성기</span>
-            </span>
-            {trackingSummary && (
-              <span className="text-xs font-mono font-bold bg-[#ffc900] px-2 py-0.5 border border-black">
-                누적 방문 {trackingSummary.totalVisits} · 타전 전환 {trackingSummary.totalConversions}
-              </span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-            <div className="md:col-span-2 space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <input
-                  type="text"
-                  value={utmSource}
-                  onChange={(e) => setUtmSource(e.target.value)}
-                  placeholder="유입 소스 (예: x, reddit, hn, sticker)"
-                  className="px-3 py-2 bg-[#f4f4f0] border-2 border-black text-xs font-mono"
-                />
-                <input
-                  type="text"
-                  value={utmCampaign}
-                  onChange={(e) => setUtmCampaign(e.target.value)}
-                  placeholder="캠페인명 (예: launch_us)"
-                  className="px-3 py-2 bg-[#f4f4f0] border-2 border-black text-xs font-mono"
-                />
+                </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={`https://oops.monster/?utm_source=${encodeURIComponent(utmSource.trim() || 'direct')}&utm_medium=campaign&utm_campaign=${encodeURIComponent(utmCampaign.trim() || 'launch')}`}
-                  className="flex-1 px-3 py-2 bg-[#f4f4f0] border border-black text-xs font-mono text-zinc-700"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const u = `https://oops.monster/?utm_source=${encodeURIComponent(utmSource.trim() || 'direct')}&utm_medium=campaign&utm_campaign=${encodeURIComponent(utmCampaign.trim() || 'launch')}`;
-                    void navigator.clipboard.writeText(u);
-                    setUtmCopied(true);
-                    setTimeout(() => setUtmCopied(false), 1800);
-                  }}
-                  className="px-3.5 py-2 bg-black text-white text-xs font-mono font-bold border-2 border-black cursor-pointer shrink-0"
-                >
-                  {utmCopied ? '복사됨' : '복사'}
-                </button>
-              </div>
+              {/* 2열 컴팩트 그리드: 위협 지수 현황 vs 최신 제보 피드 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 왼쪽: 6대 위기 지수 현황 */}
+                <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                      <h3 className="font-serif-editorial text-base text-white">
+                        6대 범용 위험 지수 레이더
+                      </h3>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('THREAT_ENGINE')}
+                      className="text-xs font-mono text-zinc-400 hover:text-white"
+                    >
+                      전체 관리 →
+                    </button>
+                  </div>
 
-              {/* 채널별 유입 통계 */}
-              {trackingSummary && trackingSummary.bySource.length > 0 && (
-                <div className="pt-2 space-y-1.5">
-                  <div className="text-xs font-mono font-bold text-zinc-600">채널별 유입 및 타전 전환율</div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {trackingSummary.bySource.map((row, idx) => (
-                      <div key={`${row.source || 'direct'}-${idx}`} className="p-2.5 bg-[#f4f4f0] border border-black text-xs font-mono">
-                        <div className="font-black text-black uppercase">{row.source}</div>
-                        <div className="text-zinc-700 mt-0.5">
-                          방문 {row.visits} / 타전 {row.conversions}
+                  <div className="space-y-2 font-mono text-xs">
+                    {threatThemes.map((th) => (
+                      <div
+                        key={th.id}
+                        className="p-2.5 bg-zinc-900/50 border border-white/5 flex items-center justify-between gap-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="text-white font-medium truncate">{th.titles.ko}</div>
+                          <div className="text-zinc-500 text-[11px] truncate">{th.code}</div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-white font-bold text-sm">{th.globalIndex.toFixed(1)}°</span>
+                          <span className="text-amber-400 text-xs ml-1.5">+{th.delta24h}°</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="flex flex-col items-center justify-center p-3 bg-[#f4f4f0] border-2 border-black space-y-2">
-              {qrImage && (
-                <img src={qrImage} alt="Campaign QR" className="w-32 h-32 border-2 border-black bg-white" />
-              )}
-              {qrImage && (
-                <a
-                  href={qrImage}
-                  download={`oops-qr-${utmSource || 'direct'}.png`}
-                  className="px-3 py-1 bg-white hover:bg-zinc-100 border border-black text-xs font-mono font-bold cursor-pointer"
-                >
-                  QR 다운로드
-                </a>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* 글로벌 무전 피드 관제 & Shadowban 제어 */}
-        <section className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2">
-            <span className="font-mono font-black text-sm">
-              글로벌 무전 피드 관제 ({signals.length}건 · 그림자 차단 요원 {bannedAgents.length}명)
-            </span>
-          </div>
-
-          <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
-            {signals.map((sig) => {
-              const isBanned = bannedAgents.includes(sig.authorAgentId);
-              const translated = hqTrans[sig.id];
-
-              return (
-                <div
-                  key={sig.id}
-                  className={`p-3.5 border-2 border-black space-y-2 ${
-                    sig.isHidden ? 'bg-zinc-200 opacity-75' : 'bg-[#f4f4f0]'
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                {/* 오른쪽: 최근 긴급 무전 제보 */}
+                <div className="p-4 border border-white/10 bg-[#0c0d12] space-y-3">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-black bg-white px-1.5 py-0.5 border border-black">
-                        CASE #OP-{String(sig.caseNum || 100).padStart(4, '0')}
-                      </span>
-                      <span className="font-bold">[{sig.category}]</span>
-                      <span className="text-zinc-600">
-                        {sig.authorCallsign} ({sig.authorAgentId})
-                      </span>
-                      {sig.isPinned && (
-                        <span className="px-1.5 py-0.5 bg-[#ff4d00] text-white font-black">고정됨</span>
-                      )}
-                      {sig.isHidden && (
-                        <span className="px-1.5 py-0.5 bg-black text-white font-black">숨김</span>
-                      )}
-                      {isBanned && (
-                        <span className="px-1.5 py-0.5 bg-red-700 text-white font-black">SHADOWBAN</span>
-                      )}
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d00]" />
+                      <h3 className="font-serif-editorial text-base text-white">
+                        실시간 시민 무전 신호
+                      </h3>
                     </div>
-                    <div className="font-bold">
-                      ✊ {sig.upvotes} · 🚩 {sig.reports}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('FEED_SIGNALS')}
+                      className="text-xs font-mono text-zinc-400 hover:text-white"
+                    >
+                      전체 관제 →
+                    </button>
                   </div>
 
-                  <p className="text-sm font-bold text-black">{sig.content}</p>
-                  {translated && (
-                    <div className="p-2 bg-white border-l-4 border-black text-xs font-medium text-zinc-800">
-                      {translated}
+                  <div className="space-y-2 font-mono text-xs">
+                    {signals.slice(0, 5).map((sig) => (
+                      <div
+                        key={sig.id}
+                        className="p-2.5 bg-zinc-900/50 border border-white/5 space-y-1"
+                      >
+                        <div className="flex items-center justify-between text-zinc-400">
+                          <span>CASE #OP-{String(sig.caseNum || 100).padStart(4, '0')}</span>
+                          <span>@{sig.authorCallsign}</span>
+                        </div>
+                        <p className="text-white text-xs line-clamp-1">{sig.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. 범용 위험 지수 엔진 관리 (THREAT_ENGINE) */}
+          {activeTab === 'THREAT_ENGINE' && (
+            <div className="space-y-6">
+              <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg text-white font-normal">
+                    범용 위험 지수 엔진 (6대 채널 관측 파라미터)
+                  </h2>
+                </div>
+                <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                  {threatThemes.length} CHANNELS
+                </span>
+              </div>
+
+              {/* 2열 컴팩트 그리드로 각 테마 상세 파라미터 카드 조망 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {threatThemes.map((th) => (
+                  <div
+                    key={th.id}
+                    className="p-4 border border-white/10 bg-[#0c0d12] space-y-3 font-mono text-xs"
+                  >
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <span className="text-white font-bold text-sm">{th.titles.ko}</span>
+                      <span className="px-2 py-0.5 border border-white/10 text-amber-400 font-bold">
+                        {th.globalIndex}°
+                      </span>
+                    </div>
+
+                    <div className="space-y-1 text-zinc-400">
+                      <div>공식 코드: <strong className="text-zinc-200">{th.code}</strong></div>
+                      <div>표본 수: <strong className="text-zinc-200">{th.sampleSize.toLocaleString()}명</strong></div>
+                      <div>관측 국가: <strong className="text-zinc-200">{th.regionCount}개국</strong></div>
+                      <div>
+                        인식 격차: <strong className="text-amber-400">
+                          {th.divergence.gap > 0 ? `+${th.divergence.gap}°` : `${th.divergence.gap}°`}
+                        </strong>
+                      </div>
+                    </div>
+
+                    {/* 도시별 체감온도 목록 */}
+                    <div className="pt-2 border-t border-white/10 space-y-1.5">
+                      <div className="text-zinc-500 text-[11px]">주요 도시 실측 지표:</div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {th.regionalMetrics.slice(0, 4).map((rm) => (
+                          <div
+                            key={rm.city.ko}
+                            className="p-1.5 bg-zinc-900 border border-white/5 flex items-center justify-between"
+                          >
+                            <span className="text-zinc-300">{rm.city.ko}</span>
+                            <span className="text-white font-bold">{rm.temperature}°</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 3. 글로벌 무전 피드 관제 (FEED_SIGNALS) - 핀 고정, 숨김, 차단 제어 */}
+          {activeTab === 'FEED_SIGNALS' && (
+            <div className="space-y-6">
+              <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg text-white font-normal">
+                    글로벌 무전 피드 관제 및 관리자 고정 제어
+                  </h2>
+                </div>
+                <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                  총 {signals.length}건 접수됨
+                </span>
+              </div>
+
+              {/* 사건 제보 2열 컴팩트 그리드 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {signals.map((sig) => {
+                  const isBanned = bannedAgents.includes(sig.authorAgentId);
+                  const translated = hqTrans[sig.id];
+
+                  return (
+                    <div
+                      key={sig.id}
+                      className={`p-4 border border-white/10 bg-[#0c0d12] space-y-3 font-mono text-xs ${
+                        sig.isHidden ? 'opacity-50' : ''
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white font-bold bg-white/10 px-1.5 py-0.5 border border-white/10">
+                            CASE #OP-{String(sig.caseNum || 100).padStart(4, '0')}
+                          </span>
+                          <span className="text-zinc-400">[{sig.category}]</span>
+                          {sig.isPinned && (
+                            <span className="px-1.5 py-0.5 bg-[#f04f74] text-white font-bold">
+                              본부 고정
+                            </span>
+                          )}
+                          {sig.isHidden && (
+                            <span className="px-1.5 py-0.5 bg-zinc-700 text-white font-bold">
+                              숨김
+                            </span>
+                          )}
+                          {isBanned && (
+                            <span className="px-1.5 py-0.5 bg-red-900 text-white font-bold">
+                              차단됨
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="text-zinc-400">
+                          @{sig.authorCallsign}
+                        </div>
+                      </div>
+
+                      <p className="text-sm font-sans font-medium text-white break-words">
+                        {sig.content}
+                      </p>
+
+                      {translated && (
+                        <div className="p-2.5 bg-zinc-900 border-l-2 border-[#f04f74] text-xs text-zinc-300">
+                          {translated}
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10">
+                        <div className="text-zinc-400">
+                          ✊ {sig.upvotes} · 🚩 {sig.reports}
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => translateInPlace(sig)}
+                            className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-300 hover:text-white cursor-pointer"
+                          >
+                            {hqTransBusy === sig.id ? '번역중' : translated ? '접기' : '번역'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleModerate(sig.isPinned ? 'UNPIN' : 'PIN', sig.id)}
+                            className={`px-2 py-1 border cursor-pointer font-bold ${
+                              sig.isPinned
+                                ? 'bg-[#f04f74] border-[#f04f74] text-white'
+                                : 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                            }`}
+                          >
+                            {sig.isPinned ? '고정 해제' : '핀 고정'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleModerate(sig.isHidden ? 'RESTORE' : 'HIDE', sig.id)}
+                            className="px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white cursor-pointer"
+                          >
+                            {sig.isHidden ? '복구' : '숨김'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleModerate(isBanned ? 'UNBAN' : 'SHADOWBAN', undefined, sig.authorAgentId)
+                            }
+                            className={`px-2 py-1 border cursor-pointer ${
+                              isBanned
+                                ? 'bg-zinc-800 border-zinc-700 text-zinc-400'
+                                : 'bg-red-950/40 border-red-500/40 text-red-300 hover:bg-red-900/60'
+                            }`}
+                          >
+                            {isBanned ? '차단 해제' : '차단'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 4. 긴급 푸시 브로드캐스트 (PUSH_BROADCAST) */}
+          {activeTab === 'PUSH_BROADCAST' && (
+            <div className="space-y-6">
+              <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg text-white font-normal">
+                    전체 연결 노드 긴급 브로드캐스트 타전
+                  </h2>
+                </div>
+                <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                  {agents.length} AGENTS ONLINE
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 발송 폼 */}
+                <form
+                  onSubmit={handleBroadcast}
+                  className="p-5 border border-white/10 bg-[#0c0d12] space-y-4 font-mono text-xs"
+                >
+                  <div>
+                    <label className="block text-zinc-400 mb-1">타전 공지 제목</label>
+                    <input
+                      type="text"
+                      value={bcTitle}
+                      onChange={(e) => setBcTitle(e.target.value)}
+                      className="w-full px-3 py-2 bg-zinc-900 border border-white/10 text-white text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-400 mb-1">긴급 타전 내용</label>
+                    <textarea
+                      rows={4}
+                      value={bcBody}
+                      onChange={(e) => setBcBody(e.target.value)}
+                      placeholder="전 세계 저항군 노드에 일괄 전송할 메시지를 입력하십시오..."
+                      className="w-full px-3 py-2 bg-zinc-900 border border-white/10 text-white text-sm"
+                    />
+                  </div>
+
+                  {bcResult && (
+                    <div className="p-2.5 bg-zinc-900 border border-white/20 text-white font-bold">
+                      {bcResult}
                     </div>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    <button
-                      type="button"
-                      disabled={hqTransBusy === sig.id}
-                      onClick={() => translateInPlace(sig)}
-                      className="px-2.5 py-1 bg-white hover:bg-zinc-100 border border-black text-xs font-mono font-bold cursor-pointer"
-                    >
-                      {hqTransBusy === sig.id ? '번역 중...' : translated ? '번역 접기' : '한글 번역'}
-                    </button>
+                  <button
+                    type="submit"
+                    disabled={bcBusy}
+                    className="w-full py-2.5 bg-white hover:bg-zinc-200 text-black font-bold text-sm border border-white transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {bcBusy ? '전파 중...' : `전체 ${agents.length}개 노드에 즉시 발사`}
+                  </button>
+                </form>
 
-                    <button
-                      type="button"
-                      onClick={() => handleModerate(sig.isPinned ? 'UNPIN' : 'PIN', sig.id)}
-                      className="px-2.5 py-1 bg-[#ffc900] hover:bg-[#ffd633] border border-black text-xs font-mono font-bold cursor-pointer"
-                    >
-                      {sig.isPinned ? '고정 해제' : '핀 고정'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleModerate(sig.isHidden ? 'RESTORE' : 'HIDE', sig.id)}
-                      className="px-2.5 py-1 bg-white hover:bg-zinc-100 border border-black text-xs font-mono font-bold cursor-pointer"
-                    >
-                      {sig.isHidden ? '복구' : '숨김'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleModerate(isBanned ? 'UNBAN' : 'SHADOWBAN', undefined, sig.authorAgentId)
-                      }
-                      className={`px-2.5 py-1 border border-black text-xs font-mono font-bold cursor-pointer ${
-                        isBanned ? 'bg-black text-white' : 'bg-[#ff90e8] text-black'
-                      }`}
-                    >
-                      {isBanned ? '차단 해제' : '그림자 차단'}
-                    </button>
+                {/* 연결 노드 목록 */}
+                <div className="p-5 border border-white/10 bg-[#0c0d12] space-y-3 font-mono text-xs">
+                  <div className="text-white font-bold border-b border-white/10 pb-2">
+                    연결된 요원 단말기 ({agents.length})
+                  </div>
+                  <div className="space-y-1.5 max-h-80 overflow-y-auto">
+                    {agents.map((ag) => (
+                      <div
+                        key={ag.agentId}
+                        className="p-2 bg-zinc-900 border border-white/5 flex items-center justify-between"
+                      >
+                        <span className="text-zinc-200">{ag.agentId} ({ag.alias})</span>
+                        <span className="text-zinc-500">{ag.createdAt.slice(0, 10)}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* 창립 백커 신청 내역 */}
-        <section className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4">
-          <div className="font-mono font-black text-sm border-b-2 border-black pb-2">
-            창립 백커 · 동지 합류 신청 내역 ({backers.length})
-          </div>
-          {backers.length === 0 ? (
-            <div className="text-xs text-zinc-500 font-mono py-6 text-center">
-              아직 접수된 백커 신청이 없습니다.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {backers.map((b) => (
-                <div key={b.id} className="p-4 bg-[#f4f4f0] border-2 border-black space-y-1.5">
-                  <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="font-black bg-[#ffc900] px-1.5 border border-black">{b.id}</span>
-                    <span className="text-zinc-600">{b.createdAt.slice(0, 16).replace('T', ' ')}</span>
-                  </div>
-                  <div className="text-sm font-black">
-                    {b.name} {b.org ? `(${b.org})` : ''}
-                  </div>
-                  <div className="text-xs font-mono text-blue-800">{b.email}</div>
-                  {b.message && <p className="text-xs text-zinc-800 pt-1">{b.message}</p>}
-                </div>
-              ))}
+              </div>
             </div>
           )}
-        </section>
 
-        {/* OOPS 전용 패치 노트 / 버전 이력 */}
-        <section className="bg-white border-2 border-black shadow-[5px_5px_0px_#000] p-5 space-y-4">
-          <div className="font-mono font-black text-sm border-b-2 border-black pb-2">
-            OOPS.MONSTER 독립 업데이트 이력 (나도솔로 버전과 분리됨)
-          </div>
-          <div className="space-y-3">
-            {releases.map((r) => (
-              <div key={r.version} className="p-4 bg-[#f4f4f0] border-2 border-black space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="px-2 py-0.5 bg-black text-white font-mono text-xs font-black">
-                    {r.version}
-                  </span>
-                  <span className="text-xs font-mono text-zinc-600">{r.date}</span>
+          {/* 5. UTM / QR 유입 추적 (CAMPAIGN_TRACKING) */}
+          {activeTab === 'CAMPAIGN_TRACKING' && (
+            <div className="space-y-6">
+              <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg text-white font-normal">
+                    UTM · QR 캠페인 추적 및 유입 분석
+                  </h2>
                 </div>
-                <div className="text-sm font-black">{r.title}</div>
-                <ul className="list-disc pl-5 text-xs text-zinc-800 space-y-1">
-                  {r.highlights.map((h) => (
-                    <li key={h}>{h}</li>
-                  ))}
-                </ul>
+                <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                  전체 방문 {trackingSummary?.totalVisits || 0}회
+                </span>
               </div>
-            ))}
-          </div>
-        </section>
-      </main>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 캠페인 생성기 */}
+                <div className="p-5 border border-white/10 bg-[#0c0d12] space-y-4 font-mono text-xs">
+                  <div>
+                    <label className="block text-zinc-400 mb-1">유입 채널 (utm_source)</label>
+                    <input
+                      type="text"
+                      value={utmSource}
+                      onChange={(e) => setUtmSource(e.target.value)}
+                      className="w-full px-3 py-2 bg-zinc-900 border border-white/10 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-zinc-400 mb-1">캠페인 명 (utm_campaign)</label>
+                    <input
+                      type="text"
+                      value={utmCampaign}
+                      onChange={(e) => setUtmCampaign(e.target.value)}
+                      className="w-full px-3 py-2 bg-zinc-900 border border-white/10 text-white"
+                    />
+                  </div>
+
+                  {qrImage && (
+                    <div className="flex items-center gap-4 pt-2">
+                      <img src={qrImage} alt="Campaign QR" className="w-24 h-24 bg-white p-1 border border-white/20" />
+                      <a
+                        href={qrImage}
+                        download={`oops-qr-${utmSource}.png`}
+                        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white"
+                      >
+                        QR 다운로드
+                      </a>
+                    </div>
+                  )}
+                </div>
+
+                {/* 채널별 통계 */}
+                <div className="p-5 border border-white/10 bg-[#0c0d12] space-y-3 font-mono text-xs">
+                  <div className="text-white font-bold border-b border-white/10 pb-2">
+                    채널별 유입 및 타전 전환율
+                  </div>
+                  <div className="space-y-1.5">
+                    {trackingSummary?.bySource.map((row, idx) => (
+                      <div
+                        key={`${row.source}-${idx}`}
+                        className="p-2.5 bg-zinc-900 border border-white/5 flex items-center justify-between"
+                      >
+                        <span className="text-zinc-200 uppercase font-bold">{row.source || 'direct'}</span>
+                        <span className="text-zinc-400">
+                          방문 {row.visits} / 타전 {row.conversions}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 6. 창립 백커 네트워크 (BACKERS) */}
+          {activeTab === 'BACKERS' && (
+            <div className="space-y-6">
+              <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg text-white font-normal">
+                    창립 백커 및 동지 합류 신청자 명부
+                  </h2>
+                </div>
+                <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                  {backers.length} BACKERS
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono text-xs">
+                {backers.map((b) => (
+                  <div key={b.id} className="p-4 border border-white/10 bg-[#0c0d12] space-y-1.5">
+                    <div className="flex items-center justify-between text-zinc-400">
+                      <span className="text-white font-bold">{b.id}</span>
+                      <span>{b.createdAt.slice(0, 10)}</span>
+                    </div>
+                    <div className="text-sm font-sans font-bold text-white">
+                      {b.name} {b.org ? `(${b.org})` : ''}
+                    </div>
+                    <div className="text-zinc-400">{b.email}</div>
+                    {b.message && <p className="text-zinc-300 font-sans pt-1">{b.message}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 7. 시스템 릴리즈 이력 (RELEASES) */}
+          {activeTab === 'RELEASES' && (
+            <div className="space-y-6">
+              <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="font-serif-editorial text-lg text-white font-normal">
+                    시스템 독립 릴리즈 및 패치 이력
+                  </h2>
+                </div>
+                <span className="text-sm font-mono px-2 py-0.5 border border-white/10 text-zinc-400">
+                  CURRENT: {latestVersion}
+                </span>
+              </div>
+
+              <div className="space-y-3 font-mono text-xs">
+                {releases.map((r) => (
+                  <div key={r.version} className="p-4 border border-white/10 bg-[#0c0d12] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2 py-0.5 bg-white text-black font-bold">
+                        {r.version}
+                      </span>
+                      <span className="text-zinc-400">{r.date}</span>
+                    </div>
+                    <p className="text-zinc-300 font-sans">{r.summary}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
