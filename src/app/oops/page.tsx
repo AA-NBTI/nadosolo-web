@@ -312,7 +312,7 @@ function OopsSnsMainContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans">
+    <div className="min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-[#ffc900] selection:text-black">
       {/* 1. 상단 네비게이션 */}
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-5xl mx-auto px-4 sm:px-5 h-16 flex items-center justify-between gap-2">
