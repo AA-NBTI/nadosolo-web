@@ -54,6 +54,10 @@ export interface OopsCopy {
   fireBtn: string;
   firingBtn: string;
   selfTestBtn: string;
+  appBannerTag: string;
+  appBannerTitle: string;
+  appBannerDesc: string;
+  appBannerBtn: string;
   backerTag: string;
   backerTitle: string;
   backerDesc: string;
@@ -126,6 +130,11 @@ export const OOPS_DICT: Record<OopsLocale, OopsCopy> = {
     fireBtn: 'FIRE MONSTER PUSH',
     firingBtn: 'FIRING...',
     selfTestBtn: 'TEST MY PHONE',
+    appBannerTag: 'SIGNAL TERMINAL',
+    appBannerTitle: 'Direct Peer Signal Network (OOPS APP)',
+    appBannerDesc:
+      'An independent call app where browsers and devices exchange direct monster signals without Big Tech gatekeepers or messengers.',
+    appBannerBtn: 'LAUNCH',
     backerTag: 'PROTOCOL DIRECTIVE · ADMISSION CRITERIA',
     backerTitle: 'Protocol Admission & Interconnection Criteria',
     backerDesc:
@@ -197,6 +206,11 @@ export const OOPS_DICT: Record<OopsLocale, OopsCopy> = {
     fireBtn: '몬스터 푸시 발사',
     firingBtn: '발사 중...',
     selfTestBtn: '내 폰 테스트',
+    appBannerTag: 'SIGNAL TERMINAL',
+    appBannerTitle: '회원 간 직통 호출망 (OOPS APP)',
+    appBannerDesc:
+      '거대 플랫폼과 메신저 없이 브라우저·단말기끼리 직접 몬스터 신호를 주고받는 독립 호출 전용 앱입니다.',
+    appBannerBtn: '실행',
     backerTag: 'PROTOCOL DIRECTIVE · ADMISSION CRITERIA',
     backerTitle: '독립 통신망 참여 및 연동 기준',
     backerDesc:
@@ -268,6 +282,11 @@ export const OOPS_DICT: Record<OopsLocale, OopsCopy> = {
     fireBtn: 'モンスター通知を発射',
     firingBtn: '送信中...',
     selfTestBtn: '自分の端末をテスト',
+    appBannerTag: 'SIGNAL TERMINAL',
+    appBannerTitle: 'メンバー間直通コール網 (OOPS APP)',
+    appBannerDesc:
+      '巨大プラットフォームやメッセンジャーを介さず、ブラウザと端末同士で直接モンスター信号を交わす独立通話アプリです。',
+    appBannerBtn: '起動',
     backerTag: 'PROTOCOL DIRECTIVE · ADMISSION CRITERIA',
     backerTitle: '独立通信網への参加および連携基準',
     backerDesc:
@@ -338,6 +357,11 @@ export const OOPS_DICT: Record<OopsLocale, OopsCopy> = {
     fireBtn: '发射怪兽推送',
     firingBtn: '发射中...',
     selfTestBtn: '测试我的手机',
+    appBannerTag: 'SIGNAL TERMINAL',
+    appBannerTitle: '直连成员呼叫网 (OOPS APP)',
+    appBannerDesc:
+      '无需任何大型平台或社交软件，浏览器与终端之间直接互发怪兽信号的独立通信应用。',
+    appBannerBtn: '启动',
     backerTag: 'PROTOCOL DIRECTIVE · ADMISSION CRITERIA',
     backerTitle: '独立网络接入与互联准则',
     backerDesc:
@@ -408,6 +432,11 @@ export const OOPS_DICT: Record<OopsLocale, OopsCopy> = {
     fireBtn: 'DISPARAR PUSH MONSTRUO',
     firingBtn: 'ENVIANDO...',
     selfTestBtn: 'PROBAR MI MÓVIL',
+    appBannerTag: 'TERMINAL DE SEÑAL',
+    appBannerTitle: 'Red Directa entre Nodos (OOPS APP)',
+    appBannerDesc:
+      'Una app de alerta independiente donde navegadores y dispositivos intercambian señales directas sin intermediarios.',
+    appBannerBtn: 'INICIAR',
     backerTag: 'PROTOCOL DIRECTIVE · ADMISSION CRITERIA',
     backerTitle: 'Criterios de Admisión e Interconexión de Red',
     backerDesc:

@@ -36,19 +36,35 @@ export default function GlobalFooter({
           
           {isTablebaro ? (
             <>
-              {/* 테이블바로 푸터 브랜드 로고: 상단 헤더와 100% 동일한 구조 및 블루 포인트 컬러 */}
+              {/* 테이블바로 푸터 브랜드 로고: 상단 헤더와 100% 동일한 폭 균등 맞춤 및 롤오버 반전 구조 */}
               <div className="flex flex-col items-center justify-center">
                 <Link
                   href="/reserve"
                   prefetch={true}
-                  className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity select-none py-1"
+                  className="inline-flex flex-col items-center justify-center shrink-0 hover:opacity-90 transition-opacity group select-none py-1"
                 >
-                  <span className="font-serif-editorial text-[22px] sm:text-[26px] font-normal text-white tracking-[0.04em] uppercase leading-none">
-                    TABLEBARO
+                  <span className="font-serif-editorial text-[26px] sm:text-[30px] font-light text-white tracking-[-0.02em] lowercase leading-none drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] group-hover:text-zinc-100 transition-colors duration-300">
+                    tablebaro
                   </span>
-                  <span className="text-xs font-sans font-medium text-[#3b82f6] tracking-normal mt-1 leading-none">
-                    선결제예약 테이블바로
-                  </span>
+                  <div className="w-full flex items-center justify-between mt-1 leading-none select-none">
+                    <div className="w-[47%] flex justify-between items-center text-[9.5px] sm:text-[11px] font-serif-editorial font-black text-white group-hover:text-[#3b82f6] transition-colors duration-200">
+                      <span>선</span>
+                      <span>결</span>
+                      <span>제</span>
+                      <span>예</span>
+                      <span>약</span>
+                    </div>
+
+                    <div className="w-[6%]" />
+
+                    <div className="w-[47%] flex justify-between items-center text-[9.5px] sm:text-[11px] font-serif-editorial font-black text-[#3b82f6] group-hover:text-white transition-colors duration-200">
+                      <span>테</span>
+                      <span>이</span>
+                      <span>블</span>
+                      <span>바</span>
+                      <span>로</span>
+                    </div>
+                  </div>
                 </Link>
               </div>
 

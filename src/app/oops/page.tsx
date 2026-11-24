@@ -432,13 +432,13 @@ function OopsHqContent() {
         <section className="bg-[#ffc900] border-2 border-black shadow-[8px_8px_0px_#000] p-6 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-block px-2.5 py-0.5 bg-black text-white text-xs font-mono font-bold">
-              SIGNAL TERMINAL
+              {t.appBannerTag}
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-black">
-              회원 간 직통 호출망 (OOPS APP)
+              {t.appBannerTitle}
             </h2>
             <p className="text-sm text-zinc-900 font-medium max-w-xl">
-              거대 플랫폼과 메신저 없이 브라우저·단말기끼리 직접 몬스터 신호를 주고받는 독립 호출 전용 앱입니다.
+              {t.appBannerDesc}
             </p>
           </div>
 
@@ -447,7 +447,7 @@ function OopsHqContent() {
             className="shrink-0 px-8 py-4 bg-black hover:bg-zinc-800 text-white font-black text-base border-2 border-black shadow-[4px_4px_0_#ff90e8] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all cursor-pointer flex items-center gap-2"
           >
             <Smartphone className="w-5 h-5 text-[#ffc900]" />
-            <span>실행</span>
+            <span>{t.appBannerBtn}</span>
           </a>
         </section>
 
