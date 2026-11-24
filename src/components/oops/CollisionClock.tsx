@@ -284,7 +284,7 @@ export default function CollisionClock({ locale }: CollisionClockProps) {
           </div>
           <div className="flex items-center justify-between p-2 bg-black/60 border border-white/5">
             <span className="text-zinc-400">{copy.deltaLabel}:</span>
-            <span className={`text-base font-black ${deltaYears.startsWith('-') ? 'text-red-500' : deltaYears > 0 ? 'text-emerald-400' : 'text-zinc-300'}`}>
+            <span className={`text-base font-black ${deltaYears < 0 ? 'text-red-500' : deltaYears > 0 ? 'text-emerald-400' : 'text-zinc-300'}`}>
               {deltaYears > 0 ? `+${deltaYears}` : deltaYears}년 변동
             </span>
           </div>
