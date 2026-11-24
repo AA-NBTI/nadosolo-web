@@ -258,7 +258,7 @@ function OopsAppContent() {
 
           <div className="flex items-center gap-2">
             <Link
-              href="/oops"
+              href="/"
               className="group inline-flex items-center gap-1 select-none cursor-pointer"
               title="OOPS Home"
             >

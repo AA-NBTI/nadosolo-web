@@ -527,7 +527,7 @@ function OopsSnsMainContent() {
           <div className="flex items-center gap-1.5 sm:gap-2">
             {/* 기존 팝업 로고 (.monster 포함 원형 그대로 매니페스토 왼쪽 옆 배치) */}
             <Link
-              href="/oops"
+              href="/"
               className="group inline-flex items-center gap-1 select-none cursor-pointer mr-1"
               title="OOPS Home"
             >

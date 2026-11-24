@@ -41,6 +41,68 @@ export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const host = (request.headers.get('host') || '').toLowerCase();
 
+  // oops.monster 전용 도메인 처리
+  if (isOopsHost(host)) {
+    const geoLocale = detectOopsGeoLocale(request);
+
+    // 1) /oops -> 클린 URL https://oops.monster/ 로 308 영구 리다이렉트
+    if (pathname === '/oops' || pathname === '/oops/') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/';
+      url.search = search;
+      const res = NextResponse.redirect(url, 308);
+      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
+      return res;
+    }
+
+    // 2) /oops/app -> https://oops.monster/app 으로 308 리다이렉트
+    if (pathname === '/oops/app' || pathname === '/oops/app/') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/app';
+      url.search = search;
+      const res = NextResponse.redirect(url, 308);
+      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
+      return res;
+    }
+
+    // 3) /oops/hq -> https://oops.monster/hq 로 308 리다이렉트
+    if (pathname === '/oops/hq' || pathname === '/oops/hq/') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/hq';
+      url.search = search;
+      return NextResponse.redirect(url, 308);
+    }
+
+    // 4) 루트(/) 접속 시 -> 내부적으로 /oops 페이지로 리라이트 (주소창은 https://oops.monster/ 유지)
+    if (pathname === '/' || pathname === '') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/oops';
+      url.search = search;
+      const res = NextResponse.rewrite(url);
+      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
+      return res;
+    }
+
+    // 5) /app 접속 시 -> 내부적으로 /oops/app 페이지로 리라이트
+    if (pathname === '/app') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/oops/app';
+      url.search = search;
+      const res = NextResponse.rewrite(url);
+      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
+      return res;
+    }
+
+    // 6) /hq 접속 시 -> 내부적으로 /oops/hq 페이지로 리라이트
+    if (pathname === '/hq') {
+      const url = request.nextUrl.clone();
+      url.pathname = '/oops/hq';
+      url.search = search;
+      return NextResponse.rewrite(url);
+    }
+  }
+
+  // 타 도메인(nadosolo 등)에서 /oops 직접 접근 시 IP 기반 언어 쿠키 설정
   if (pathname.startsWith('/oops')) {
     const res = NextResponse.next();
     res.cookies.set('oops_geo_locale', detectOopsGeoLocale(request), {
@@ -53,33 +115,6 @@ export function middleware(request: NextRequest) {
 
   if (PASSTHROUGH_PREFIXES.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
-  }
-
-  // oops.monster 접속 시 -> / -> /oops, /app -> /oops/app, /hq -> /oops/hq 리라이트 + IP 언어 쿠키 전달
-  if (isOopsHost(host)) {
-    const geoLocale = detectOopsGeoLocale(request);
-    if (pathname === '/' || pathname === '') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/oops';
-      url.search = search;
-      const res = NextResponse.rewrite(url);
-      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
-      return res;
-    }
-    if (pathname === '/app') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/oops/app';
-      url.search = search;
-      const res = NextResponse.rewrite(url);
-      res.cookies.set('oops_geo_locale', geoLocale, { path: '/', sameSite: 'lax', maxAge: 60 * 60 * 24 });
-      return res;
-    }
-    if (pathname === '/hq') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/oops/hq';
-      url.search = search;
-      return NextResponse.rewrite(url);
-    }
   }
 
   // tablebaro.com 또는 www.tablebaro.com 메인 접속 시 -> 테이블바로 허브(/reserve)로 리라이트
