@@ -233,7 +233,7 @@ function OopsAppContent() {
   };
 
   return (
-    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-[#ffc900] selection:text-black">
+    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-blue-600 selection:text-white">
       <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
