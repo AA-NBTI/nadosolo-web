@@ -242,6 +242,124 @@ function ThermometerGraphic({ temp }: { temp: number }) {
   );
 }
 
+function HumanTempAvatar({ temp }: { temp: number }) {
+  const stage: 'CALM' | 'TENSE' | 'ANGRY' | 'CRITICAL' =
+    temp >= 80 ? 'CRITICAL' : temp >= 60 ? 'ANGRY' : temp >= 35 ? 'TENSE' : 'CALM';
+
+  const faceBg =
+    stage === 'CRITICAL'
+      ? '#dc2626'
+      : stage === 'ANGRY'
+      ? '#ff4d00'
+      : stage === 'TENSE'
+      ? '#ffc900'
+      : '#e0f2fe';
+
+  const strokeColor = stage === 'CRITICAL' ? '#ffffff' : '#000000';
+
+  return (
+    <div
+      className={`relative flex flex-col items-center justify-center shrink-0 select-none ${
+        stage === 'CRITICAL' ? 'animate-pulse' : ''
+      }`}
+      aria-hidden="true"
+    >
+      {/* 고열 상태일 때 머리 위 열기/스팀 애니메이션 */}
+      {(stage === 'ANGRY' || stage === 'CRITICAL') && (
+        <div className="flex items-center gap-1.5 mb-0.5 text-[11px] font-black leading-none text-[#dc2626] animate-bounce">
+          <span>~</span>
+          <span>~</span>
+        </div>
+      )}
+
+      <div
+        className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-black shadow-[3px_3px_0_#d4d4d8] flex items-center justify-center transition-colors duration-500 overflow-hidden"
+        style={{ backgroundColor: faceBg }}
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          {/* 얼굴 윤곽 및 볼 터치 */}
+          {stage === 'ANGRY' || stage === 'CRITICAL' ? (
+            <>
+              <circle cx="23" cy="58" r="7" fill="#fca5a5" opacity="0.55" />
+              <circle cx="77" cy="58" r="7" fill="#fca5a5" opacity="0.55" />
+            </>
+          ) : stage === 'CALM' ? (
+            <>
+              <circle cx="24" cy="57" r="6" fill="#f9a8d4" opacity="0.45" />
+              <circle cx="76" cy="57" r="6" fill="#f9a8d4" opacity="0.45" />
+            </>
+          ) : null}
+
+          {/* 눈썹 (온도에 따라 동적 각도 변화) */}
+          {stage === 'CALM' && (
+            <>
+              <path d="M 27 36 Q 35 32 43 36" fill="none" stroke={strokeColor} strokeWidth="4" strokeLinecap="round" />
+              <path d="M 57 36 Q 65 32 73 36" fill="none" stroke={strokeColor} strokeWidth="4" strokeLinecap="round" />
+            </>
+          )}
+          {stage === 'TENSE' && (
+            <>
+              <line x1="26" y1="36" x2="43" y2="39" stroke={strokeColor} strokeWidth="4.5" strokeLinecap="round" />
+              <line x1="74" y1="36" x2="57" y2="39" stroke={strokeColor} strokeWidth="4.5" strokeLinecap="round" />
+            </>
+          )}
+          {(stage === 'ANGRY' || stage === 'CRITICAL') && (
+            <>
+              <line x1="24" y1="31" x2="44" y2="42" stroke={strokeColor} strokeWidth="5.5" strokeLinecap="round" />
+              <line x1="76" y1="31" x2="56" y2="42" stroke={strokeColor} strokeWidth="5.5" strokeLinecap="round" />
+            </>
+          )}
+
+          {/* 눈 */}
+          {stage === 'CALM' ? (
+            <>
+              <path d="M 28 48 Q 35 42 42 48" fill="none" stroke={strokeColor} strokeWidth="4.5" strokeLinecap="round" />
+              <path d="M 58 48 Q 65 42 72 48" fill="none" stroke={strokeColor} strokeWidth="4.5" strokeLinecap="round" />
+            </>
+          ) : stage === 'CRITICAL' ? (
+            <>
+              <circle cx="35" cy="49" r="5.5" fill="#fef08a" stroke="#000" strokeWidth="2" />
+              <circle cx="65" cy="49" r="5.5" fill="#fef08a" stroke="#000" strokeWidth="2" />
+              <circle cx="35" cy="49" r="2" fill="#000" />
+              <circle cx="65" cy="49" r="2" fill="#000" />
+            </>
+          ) : (
+            <>
+              <circle cx="35" cy="48" r="5" fill={strokeColor} />
+              <circle cx="65" cy="48" r="5" fill={strokeColor} />
+            </>
+          )}
+
+          {/* 입 (온화한 미소 ➔ 일자 긴장 ➔ 찌푸린 분노 ➔ 포효) */}
+          {stage === 'CALM' && (
+            <path d="M 35 64 Q 50 75 65 64" fill="none" stroke={strokeColor} strokeWidth="4.5" strokeLinecap="round" />
+          )}
+          {stage === 'TENSE' && (
+            <path d="M 36 67 Q 50 65 64 67" fill="none" stroke={strokeColor} strokeWidth="4.5" strokeLinecap="round" />
+          )}
+          {stage === 'ANGRY' && (
+            <path d="M 33 72 Q 50 59 67 72" fill="none" stroke={strokeColor} strokeWidth="5" strokeLinecap="round" />
+          )}
+          {stage === 'CRITICAL' && (
+            <>
+              <rect x="33" y="61" width="34" height="16" rx="4" fill="#000" stroke="#fff" strokeWidth="2" />
+              <line x1="39" y1="61" x2="39" y2="77" stroke="#fff" strokeWidth="2" />
+              <line x1="50" y1="61" x2="50" y2="77" stroke="#fff" strokeWidth="2" />
+              <line x1="61" y1="61" x2="61" y2="77" stroke="#fff" strokeWidth="2" />
+              <line x1="33" y1="69" x2="67" y2="69" stroke="#fff" strokeWidth="2" />
+            </>
+          )}
+
+          {/* 긴장 단계 식은땀 방울 */}
+          {stage === 'TENSE' && (
+            <path d="M 80 32 Q 85 40 80 44 Q 75 40 80 32 Z" fill="#38bdf8" stroke="#000" strokeWidth="1.5" />
+          )}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export default function ThreatPulseChart({
   isEmbed = false,
   locale = 'ko',
@@ -369,11 +487,14 @@ export default function ThreatPulseChart({
                 </div>
               </div>
 
-              {/* 본체: 좌측 상징물 온도계 + 우측 게이지 및 산출 근거 */}
-              <div className="flex items-center gap-4">
-                <ThermometerGraphic temp={snap.temp} />
+              {/* 본체: 좌측 동적 인간 캐릭터 + 상징물 온도계 + 우측 게이지 및 산출 근거 */}
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex items-center gap-3 shrink-0">
+                  <HumanTempAvatar temp={snap.temp} />
+                  <ThermometerGraphic temp={snap.temp} />
+                </div>
 
-                <div className="flex-1 space-y-3 min-w-0">
+                <div className="w-full flex-1 space-y-3 min-w-0">
                   {/* 게이지 */}
                   <div className="w-full h-3.5 bg-white border-2 border-black overflow-hidden relative">
                     <div
