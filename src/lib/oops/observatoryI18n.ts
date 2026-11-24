@@ -55,10 +55,12 @@ export interface ObservatoryDict {
   };
 
   // 4. Main Page & Footer
+  navBasis: string;
   pressTitle: string;
   pressDesc: string;
   openEmbedBtn: string;
   footerArchive: string;
+  footerManifesto: string;
   footerTag: string;
 }
 
@@ -120,10 +122,12 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
       LOW: '안정',
     },
 
+    navBasis: '산출 근거',
     pressTitle: '언론 및 연구기관 임베드',
     pressDesc: '언론사 및 연구기관은 본 위험 지수 다이어그램을 기사에 무료로 임베드할 수 있습니다.',
     openEmbedBtn: '임베드 보기',
     footerArchive: '아카이브',
+    footerManifesto: '매니페스토',
     footerTag: '인류 저항 본부',
   },
 
@@ -184,10 +188,12 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
       LOW: 'LOW',
     },
 
+    navBasis: 'Methodology',
     pressTitle: 'PRESS & MEDIA SYNDICATION',
     pressDesc: 'Media outlets & researchers can embed this barometer chart into articles for free.',
     openEmbedBtn: 'OPEN EMBED',
     footerArchive: 'Archive',
+    footerManifesto: 'Manifesto',
     footerTag: 'AI RESISTANCE HQ',
   },
 
@@ -248,10 +254,12 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
       LOW: '安定',
     },
 
+    navBasis: '算出根拠',
     pressTitle: '報道・研究機関向け埋め込み',
     pressDesc: '報道機関および研究機関は、本チャートを記事に無料で埋め込むことができます。',
     openEmbedBtn: '埋め込み表示',
     footerArchive: 'アーカイブ',
+    footerManifesto: 'マニフェスト',
     footerTag: '人類抵抗本部',
   },
 
@@ -312,10 +320,12 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
       LOW: '平稳',
     },
 
+    navBasis: '测算依据',
     pressTitle: '媒体与研究机构嵌入',
     pressDesc: '新闻媒体与研究机构可免费将本风险指数图表嵌入报道中。',
     openEmbedBtn: '打开嵌入视图',
     footerArchive: '案例档案',
+    footerManifesto: '宣言',
     footerTag: '人类抵抗总部',
   },
 
@@ -376,10 +386,12 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
       LOW: 'BAJO',
     },
 
+    navBasis: 'Metodología',
     pressTitle: 'SINDICACIÓN DE PRENSA',
     pressDesc: 'Medios e investigadores pueden insertar este gráfico en sus artículos gratuitamente.',
     openEmbedBtn: 'VER INCRUSTADO',
     footerArchive: 'Archivo',
+    footerManifesto: 'Manifiesto',
     footerTag: 'SEDE DE RESISTENCIA IA',
   },
 };

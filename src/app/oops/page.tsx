@@ -666,13 +666,12 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <button
-              type="button"
-              onClick={() => setShowManifesto(true)}
+            <Link
+              href="/methodology"
               className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
             >
-              {f.navManifesto}
-            </button>
+              {obs.navBasis}
+            </Link>
 
             <button
               type="button"
@@ -1305,6 +1304,14 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             >
               {obs.footerArchive}
             </Link>
+            <span className="text-zinc-400">·</span>
+            <button
+              type="button"
+              onClick={() => setShowManifesto(true)}
+              className="text-black hover:text-[#ff4d00] font-black underline underline-offset-4 cursor-pointer"
+            >
+              {obs.footerManifesto}
+            </button>
             <span className="text-zinc-400">·</span>
             <span className="text-zinc-700">{obs.footerTag}</span>
           </div>
