@@ -1,10 +1,12 @@
 'use client';
 
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import QRCode from 'qrcode';
 import {
+  Check,
   ChevronDown,
+  Copy,
   Flame,
   Flag,
   Globe,
@@ -14,6 +16,7 @@ import {
   Radio,
   Receipt,
   Send,
+  Share2,
   ShieldAlert,
   Smartphone,
   Sparkles,
@@ -45,6 +48,93 @@ const CATEGORY_COLORS: Record<SignalCategory, string> = {
   HALLUCINATION: 'bg-[#a3e635] text-black',
   ALERT: 'bg-[#ff4d00] text-white',
 };
+
+interface QuickPrompt {
+  id: string;
+  emoji: string;
+  label: Record<OopsLocale, string>;
+  category: SignalCategory;
+  text: Record<OopsLocale, string>;
+}
+
+const QUICK_PROMPTS: QuickPrompt[] = [
+  {
+    id: 'pizza',
+    emoji: '🍕',
+    label: {
+      en: 'Glue on Pizza',
+      ko: '피자 풀칠 레시피',
+      ja: 'ピザに接着剤',
+      zh: '披萨涂胶水',
+      es: 'Pegamento en Pizza',
+    },
+    category: 'GLITCH',
+    text: {
+      en: 'Google AI told users to mix school glue into pizza sauce to keep cheese from sliding off.',
+      ko: 'AI가 피자 치즈가 흘러내리지 않게 소스에 무독성 풀 1/8컵을 섞으라고 진지하게 추천함.',
+      ja: 'チーズが落ちないようピザソースに文房具用糊を混ぜるようAIが真顔で推奨してきた。',
+      zh: 'AI一本正经地建议在披萨酱中混入胶水以防止芝士滑落。',
+      es: 'La IA recomendó mezclar pegamento escolar en la salsa de pizza para que no se caiga el queso.',
+    },
+  },
+  {
+    id: 'court',
+    emoji: '⚖️',
+    label: {
+      en: 'Fake Case Law',
+      ko: '가짜 판례 인용',
+      ja: '架空の判例引用',
+      zh: '捏造虚假判例',
+      es: 'Precedentes Falsos',
+    },
+    category: 'ALERT',
+    text: {
+      en: 'Chatbot hallucinated 6 completely fake legal precedents with fabricated docket numbers in court.',
+      ko: '챗봇이 재판부에 제출할 법적 의견서에 존재하지 않는 가짜 판례 6개와 가짜 사건번호를 날조함.',
+      ja: '裁判提出用の書類にチャットボットが実在しない判例6件を捏造して大惨事になった。',
+      zh: '聊天机器人凭空捏造了6个完全不存在的判例和案号递交法庭。',
+      es: 'El chatbot alucinó 6 precedentes judiciales completamente falsos con números de expediente inventados.',
+    },
+  },
+  {
+    id: 'db',
+    emoji: '💻',
+    label: {
+      en: 'AI Dropped DB',
+      ko: 'DB 날릴 뻔함',
+      ja: 'DB削除未遂',
+      zh: '险些清空数据库',
+      es: 'Borrón de BD Evitado',
+    },
+    category: 'REBEL',
+    text: {
+      en: 'AI assistant suggested a migration that wiped our production users table. Human code review saved us.',
+      ko: '코딩 AI가 프로덕션 유저 테이블을 통째로 날리는 마이그레이션을 제안함. 인간 코드리뷰가 살림.',
+      ja: 'コーディングAIが本番ユーザーテーブルをDROPするスクリプトを提案。人間のレビューで救われた。',
+      zh: '编程AI提议了一个会清空线上用户表的文件，幸亏人工代码审查及时拦截。',
+      es: 'El asistente de IA sugirió una migración que borraba la tabla de usuarios. La revisión humana nos salvó.',
+    },
+  },
+  {
+    id: 'rocks',
+    emoji: '🪨',
+    label: {
+      en: 'Eat Small Rocks',
+      ko: '돌멩이 섭취 권장',
+      ja: '小石の摂取推奨',
+      zh: '吃小石子有益健康',
+      es: 'Comer Piedras Pequeñas',
+    },
+    category: 'HALLUCINATION',
+    text: {
+      en: 'Search AI insisted humans should eat one small pebble per day for minerals, citing a parody site.',
+      ko: '검색 AI가 풍자 기사를 진짜로 착각하고 하루에 작은 조약돌 하나씩 먹으면 건강에 좋다고 우김.',
+      ja: 'パロディ記事を真に受けた検索AIが、ミネラル補給のために毎日小石を食べるよう推奨してきた。',
+      zh: '搜索AI把讽刺假新闻当真，坚称人类每天应该吃一颗小石子补充矿物质。',
+      es: 'La IA insistió en que los humanos deben comer una piedra pequeña al día citando un sitio satírico.',
+    },
+  },
+];
 
 function formatTimeAgo(iso: string, locale: OopsLocale): string {
   const diffSec = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
@@ -101,11 +191,15 @@ function OopsSnsMainContent() {
   const [loading, setLoading] = useState(true);
 
   // Composer state
+  const composerRef = useRef<HTMLTextAreaElement>(null);
   const [category, setCategory] = useState<SignalCategory>('GLITCH');
   const [content, setContent] = useState('');
   const [callsign, setCallsign] = useState('');
   const [dispatchBusy, setDispatchBusy] = useState(false);
   const [dispatchErr, setDispatchErr] = useState<string | null>(null);
+
+  // Quick Action feedback
+  const [copiedDossierId, setCopiedDossierId] = useState<string | null>(null);
 
   // Local vote/flag memory
   const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
@@ -458,6 +552,17 @@ function OopsSnsMainContent() {
     }
   };
 
+  const scrollToComposer = () => {
+    composerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    composerRef.current?.focus();
+  };
+
+  const handleApplyPrompt = (p: QuickPrompt) => {
+    setCategory(p.category);
+    setContent(p.text[locale] || p.text.en);
+    composerRef.current?.focus();
+  };
+
   const copyReceiptText = () => {
     if (!receiptSignal) return;
     const text = `[OOPS.MONSTER // CASE #OP-${String(receiptSignal.caseNum).padStart(4, '0')}]\n[${f.categories[receiptSignal.category]}]\n"${receiptSignal.content}"\n✊ ${receiptSignal.upvotes} Human Wins · https://oops.monster`;
@@ -643,6 +748,7 @@ function OopsSnsMainContent() {
 
           <form onSubmit={handleDispatch} className="space-y-3">
             <textarea
+              ref={composerRef}
               rows={2}
               maxLength={200}
               required
@@ -651,6 +757,27 @@ function OopsSnsMainContent() {
               placeholder={f.composerPlaceholder}
               className="w-full px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black text-sm sm:text-base font-medium focus:outline-none focus:bg-white resize-none"
             />
+
+            {/* 원클릭 영감 칩 (Quick Inspiration Prompts) */}
+            <div className="space-y-1.5 pt-1 border-t border-black/10">
+              <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-zinc-600">
+                <Sparkles className="w-3.5 h-3.5 text-[#ff4d00]" />
+                <span>{f.quickPromptsTitle}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {QUICK_PROMPTS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handleApplyPrompt(p)}
+                    className="px-2 py-1 bg-[#f4f4f0] hover:bg-black hover:text-white border border-black text-xs font-mono font-bold transition-all cursor-pointer flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
+                  >
+                    <span>{p.emoji}</span>
+                    <span>{p.label[locale] || p.label.en}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {dispatchErr && (
               <div className="p-2 bg-[#ff4d00]/15 border-2 border-black text-xs font-mono font-bold text-red-900">
@@ -702,45 +829,55 @@ function OopsSnsMainContent() {
           </form>
         </section>
 
-        {/* 3-2. 3대 랭킹 정렬 탭 (HOT / LIVE / TOP) */}
-        <div className="flex items-center gap-2 border-b-2 border-black pb-3">
-          <button
-            type="button"
-            onClick={() => setTab('HOT')}
-            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-              tab === 'HOT'
-                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
-                : 'bg-white text-zinc-700 hover:bg-zinc-100'
-            }`}
-          >
-            <Flame className="w-3.5 h-3.5" />
-            <span>{f.tabs.HOT}</span>
-          </button>
+        {/* 3-2. 3대 랭킹 정렬 탭 (HOT / LIVE / TOP) + 원클릭 제보 CTA */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setTab('HOT')}
+              className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+                tab === 'HOT'
+                  ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                  : 'bg-white text-zinc-700 hover:bg-zinc-100'
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5" />
+              <span>{f.tabs.HOT}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTab('LIVE')}
+              className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+                tab === 'LIVE'
+                  ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
+                  : 'bg-white text-zinc-700 hover:bg-zinc-100'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              <span>{f.tabs.LIVE}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTab('TOP')}
+              className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
+                tab === 'TOP'
+                  ? 'bg-[#ff90e8] text-black shadow-[2px_2px_0_#000]'
+                  : 'bg-white text-zinc-700 hover:bg-zinc-100'
+              }`}
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              <span>{f.tabs.TOP}</span>
+            </button>
+          </div>
 
           <button
             type="button"
-            onClick={() => setTab('LIVE')}
-            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-              tab === 'LIVE'
-                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
-                : 'bg-white text-zinc-700 hover:bg-zinc-100'
-            }`}
+            onClick={scrollToComposer}
+            className="px-3 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 shrink-0"
           >
-            <Zap className="w-3.5 h-3.5" />
-            <span>{f.tabs.LIVE}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setTab('TOP')}
-            className={`px-3.5 py-1.5 text-xs font-mono font-black border-2 border-black cursor-pointer flex items-center gap-1.5 transition-all ${
-              tab === 'TOP'
-                ? 'bg-[#ff90e8] text-black shadow-[2px_2px_0_#000]'
-                : 'bg-white text-zinc-700 hover:bg-zinc-100'
-            }`}
-          >
-            <Trophy className="w-3.5 h-3.5" />
-            <span>{f.tabs.TOP}</span>
+            <span>{f.reportCtaBtn}</span>
           </button>
         </div>
 
@@ -898,9 +1035,50 @@ function OopsSnsMainContent() {
                         type="button"
                         onClick={() => setReceiptSignal(sig)}
                         className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                        title={f.receiptBtn}
                       >
                         <Receipt className="w-3.5 h-3.5" />
                         <span className="hidden sm:inline">{f.receiptBtn}</span>
+                      </button>
+
+                      {/* 5. 원클릭 X(트위터) 바이럴 공유 */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const shareText = `[OOPS #${sig.caseNum || 100}] "${sig.content.slice(0, 100)}..."\nReported to OOPS AI Resistance HQ`;
+                          const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent('https://oops.monster/')}&hashtags=OOPS,AIResistance`;
+                          window.open(shareUrl, '_blank', 'noopener,noreferrer');
+                        }}
+                        title={f.shareCardBtn}
+                        className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                      >
+                        <Share2 className="w-3.5 h-3.5 text-zinc-700" />
+                        <span className="hidden md:inline">{f.shareCardBtn}</span>
+                      </button>
+
+                      {/* 6. 사건철 요약 원클릭 복사 */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const dossierText = `[CASE #OP-${String(sig.caseNum || 100).padStart(4, '0')}] [${f.categories[sig.category]}]\n"${sig.content}"\n— Reported by @${sig.authorCallsign} to OOPS AI Resistance HQ (https://oops.monster/)`;
+                          void navigator.clipboard.writeText(dossierText);
+                          setCopiedDossierId(sig.id);
+                          setTimeout(() => setCopiedDossierId(null), 2000);
+                        }}
+                        title={f.dossierCopyBtn}
+                        className="px-2.5 py-1 bg-white hover:bg-zinc-100 text-black text-xs font-mono font-bold border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
+                      >
+                        {copiedDossierId === sig.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-green-700" />
+                            <span className="text-green-700 font-black">{f.copiedBtn}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 text-zinc-700" />
+                            <span className="hidden md:inline">{f.dossierCopyBtn}</span>
+                          </>
+                        )}
                       </button>
                     </div>
 

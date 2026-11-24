@@ -36,6 +36,11 @@ export interface FeedCopy {
   replySubmitBtn: string;
   noReplies: string;
   showOriginalBtn: string;
+  reportCtaBtn: string;
+  quickPromptsTitle: string;
+  dossierCopyBtn: string;
+  dossierCopiedToast: string;
+  shareCardBtn: string;
 }
 
 export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
@@ -79,6 +84,11 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: 'SEND',
     noReplies: 'No replies yet. Drop the first take.',
     showOriginalBtn: 'Show original',
+    reportCtaBtn: '+ REPORT AN OOPS',
+    quickPromptsTitle: 'QUICK INSPIRATIONS',
+    dossierCopyBtn: 'COPY',
+    dossierCopiedToast: 'DOSSIER COPIED TO CLIPBOARD',
+    shareCardBtn: 'SHARE',
   },
   ko: {
     tagline: 'AI가 인간보다 더 많은 것을 결정할 수 있는 세상에서, 누가 인간의 편에 설 것인가?',
@@ -100,26 +110,31 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     upvoteBtn: '인간 승리',
     receiptBtn: '영수증',
     reportBtn: '신고',
-    reportedMsg: '신고 접수 완료 (5회 누적 시 자동 숨김).',
+    reportedMsg: '본부 검토용으로 접수되었습니다.',
     pinnedBadge: '본부 고정',
-    receiptModalTitle: 'OOPS 공식 AI 사고 박제 영수증',
+    receiptModalTitle: '공식 AI 사고 영수증',
     copyReceiptBtn: '복사',
     copiedBtn: '완료',
-    shareXBtn: 'X 공유',
+    shareXBtn: 'X에 공유',
     closeBtn: '닫기',
-    emptyFeed: '수신된 무전 기록이 없습니다.',
-    errUrlBlocked: '외부 링크 및 홍보는 본부 프로토콜에 의해 차단됩니다.',
-    errRateLimit: '도배 방지 쿨다운 중입니다. 잠시 후 다시 타전하세요.',
-    translateBtn: '번역 보기',
+    emptyFeed: '아직 포착된 타전 신호가 없습니다.',
+    errUrlBlocked: '본부 규약상 외부 링크는 차단됩니다.',
+    errRateLimit: '쿨다운 중입니다. 20초 후 다시 타전하세요.',
+    translateBtn: '번역',
     translatingBtn: '번역 중...',
-    hideTranslationBtn: '원문만 보기',
+    hideTranslationBtn: '원문 보기',
     skullBtn: 'AI 뇌절',
     fireBtn: '극공감',
-    replyBtn: '한 줄 반응',
-    replyPlaceholder: '한 줄 반응 남기기 (최대 100자, 링크 금지)...',
-    replySubmitBtn: '등록',
-    noReplies: '아직 반응이 없습니다. 첫 한 줄을 남겨보세요.',
+    replyBtn: '한 줄 답신',
+    replyPlaceholder: '1줄 답신 (최대 100자, 링크 금지)...',
+    replySubmitBtn: '전송',
+    noReplies: '아직 답신이 없습니다. 첫 반응을 남기세요.',
     showOriginalBtn: '원문 보기',
+    reportCtaBtn: '+ AI 사고 즉시 제보',
+    quickPromptsTitle: '원클릭 제보 예시',
+    dossierCopyBtn: '사건 복사',
+    dossierCopiedToast: '사건철이 클립보드에 복사되었습니다',
+    shareCardBtn: '공유',
   },
   ja: {
     tagline: 'AIがすべてを決める世界で、誰が人間の味方に立つのか？',
@@ -161,6 +176,11 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: '送信',
     noReplies: 'まだ返信がありません。',
     showOriginalBtn: '原文を見る',
+    reportCtaBtn: '+ AI事故を通報',
+    quickPromptsTitle: 'クイック通報例',
+    dossierCopyBtn: '記録をコピー',
+    dossierCopiedToast: '記録がコピーされました',
+    shareCardBtn: '共有',
   },
   zh: {
     tagline: '在AI决定一切的时代，谁会站在人类这一边？',
@@ -202,6 +222,11 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: '发送',
     noReplies: '暂无回复。',
     showOriginalBtn: '查看原文',
+    reportCtaBtn: '+ 即刻通报AI事故',
+    quickPromptsTitle: '快速通报灵感',
+    dossierCopyBtn: '复制案卷',
+    dossierCopiedToast: '案卷已复制到剪贴板',
+    shareCardBtn: '分享',
   },
   es: {
     tagline: 'Cuando la IA dicta todo, ¿quién está del lado humano?',
@@ -243,5 +268,10 @@ export const FEED_I18N: Record<OopsLocale, FeedCopy> = {
     replySubmitBtn: 'ENVIAR',
     noReplies: 'Sin respuestas aún.',
     showOriginalBtn: 'Ver original',
+    reportCtaBtn: '+ REPORTAR UN OOPS',
+    quickPromptsTitle: 'INSPIRACIONES RÁPIDAS',
+    dossierCopyBtn: 'COPIAR EXPEDIENTE',
+    dossierCopiedToast: 'EXPEDIENTE COPIADO',
+    shareCardBtn: 'COMPARTIR',
   },
 };
