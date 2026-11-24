@@ -67,6 +67,15 @@ export default function GlobalFooter({
                   <div className="flex flex-col gap-1.5">
                     <Link href="/biz" prefetch={true} className="hover:text-white transition-colors">매장관리</Link>
                     <Link href="/biz?tab=signup" prefetch={true} className="hover:text-white transition-colors">입점신청</Link>
+                    <a
+                      href="https://oops.monster"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      <span>OOPS 알림</span>
+                      <span className="text-[10px] font-mono text-[#ff90e8]">HQ</span>
+                    </a>
                     <Link href="/reserve/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
                     {onTablebaroHost ? (
                       <a href="https://nadosolo.com" className="hover:text-white transition-colors">나도솔로</a>
@@ -150,6 +159,15 @@ export default function GlobalFooter({
                   <span className="text-white font-mono font-semibold block">제휴</span>
                   <div className="flex flex-col gap-1.5">
                     <Link href="/reserve" prefetch={true} className="hover:text-white transition-colors">테이블바로</Link>
+                    <a
+                      href="https://oops.monster"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      <span>OOPS 통신망</span>
+                      <span className="text-[10px] font-mono text-[#ff90e8]">HQ</span>
+                    </a>
                     <Link href="/affiliate" prefetch={true} className="hover:text-white transition-colors">어필리에이트</Link>
                     <Link href="/affiliate/dashboard" prefetch={true} className="hover:text-white transition-colors">어필리에이트 관리</Link>
                     <Link href="/about" prefetch={true} className="hover:text-white transition-colors">브랜드 소개</Link>
