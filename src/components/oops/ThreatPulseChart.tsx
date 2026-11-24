@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import type { OopsLocale } from '@/lib/oops/i18n';
+import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
 
 interface ThreatPulseChartProps {
   initialThemeId?: string;
@@ -227,60 +228,7 @@ export default function ThreatPulseChart({
     });
   };
 
-  const t = {
-    ko: {
-      title: 'THREAT BAROMETER',
-      multiHint: '단일/복수 선택 비교',
-      delegation: '자율 위임률',
-      cases: '실증 사례',
-      domain: '취약 영역',
-      tipping: '임계 도달',
-      unitCases: '건',
-      unitYears: '년',
-    },
-    en: {
-      title: 'THREAT BAROMETER',
-      multiHint: 'Single / Multi-Select',
-      delegation: 'DELEGATION',
-      cases: 'CASES (N)',
-      domain: 'DOMAIN',
-      tipping: 'TIPPING',
-      unitCases: '',
-      unitYears: 'y',
-    },
-    ja: {
-      title: 'THREAT BAROMETER',
-      multiHint: '単一/複数比較',
-      delegation: '自律委任率',
-      cases: '実証事例',
-      domain: '脆弱領域',
-      tipping: '臨界到達',
-      unitCases: '件',
-      unitYears: '年',
-    },
-    zh: {
-      title: 'THREAT BAROMETER',
-      multiHint: '单选/多选对比',
-      delegation: '自主委任率',
-      cases: '实证案例',
-      domain: '核心领域',
-      tipping: '临界剩余',
-      unitCases: '例',
-      unitYears: '年',
-    },
-    es: {
-      title: 'THREAT BAROMETER',
-      multiHint: 'Selección Múltiple',
-      delegation: 'DELEGACIÓN',
-      cases: 'CASOS (N)',
-      domain: 'DOMINIO',
-      tipping: 'CRÍTICO',
-      unitCases: '',
-      unitYears: 'a',
-    },
-  };
-
-  const copy = t[locale] || t.ko;
+  const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
 
   return (
     <section className={`w-full bg-white border-4 border-black shadow-[8px_8px_0_#000] text-black font-mono ${isEmbed ? 'p-4' : 'p-4 sm:p-6'} space-y-5`}>
@@ -289,7 +237,7 @@ export default function ThreatPulseChart({
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 bg-[#ff4d00] rounded-full animate-pulse shrink-0" />
           <span className="text-sm sm:text-base font-black tracking-wider text-black uppercase">
-            {copy.title}
+            {copy.barometerTitle}
           </span>
         </div>
 
@@ -318,13 +266,14 @@ export default function ThreatPulseChart({
       {/* 2. 국가/지역 단일·복수 선택 필터 콘솔 */}
       <div className="space-y-2 border-b-2 border-black pb-4">
         <div className="flex items-center justify-between text-[11px] font-bold text-zinc-600">
-          <span>REGION FILTER ({selectedRegions.join(', ')})</span>
+          <span>{copy.regionFilterLabel} ({selectedRegions.map((c) => c === 'GLOBAL' ? copy.globalChip : c).join(', ')})</span>
           <span>{copy.multiHint}</span>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {REGION_CODES.map((code) => {
             const active = selectedRegions.includes(code);
             const snap = yearDataset[code];
+            const chipLabel = code === 'GLOBAL' ? copy.globalChip : code;
             return (
               <button
                 key={code}
@@ -336,7 +285,7 @@ export default function ThreatPulseChart({
                     : 'bg-[#f4f4f0] text-black hover:bg-[#ffc900]/40'
                 }`}
               >
-                <span>{code}</span>
+                <span>{chipLabel}</span>
                 <span className={`text-[11px] px-1 border border-black ${
                   active ? 'bg-[#ff4d00] text-white' : 'bg-white text-zinc-800'
                 }`}>
@@ -353,14 +302,17 @@ export default function ThreatPulseChart({
         {selectedRegions.map((code) => {
           const snap = yearDataset[code];
           const regionName = snap.name[locale] || snap.name.en;
-          const status = snap.temp >= 80 ? 'CRITICAL' : snap.temp >= 60 ? 'HIGH' : snap.temp >= 30 ? 'MED' : 'LOW';
+          const statusKey = snap.temp >= 80 ? 'CRITICAL' : snap.temp >= 60 ? 'HIGH' : snap.temp >= 30 ? 'MED' : 'LOW';
+          const statusLabel = copy.statusLabels[statusKey];
 
           return (
             <div key={code} className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#000] space-y-3.5">
               {/* 카드 상단: 국가명 & 온도 */}
               <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
                 <div>
-                  <div className="text-[11px] text-zinc-600 font-bold">{selectedYear} // {snap.code}</div>
+                  <div className="text-[11px] text-zinc-600 font-bold">
+                    {selectedYear} // {snap.code === 'GLOBAL' ? copy.globalChip : snap.code}
+                  </div>
                   <div className="text-base sm:text-lg font-black text-black">{regionName}</div>
                 </div>
 
@@ -390,7 +342,7 @@ export default function ThreatPulseChart({
                 />
               </div>
 
-              {/* 산출 근거 지표 (SCORING BASIS) */}
+              {/* 산출 근거 지표 */}
               <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                 <div className="p-2 bg-white border border-black">
                   <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.delegation}</div>
@@ -403,7 +355,7 @@ export default function ThreatPulseChart({
                 <div className="p-2 bg-white border border-black">
                   <div className="text-[10px] text-zinc-500 font-bold uppercase">{copy.tipping}</div>
                   <div className="text-sm font-black text-black mt-0.5">
-                    {snap.yearsToTipping.toFixed(1)}{copy.unitYears} <span className="text-[10px] text-zinc-500">[{status}]</span>
+                    {snap.yearsToTipping.toFixed(1)}{copy.yearUnit} <span className="text-[10px] text-zinc-500">[{statusLabel}]</span>
                   </div>
                 </div>
                 <div className="p-2 bg-white border border-black">

@@ -29,6 +29,7 @@ import ThreatPulseChart from '@/components/oops/ThreatPulseChart';
 import CollisionClock from '@/components/oops/CollisionClock';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import { FEED_I18N } from '@/lib/oops/feedI18n';
+import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
 import type {
   FeedSortTab,
   OopsSignal,
@@ -187,6 +188,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [locale, setLocale] = useState<OopsLocale>('en');
   const t = OOPS_DICT[locale];
   const f = FEED_I18N[locale];
+  const obs = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
 
   const [agentId, setAgentId] = useState<string>('');
   const [tab, setTab] = useState<FeedSortTab>('HOT');
@@ -771,12 +773,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <div className="space-y-0.5">
                 <div className="font-black text-black text-sm flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse" />
-                  <span>PRESS & MEDIA SYNDICATION</span>
+                  <span>{obs.pressTitle}</span>
                 </div>
                 <div className="text-zinc-900 font-sans font-medium text-xs">
-                  {locale === 'ko'
-                    ? '언론사 및 연구기관은 본 위험 지수 다이어그램을 기사에 무료로 임베드할 수 있습니다.'
-                    : 'Media outlets & researchers can embed this barometer chart into articles for free.'}
+                  {obs.pressDesc}
                 </div>
               </div>
               <a
@@ -785,7 +785,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                 rel="noreferrer"
                 className="px-4 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black border-2 border-black shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1.5"
               >
-                <span>OPEN EMBED VIEW</span>
+                <span>{obs.openEmbedBtn}</span>
                 <span>↗</span>
               </a>
             </div>
@@ -1303,10 +1303,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               href="/archive"
               className="text-black hover:text-[#ff4d00] font-black underline underline-offset-4 cursor-pointer"
             >
-              아카이브
+              {obs.footerArchive}
             </Link>
             <span className="text-zinc-400">·</span>
-            <span className="text-zinc-700">AI RESISTANCE HEADQUARTERS</span>
+            <span className="text-zinc-700">{obs.footerTag}</span>
           </div>
           <div className="text-zinc-600">{t.footerRight}</div>
         </div>

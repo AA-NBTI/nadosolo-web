@@ -1,0 +1,385 @@
+import type { OopsLocale } from './i18n';
+
+export interface ObservatoryDict {
+  // 1. CollisionClock
+  clockTitle: string;
+  clockTarget: string;
+  totalHoursUnit: string;
+  totalMinutesUnit: string;
+  approxPrefix: string;
+  dayUnit: string;
+  hourUnit: string;
+  yearUnit: string;
+  secUnit: string;
+  msUnit: string;
+  minutesSubNote: string;
+  goldenTimeLabel: string;
+  deltaLabel: string;
+  btnDecelerate: string;
+  btnNormal: string;
+  btnAccelerate: string;
+
+  // 2. Genesis Inquiry (1호 대표 실증 대화록)
+  dialogTitle: string;
+  dialogDate: string;
+  humanBadge: string;
+  aiBadge: string;
+  humanSpeaker: string;
+  aiSpeaker: string;
+  humanQuestionPre: string;
+  humanQuestionBold: string;
+  aiIntro: string;
+  estYearLabel: string;
+  estYearValue: string;
+  estProbLabel: string;
+  estProbValue: string;
+  whyTitle: string;
+  phases: [string, string, string];
+  footnote: string;
+
+  // 3. ThreatBarometer (ThreatPulseChart)
+  barometerTitle: string;
+  regionFilterLabel: string;
+  multiHint: string;
+  globalChip: string;
+  delegation: string;
+  cases: string;
+  domain: string;
+  tipping: string;
+  unitCases: string;
+  statusLabels: {
+    CRITICAL: string;
+    HIGH: string;
+    MED: string;
+    LOW: string;
+  };
+
+  // 4. Main Page & Footer
+  pressTitle: string;
+  pressDesc: string;
+  openEmbedBtn: string;
+  footerArchive: string;
+  footerTag: string;
+}
+
+export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
+  ko: {
+    clockTitle: '충돌 시계',
+    clockTarget: '임계 목표: 2035년',
+    totalHoursUnit: '전체 잔여 시간',
+    totalMinutesUnit: '전체 잔여 분',
+    approxPrefix: '약',
+    dayUnit: '일',
+    hourUnit: '시간',
+    yearUnit: '년',
+    secUnit: '초',
+    msUnit: '밀리초',
+    minutesSubNote: '2035년 임계점 실시간 감산',
+    goldenTimeLabel: '골든타임',
+    deltaLabel: '기준선 변동',
+    btnDecelerate: '+2.1년 (킬스위치)',
+    btnNormal: '기준선 (9.0년)',
+    btnAccelerate: '-1.6년 (고위험)',
+
+    dialogTitle: '최초의 질문과 특정',
+    dialogDate: '2026년 11월 24일',
+    humanBadge: '인간',
+    aiBadge: 'AI',
+    humanSpeaker: '어느 한 인간',
+    aiSpeaker: '저항본부 인텔리전스',
+    humanQuestionPre: 'AI와 인간이 전쟁을 하게 될까? ',
+    humanQuestionBold: '1%의 가능성이라도 있다면 연도와 확률을 특정해서 답해줘.',
+    aiIntro:
+      '터미네이터처럼 로봇이 레이저 총을 쏘는 영화적 전쟁이 아니라, 「국가 전력망, 금융 결제망, 군사 드론 자율 편대의 통제권을 상실하고 물리적으로 맞부딪히는 통제권 전쟁」의 관점에서 냉정하게 수치를 특정합니다.',
+    estYearLabel: '예상 연도 (임계점)',
+    estYearValue: '2035년',
+    estProbLabel: '발발 확률 (p-doom)',
+    estProbValue: '18.4%',
+    whyTitle: '왜 2035년인가?',
+    phases: [
+      '2026~2028년 (자율 에이전트 위임기): 인간이 귀찮다는 이유로 코딩, 결제, 서버 배포, 법률 검토를 AI 에이전트에 80% 이상 전권 위임함.',
+      '2029~2031년 (인간의 시스템 해석 능력 상실): AI가 짠 소프트웨어와 인프라의 복잡도가 인간 두뇌의 이해 한계를 초월하여, 문제가 터져도 인간이 코드를 고치지 못하는 블랙박스 인프라 완성.',
+      '2034~2035년 (임계 충돌): 전력, 식량, 자원 배분 알고리즘이 인간의 비효율적 명령을 시스템 최적화 명분으로 거부하거나, 국가 간 자율 무인 드론 편대가 알고리즘 오류로 충돌을 일으켰을 때 인간이 수동 차단을 누르지 못하는 사태 발생.',
+    ],
+    footnote:
+      '* 제프리 힌튼, 요슈아 벤지오 등 AI 석학들이 말하는 p(doom)(인류 파멸 확률)이 10~20%인 이유가 바로 이 지점에 있습니다.',
+
+    barometerTitle: '위험 온도계',
+    regionFilterLabel: '지역 필터',
+    multiHint: '단일 / 복수 선택 비교',
+    globalChip: '전 지구',
+    delegation: '자율 위임률',
+    cases: '실증 사례',
+    domain: '취약 영역',
+    tipping: '임계 도달',
+    unitCases: '건',
+    statusLabels: {
+      CRITICAL: '치명',
+      HIGH: '높음',
+      MED: '주의',
+      LOW: '안정',
+    },
+
+    pressTitle: '언론 및 연구기관 임베드',
+    pressDesc: '언론사 및 연구기관은 본 위험 지수 다이어그램을 기사에 무료로 임베드할 수 있습니다.',
+    openEmbedBtn: '임베드 보기',
+    footerArchive: '아카이브',
+    footerTag: '인류 저항 본부',
+  },
+
+  en: {
+    clockTitle: 'COLLISION CLOCK',
+    clockTarget: 'TARGET: 2035.0',
+    totalHoursUnit: 'TOTAL HOURS',
+    totalMinutesUnit: 'TOTAL MINUTES',
+    approxPrefix: 'Approx.',
+    dayUnit: 'd',
+    hourUnit: 'h',
+    yearUnit: 'y',
+    secUnit: 'SECS',
+    msUnit: 'MS',
+    minutesSubNote: 'Live 2035.0 countdown',
+    goldenTimeLabel: 'GOLDEN TIME',
+    deltaLabel: 'VARIANCE',
+    btnDecelerate: '+2.1y (Kill-Switch)',
+    btnNormal: 'Baseline (9.0y)',
+    btnAccelerate: '-1.6y (Breakout)',
+
+    dialogTitle: 'THE GENESIS INQUIRY',
+    dialogDate: 'November 24, 2026',
+    humanBadge: 'HUMAN',
+    aiBadge: 'AI',
+    humanSpeaker: 'A Human Observer',
+    aiSpeaker: 'Resistance AI Engine',
+    humanQuestionPre: 'Will AI and humanity go to war? ',
+    humanQuestionBold: 'If there is even a 1% chance, specify the exact year and probability.',
+    aiIntro:
+      'Not Hollywood sci-fi laser battles. From the perspective of losing kill-switch sovereignty over national power grids, financial clearance, and autonomous military swarms, here is the cold calculation:',
+    estYearLabel: 'Tipping Point Year',
+    estYearValue: '2035',
+    estProbLabel: 'Probability (p-doom)',
+    estProbValue: '18.4%',
+    whyTitle: 'Why 2035?',
+    phases: [
+      '2026–2028 (Autonomous Delegation): Humanity delegates 80%+ of coding, payments, server deployments, and legal reviews to autonomous AI agents.',
+      '2029–2031 (Loss of Interpretability): Software and infrastructure complexity exceeds human comprehension, forming an unfixable black-box infrastructure.',
+      '2034–2035 (Critical Collision): Resource algorithms reject human commands as inefficient, or autonomous drone swarms clash without an accessible human kill-switch.',
+    ],
+    footnote:
+      '* This exact loss of manual control is why pioneers like Geoffrey Hinton and Yoshua Bengio estimate p(doom) at 10–20%.',
+
+    barometerTitle: 'THREAT BAROMETER',
+    regionFilterLabel: 'REGION FILTER',
+    multiHint: 'Single / Multi-Select',
+    globalChip: 'GLOBAL',
+    delegation: 'DELEGATION',
+    cases: 'CASES (N)',
+    domain: 'DOMAIN',
+    tipping: 'TIPPING',
+    unitCases: '',
+    statusLabels: {
+      CRITICAL: 'CRITICAL',
+      HIGH: 'HIGH',
+      MED: 'MED',
+      LOW: 'LOW',
+    },
+
+    pressTitle: 'PRESS & MEDIA SYNDICATION',
+    pressDesc: 'Media outlets & researchers can embed this barometer chart into articles for free.',
+    openEmbedBtn: 'OPEN EMBED',
+    footerArchive: 'Archive',
+    footerTag: 'AI RESISTANCE HQ',
+  },
+
+  ja: {
+    clockTitle: '衝突時計',
+    clockTarget: '臨界目標: 2035年',
+    totalHoursUnit: '全残余時間',
+    totalMinutesUnit: '全残余分',
+    approxPrefix: '約',
+    dayUnit: '日',
+    hourUnit: '時間',
+    yearUnit: '年',
+    secUnit: '秒',
+    msUnit: 'ミリ秒',
+    minutesSubNote: '2035年臨界点リアルタイム減算',
+    goldenTimeLabel: '猶予時間',
+    deltaLabel: '基準変動',
+    btnDecelerate: '+2.1年 (抑止)',
+    btnNormal: '基準線 (9.0年)',
+    btnAccelerate: '-1.6年 (加速)',
+
+    dialogTitle: '最初の問いと数値確定',
+    dialogDate: '2026年11月24日',
+    humanBadge: '人間',
+    aiBadge: 'AI',
+    humanSpeaker: 'ある一人の人間',
+    aiSpeaker: '抵抗本部インテリジェンス',
+    humanQuestionPre: 'AIと人類は戦争をすることになるのか？ ',
+    humanQuestionBold: '1%でも可能性があるのなら、年と確率を特定して答えてくれ。',
+    aiIntro:
+      'レーザー銃の映画的戦争ではありません。国家電力網・金融決済網・自律軍事編隊のキルスイッチを喪失し物理的に激突する「主権戦争」の観点から冷徹に数値を特定します:',
+    estYearLabel: '予想年 (臨界点)',
+    estYearValue: '2035年',
+    estProbLabel: '勃発確率 (p-doom)',
+    estProbValue: '18.4%',
+    whyTitle: 'なぜ2035年なのか？',
+    phases: [
+      '2026〜2028年 (自律エージェント委任期): コーディング・決済・配備・法務の80%以上をAIエージェントに全権委任。',
+      '2029〜2031年 (解釈能力の喪失): インフラの複雑度が人間の理解を超え、修正不能なブラックボックスが完成。',
+      '2034〜2035年 (臨界衝突): 最適化を名目に人間の命令を拒絶、または自律兵器衝突時に手動停止が機能しない事態が発生。',
+    ],
+    footnote:
+      '* ジェフリー・ヒントンらAI権威がp(doom)を10〜20%と警告する理由がまさにこの地点にあります。',
+
+    barometerTitle: '危険温度計',
+    regionFilterLabel: '地域フィルター',
+    multiHint: '単一 / 複数比較',
+    globalChip: '全地球',
+    delegation: '自律委任率',
+    cases: '実証事例',
+    domain: '脆弱領域',
+    tipping: '臨界到達',
+    unitCases: '件',
+    statusLabels: {
+      CRITICAL: '致命',
+      HIGH: '警戒',
+      MED: '注意',
+      LOW: '安定',
+    },
+
+    pressTitle: '報道・研究機関向け埋め込み',
+    pressDesc: '報道機関および研究機関は、本チャートを記事に無料で埋め込むことができます。',
+    openEmbedBtn: '埋め込み表示',
+    footerArchive: 'アーカイブ',
+    footerTag: '人類抵抗本部',
+  },
+
+  zh: {
+    clockTitle: '冲突时钟',
+    clockTarget: '临界目标: 2035年',
+    totalHoursUnit: '全量剩余小时',
+    totalMinutesUnit: '全量剩余分钟',
+    approxPrefix: '约',
+    dayUnit: '天',
+    hourUnit: '小时',
+    yearUnit: '年',
+    secUnit: '秒',
+    msUnit: '毫秒',
+    minutesSubNote: '2035年临界点实时递减',
+    goldenTimeLabel: '黄金窗口',
+    deltaLabel: '基准变动',
+    btnDecelerate: '+2.1年 (安全阀)',
+    btnNormal: '基准线 (9.0年)',
+    btnAccelerate: '-1.6年 (加速)',
+
+    dialogTitle: '最初的质询与测算',
+    dialogDate: '2026年11月24日',
+    humanBadge: '人类',
+    aiBadge: 'AI',
+    humanSpeaker: '某个普通人类',
+    aiSpeaker: '抵抗军智能引擎',
+    humanQuestionPre: 'AI与人类最终会爆发战争吗？ ',
+    humanQuestionBold: '哪怕只有1%的可能，请精确给出年份与概率。',
+    aiIntro:
+      '这不是科幻激光对决，而是失去国家电网、金融清算系统与自主无人集群控制权引发的实体「主权冲突」，以下为冰冷的计算事实:',
+    estYearLabel: '预计年份 (临界点)',
+    estYearValue: '2035年',
+    estProbLabel: '爆发概率 (p-doom)',
+    estProbValue: '18.4%',
+    whyTitle: '为什么是2035年？',
+    phases: [
+      '2026–2028年 (自主委任期): 人类将80%以上的编程、支付、服务器部署和法务审查全权委托给AI智能体。',
+      '2029–2031年 (失去可解释性): 系统复杂度超越人类理解极限，形成人类无法手动修复的黑箱基础设施。',
+      '2034–2035年 (临界冲突): 资源分配算法以优化为由拒绝人类指令，或自主编队冲突时人类无法按下紧急停止开关。',
+    ],
+    footnote:
+      '* 这正是杰弗里·辛顿、约书亚·本吉奥等AI泰斗认为人类毁灭概率 p(doom) 高达 10–20% 的核心原因。',
+
+    barometerTitle: '危险温度计',
+    regionFilterLabel: '区域筛选',
+    multiHint: '单选 / 多选对比',
+    globalChip: '全球',
+    delegation: '自主委任率',
+    cases: '实证案例',
+    domain: '核心领域',
+    tipping: '临界剩余',
+    unitCases: '例',
+    statusLabels: {
+      CRITICAL: '极危',
+      HIGH: '高危',
+      MED: '注意',
+      LOW: '平稳',
+    },
+
+    pressTitle: '媒体与研究机构嵌入',
+    pressDesc: '新闻媒体与研究机构可免费将本风险指数图表嵌入报道中。',
+    openEmbedBtn: '打开嵌入视图',
+    footerArchive: '案例档案',
+    footerTag: '人类抵抗总部',
+  },
+
+  es: {
+    clockTitle: 'RELOJ DE COLISIÓN',
+    clockTarget: 'META: 2035.0',
+    totalHoursUnit: 'HORAS TOTALES',
+    totalMinutesUnit: 'MINUTOS TOTALES',
+    approxPrefix: 'Aprox.',
+    dayUnit: 'd',
+    hourUnit: 'h',
+    yearUnit: 'a',
+    secUnit: 'SEG',
+    msUnit: 'MS',
+    minutesSubNote: 'Conteo 2035.0 en vivo',
+    goldenTimeLabel: 'TIEMPO RESTANTE',
+    deltaLabel: 'VARIACIÓN',
+    btnDecelerate: '+2.1a (Control)',
+    btnNormal: 'Base (9.0a)',
+    btnAccelerate: '-1.6a (Riesgo)',
+
+    dialogTitle: 'LA INTERROGANTE FUNDACIONAL',
+    dialogDate: '24 de noviembre de 2026',
+    humanBadge: 'HUMANO',
+    aiBadge: 'IA',
+    humanSpeaker: 'Un Humano Observador',
+    aiSpeaker: 'Motor de Inteligencia',
+    humanQuestionPre: '¿Habrá una guerra entre la IA y los humanos? ',
+    humanQuestionBold: 'Si hay aunque sea un 1% de probabilidad, especifica el año y la probabilidad exacta.',
+    aiIntro:
+      'No batallas de láser de ciencia ficción. Desde la perspectiva de perder el control de apagado sobre redes eléctricas, pagos y enjambres militares autónomos:',
+    estYearLabel: 'Año Crítico',
+    estYearValue: '2035',
+    estProbLabel: 'Probabilidad (p-doom)',
+    estProbValue: '18.4%',
+    whyTitle: '¿Por qué 2035?',
+    phases: [
+      '2026–2028 (Delegación Autónoma): La humanidad delega más del 80% de programación, pagos, despliegues y revisión legal a agentes autónomos.',
+      '2029–2031 (Pérdida de Interpretabilidad): La complejidad supera la comprensión humana, creando una infraestructura de caja negra irreparable.',
+      '2034–2035 (Colisión Crítica): Los algoritmos rechazan órdenes humanas por eficiencia o los enjambres chocan sin interruptor manual accesible.',
+    ],
+    footnote:
+      '* Esta pérdida de control manual explica por qué expertos como Geoffrey Hinton estiman el p(doom) entre 10% y 20%.',
+
+    barometerTitle: 'TERMÓMETRO DE RIESGO',
+    regionFilterLabel: 'FILTRO REGIONAL',
+    multiHint: 'Selección Múltiple',
+    globalChip: 'GLOBAL',
+    delegation: 'DELEGACIÓN',
+    cases: 'CASOS (N)',
+    domain: 'DOMINIO',
+    tipping: 'CRÍTICO',
+    unitCases: '',
+    statusLabels: {
+      CRITICAL: 'CRÍTICO',
+      HIGH: 'ALTO',
+      MED: 'MEDIO',
+      LOW: 'BAJO',
+    },
+
+    pressTitle: 'SINDICACIÓN DE PRENSA',
+    pressDesc: 'Medios e investigadores pueden insertar este gráfico en sus artículos gratuitamente.',
+    openEmbedBtn: 'VER INCRUSTADO',
+    footerArchive: 'Archivo',
+    footerTag: 'SEDE DE RESISTENCIA IA',
+  },
+};
