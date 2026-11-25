@@ -810,6 +810,16 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
 
       {/* 3. 메인 콘텐츠 영역 (선택된 카테고리에 따른 뷰 전환) */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
+        {/* OOPS 인류 저항 본부 메인 히어로 비주얼 배너 */}
+        <div className="border-4 border-black bg-black shadow-[6px_6px_0_#d4d4d8] overflow-hidden">
+          <img
+            src="/oops-main-hero.jpg"
+            alt="OOPS AI Resistance Headquarters - 인류의 미래는 누구의 것인가?"
+            className="w-full h-auto block object-cover"
+            loading="eager"
+          />
+        </div>
+
         {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (OBSERVATORY 탭 전용) */}
         {viewMode === 'OBSERVATORY' && (
           <section aria-label="Global Threat Observatory Chart" className="space-y-6">
