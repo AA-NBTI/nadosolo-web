@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { OopsLocale } from '@/lib/oops/i18n';
+import type { OopsMemberPublic } from '@/lib/oops/memberStore';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
 import {
   COUNTRIES_REGISTRY,
@@ -14,6 +15,8 @@ interface OopsEnlistmentSectionProps {
   selectedCountry: string;
   onSelectCountry: (code: string) => void;
   agentId?: string;
+  member?: OopsMemberPublic | null;
+  onOpenAuth?: (mode: 'LOGIN' | 'REGISTER') => void;
   onEnlistSuccess?: (record: EnlistmentRecord) => void;
 }
 
@@ -22,6 +25,8 @@ export default function OopsEnlistmentSection({
   selectedCountry,
   onSelectCountry,
   agentId,
+  member = null,
+  onOpenAuth,
   onEnlistSuccess,
 }: OopsEnlistmentSectionProps) {
   const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
@@ -95,9 +100,18 @@ export default function OopsEnlistmentSection({
     }
   };
 
+  const effectiveRecord: EnlistmentRecord | null = member
+    ? {
+        enlistmentNo: member.serialNo,
+        callsign: member.callsign,
+        countryCode: member.countryCode,
+        enlistedAt: member.createdAt,
+      }
+    : record;
+
   const handleShare = () => {
-    if (!record) return;
-    const shareText = `[OOPS AI RESISTANCE] ${record.callsign} (${record.countryCode}) // No.${record.enlistmentNo} 공식 AI 저항군 합류 완료. 인류의 미래는 누구의 것인가? https://oops.monster`;
+    if (!effectiveRecord) return;
+    const shareText = `[OOPS AI RESISTANCE] ${effectiveRecord.callsign} (${effectiveRecord.countryCode}) // No.${effectiveRecord.enlistmentNo} 공식 AI 저항군 합류 완료. 인류의 미래는 누구의 것인가? https://oops.monster`;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareText);
       setCopied(true);
@@ -105,7 +119,7 @@ export default function OopsEnlistmentSection({
     }
   };
 
-  const activeCountry = COUNTRIES_REGISTRY[record?.countryCode || selectedCountry] || COUNTRIES_REGISTRY.KR;
+  const activeCountry = COUNTRIES_REGISTRY[effectiveRecord?.countryCode || selectedCountry] || COUNTRIES_REGISTRY.KR;
 
   return (
     <section
@@ -127,7 +141,7 @@ export default function OopsEnlistmentSection({
       </div>
 
       {/* 2. 서명 전: 선언문 3대 강령 및 서명 폼 */}
-      {(!record || isEditing) && (
+      {(!effectiveRecord || isEditing) && (
         <form onSubmit={handleEnlist} className="space-y-4">
           <div>
             <h3 className="text-base sm:text-lg font-black text-black">
@@ -210,11 +224,11 @@ export default function OopsEnlistmentSection({
       )}
 
       {/* 3. 서명 완료 후: OOPS AI 저항군 디지털 군번 식별증 카드 */}
-      {record && !isEditing && (
+      {effectiveRecord && !isEditing && (
         <div className="space-y-4">
           <div className="bg-zinc-900 border-4 border-black text-white p-4 sm:p-6 shadow-[6px_6px_0_#d4d4d8] relative overflow-hidden space-y-4">
             {/* 좌측 상단 붉은 완장 리본 */}
-            <div className="flex items-center justify-between border-b-2 border-zinc-700 pb-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-zinc-700 pb-3">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 bg-[#ff4d00] text-white text-[10px] font-black uppercase tracking-wider">
                   OOPS HQ
@@ -223,10 +237,17 @@ export default function OopsEnlistmentSection({
                   {copy.enlistCardBadge}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-black">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>{copy.enlistStatusVerified}</span>
-              </div>
+              {member ? (
+                <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-black">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>VERIFIED PERMANENT</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-[10px] text-[#ffc900] font-black">
+                  <span className="w-2 h-2 rounded-full bg-[#ffc900]" />
+                  <span>PROVISIONAL (임시 보관)</span>
+                </div>
+              )}
             </div>
 
             {/* 메인 정보 그리드 */}
@@ -234,7 +255,7 @@ export default function OopsEnlistmentSection({
               <div className="p-2.5 bg-black/60 border border-zinc-700">
                 <div className="text-[10px] text-zinc-400 font-bold uppercase">{copy.enlistSerialLabel}</div>
                 <div className="text-lg sm:text-xl font-black text-[#ff4d00] mt-0.5">
-                  #{record.countryCode}-{String(record.enlistmentNo).padStart(6, '0')}
+                  #{effectiveRecord.countryCode}-{String(effectiveRecord.enlistmentNo).padStart(6, '0')}
                 </div>
               </div>
 
@@ -249,14 +270,14 @@ export default function OopsEnlistmentSection({
               <div className="p-2.5 bg-black/60 border border-zinc-700">
                 <div className="text-[10px] text-zinc-400 font-bold uppercase">CALLSIGN / ALIAS</div>
                 <div className="text-sm sm:text-base font-black text-[#ffc900] mt-0.5">
-                  {record.callsign}
+                  {effectiveRecord.callsign}
                 </div>
               </div>
 
               <div className="p-2.5 bg-black/60 border border-zinc-700">
                 <div className="text-[10px] text-zinc-400 font-bold uppercase">{copy.enlistDateLabel}</div>
                 <div className="text-xs text-zinc-300 font-bold mt-1">
-                  {new Date(record.enlistedAt).toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US', {
+                  {new Date(effectiveRecord.enlistedAt).toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric',
@@ -271,6 +292,22 @@ export default function OopsEnlistmentSection({
             </div>
           </div>
 
+          {/* 미가입 임시 군번인 경우: 영구 귀속 유도 배너 */}
+          {!member && onOpenAuth && (
+            <div className="p-3.5 bg-[#ffc900]/25 border-2 border-black flex flex-wrap items-center justify-between gap-2.5">
+              <div className="text-xs font-sans font-bold text-black">
+                🔒 현재 군번은 이 기기에만 임시 저장되었습니다. 계정에 영구 귀속하시겠습니까?
+              </div>
+              <button
+                type="button"
+                onClick={() => onOpenAuth('REGISTER')}
+                className="px-3.5 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
+              >
+                군번 영구 등록 (가입)
+              </button>
+            </div>
+          )}
+
           {/* 카드 공유 및 수정 버튼 그룹 */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <button
@@ -281,13 +318,23 @@ export default function OopsEnlistmentSection({
               <span>{copied ? '✅ ' + copy.enlistCopiedMsg : copy.enlistShareBtn}</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setIsEditing(true)}
-              className="px-3 py-2 bg-white hover:bg-zinc-100 text-zinc-700 font-bold text-xs border border-black cursor-pointer"
-            >
-              🔄 정보 수정 / 재발급
-            </button>
+            {member && onOpenAuth ? (
+              <button
+                type="button"
+                onClick={() => onOpenAuth('LOGIN')}
+                className="px-3 py-2 bg-white hover:bg-zinc-100 text-black font-bold text-xs border-2 border-black cursor-pointer"
+              >
+                ⚙️ 대원 프로필 / 탈퇴 관리
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="px-3 py-2 bg-white hover:bg-zinc-100 text-zinc-700 font-bold text-xs border border-black cursor-pointer"
+              >
+                🔄 정보 수정 / 재발급
+              </button>
+            )}
           </div>
         </div>
       )}

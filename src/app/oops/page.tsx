@@ -30,6 +30,8 @@ import CollisionClock from '@/components/oops/CollisionClock';
 import WarScenarioPoll from '@/components/oops/WarScenarioPoll';
 import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
 import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
+import OopsAuthModal from '@/components/oops/OopsAuthModal';
+import type { OopsMemberPublic } from '@/lib/oops/memberStore';
 import {
   COUNTRIES_REGISTRY,
   calculateGlobalTotals,
@@ -212,12 +214,31 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [selectedCountry, setSelectedCountry] = useState<string>('KR');
   const [movementRegistry, setMovementRegistry] = useState<Record<string, CountryData>>(COUNTRIES_REGISTRY);
   const [movementTotals, setMovementTotals] = useState(calculateGlobalTotals(COUNTRIES_REGISTRY));
+  const [member, setMember] = useState<OopsMemberPublic | null>(null);
+  const [provisionalRecord, setProvisionalRecord] = useState<EnlistmentRecord | null>(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('oops_war_vote_v1');
       if (saved === 'YES' || saved === 'NO') setWarVote(saved);
+      const savedEnlist = localStorage.getItem('oops_enlistment_card_v2');
+      if (savedEnlist) {
+        const parsed = JSON.parse(savedEnlist) as EnlistmentRecord;
+        if (parsed?.enlistmentNo) setProvisionalRecord(parsed);
+      }
     } catch {}
+
+    void fetch('/api/oops/auth')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.ok && data.member) {
+          setMember(data.member);
+          if (data.member.countryCode) setSelectedCountry(data.member.countryCode);
+        }
+      })
+      .catch(() => {});
 
     void fetch('/api/oops/movement')
       .then((res) => res.json())
@@ -818,6 +839,22 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <span>SNS</span>
             </button>
 
+            {/* OOPS AI 저항군 대원 로그인 / 군번 관리 입구 */}
+            <button
+              type="button"
+              onClick={() => {
+                setAuthModalMode('LOGIN');
+                setAuthModalOpen(true);
+              }}
+              className={`px-2.5 py-1.5 font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
+                member
+                  ? 'bg-zinc-900 text-[#ffc900] hover:bg-black'
+                  : 'bg-[#ff4d00] text-white hover:bg-[#ff621f]'
+              }`}
+            >
+              <span>{member ? `#${member.serialLabel}` : locale === 'ko' ? '대원 로그인' : 'LOGIN'}</span>
+            </button>
+
             {/* 언어 드롭다운 (현재 언어만 노출, 클릭 시 5개 언어 선택) */}
             <div className="relative">
               <button
@@ -912,7 +949,15 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               selectedCountry={selectedCountry}
               onSelectCountry={setSelectedCountry}
               agentId={agentId}
-              onEnlistSuccess={handleEnlistSuccess}
+              member={member}
+              onOpenAuth={(mode) => {
+                setAuthModalMode(mode);
+                setAuthModalOpen(true);
+              }}
+              onEnlistSuccess={(rec) => {
+                setProvisionalRecord(rec);
+                handleEnlistSuccess(rec);
+              }}
             />
 
             {/* 4. 3D 인터랙티브 글로벌 관제 지도 (서명자 / 투표자 / 체감온도 3개 탭 360° 회전 지구본) */}
@@ -1742,6 +1787,31 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
           </div>
         </div>
       )}
+
+      {/* OOPS AI 저항군 대원 로그인 / 정식 가입 / 탈퇴 모달 */}
+      <OopsAuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        locale={locale}
+        member={member}
+        provisionalRecord={provisionalRecord}
+        selectedCountry={selectedCountry}
+        initialMode={authModalMode}
+        onAuthSuccess={(loggedInMember) => {
+          setMember(loggedInMember);
+          setSelectedCountry(loggedInMember.countryCode);
+        }}
+        onLogoutSuccess={() => {
+          setMember(null);
+        }}
+        onWithdrawSuccess={() => {
+          setMember(null);
+          setProvisionalRecord(null);
+          try {
+            localStorage.removeItem('oops_enlistment_card_v2');
+          } catch {}
+        }}
+      />
     </div>
   );
 }
