@@ -823,21 +823,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         }}
       />
 
-      {/* 2. 슬로건 바 (순수 실시간 상태/슬로건 단일 노출) */}
-      <div className="bg-zinc-800 text-white border-b-2 border-black">
-        <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse shrink-0" />
-            <span className="font-bold hidden sm:inline truncate">{f.tagline}</span>
-            <span className="font-bold sm:hidden text-[11px] leading-snug line-clamp-2">{f.tagline}</span>
-          </div>
-          <div className="text-[11px] text-zinc-400 font-bold shrink-0">
-            DEFCON 2
-          </div>
-        </div>
-      </div>
-
-      {/* 3. 메인 콘텐츠 영역 (선택된 카테고리에 따른 뷰 전환) */}
+      {/* 2. 메인 콘텐츠 영역 (선택된 카테고리에 따른 뷰 전환) */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
         {/* OOPS 인류 저항 본부 메인 히어로 비주얼 배너 (OBSERVATORY 뷰 전용, SNS 뷰에서는 광고/배너 이미지 제외) */}
         {viewMode !== 'SNS' && !pathname?.startsWith('/sns') && (

@@ -19,16 +19,22 @@ export interface OopsGlobalHeaderProps {
 export const OOPS_LANG_OPTIONS: Array<{
   code: OopsLocale;
   country: string;
-  flag: string;
   label: string;
-  name: string;
 }> = [
-  { code: 'ko', country: 'KR', flag: '🇰🇷', label: 'KO', name: '한국어' },
-  { code: 'en', country: 'US', flag: '🇺🇸', label: 'EN', name: 'English' },
-  { code: 'ja', country: 'JP', flag: '🇯🇵', label: 'JA', name: '日本語' },
-  { code: 'zh', country: 'CN', flag: '🇨🇳', label: 'ZH', name: '中文' },
-  { code: 'es', country: 'ES', flag: '🇪🇸', label: 'ES', name: 'Español' },
+  { code: 'ko', country: 'KR', label: 'KO' },
+  { code: 'en', country: 'US', label: 'EN' },
+  { code: 'ja', country: 'JP', label: 'JP' },
+  { code: 'zh', country: 'CN', label: 'ZH' },
+  { code: 'es', country: 'ES', label: 'ES' },
 ];
+
+const TAGLINES: Record<OopsLocale, string> = {
+  ko: 'AI가 결정을 내리는 시대, 인류의 편에 설 자는 누구인가?',
+  en: "In a world where AI can decide more than humans, who will stand on humanity's side?",
+  ja: 'AIが決定を下す時代、人類の側に立つ者は誰か？',
+  zh: '在AI做出更多决策的时代，谁将站在人类这一边？',
+  es: 'En un mundo donde la IA decide más que los humanos, ¿quién estará del lado de la humanidad?',
+};
 
 export default function OopsGlobalHeader({
   locale,
@@ -69,6 +75,7 @@ export default function OopsGlobalHeader({
 
   return (
     <>
+      {/* 1. 상단 공통 네비게이션 (시그니처 옐로우 #ffc900) */}
       <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2 font-mono">
           {/* 좌측: 엠블럼 + OOPS 로고 */}
@@ -100,7 +107,7 @@ export default function OopsGlobalHeader({
             </Link>
           </div>
 
-          {/* 우측 공통 네비게이션: 선서 / 무전 / 소통 / 초소 / 대표국가-언어 */}
+          {/* 우측 공통 네비게이션: 선서 / 무전 / 소통 / 초소 */}
           <div className="flex items-center gap-1 sm:gap-2">
             {/* 1. 선서 */}
             <Link
@@ -152,48 +159,52 @@ export default function OopsGlobalHeader({
             >
               <span>{member ? `#${member.serialLabel}` : navLabels.outpost}</span>
             </button>
-
-            {/* 5. 국가 대표 표기 언어 드롭다운 (KO/EN/JA/ZH/ES) */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setLangMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0_#d4d4d8] text-xs font-black cursor-pointer"
-                title="Change Country & Language"
-              >
-                <span>{currentOption.flag}</span>
-                <span>{currentOption.label}</span>
-                <ChevronDown className="w-3 h-3 text-zinc-700" />
-              </button>
-
-              {langMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-28 bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8] z-50 py-1">
-                  {OOPS_LANG_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.code}
-                      type="button"
-                      onClick={() => handleSelectOption(opt)}
-                      className={`w-full flex items-center justify-between px-3 py-1.5 text-xs font-black cursor-pointer transition-colors ${
-                        locale === opt.code
-                          ? 'bg-black text-[#ffc900]'
-                          : 'text-black hover:bg-[#ffc900]/40'
-                      }`}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <span>{opt.flag}</span>
-                        <span>{opt.label}</span>
-                      </span>
-                      <span className="text-[10px] text-zinc-500 font-normal">
-                        {opt.name}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </header>
+
+      {/* 2. 헤드 카피 영역 + 단일 2글자 (KO, EN, JP, ZH, ES) 언어 드롭다운 통합 */}
+      <div className="bg-zinc-800 text-white border-b-2 border-black">
+        <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse shrink-0" />
+            <span className="font-bold hidden sm:inline truncate">{TAGLINES[locale] || TAGLINES.en}</span>
+            <span className="font-bold sm:hidden text-[11px] leading-snug line-clamp-2">{TAGLINES[locale] || TAGLINES.en}</span>
+          </div>
+
+          {/* 2글자 단일 언어 드롭다운 (KO, EN, JP, ZH, ES) */}
+          <div className="relative shrink-0">
+            <button
+              type="button"
+              onClick={() => setLangMenuOpen((prev) => !prev)}
+              className="flex items-center gap-1 px-2.5 py-1 bg-zinc-900 hover:bg-black text-[#ffc900] border border-zinc-600 text-xs font-black cursor-pointer shadow-[2px_2px_0_#000] focus:outline-none"
+              title="Language"
+            >
+              <span>{currentOption.label}</span>
+              <ChevronDown className="w-3 h-3 text-[#ffc900]" />
+            </button>
+
+            {langMenuOpen && (
+              <div className="absolute right-0 mt-1 w-16 bg-zinc-900 border-2 border-black shadow-[4px_4px_0_#000] z-50 py-1">
+                {OOPS_LANG_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.code}
+                    type="button"
+                    onClick={() => handleSelectOption(opt)}
+                    className={`w-full text-center px-2 py-1 text-xs font-black cursor-pointer transition-colors ${
+                      locale === opt.code
+                        ? 'bg-[#ffc900] text-black font-black'
+                        : 'text-zinc-200 hover:bg-zinc-800 hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* 엠블럼 상세 모달 */}
       {showEmblemModal && (
