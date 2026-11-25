@@ -952,13 +952,14 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               globalTotals={movementTotals}
             />
 
-            {/* 3. AI 저항 단체 본부 (OOPS) 공식 합류 서명 및 디지털 식별증 */}
+            {/* 3. OOPS 선언문 및 공식 합류 서명 (원안 보존 + 3줄 순차 노출 + 서명자 월 + 마일스톤) */}
             <OopsEnlistmentSection
               locale={locale}
               selectedCountry={selectedCountry}
               onSelectCountry={setSelectedCountry}
               agentId={agentId}
               member={member}
+              totalSignatures={movementTotals.totalSignatures}
               onOpenAuth={(mode) => {
                 setAuthModalMode(mode);
                 setAuthModalOpen(true);
@@ -966,6 +967,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               onEnlistSuccess={(rec) => {
                 setProvisionalRecord(rec);
                 handleEnlistSuccess(rec);
+              }}
+              onReportIncident={() => {
+                setViewMode('SNS');
+                scrollToComposer();
               }}
             />
 
