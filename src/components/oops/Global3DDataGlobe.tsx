@@ -76,11 +76,73 @@ const GLOBE_I18N: Record<
   },
 };
 
+// 실제 세계 대륙 위경도 폴리곤 좌표 [lat, lng] (구면 3D 지도 렌더링용)
+const WORLD_CONTINENTS: [number, number][][] = [
+  // 북아메리카
+  [
+    [70, -162], [71, -135], [68, -110], [63, -95], [58, -94], [52, -80], [60, -78], [62, -65],
+    [52, -55], [45, -66], [41, -70], [35, -75], [25, -80], [29, -85], [29, -95], [20, -96],
+    [21, -87], [15, -83], [8, -78], [8, -83], [14, -92], [20, -105], [32, -117], [38, -123],
+    [48, -125], [58, -137], [60, -150], [55, -162], [65, -168],
+  ],
+  // 남아메리카
+  [
+    [11, -74], [10, -62], [5, -52], [0, -49], [-5, -35], [-13, -38], [-23, -42], [-34, -53],
+    [-42, -64], [-55, -67], [-53, -73], [-42, -74], [-30, -72], [-18, -70], [-12, -77], [-5, -81],
+    [2, -79], [8, -77],
+  ],
+  // 그린란드
+  [
+    [82, -32], [78, -18], [70, -22], [60, -44], [68, -53], [77, -70], [82, -50],
+  ],
+  // 유럽 + 아시아 + 아라비아 (유라시아)
+  [
+    [36, -9], [43, -9], [43, -2], [48, -5], [51, 2], [54, 8], [58, 5], [64, 10], [70, 20], [71, 28],
+    [68, 42], [70, 60], [74, 85], [76, 105], [72, 130], [70, 160], [66, 178], [60, 165], [52, 156],
+    [55, 138], [46, 135], [41, 129], [38, 128], [35, 129], [35, 126], [38, 124], [40, 121], [35, 120],
+    [31, 122], [22, 114], [20, 106], [12, 109], [8, 105], [13, 100], [2, 103], [8, 98], [16, 96],
+    [22, 91], [16, 80], [8, 77], [20, 72], [25, 67], [25, 58], [22, 59], [13, 44], [22, 39], [30, 33],
+    [32, 35], [36, 36], [37, 27], [41, 29], [40, 23], [37, 22], [40, 19], [45, 13], [40, 18], [38, 15],
+    [44, 9], [41, 2], [36, -5],
+  ],
+  // 아프리카
+  [
+    [36, -6], [37, 10], [32, 15], [31, 32], [22, 37], [12, 44], [11, 51], [2, 45], [-5, 39],
+    [-15, 40], [-26, 33], [-34, 25], [-34, 18], [-22, 14], [-10, 13], [0, 9], [5, 2], [4, -8],
+    [10, -15], [16, -16], [26, -14],
+  ],
+  // 호주
+  [
+    [-12, 131], [-12, 136], [-15, 136], [-11, 142], [-18, 146], [-26, 153], [-37, 150], [-38, 141],
+    [-33, 134], [-35, 117], [-22, 114], [-16, 123],
+  ],
+  // 영국
+  [
+    [58, -5], [57, -2], [53, 0], [51, 1], [50, -5], [54, -4],
+  ],
+  // 일본
+  [
+    [45, 142], [42, 145], [38, 141], [35, 140], [34, 135], [31, 130], [34, 131], [37, 137], [41, 140],
+  ],
+  // 마다가스카르
+  [
+    [-12, 49], [-16, 50], [-25, 47], [-24, 44], [-16, 45],
+  ],
+  // 인도네시아/보르네오/뉴기니 주요 윤곽
+  [
+    [5, 95], [-6, 105], [-8, 115], [-6, 107], [2, 98],
+  ],
+  [
+    [6, 116], [2, 118], [-3, 116], [-3, 110], [2, 109],
+  ],
+];
+
 interface Global3DDataGlobeProps {
   locale: OopsLocale;
   selectedCountry: string;
   onSelectCountry: (code: string) => void;
   countriesRegistry?: Record<string, CountryData>;
+  initialMode?: GlobeMode;
 }
 
 export default function Global3DDataGlobe({
@@ -88,8 +150,9 @@ export default function Global3DDataGlobe({
   selectedCountry,
   onSelectCountry,
   countriesRegistry = COUNTRIES_REGISTRY,
+  initialMode = 'SIGNATURES',
 }: Global3DDataGlobeProps) {
-  const [mode, setMode] = useState<GlobeMode>('SIGNATURES');
+  const [mode, setMode] = useState<GlobeMode>(initialMode);
   const [activeCode, setActiveCode] = useState<string>(selectedCountry || 'KR');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -120,28 +183,29 @@ export default function Global3DDataGlobe({
 
     const render = () => {
       if (autoRotateRef.current && !isDraggingRef.current) {
-        rotationRef.current.yaw += 0.0035;
+        rotationRef.current.yaw += 0.003;
       }
 
       const width = canvas.width;
       const height = canvas.height;
       const centerX = width / 2;
       const centerY = height / 2;
-      const radius = Math.min(width, height) * 0.38;
+      const radius = Math.min(width, height) * 0.39;
 
       ctx.clearRect(0, 0, width, height);
 
+      // 바다(지구본 바탕) 그라데이션
       const bgGrad = ctx.createRadialGradient(
-        centerX - radius * 0.2,
-        centerY - radius * 0.2,
+        centerX - radius * 0.25,
+        centerY - radius * 0.25,
         radius * 0.1,
         centerX,
         centerY,
         radius
       );
-      bgGrad.addColorStop(0, '#1c1d24');
-      bgGrad.addColorStop(0.85, '#0c0d12');
-      bgGrad.addColorStop(1, '#050608');
+      bgGrad.addColorStop(0, '#182232');
+      bgGrad.addColorStop(0.75, '#0b1019');
+      bgGrad.addColorStop(1, '#04060a');
 
       ctx.save();
       ctx.beginPath();
@@ -149,7 +213,7 @@ export default function Global3DDataGlobe({
       ctx.fillStyle = bgGrad;
       ctx.fill();
       ctx.lineWidth = 2.5;
-      ctx.strokeStyle = '#000000';
+      ctx.strokeStyle = '#334155';
       ctx.stroke();
       ctx.clip();
 
@@ -177,8 +241,9 @@ export default function Global3DDataGlobe({
         };
       };
 
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.lineWidth = 1;
+      // 위도·경도 격자
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.12)';
+      ctx.lineWidth = 0.8;
 
       for (let lat = -60; lat <= 60; lat += 30) {
         ctx.beginPath();
@@ -218,22 +283,44 @@ export default function Global3DDataGlobe({
         ctx.stroke();
       }
 
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
-      const continentDots: [number, number][] = [
-        [37, 127], [35, 139], [39, 116], [28, 77], [1, 103], [51, 0], [48, 2], [52, 13], [41, 12], [40, -3],
-        [38, -77], [34, -118], [45, -75], [-15, -47], [-35, 149], [30, 31], [-26, 28], [24, 54], [59, 18], [46, 7],
-      ];
-      for (const [dLat, dLng] of continentDots) {
-        const pt = project(dLat, dLng);
-        if (pt.visible) {
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 1.8, 0, Math.PI * 2);
-          ctx.fill();
-        }
+      // 실제 세계 대륙 폴리곤(해안선 + 채우기) 렌더링
+      for (const poly of WORLD_CONTINENTS) {
+        // 구면 뒷면으로 넘어가는 점은 구 테두리(limb)로 투영해 폴리곤이 찢어지지 않게 보정
+        const projectedPts = poly.map(([lat, lng]) => {
+          const pt = project(lat, lng);
+          if (pt.z >= 0) return pt;
+          // 뒷면 점은 중심에서 바깥쪽 테두리 방향으로 투영
+          const dx = pt.x - centerX;
+          const dy = pt.y - centerY;
+          const len = Math.hypot(dx, dy) || 1;
+          return {
+            x: centerX + (dx / len) * radius,
+            y: centerY + (dy / len) * radius,
+            z: pt.z,
+            visible: false,
+          };
+        });
+
+        const hasFront = projectedPts.some((p) => p.visible);
+        if (!hasFront) continue;
+
+        ctx.beginPath();
+        projectedPts.forEach((p, idx) => {
+          if (idx === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+        ctx.closePath();
+
+        ctx.fillStyle = 'rgba(226, 232, 240, 0.22)';
+        ctx.fill();
+        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.stroke();
       }
 
       ctx.restore();
 
+      // 국가 데이터 노드 및 3D 스파이크
       const sortedCountries = Object.values(countriesRegistry)
         .map((c) => ({
           ...c,
@@ -290,7 +377,7 @@ export default function Global3DDataGlobe({
         ctx.stroke();
 
         ctx.font = isSelected ? 'bold 11px monospace' : '9px monospace';
-        ctx.fillStyle = isSelected ? '#ffffff' : '#d4d4d8';
+        ctx.fillStyle = isSelected ? '#ffffff' : '#e2e8f0';
         ctx.textAlign = 'center';
         ctx.fillText(`${country.flag} ${country.code}`, ptTop.x, ptTop.y - 6);
 
@@ -357,7 +444,7 @@ export default function Global3DDataGlobe({
         </span>
       </div>
 
-      {/* 3대 관제 모드 탭 (단일 단어) */}
+      {/* 3대 관제 모드 탭 */}
       <div className="grid grid-cols-3 gap-2">
         <button
           type="button"
@@ -397,7 +484,7 @@ export default function Global3DDataGlobe({
       </div>
 
       {/* 3D 지구본 뷰포트 */}
-      <div className="relative w-full aspect-square max-h-[360px] sm:max-h-[420px] mx-auto bg-black border-2 border-black overflow-hidden flex items-center justify-center select-none shadow-[4px_4px_0_#d4d4d8]">
+      <div className="relative w-full aspect-square max-h-[360px] sm:max-h-[420px] mx-auto bg-[#04060a] border-2 border-black overflow-hidden flex items-center justify-center select-none shadow-[4px_4px_0_#d4d4d8]">
         <canvas
           ref={canvasRef}
           width={500}

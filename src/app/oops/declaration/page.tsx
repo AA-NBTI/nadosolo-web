@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Globe, ChevronDown } from 'lucide-react';
 import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
+import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
 import OopsAuthModal from '@/components/oops/OopsAuthModal';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import type { OopsMemberPublic } from '@/lib/oops/memberStore';
@@ -126,7 +127,7 @@ export default function OopsDeclarationPage() {
       </header>
 
       {/* 선언서 문서 메인 */}
-      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-8 sm:py-12">
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-8 sm:py-12 space-y-8">
         <OopsEnlistmentSection
           locale={locale}
           selectedCountry={selectedCountry}
@@ -142,14 +143,31 @@ export default function OopsDeclarationPage() {
           onEnlistSuccess={(rec) => {
             setProvisionalRecord(rec);
             setRecentSignatories((prev) => [rec, ...prev].slice(0, 20));
+            setMovementRegistry((prev) => {
+              const cur = prev[rec.countryCode];
+              if (!cur) return prev;
+              return {
+                ...prev,
+                [rec.countryCode]: { ...cur, signatures: cur.signatures + 1 },
+              };
+            });
             setMovementTotals((prev) => ({
               ...prev,
               totalSignatures: prev.totalSignatures + 1,
             }));
           }}
           onReportIncident={() => {
-            window.location.href = '/?view=SNS';
+            window.location.href = '/sns';
           }}
+        />
+
+        {/* 선서 가입국 3D 세계 지도 */}
+        <Global3DDataGlobe
+          locale={locale}
+          selectedCountry={selectedCountry}
+          onSelectCountry={setSelectedCountry}
+          countriesRegistry={movementRegistry}
+          initialMode="SIGNATURES"
         />
       </main>
 

@@ -829,20 +829,17 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>{locale === 'ko' ? '무전' : locale === 'ja' ? '無線' : locale === 'zh' ? '无线' : 'Radio'}</span>
+              <span>{locale === 'ko' ? '무전' : locale === 'ja' ? '無線' : locale === 'zh' ? '无线' : 'APP'}</span>
             </a>
 
-            {/* 소통 카테고리 버튼 */}
-            <button
-              type="button"
-              onClick={() => setViewMode((prev) => (prev === 'SNS' ? 'OBSERVATORY' : 'SNS'))}
-              className={`px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
-                viewMode === 'SNS' ? 'ring-2 ring-black font-black' : ''
-              }`}
+            {/* 소통 (SNS 독립 페이지 이동) */}
+            <Link
+              href="/sns"
+              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all"
             >
               <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
-              <span>{locale === 'ko' ? '소통' : locale === 'ja' ? '疎通' : locale === 'zh' ? '沟通' : locale === 'es' ? 'Comunidad' : 'Comms'}</span>
-            </button>
+              <span>{locale === 'ko' ? '소통' : locale === 'ja' ? '疎通' : locale === 'zh' ? '沟通' : 'SNS'}</span>
+            </Link>
 
             {/* OOPS AI 저항군 초소 입구 (헌병대 검문소 / 로그인·계급·군번) */}
             <button
