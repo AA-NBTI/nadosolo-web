@@ -292,8 +292,8 @@ export default function AdminPreMatchPage() {
     return (
       <main className="min-h-[75vh] bg-[#07080a] text-white flex items-center justify-center px-6">
         <div className="max-w-md w-full border border-white/15 bg-[#0c0d12] p-8 text-center space-y-4">
-          <div className="w-10 h-10 mx-auto border border-[#3b82f6]/50 bg-[#3b82f6]/15 flex items-center justify-center">
-            <Shield className="w-5 h-5 text-blue-300" />
+          <div className="w-10 h-10 mx-auto border border-white/25 bg-white/10 flex items-center justify-center">
+            <Shield className="w-5 h-5 text-white" />
           </div>
           <h1 className="font-serif-editorial text-2xl font-normal">관리자 전용 가매칭</h1>
           <p className="text-sm text-zinc-400">
@@ -302,7 +302,7 @@ export default function AdminPreMatchPage() {
           <div className="pt-2 flex flex-col gap-2">
             <Link
               href="/auth"
-              className="w-full py-3 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-white text-sm font-mono font-bold"
+              className="w-full py-3 border border-white/25 bg-white/10 text-white text-sm font-mono font-bold"
             >
               관리자 로그인
             </Link>
@@ -329,7 +329,7 @@ export default function AdminPreMatchPage() {
               <h1 className="font-serif-editorial text-lg text-white font-normal">
                 가매칭 검증
               </h1>
-              <span className="text-sm font-mono px-2 py-0.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10 text-white font-bold">
+              <span className="text-sm font-mono px-2 py-0.5 border border-white/25 bg-white/10 text-white font-bold">
                 실회원 {participants.length}명 · {grouping.rooms.length}방 · 대기 {grouping.unassigned.length}명
               </span>
             </div>
@@ -341,7 +341,7 @@ export default function AdminPreMatchPage() {
                 className={`px-2.5 py-1 border text-sm font-mono cursor-pointer ${
                   requirePaidOnly
                     ? 'border-[#f04f74] bg-[#f04f74]/20 text-white font-bold'
-                    : 'border-[#3b82f6]/40 bg-[#3b82f6]/10 text-blue-200'
+                    : 'border-white/25 bg-white/10 text-white'
                 }`}
               >
                 {requirePaidOnly ? '실매칭(입금자만)' : '시뮬레이션(전체)'}
@@ -352,7 +352,7 @@ export default function AdminPreMatchPage() {
                 onClick={() => setShowSimulatorBar((v) => !v)}
                 className={`px-2.5 py-1 border text-sm font-mono flex items-center gap-1 cursor-pointer ${
                   showSimulatorBar
-                    ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold'
+                    ? 'border-white/40 bg-white/15 text-white font-bold'
                     : 'border-white/15 bg-white/5 text-zinc-200 hover:bg-white/10'
                 }`}
               >
@@ -417,7 +417,7 @@ export default function AdminPreMatchPage() {
                   onClick={() => setActiveStep(step.key)}
                   className={`px-3 py-2 border text-left cursor-pointer transition-colors ${
                     active
-                      ? 'border-[#3b82f6] bg-[#3b82f6]/20 text-white font-bold'
+                      ? 'border-white/40 bg-white/15 text-white font-bold'
                       : 'border-white/10 bg-[#08090d] text-zinc-400 hover:text-white hover:border-white/25'
                   }`}
                 >
@@ -485,7 +485,7 @@ export default function AdminPreMatchPage() {
                     onClick={() => setCoreCount(cnt)}
                     className={`px-2.5 py-1 border cursor-pointer ${
                       coreCount === cnt
-                        ? 'border-[#3b82f6] bg-[#3b82f6]/25 text-white font-bold'
+                        ? 'border-white/40 bg-white/15 text-white font-bold'
                         : 'border-white/15 bg-black/30 text-zinc-300'
                     }`}
                   >
@@ -524,7 +524,7 @@ export default function AdminPreMatchPage() {
         </div>
 
         {toastMsg && (
-          <div className="p-3 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono text-white">
+          <div className="p-3 border border-white/25 bg-white/10 text-sm font-mono text-white">
             {toastMsg}
           </div>
         )}
@@ -536,7 +536,7 @@ export default function AdminPreMatchPage() {
           <section className="space-y-2.5">
             <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                 <h2 className="font-serif-editorial text-lg text-white font-normal">
                   1단계 · 설문 문항 → 엔진 요소 연결
                 </h2>
@@ -573,13 +573,13 @@ export default function AdminPreMatchPage() {
                     >
                       <div className="min-w-0 space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10 text-white font-bold shrink-0">
+                          <span className="px-2 py-0.5 border border-white/25 bg-white/10 text-white font-bold shrink-0">
                             {idx + 1}
                           </span>
                           <span className="text-zinc-300 shrink-0">
                             {q.layer === 'PULSE' ? '컨디션' : '기본'}·{q.categoryLabel}
                           </span>
-                          <span className="text-blue-300 truncate">→ {mappedTargets || '메타'}</span>
+                          <span className="text-white truncate">→ {mappedTargets || '메타'}</span>
                         </div>
                         <p className="text-white font-normal truncate">{q.questionText}</p>
                       </div>
@@ -631,7 +631,7 @@ export default function AdminPreMatchPage() {
           <section className="space-y-2.5">
             <div className="p-3 border border-white/10 bg-[#0c0d12] flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#3b82f6]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
                 <h2 className="font-serif-editorial text-lg text-white font-normal">
                   2단계 · 회원별 설문 원문 → 환산 좌표
                 </h2>
@@ -656,7 +656,7 @@ export default function AdminPreMatchPage() {
                         <span
                           className={`px-2 py-0.5 border font-bold ${
                             u.isPaid
-                              ? 'border-[#3b82f6]/50 bg-[#3b82f6]/15 text-blue-200'
+                              ? 'border-white/25 bg-white/10 text-white'
                               : 'border-[#f04f74]/50 bg-[#f04f74]/10 text-white'
                           }`}
                         >
@@ -669,10 +669,10 @@ export default function AdminPreMatchPage() {
                             <span className="text-[#f04f74] font-bold"> → 희망:{u.targetCity}</span>
                           )}
                         </span>
-                        <span className="text-blue-300">목적:{u.axisLabels.PURPOSE}</span>
+                        <span className="text-white">목적:{u.axisLabels.PURPOSE}</span>
                         <span className="text-zinc-300">
                           예산:{u.budgetTier}
-                          <span className={u.isDefaultBudget ? 'text-zinc-500' : 'text-blue-300'}>
+                          <span className={u.isDefaultBudget ? 'text-zinc-500' : 'text-white'}>
                             ({u.isDefaultBudget ? '기본값' : '실입력'})
                           </span>
                         </span>
@@ -681,7 +681,7 @@ export default function AdminPreMatchPage() {
                         <span className="px-2 py-0.5 border border-white/15 bg-white/5 text-zinc-200">
                           응답 {u.answeredQuestionCount}/{DEFAULT_ADAPTIVE_QUESTIONS.length}
                         </span>
-                        <span className="px-2 py-0.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10 text-white">
+                        <span className="px-2 py-0.5 border border-white/25 bg-white/10 text-white">
                           깊이:{u.axisScores.DEPTH} · 테마:{u.axisScores.THEME} · 에너지:{u.axisScores.ENERGY}
                         </span>
                       </div>
@@ -753,7 +753,7 @@ export default function AdminPreMatchPage() {
                           연령 허용 ±{prof.idealAgeGap}세 (최대 {prof.maxAgeGap}세)
                         </span>
                       </div>
-                      <span className="text-blue-300 font-bold">100점 만점</span>
+                      <span className="text-white font-bold">100점 만점</span>
                     </button>
 
                     {isOpen && (
@@ -793,7 +793,7 @@ export default function AdminPreMatchPage() {
                   onClick={() => setResultFilter(tab.key)}
                   className={`px-3 py-1.5 cursor-pointer ${
                     resultFilter === tab.key
-                      ? 'bg-[#3b82f6]/25 text-white font-bold'
+                      ? 'bg-white/10 text-white font-bold'
                       : 'bg-[#0c0d12] text-zinc-300 hover:text-white'
                   }`}
                 >
@@ -843,10 +843,10 @@ export default function AdminPreMatchPage() {
                                 className="flex-1 text-left min-w-0 space-y-1.5 cursor-pointer"
                               >
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="px-2 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white shrink-0">
+                                  <span className="px-2 py-0.5 border border-white/25 bg-white/10 text-sm font-mono font-bold text-white shrink-0">
                                     {roomIdx + 1}
                                   </span>
-                                  <span className="text-sm font-mono text-blue-300 font-medium shrink-0">
+                                  <span className="text-sm font-mono text-white font-medium shrink-0">
                                     {room.spec.scheduleSlot}
                                   </span>
                                   <span className="text-sm font-mono text-zinc-400">
@@ -869,7 +869,7 @@ export default function AdminPreMatchPage() {
                                   <span className="px-2 py-0.5 border border-white/15 bg-white/5 text-zinc-300">
                                     에너지:{room.spec.targetLabels.ENERGY ?? '조화'}
                                   </span>
-                                  <span className="px-2 py-0.5 border border-[#3b82f6]/40 bg-[#3b82f6]/10 text-white">
+                                  <span className="px-2 py-0.5 border border-white/25 bg-white/10 text-white">
                                     식당:{room.assignedVenueName ?? '미배정'}
                                     {room.assignedVenueBudgetTier ? ` (${room.assignedVenueBudgetTier})` : ''}
                                   </span>
@@ -892,7 +892,7 @@ export default function AdminPreMatchPage() {
                                 <button
                                   type="button"
                                   onClick={() => setExpandedRoomId(isExpanded ? null : room.roomId)}
-                                  className="px-2.5 py-1 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white cursor-pointer"
+                                  className="px-2.5 py-1 border border-white/25 bg-white/10 text-sm font-mono font-bold text-white cursor-pointer"
                                 >
                                   기준부합 {room.expectedScore100}/100
                                 </button>
@@ -902,7 +902,7 @@ export default function AdminPreMatchPage() {
                             {isExpanded && (
                               <div className="p-4 border-t border-white/10 bg-[#08090d] space-y-4">
                                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm font-mono border-b border-white/10 pb-2">
-                                  <span className="text-blue-300">
+                                  <span className="text-white">
                                     적용 기준: {PURPOSE_LABELS[room.spec.purpose]} 전용 100점 채점표 (중심 {room.spec.targetBirthYear}년생 · 예산 {room.spec.targetBudgetTier})
                                   </span>
                                   <span className="text-zinc-400">
@@ -912,14 +912,14 @@ export default function AdminPreMatchPage() {
 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                                   <div className="space-y-1.5">
-                                    <span className="text-sm font-mono text-blue-300 font-bold block">
+                                    <span className="text-sm font-mono text-white font-bold block">
                                       코어 고정군 ({coreList.length}명)
                                     </span>
                                     {coreList.map((item) => {
                                       const mKey = `${room.roomId}-${item.member.userId}`;
                                       const isOpen = expandedMemberKey === mKey;
                                       return (
-                                        <div key={mKey} className="border border-[#3b82f6]/30 bg-[#0c0d12]">
+                                        <div key={mKey} className="border border-white/30/30 bg-[#0c0d12]">
                                           <button
                                             type="button"
                                             onClick={() => setExpandedMemberKey(isOpen ? null : mKey)}
@@ -1217,10 +1217,10 @@ export default function AdminPreMatchPage() {
                             >
                               <div className="min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="px-2 py-0.5 border border-[#3b82f6]/50 bg-[#3b82f6]/15 text-sm font-mono font-bold text-white shrink-0">
+                                  <span className="px-2 py-0.5 border border-white/25 bg-white/10 text-sm font-mono font-bold text-white shrink-0">
                                     {evIdx + 1}
                                   </span>
-                                  <span className="text-sm font-mono text-blue-300 shrink-0">
+                                  <span className="text-sm font-mono text-white shrink-0">
                                     {ev.dateText}
                                   </span>
                                   <span className="px-2 py-0.5 border border-white/20 text-sm font-mono text-white shrink-0">
@@ -1277,14 +1277,14 @@ export default function AdminPreMatchPage() {
                       <span className="text-white font-bold">{c.title}</span>
                     </div>
                     <p className="text-zinc-400">{c.scenario}</p>
-                    <p className={c.status === 'PASS' ? 'text-blue-300' : 'text-[#f04f74] font-medium'}>
+                    <p className={c.status === 'PASS' ? 'text-white' : 'text-[#f04f74] font-medium'}>
                       결과: {c.detail}
                     </p>
                   </div>
                   <span
                     className={`px-3 py-1 border font-bold shrink-0 self-start sm:self-center ${
                       c.status === 'PASS'
-                        ? 'border-[#3b82f6]/50 bg-[#3b82f6]/15 text-blue-200'
+                        ? 'border-white/25 bg-white/10 text-white'
                         : 'border-[#f04f74] bg-[#f04f74]/20 text-white'
                     }`}
                   >

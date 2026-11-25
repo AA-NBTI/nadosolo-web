@@ -254,48 +254,56 @@ export default function OopsHqAdminPage() {
     },
   ];
 
-  // 1. 사령부 암구호 인증 화면 (OOPS 전술 모노크롬)
+  // 1. 사령부 암구호 인증 화면 (OOPS 옐로우 #ffc900 + 주황 #ff4d00 전술 사령부 체계)
   if (!authed) {
     return (
       <div className="min-h-screen bg-[#08090c] text-white flex items-center justify-center p-4 font-mono">
-        <div className="w-full max-w-md bg-[#101218] border border-white/20 p-8 space-y-6">
-          <div className="flex items-center justify-between border-b border-white/15 pb-4">
+        <div className="w-full max-w-md bg-[#101218] border-4 border-black shadow-[8px_8px_0_#ffc900] overflow-hidden">
+          <div className="bg-[#ffc900] text-black px-5 py-3.5 flex items-center justify-between border-b-4 border-black">
             <div className="flex items-center gap-2.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d00]" />
-              <h1 className="text-lg font-bold text-white tracking-wider">OOPS 작전사령부</h1>
+              <span className="px-2 py-0.5 bg-[#ff4d00] text-white font-black text-sm border-2 border-black">
+                OOPS
+              </span>
+              <h1 className="text-base font-black text-black">작전사령부</h1>
             </div>
-            <span className="text-sm text-zinc-200 border border-white/20 px-2.5 py-0.5">통제구역</span>
+            <span className="text-sm font-bold text-black border-2 border-black bg-white px-2 py-0.5">
+              통제구역
+            </span>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm text-zinc-200 mb-2 font-bold">암구호</label>
-              <input
-                type="password"
-                value={passkey}
-                onChange={(e) => setPasskey(e.target.value)}
-                placeholder="암구호 입력"
-                className="w-full px-3.5 py-2.5 bg-[#08090c] border border-white/20 text-white text-sm focus:outline-none focus:border-white/50"
-              />
+          <div className="p-6 space-y-5">
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm text-[#ffc900] mb-2 font-bold">암구호</label>
+                <input
+                  type="password"
+                  value={passkey}
+                  onChange={(e) => setPasskey(e.target.value)}
+                  placeholder="암구호 입력"
+                  className="w-full px-3.5 py-2.5 bg-[#08090c] border-2 border-zinc-600 text-white text-sm focus:outline-none focus:border-[#ffc900]"
+                />
+              </div>
+
+              {error && (
+                <div className="p-3 bg-[#ff4d00]/15 border-2 border-[#ff4d00] text-sm text-white font-bold">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm border-2 border-black shadow-[3px_3px_0_#ffc900] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {loading ? '검증' : '입장'}
+              </button>
+            </form>
+
+            <div className="pt-2 text-center">
+              <Link href="/oops" className="text-sm text-zinc-300 hover:text-[#ffc900] underline">
+                복귀
+              </Link>
             </div>
-
-            {error && (
-              <div className="p-3 bg-[#101218] border border-white/30 text-sm text-white">{error}</div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 bg-white hover:bg-zinc-200 text-black font-bold text-sm border border-white transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {loading ? '검증' : '입장'}
-            </button>
-          </form>
-
-          <div className="pt-2 text-center">
-            <Link href="/oops" className="text-sm text-zinc-300 hover:text-white underline">
-              복귀
-            </Link>
           </div>
         </div>
       </div>
@@ -311,20 +319,24 @@ export default function OopsHqAdminPage() {
   // 2. OOPS 군사 작전 사령부 대시보드 (모노크롬 + 고대비 화이트 + 2열 컴팩트 그리드)
   return (
     <div className="min-h-screen bg-[#08090c] text-white flex flex-col font-mono">
-      {/* 마스터 헤더 */}
-      <header className="sticky top-0 z-40 bg-[#101218] border-b border-white/15">
+      {/* 마스터 헤더 (OOPS 메인 헤더 옐로우 & 주황 통일) */}
+      <header className="sticky top-0 z-40 bg-[#ffc900] text-black border-b-4 border-black shadow-[0_4px_0_#18181b]">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d00]" />
-            <span className="text-lg font-bold text-white tracking-wide">OOPS 작전사령부</span>
-            <span className="px-2 py-0.5 border border-white/20 text-sm text-zinc-200">{latestVersion}</span>
+            <span className="px-2.5 py-0.5 bg-[#ff4d00] text-white font-black text-base border-2 border-black shadow-[2px_2px_0_#000] -rotate-1">
+              OOPS
+            </span>
+            <span className="text-lg font-black text-black tracking-tight">작전사령부</span>
+            <span className="px-2 py-0.5 bg-white border-2 border-black text-sm font-bold text-black">
+              {latestVersion}
+            </span>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <Link
               href="/oops"
               target="_blank"
-              className="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/25 text-sm text-white font-bold"
+              className="px-3 py-1 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0_#000] text-sm text-black font-black"
             >
               라이브
             </Link>
@@ -334,7 +346,7 @@ export default function OopsHqAdminPage() {
                 localStorage.removeItem('oops_hq_key_v1');
                 setAuthed(false);
               }}
-              className="px-3 py-1 bg-white/5 hover:bg-white/15 border border-white/25 text-sm text-white font-bold cursor-pointer"
+              className="px-3 py-1 bg-[#ff4d00] hover:bg-[#ff621f] border-2 border-black shadow-[2px_2px_0_#000] text-sm text-white font-black cursor-pointer"
             >
               잠금
             </button>
@@ -359,7 +371,7 @@ export default function OopsHqAdminPage() {
                         onClick={() => setActiveTab(item.key)}
                         className={`w-full text-left px-3 py-2 text-sm transition-all flex items-center justify-between cursor-pointer border-l-2 ${
                           active
-                            ? 'bg-white/10 text-white font-bold border-[#ff4d00]'
+                            ? 'bg-[#ffc900]/15 text-[#ffc900] font-black border-[#ff4d00]'
                             : 'bg-transparent hover:bg-white/5 text-zinc-200 hover:text-white border-transparent'
                         }`}
                       >
@@ -491,7 +503,7 @@ export default function OopsHqAdminPage() {
                       onClick={() => setOrgFilter(f)}
                       className={`px-3 py-1 text-sm font-bold border cursor-pointer ${
                         orgFilter === f
-                          ? 'bg-white text-black border-white'
+                          ? 'bg-[#ffc900] text-black border-2 border-black font-black'
                           : 'bg-white/5 text-white border-white/25 hover:bg-white/15'
                       }`}
                     >
@@ -571,7 +583,7 @@ export default function OopsHqAdminPage() {
                       onClick={() => setRankFilter(g)}
                       className={`px-2.5 py-1 text-sm font-bold border cursor-pointer ${
                         rankFilter === g
-                          ? 'bg-white text-black border-white'
+                          ? 'bg-[#ffc900] text-black border-2 border-black font-black'
                           : 'bg-white/5 text-white border-white/25 hover:bg-white/15'
                       }`}
                     >
@@ -876,7 +888,7 @@ export default function OopsHqAdminPage() {
                 <button
                   type="submit"
                   disabled={bcBusy || !bcBody.trim()}
-                  className="px-5 py-2 bg-white hover:bg-zinc-200 text-black font-bold text-sm border border-white cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm border-2 border-black shadow-[2px_2px_0_#ffc900] cursor-pointer disabled:opacity-50"
                 >
                   {bcBusy ? '전송' : '발송'}
                 </button>
@@ -922,7 +934,7 @@ export default function OopsHqAdminPage() {
                       setUtmCopied(true);
                       setTimeout(() => setUtmCopied(false), 2000);
                     }}
-                    className="px-4 py-2 bg-white text-black font-bold text-sm border border-white cursor-pointer"
+                    className="px-4 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-sm border-2 border-black shadow-[2px_2px_0_#ffc900] cursor-pointer"
                   >
                     {utmCopied ? '완료' : '복사'}
                   </button>
