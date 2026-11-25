@@ -112,16 +112,11 @@ export default function HeroSurvivalTimer({ locale, engineOutput }: HeroSurvival
 
   return (
     <div
-      className="inline-flex flex-col items-start gap-1 select-none pointer-events-none"
+      className="inline-block select-none pointer-events-none"
       aria-label={SURVIVAL_LABELS[locale] || SURVIVAL_LABELS.ko}
     >
-      {/* 1. 시계 본체에서 분리된 상단 명판 */}
-      <div className="bg-black/85 border border-white/25 px-2.5 py-1 text-[10px] sm:text-xs font-mono tracking-[0.18em] text-zinc-100 font-bold uppercase leading-none shadow-md">
-        {SURVIVAL_LABELS[locale] || SURVIVAL_LABELS.ko}
-      </div>
-
-      {/* 2. 진짜 디지털 시계 본체 (진한 다크 배경 + 동일 크기 7-세그먼트 총시간:분:초.밀리초) */}
-      <div className="bg-black/85 backdrop-blur-sm border-2 border-white/30 px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-sm shadow-[0_6px_20px_rgba(0,0,0,0.85)]">
+      {/* 순수 디지털 시계 본체 (상하좌우 여백 50% 축소, 카운터 크기 유지) */}
+      <div className="bg-black/85 backdrop-blur-sm border-2 border-white/30 px-1.5 py-1 sm:px-2 sm:py-1.5 rounded-sm shadow-[0_6px_20px_rgba(0,0,0,0.85)]">
         <div className="flex items-center gap-0.5 sm:gap-1">
           {hoursStr.split('').map((ch, idx) => (
             <SevenSegDigit key={`h-${idx}`} char={ch} />
