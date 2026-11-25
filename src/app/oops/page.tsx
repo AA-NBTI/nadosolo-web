@@ -2,6 +2,7 @@
 
 import React, { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import QRCode from 'qrcode';
 import {
   Activity,
@@ -202,7 +203,8 @@ function getOrCreateAgentId(): string {
   return id;
 }
 
-export function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OBSERVATORY' | 'SNS' }) {
+function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OBSERVATORY' | 'SNS' }) {
+  const pathname = usePathname();
   // 서구권 English-First 기본값 ('en')
   const [locale, setLocale] = useState<OopsLocale>('en');
   const t = OOPS_DICT[locale];
@@ -366,8 +368,13 @@ export function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialVie
 
   // Composer state
   const composerRef = useRef<HTMLTextAreaElement>(null);
-  // 메인 카테고리 뷰 모드: OBSERVATORY(범용 위험 관측소 다이어그램) vs SNS(현장 실시간 제보 피드)
-  const [viewMode, setViewMode] = useState<'OBSERVATORY' | 'SNS'>(initialView);
+  // 메인 카테고리 뷰 모드: OBSERVATORY vs SNS (/sns 경로 접속 시 자동 SNS 활성화)
+  const [viewMode, setViewMode] = useState<'OBSERVATORY' | 'SNS'>(
+    initialView === 'SNS' || pathname?.startsWith('/sns') ? 'SNS' : 'OBSERVATORY'
+  );
+  useEffect(() => {
+    if (pathname?.startsWith('/sns')) setViewMode('SNS');
+  }, [pathname]);
   const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [category, setCategory] = useState<SignalCategory>('GLITCH');
   const [content, setContent] = useState('');

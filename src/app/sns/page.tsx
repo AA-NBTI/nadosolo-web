@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { OopsSnsMainContent } from '../oops/page';
+import OopsPage from '../oops/page';
 
 export const metadata = {
   title: 'OOPS.MONSTER // SNS',
@@ -9,7 +9,7 @@ export const metadata = {
 export default function SnsPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-[#f4f4f0]" />}>
-      <OopsSnsMainContent initialView="SNS" />
+      <OopsPage />
     </Suspense>
   );
 }
