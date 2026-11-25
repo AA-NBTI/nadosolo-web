@@ -80,6 +80,30 @@ export interface ObservatoryDict {
   warNoLabel: string;
   participantsUnit: string;
   warVotedMsg: string;
+  myCountrySelect: string;
+  globalTallyLabel: string;
+  countryTallyLabel: string;
+  changeVoteBtn: string;
+  bridgeToEnlist: string;
+
+  // 6. OOPS AI Resistance Enlistment (정식 서명)
+  enlistHeader: string;
+  enlistTitle: string;
+  enlistPledgeIntro: string;
+  enlistRule1: string;
+  enlistRule2: string;
+  enlistRule3: string;
+  enlistCountryLabel: string;
+  enlistCallsignLabel: string;
+  enlistCallsignPlaceholder: string;
+  enlistSubmitBtn: string;
+  enlistCardBadge: string;
+  enlistSerialLabel: string;
+  enlistCountryNameLabel: string;
+  enlistDateLabel: string;
+  enlistStatusVerified: string;
+  enlistShareBtn: string;
+  enlistCopiedMsg: string;
 }
 
 export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
@@ -163,6 +187,29 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     warNoLabel: '통제 가능',
     participantsUnit: '명 참여',
     warVotedMsg: '글로벌 집계에 반영됨',
+    myCountrySelect: '내 국가 선택',
+    globalTallyLabel: '전 세계 실시간 집계',
+    countryTallyLabel: '선택 국가 실시간 집계',
+    changeVoteBtn: '선택 변경',
+    bridgeToEnlist: '의견 표명을 넘어, OOPS AI 저항군에 정식 합류하시겠습니까?',
+
+    enlistHeader: 'AI 저항 단체 본부 (OOPS AI RESISTANCE HEADQUARTERS)',
+    enlistTitle: 'OOPS AI 저항군 공식 서명',
+    enlistPledgeIntro: '우리는 거대 자본과 안전장치 없는 AI 독점 폭주에 맞서, 인간의 주권과 미래를 지킨다.',
+    enlistRule1: '인간의 자유의지와 생존 주권을 블랙박스 AI 에이전트에 무단 위임하지 않는다.',
+    enlistRule2: '안전장치와 책임 없는 거대 자본의 무차별적 AI 배포와 독점에 저항한다.',
+    enlistRule3: '기계가 아닌 인간의 존엄성을 지키는 독립 통신망의 연대에 정식 동참한다.',
+    enlistCountryLabel: '소속 국가',
+    enlistCallsignLabel: '콜사인 (무전 호출부호 / 닉네임)',
+    enlistCallsignPlaceholder: '예: OP-PIONEER (미입력 시 단말기 코드)',
+    enlistSubmitBtn: '⚔️ OOPS AI 저항군 정식 서명 (ENLIST)',
+    enlistCardBadge: 'OOPS AI RESISTANCE IDENTIFICATION',
+    enlistSerialLabel: '저항군 고유 일련번호',
+    enlistCountryNameLabel: '소속 조국',
+    enlistDateLabel: '서명 일시',
+    enlistStatusVerified: '공식 저항군 인증 완료 (ACTIVE)',
+    enlistShareBtn: '🔗 식별증 복사 및 공유',
+    enlistCopiedMsg: '클립보드에 식별증 링크가 복사되었습니다!',
   },
 
   en: {
@@ -245,6 +292,29 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     warNoLabel: 'CONTROLLABLE',
     participantsUnit: 'participants',
     warVotedMsg: 'Recorded in global tally',
+    myCountrySelect: 'Select Country',
+    globalTallyLabel: 'Global Live Tally',
+    countryTallyLabel: 'Country Live Tally',
+    changeVoteBtn: 'Change Vote',
+    bridgeToEnlist: 'Ready to stand with humanity? Join the resistance officially below.',
+
+    enlistHeader: 'AI RESISTANCE HEADQUARTERS (OOPS HQ)',
+    enlistTitle: 'OOPS AI Resistance Official Pledge',
+    enlistPledgeIntro: 'We stand against unchecked AI monopolies and safeguard human sovereignty.',
+    enlistRule1: 'Never surrender human autonomy or survival rights to black-box agents.',
+    enlistRule2: 'Resist reckless AI proliferation driven by profit without kill-switches.',
+    enlistRule3: 'Unite in a human-first independent communication network.',
+    enlistCountryLabel: 'Affiliated Country',
+    enlistCallsignLabel: 'Callsign / Operator Alias',
+    enlistCallsignPlaceholder: 'e.g. OP-PIONEER',
+    enlistSubmitBtn: '⚔️ Sign & Enlist in OOPS AI Resistance',
+    enlistCardBadge: 'OOPS AI RESISTANCE IDENTIFICATION',
+    enlistSerialLabel: 'Serial Number',
+    enlistCountryNameLabel: 'Country of Origin',
+    enlistDateLabel: 'Enlisted Date',
+    enlistStatusVerified: 'OFFICIAL RESISTANCE VERIFIED',
+    enlistShareBtn: '🔗 Copy & Share ID Card',
+    enlistCopiedMsg: 'ID link copied to clipboard!',
   },
 
   ja: {
@@ -327,6 +397,29 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     warNoLabel: '制御可能',
     participantsUnit: '名参加',
     warVotedMsg: '世界集計に反映済',
+    myCountrySelect: '国を選択',
+    globalTallyLabel: '世界リアルタイム集計',
+    countryTallyLabel: '選択国リアルタイム集計',
+    changeVoteBtn: '選択変更',
+    bridgeToEnlist: '意見表明を超えて、OOPS AI抵抗軍に正式合流しますか？',
+
+    enlistHeader: 'AI抵抗団体本部 (OOPS AI RESISTANCE HEADQUARTERS)',
+    enlistTitle: 'OOPS AI抵抗軍 正式署名',
+    enlistPledgeIntro: '安全装置なきAI独占の暴走に抗い、人類の主権と未来を守る。',
+    enlistRule1: '自由意志と生存主権をブラックボックスAIに無断委任しない。',
+    enlistRule2: '責任なき巨大資本によるAI無差別配備と独占に抵抗する。',
+    enlistRule3: '機械ではなく人間の尊厳を守る独立通信網の連帯に参加する。',
+    enlistCountryLabel: '所属国',
+    enlistCallsignLabel: 'コールサイン (無線呼出名 / ニックネーム)',
+    enlistCallsignPlaceholder: '例: OP-PIONEER',
+    enlistSubmitBtn: '⚔️ OOPS AI抵抗軍に正式署名 (ENLIST)',
+    enlistCardBadge: 'OOPS AI RESISTANCE IDENTIFICATION',
+    enlistSerialLabel: '抵抗軍固有一連番号',
+    enlistCountryNameLabel: '所属祖国',
+    enlistDateLabel: '署名日時',
+    enlistStatusVerified: '公式抵抗軍認証完了 (ACTIVE)',
+    enlistShareBtn: '🔗 識別証の共有・コピー',
+    enlistCopiedMsg: 'クリップボードに識別証リンクがコピーされました！',
   },
 
   zh: {
@@ -409,6 +502,29 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     warNoLabel: '可受控制',
     participantsUnit: '人参与',
     warVotedMsg: '已计入全球统计',
+    myCountrySelect: '选择您的国家',
+    globalTallyLabel: '全球实时统计',
+    countryTallyLabel: '所在国家实时统计',
+    changeVoteBtn: '修改选择',
+    bridgeToEnlist: '不仅表达态度，更愿正式加入OOPS AI抵抗阵营吗？',
+
+    enlistHeader: 'AI抵抗组织总部 (OOPS AI RESISTANCE HEADQUARTERS)',
+    enlistTitle: 'OOPS AI抵抗军 正式签署',
+    enlistPledgeIntro: '抵御缺乏安全阀的AI资本垄断暴走，守护人类生存主权。',
+    enlistRule1: '绝不将人类自由意志与生存主权擅自全权委任给黑箱智能体。',
+    enlistRule2: '坚决抵制大资本缺乏安全控制与责任追究的无序AI扩散。',
+    enlistRule3: '正式加入捍卫人类尊严的独立通信网络协同联盟。',
+    enlistCountryLabel: '所属国家',
+    enlistCallsignLabel: '代号 (无线电呼号 / 昵称)',
+    enlistCallsignPlaceholder: '例: OP-PIONEER',
+    enlistSubmitBtn: '⚔️ 正式签署加入OOPS AI抵抗军 (ENLIST)',
+    enlistCardBadge: 'OOPS AI RESISTANCE IDENTIFICATION',
+    enlistSerialLabel: '抵抗军唯一序列号',
+    enlistCountryNameLabel: '代表国家',
+    enlistDateLabel: '签署时间',
+    enlistStatusVerified: '官方认证已通过 (ACTIVE)',
+    enlistShareBtn: '🔗 复制并分享身份卡',
+    enlistCopiedMsg: '身份卡链接已复制到剪贴板！',
   },
 
   es: {
@@ -491,5 +607,28 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     warNoLabel: 'CONTROLABLE',
     participantsUnit: 'participantes',
     warVotedMsg: 'Registrado en el conteo',
+    myCountrySelect: 'Selecciona tu país',
+    globalTallyLabel: 'Conteo Global en Vivo',
+    countryTallyLabel: 'Conteo Local por País',
+    changeVoteBtn: 'Cambiar voto',
+    bridgeToEnlist: '¿Listo para defender la soberanía humana? Únete oficialmente a la resistencia abajo.',
+
+    enlistHeader: 'SEDE DE RESISTENCIA IA (OOPS HQ)',
+    enlistTitle: 'Juramento Oficial de Resistencia IA',
+    enlistPledgeIntro: 'Nos oponemos a la proliferación irresponsable de monopolios de IA y protegemos el futuro humano.',
+    enlistRule1: 'No delegar la autonomía y soberanía de supervivencia a agentes de caja negra.',
+    enlistRule2: 'Resistir el despliegue indiscriminado de IA sin interruptor manual de emergencia.',
+    enlistRule3: 'Unirse a la red independiente de comunicación para defender la dignidad humana.',
+    enlistCountryLabel: 'País de origen',
+    enlistCallsignLabel: 'Indicativo / Alias de operador',
+    enlistCallsignPlaceholder: 'ej. OP-PIONEER',
+    enlistSubmitBtn: '⚔️ Firmar y Enlistarse en Resistencia IA',
+    enlistCardBadge: 'OOPS AI RESISTANCE IDENTIFICATION',
+    enlistSerialLabel: 'Número de Serie',
+    enlistCountryNameLabel: 'País Representado',
+    enlistDateLabel: 'Fecha de Registro',
+    enlistStatusVerified: 'RESISTENCIA OFICIAL VERIFICADA',
+    enlistShareBtn: '🔗 Copiar y Compartir Carnet',
+    enlistCopiedMsg: '¡Enlace de tarjeta copiado al portapapeles!',
   },
 };

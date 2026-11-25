@@ -28,6 +28,14 @@ import {
 import ThreatPulseChart from '@/components/oops/ThreatPulseChart';
 import CollisionClock from '@/components/oops/CollisionClock';
 import WarScenarioPoll from '@/components/oops/WarScenarioPoll';
+import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
+import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
+import {
+  COUNTRIES_REGISTRY,
+  calculateGlobalTotals,
+  type CountryData,
+  type EnlistmentRecord,
+} from '@/lib/oops/movementStore';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import { FEED_I18N } from '@/lib/oops/feedI18n';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
@@ -201,23 +209,80 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [signals, setSignals] = useState<OopsSignal[]>([]);
   const [loading, setLoading] = useState(true);
   const [warVote, setWarVote] = useState<'YES' | 'NO' | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string>('KR');
+  const [movementRegistry, setMovementRegistry] = useState<Record<string, CountryData>>(COUNTRIES_REGISTRY);
+  const [movementTotals, setMovementTotals] = useState(calculateGlobalTotals(COUNTRIES_REGISTRY));
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('oops_war_vote_v1');
       if (saved === 'YES' || saved === 'NO') setWarVote(saved);
-    } catch {
-      // ignore
-    }
+    } catch {}
+
+    void fetch('/api/oops/movement')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.ok && data.countries) {
+          setMovementRegistry(data.countries);
+          if (data.totals) setMovementTotals(data.totals);
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const handleVoteWar = (choice: 'YES' | 'NO') => {
+  // 접속 언어에 따른 기본 국가 매핑
+  useEffect(() => {
+    if (locale === 'ko') setSelectedCountry('KR');
+    else if (locale === 'ja') setSelectedCountry('JP');
+    else if (locale === 'zh') setSelectedCountry('CN');
+    else if (locale === 'es') setSelectedCountry('ES');
+    else setSelectedCountry('US');
+  }, [locale]);
+
+  const handleVoteWar = async (choice: 'YES' | 'NO', countryCode: string) => {
     setWarVote(choice);
     try {
       localStorage.setItem('oops_war_vote_v1', choice);
-    } catch {
-      // ignore
-    }
+    } catch {}
+
+    try {
+      const res = await fetch('/api/oops/movement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'VOTE',
+          choice,
+          countryCode,
+        }),
+      });
+      const data = await res.json();
+      if (data?.ok) {
+        if (data.country) {
+          setMovementRegistry((prev) => ({ ...prev, [countryCode]: data.country }));
+        }
+        if (data.totals) {
+          setMovementTotals(data.totals);
+        }
+      }
+    } catch {}
+  };
+
+  const handleEnlistSuccess = (rec: EnlistmentRecord) => {
+    setMovementRegistry((prev) => {
+      const cur = prev[rec.countryCode];
+      if (!cur) return prev;
+      return {
+        ...prev,
+        [rec.countryCode]: {
+          ...cur,
+          signatures: cur.signatures + 1,
+        },
+      };
+    });
+    setMovementTotals((prev) => ({
+      ...prev,
+      totalSignatures: prev.totalSignatures + 1,
+    }));
   };
 
   const liveCtx = React.useMemo(() => {
@@ -830,10 +895,35 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             {/* 1. AI 충돌 시계 */}
             <CollisionClock locale={locale} engineOutput={liveEngineOutput} />
 
-            {/* 2. AI·인간 전쟁 시나리오 글로벌 참여 투표 (시계와 온도계 사이 독립 섹터) */}
-            <WarScenarioPoll locale={locale} warVote={warVote} onVote={handleVoteWar} />
+            {/* 2. AI·인간 전쟁 시나리오 글로벌 참여 투표 (원클릭 투표 + 실시간 집계 결과창) */}
+            <WarScenarioPoll
+              locale={locale}
+              selectedCountry={selectedCountry}
+              onSelectCountry={setSelectedCountry}
+              warVote={warVote}
+              onVote={handleVoteWar}
+              countryData={movementRegistry[selectedCountry] || movementRegistry.KR}
+              globalTotals={movementTotals}
+            />
 
-            {/* 3. 위험 온도계 및 국가별 발발 예상 비율 */}
+            {/* 3. AI 저항 단체 본부 (OOPS) 공식 합류 서명 및 디지털 식별증 */}
+            <OopsEnlistmentSection
+              locale={locale}
+              selectedCountry={selectedCountry}
+              onSelectCountry={setSelectedCountry}
+              agentId={agentId}
+              onEnlistSuccess={handleEnlistSuccess}
+            />
+
+            {/* 4. 3D 인터랙티브 글로벌 관제 지도 (서명자 / 투표자 / 체감온도 3개 탭 360° 회전 지구본) */}
+            <Global3DDataGlobe
+              locale={locale}
+              selectedCountry={selectedCountry}
+              onSelectCountry={setSelectedCountry}
+              countriesRegistry={movementRegistry}
+            />
+
+            {/* 5. 위험 온도계 및 국가별 발발 예상 비율 */}
             <ThreatPulseChart initialThemeId="ai_collision" locale={locale} liveCtx={liveCtx} warVote={warVote} />
 
             {/* 언론사용 임베드 안내 배너 (OOPS 시그니처 옐로우 #ffc900 & 오렌지 #ff4d00 CTA) */}
