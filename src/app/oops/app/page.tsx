@@ -278,7 +278,7 @@ function OopsAppContent() {
         </div>
       )}
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8 sm:py-10 space-y-8">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 pt-2 pb-6 sm:pt-3 sm:pb-8 space-y-6">
         {/* Poolsuite 레트로 터미널 창 */}
         <section className="bg-[#d6d3c9] border-2 border-black shadow-[8px_8px_0_#d4d4d8]">
           <div className="bg-[#000080] text-white px-3 py-2 border-b-2 border-black flex items-center justify-between select-none">

@@ -170,6 +170,15 @@ export default function OopsEnlistmentSection({
   }, [locale]);
 
   useEffect(() => {
+    // 서버 서명 총합이 0이고 비회원이면 과거 임시 로컬 기록을 비워 서명 폼이 정상 노출되도록 함
+    if (totalSignatures === 0 && !member) {
+      setRecord(null);
+      try {
+        localStorage.removeItem('oops_enlistment_card_v2');
+      } catch {}
+      return;
+    }
+
     try {
       const saved = localStorage.getItem('oops_enlistment_card_v2');
       if (saved) {
@@ -182,7 +191,7 @@ export default function OopsEnlistmentSection({
         }
       }
     } catch {}
-  }, [onSelectCountry]);
+  }, [onSelectCountry, totalSignatures, member]);
 
   const handleEnlist = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -311,7 +320,7 @@ export default function OopsEnlistmentSection({
             value={selectedCountry}
             onChange={(e) => onSelectCountry(e.target.value)}
             aria-label={copy.enlistCountryLabel}
-            className="sm:w-60 bg-white border-2 border-black px-3 py-3 text-sm font-black shadow-[2px_2px_0_#d4d4d8] focus:outline-none cursor-pointer"
+            className="sm:w-60 bg-white text-black border border-zinc-400 px-3 py-3 text-sm font-bold shadow-none focus:outline-none cursor-pointer"
           >
             {ORDERED_COUNTRY_CODES.map((code) => {
               const c = COUNTRIES_REGISTRY[code];
@@ -327,17 +336,17 @@ export default function OopsEnlistmentSection({
           <button
             type="submit"
             disabled={submitting}
-            className="flex-1 py-3 px-6 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-black text-sm border-2 border-black shadow-[4px_4px_0_#d4d4d8] active:translate-x-[2px] active:translate-y-[2px] cursor-pointer transition-all disabled:opacity-50"
+            className="flex-1 py-3 px-6 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-black text-sm border-2 border-black shadow-none cursor-pointer transition-colors disabled:opacity-50"
           >
             {submitting ? '...' : copy.enlistSubmitBtn}
           </button>
         </form>
       )}
 
-      {/* 5. 서명 직후: 번호 카드 (계급·공유·제보 제거, 국가 및 시리얼 중심 + [등록/관리]) */}
+      {/* 5. 서명 직후: 번호 카드 (계급·공유·제보 제거, 국가 및 시리얼 중심 + [취소]/[등록 or 관리]) */}
       {effectiveRecord && (
         <div className="space-y-3 font-mono">
-          <div className="bg-zinc-900 border-4 border-black text-white p-4 sm:p-5 shadow-[6px_6px_0_#d4d4d8] space-y-3">
+          <div className="bg-zinc-900 border-4 border-black text-white p-4 sm:p-5 space-y-3">
             <div className="flex items-center justify-between border-b border-zinc-700 pb-2.5">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 bg-[#dc2626] text-white text-xs font-black">OOPS</span>
@@ -366,18 +375,32 @@ export default function OopsEnlistmentSection({
             </div>
           </div>
 
-          {/* 단일 단어 액션 버튼: 비회원은 [등록], 회원은 [관리] */}
-          {onOpenAuth && (
-            <div className="flex justify-end">
+          {/* 단일 단어 액션 버튼: 비회원은 [취소] + [등록], 회원은 [관리] */}
+          <div className="flex items-center justify-end gap-2">
+            {!member && (
+              <button
+                type="button"
+                onClick={() => {
+                  setRecord(null);
+                  try {
+                    localStorage.removeItem('oops_enlistment_card_v2');
+                  } catch {}
+                }}
+                className="px-4 py-2 bg-white hover:bg-zinc-100 text-black font-bold text-xs border border-zinc-400 cursor-pointer"
+              >
+                {locale === 'ko' ? '취소' : locale === 'ja' ? '取消' : locale === 'zh' ? '取消' : 'Reset'}
+              </button>
+            )}
+            {onOpenAuth && (
               <button
                 type="button"
                 onClick={() => onOpenAuth(member ? 'LOGIN' : 'REGISTER')}
-                className="px-5 py-2.5 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
+                className="px-5 py-2 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs border-2 border-black shadow-none cursor-pointer"
               >
                 {member ? copy.enlistManageBtn : copy.enlistClaimBtn}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
 

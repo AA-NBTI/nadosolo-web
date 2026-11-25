@@ -824,7 +824,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
       />
 
       {/* 2. 메인 콘텐츠 영역 (선택된 카테고리에 따른 뷰 전환) */}
-      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 pt-2 pb-6 sm:pt-3 sm:pb-8 space-y-5">
         {/* OOPS 인류 저항 본부 메인 히어로 비주얼 배너 (OBSERVATORY 뷰 전용, SNS 뷰에서는 광고/배너 이미지 제외) */}
         {viewMode !== 'SNS' && !pathname?.startsWith('/sns') && (
           <div className="relative border-4 border-black bg-black shadow-[6px_6px_0_#d4d4d8] overflow-hidden">

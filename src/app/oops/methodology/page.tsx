@@ -237,7 +237,7 @@ export default function OopsMethodologyPage() {
   }[locale];
 
   return (
-    <div className="min-h-screen bg-[#f4f4f0] text-black font-sans flex flex-col">
+    <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black font-sans flex flex-col">
       {/* 상단 공통 GNB */}
       <OopsGlobalHeader
         locale={locale}
@@ -249,7 +249,7 @@ export default function OopsMethodologyPage() {
         }}
       />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 space-y-6 font-mono">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 pt-2 pb-6 sm:pt-3 sm:pb-8 space-y-6 font-mono">
         {/* 1. 실시간 엔진 산출 요약 카드 */}
         <section className="bg-white border-4 border-black p-4 sm:p-6 shadow-[8px_8px_0_#d4d4d8] space-y-4">
           <div className="flex items-center justify-between border-b-2 border-black pb-2.5">

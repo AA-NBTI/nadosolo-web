@@ -92,7 +92,7 @@ export default function OopsDeclarationPage() {
       />
 
       {/* 선언서 문서 메인 */}
-      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-8 sm:py-12 space-y-8">
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 pt-2 pb-6 sm:pt-3 sm:pb-8 space-y-6">
         <OopsEnlistmentSection
           locale={locale}
           selectedCountry={selectedCountry}

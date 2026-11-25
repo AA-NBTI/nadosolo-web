@@ -81,11 +81,35 @@ body {
   color: #ffffff;
 }
 
-/* 웁스(OOPS.MONSTER) 라이트 브루탈리즘 전용 차분한 그레이 드래그 하이라이트 */
+/* 웁스(OOPS.MONSTER) 라이트 브루탈리즘 전용 차분한 그레이 드래그 하이라이트 및 전역 테마 강제 */
 .oops-theme ::selection,
 .oops-theme::selection {
   background-color: #d4d4d8 !important;
   color: #000000 !important;
+}
+
+/* 웁스 테마: 헤더, 헤드카피 바, 국가/언어 드롭다운 그림자 전면 제거 & 버튼 블랙 배경 금지 */
+.oops-theme header,
+.oops-theme header a,
+.oops-theme header button,
+.oops-theme .oops-headcopy-bar,
+.oops-theme .oops-headcopy-bar button,
+.oops-theme .oops-lang-dropdown,
+.oops-theme .oops-lang-dropdown button {
+  box-shadow: none !important;
+}
+
+.oops-theme header a.bg-black,
+.oops-theme header button.bg-black,
+.oops-theme header button.bg-zinc-900 {
+  background-color: #ff4d00 !important;
+  color: #ffffff !important;
+}
+
+.oops-theme select {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #a1a1aa;
 }
 
 /* 폼 입력 필드 기본 다크 인셋 */
