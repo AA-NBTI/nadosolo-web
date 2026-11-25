@@ -15,6 +15,7 @@ interface ThreatPulseChartProps {
   isEmbed?: boolean;
   locale?: OopsLocale;
   liveCtx?: ScoringInputContext;
+  warVote?: 'YES' | 'NO' | null;
 }
 
 function ThermometerGraphic({ temp }: { temp: number }) {
@@ -174,28 +175,23 @@ export default function ThreatPulseChart({
   isEmbed = false,
   locale = 'ko',
   liveCtx,
+  warVote: externalWarVote,
 }: ThreatPulseChartProps) {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedRegions, setSelectedRegions] = useState<RegionCode[]>(['GLOBAL']);
-  const [warVote, setWarVote] = useState<'YES' | 'NO' | null>(null);
+  const [localWarVote, setLocalWarVote] = useState<'YES' | 'NO' | null>(null);
 
   useEffect(() => {
+    if (externalWarVote !== undefined) return;
     try {
       const saved = localStorage.getItem('oops_war_vote_v1');
-      if (saved === 'YES' || saved === 'NO') setWarVote(saved);
+      if (saved === 'YES' || saved === 'NO') setLocalWarVote(saved);
     } catch {
       // ignore storage failure
     }
-  }, []);
+  }, [externalWarVote]);
 
-  const handleVoteWar = (choice: 'YES' | 'NO') => {
-    setWarVote(choice);
-    try {
-      localStorage.setItem('oops_war_vote_v1', choice);
-    } catch {
-      // ignore storage failure
-    }
-  };
+  const warVote = externalWarVote !== undefined ? externalWarVote : localWarVote;
 
   const handleToggleRegion = (code: RegionCode) => {
     if (code === 'GLOBAL') {
@@ -375,55 +371,6 @@ export default function ThreatPulseChart({
             </div>
           );
         })}
-      </div>
-
-      {/* 4. AI·인간 전쟁 시나리오 글로벌 참여 투표 바 */}
-      <div className="p-4 bg-[#ffc900]/25 border-2 border-black shadow-[3px_3px_0_#d4d4d8] space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2 font-black text-black">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-ping" />
-            <span>{copy.warPollTitle}</span>
-          </div>
-          {warVote && (
-            <span className="px-2 py-0.5 bg-zinc-800 text-[#ffc900] text-[10px] font-black border border-black">
-              {copy.warVotedMsg} ({warVote})
-            </span>
-          )}
-        </div>
-
-        <div className="text-xs sm:text-sm font-sans font-black text-black">
-          {copy.warPollQuestion}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <button
-            type="button"
-            onClick={() => handleVoteWar('YES')}
-            className={`py-2.5 px-3 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
-              warVote === 'YES'
-                ? 'bg-[#ff4d00] text-white shadow-[3px_3px_0_#d4d4d8]'
-                : 'bg-white text-black hover:bg-[#ff4d00] hover:text-white'
-            }`}
-          >
-            {copy.warYesBtn}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleVoteWar('NO')}
-            className={`py-2.5 px-3 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
-              warVote === 'NO'
-                ? 'bg-[#a3e635] text-black shadow-[3px_3px_0_#d4d4d8]'
-                : 'bg-white text-black hover:bg-[#a3e635]'
-            }`}
-          >
-            {copy.warNoBtn}
-          </button>
-        </div>
-
-        <div className="text-[10px] font-sans font-bold text-zinc-600">
-          * {copy.pulseDisclaimer}
-        </div>
       </div>
     </section>
   );

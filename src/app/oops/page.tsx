@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import ThreatPulseChart from '@/components/oops/ThreatPulseChart';
 import CollisionClock from '@/components/oops/CollisionClock';
+import WarScenarioPoll from '@/components/oops/WarScenarioPoll';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
 import { FEED_I18N } from '@/lib/oops/feedI18n';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
@@ -199,6 +200,25 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [tab, setTab] = useState<FeedSortTab>('HOT');
   const [signals, setSignals] = useState<OopsSignal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [warVote, setWarVote] = useState<'YES' | 'NO' | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('oops_war_vote_v1');
+      if (saved === 'YES' || saved === 'NO') setWarVote(saved);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleVoteWar = (choice: 'YES' | 'NO') => {
+    setWarVote(choice);
+    try {
+      localStorage.setItem('oops_war_vote_v1', choice);
+    } catch {
+      // ignore
+    }
+  };
 
   const liveCtx = React.useMemo(() => {
     // 시드 데이터(SIG-SEED-*)는 이미 2026 기준선(74.2°C / 2035.0)에 반영 완료된 기저 데이터이므로 제외하고,
@@ -793,11 +813,14 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (OBSERVATORY 탭 전용) */}
         {viewMode === 'OBSERVATORY' && (
           <section aria-label="Global Threat Observatory Chart" className="space-y-6">
-            {/* 1. 회장님 지시: AI 충돌 예상 연도(2035)와 발발 확률(18.4%) 종말 시계 전진 배치 */}
+            {/* 1. AI 충돌 시계 */}
             <CollisionClock locale={locale} engineOutput={liveEngineOutput} />
 
-            {/* 2. 6대 범용 위험 지수 레이더 다이어그램 */}
-            <ThreatPulseChart initialThemeId="ai_collision" locale={locale} liveCtx={liveCtx} />
+            {/* 2. AI·인간 전쟁 시나리오 글로벌 참여 투표 (시계와 온도계 사이 독립 섹터) */}
+            <WarScenarioPoll locale={locale} warVote={warVote} onVote={handleVoteWar} />
+
+            {/* 3. 위험 온도계 및 국가별 발발 예상 비율 */}
+            <ThreatPulseChart initialThemeId="ai_collision" locale={locale} liveCtx={liveCtx} warVote={warVote} />
 
             {/* 언론사용 임베드 안내 배너 (OOPS 시그니처 옐로우 #ffc900 & 오렌지 #ff4d00 CTA) */}
             <div className="bg-[#ffc900] border-4 border-black p-4 sm:p-5 shadow-[6px_6px_0_#d4d4d8] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
