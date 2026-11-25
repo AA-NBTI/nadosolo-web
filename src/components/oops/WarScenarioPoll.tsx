@@ -5,20 +5,24 @@ import type { OopsLocale } from '@/lib/oops/i18n';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
 import { COUNTRIES_REGISTRY, type CountryData } from '@/lib/oops/movementStore';
 
+export type WarVoteChoice = 'YES' | 'NO' | 'NEUTRAL';
+
 interface WarScenarioPollProps {
   locale: OopsLocale;
   selectedCountry: string;
   onSelectCountry: (code: string) => void;
-  warVote: 'YES' | 'NO' | null;
-  onVote: (choice: 'YES' | 'NO', countryCode: string) => void;
+  warVote: WarVoteChoice | null;
+  onVote: (choice: WarVoteChoice, countryCode: string) => void;
   countryData?: CountryData;
   globalTotals?: {
     totalSignatures: number;
     totalVotes: number;
     totalYes: number;
     totalNo: number;
+    totalNeutral?: number;
     globalYesPct: number;
     globalNoPct: number;
+    globalNeutralPct?: number;
   };
 }
 
@@ -33,8 +37,10 @@ export default function WarScenarioPoll({
     totalVotes: 0,
     totalYes: 0,
     totalNo: 0,
+    totalNeutral: 0,
     globalYesPct: 0,
     globalNoPct: 0,
+    globalNeutralPct: 0,
   },
 }: WarScenarioPollProps) {
   const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
@@ -42,9 +48,10 @@ export default function WarScenarioPoll({
 
   const countryTotal = countryData.votes.total;
   const countryYesPct = countryTotal > 0 ? Math.round((countryData.votes.yes / countryTotal) * 100) : 0;
-  const countryNoPct = countryTotal > 0 ? 100 - countryYesPct : 0;
+  const countryNeutralPct = countryTotal > 0 ? Math.round(((countryData.votes.neutral || 0) / countryTotal) * 100) : 0;
+  const countryNoPct = countryTotal > 0 ? Math.max(0, 100 - countryYesPct - countryNeutralPct) : 0;
 
-  const handleVoteClick = (choice: 'YES' | 'NO') => {
+  const handleVoteClick = (choice: WarVoteChoice) => {
     onVote(choice, selectedCountry);
     setIsChangingVote(false);
   };
@@ -52,6 +59,9 @@ export default function WarScenarioPoll({
   const goToOath = () => {
     window.location.href = '/declaration';
   };
+
+  const globalNeutralPct = globalTotals.globalNeutralPct ?? 0;
+  const totalNeutral = globalTotals.totalNeutral ?? 0;
 
   return (
     <section
@@ -76,29 +86,44 @@ export default function WarScenarioPoll({
         {copy.warPollQuestion}
       </div>
 
-      {/* 2지선다 투표 버튼 (단일 단어 표준) */}
+      {/* 3지선다 투표 버튼 (찬성 / 중립 / 반대 대칭 구조) */}
       {(!warVote || isChangingVote) && (
         <div className="space-y-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-3 gap-2">
+            {/* 1. 찬성 (YES) */}
             <button
               type="button"
               onClick={() => handleVoteClick('YES')}
-              className={`py-3 px-4 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
+              className={`py-3 px-2 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
                 warVote === 'YES'
-                  ? 'bg-[#ff4d00] text-white shadow-[3px_3px_0_#d4d4d8]'
-                  : 'bg-white text-black hover:bg-[#ff4d00] hover:text-white shadow-[2px_2px_0_#d4d4d8]'
+                  ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#000]'
+                  : 'bg-white text-black hover:bg-[#ff4d00] hover:text-white'
               }`}
             >
               {copy.warYesBtn}
             </button>
 
+            {/* 2. 중립 (NEUTRAL) */}
+            <button
+              type="button"
+              onClick={() => handleVoteClick('NEUTRAL')}
+              className={`py-3 px-2 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
+                warVote === 'NEUTRAL'
+                  ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#000]'
+                  : 'bg-white text-black hover:bg-[#ffc900]'
+              }`}
+            >
+              {copy.warNeutralBtn}
+            </button>
+
+            {/* 3. 반대 (NO) */}
             <button
               type="button"
               onClick={() => handleVoteClick('NO')}
-              className={`py-3 px-4 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
+              className={`py-3 px-2 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
                 warVote === 'NO'
-                  ? 'bg-[#a3e635] text-black shadow-[3px_3px_0_#d4d4d8]'
-                  : 'bg-white text-black hover:bg-[#a3e635] shadow-[2px_2px_0_#d4d4d8]'
+                  ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#000]'
+                  : 'bg-white text-black hover:bg-[#a3e635]'
               }`}
             >
               {copy.warNoBtn}
@@ -122,7 +147,7 @@ export default function WarScenarioPoll({
       {warVote && !isChangingVote && (
         <div className="space-y-3 pt-2 border-t-2 border-black">
           {/* 전 세계 집계 */}
-          <div className="bg-[#fcfcfc] border-2 border-black p-3 space-y-1.5 shadow-[2px_2px_0_#d4d4d8]">
+          <div className="bg-[#fcfcfc] border-2 border-black p-3 space-y-2 shadow-[2px_2px_0_#d4d4d8]">
             <div className="flex items-center justify-between text-xs font-black">
               <span className="text-zinc-900">{copy.globalTallyLabel}</span>
               <span className="text-zinc-600 font-bold">
@@ -130,30 +155,46 @@ export default function WarScenarioPoll({
               </span>
             </div>
 
-            <div className="w-full h-5 bg-[#a3e635] border-2 border-black flex overflow-hidden">
+            {/* 3분할 프로그레스 바 */}
+            <div className="w-full h-5 bg-zinc-200 border-2 border-black flex overflow-hidden">
               <div
-                className="h-full bg-[#ff4d00] transition-all duration-700 ease-out border-r-2 border-black flex items-center justify-start px-2 text-[10px] text-white font-black"
+                className="h-full bg-[#ff4d00] transition-all duration-700 ease-out border-r border-black flex items-center justify-center px-1 text-[10px] text-white font-black overflow-hidden"
                 style={{ width: `${globalTotals.globalYesPct}%` }}
+                title={`YES: ${globalTotals.globalYesPct}%`}
               >
-                {globalTotals.globalYesPct > 0 ? `${globalTotals.globalYesPct}%` : ''}
+                {globalTotals.globalYesPct >= 10 ? `${globalTotals.globalYesPct}%` : ''}
               </div>
-              <div className="flex-1 flex items-center justify-end px-2 text-[10px] text-black font-black">
-                {globalTotals.globalNoPct > 0 ? `${globalTotals.globalNoPct}%` : ''}
+              <div
+                className="h-full bg-[#ffc900] transition-all duration-700 ease-out border-r border-black flex items-center justify-center px-1 text-[10px] text-black font-black overflow-hidden"
+                style={{ width: `${globalNeutralPct}%` }}
+                title={`NEUTRAL: ${globalNeutralPct}%`}
+              >
+                {globalNeutralPct >= 10 ? `${globalNeutralPct}%` : ''}
+              </div>
+              <div
+                className="h-full bg-[#a3e635] transition-all duration-700 ease-out flex items-center justify-center px-1 text-[10px] text-black font-black overflow-hidden"
+                style={{ width: `${globalTotals.globalNoPct}%` }}
+                title={`NO: ${globalTotals.globalNoPct}%`}
+              >
+                {globalTotals.globalNoPct >= 10 ? `${globalTotals.globalNoPct}%` : ''}
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-[#ff4d00] font-black">
+            <div className="grid grid-cols-3 gap-1 text-[11px] font-bold text-center">
+              <span className="text-[#ff4d00] font-black truncate">
                 {copy.warYesLabel} {globalTotals.globalYesPct}% ({globalTotals.totalYes.toLocaleString()})
               </span>
-              <span className="text-emerald-800 font-black">
+              <span className="text-amber-700 font-black truncate">
+                {copy.warNeutralLabel} {globalNeutralPct}% ({totalNeutral.toLocaleString()})
+              </span>
+              <span className="text-emerald-800 font-black truncate">
                 {copy.warNoLabel} {globalTotals.globalNoPct}% ({globalTotals.totalNo.toLocaleString()})
               </span>
             </div>
           </div>
 
           {/* 선택 국가 집계 */}
-          <div className="bg-[#fcfcfc] border-2 border-black p-3 space-y-1.5 shadow-[2px_2px_0_#d4d4d8]">
+          <div className="bg-[#fcfcfc] border-2 border-black p-3 space-y-2 shadow-[2px_2px_0_#d4d4d8]">
             <div className="flex items-center justify-between text-xs font-black">
               <span className="flex items-center gap-1.5 text-zinc-900">
                 <span>{countryData.flag}</span>
@@ -164,23 +205,39 @@ export default function WarScenarioPoll({
               </span>
             </div>
 
-            <div className="w-full h-5 bg-[#a3e635] border-2 border-black flex overflow-hidden">
+            {/* 3분할 국가 프로그레스 바 */}
+            <div className="w-full h-5 bg-zinc-200 border-2 border-black flex overflow-hidden">
               <div
-                className="h-full bg-[#ff4d00] transition-all duration-700 ease-out border-r-2 border-black flex items-center justify-start px-2 text-[10px] text-white font-black"
+                className="h-full bg-[#ff4d00] transition-all duration-700 ease-out border-r border-black flex items-center justify-center px-1 text-[10px] text-white font-black overflow-hidden"
                 style={{ width: `${countryYesPct}%` }}
+                title={`YES: ${countryYesPct}%`}
               >
-                {countryYesPct > 0 ? `${countryYesPct}%` : ''}
+                {countryYesPct >= 10 ? `${countryYesPct}%` : ''}
               </div>
-              <div className="flex-1 flex items-center justify-end px-2 text-[10px] text-black font-black">
-                {countryNoPct > 0 ? `${countryNoPct}%` : ''}
+              <div
+                className="h-full bg-[#ffc900] transition-all duration-700 ease-out border-r border-black flex items-center justify-center px-1 text-[10px] text-black font-black overflow-hidden"
+                style={{ width: `${countryNeutralPct}%` }}
+                title={`NEUTRAL: ${countryNeutralPct}%`}
+              >
+                {countryNeutralPct >= 10 ? `${countryNeutralPct}%` : ''}
+              </div>
+              <div
+                className="h-full bg-[#a3e635] transition-all duration-700 ease-out flex items-center justify-center px-1 text-[10px] text-black font-black overflow-hidden"
+                style={{ width: `${countryNoPct}%` }}
+                title={`NO: ${countryNoPct}%`}
+              >
+                {countryNoPct >= 10 ? `${countryNoPct}%` : ''}
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span className="text-[#ff4d00] font-black">
+            <div className="grid grid-cols-3 gap-1 text-[11px] font-bold text-center">
+              <span className="text-[#ff4d00] font-black truncate">
                 {copy.warYesLabel} {countryYesPct}% ({countryData.votes.yes.toLocaleString()})
               </span>
-              <span className="text-emerald-800 font-black">
+              <span className="text-amber-700 font-black truncate">
+                {copy.warNeutralLabel} {countryNeutralPct}% ({((countryData.votes.neutral || 0)).toLocaleString()})
+              </span>
+              <span className="text-emerald-800 font-black truncate">
                 {copy.warNoLabel} {countryNoPct}% ({countryData.votes.no.toLocaleString()})
               </span>
             </div>

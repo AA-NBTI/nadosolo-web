@@ -15,7 +15,7 @@ interface ThreatPulseChartProps {
   isEmbed?: boolean;
   locale?: OopsLocale;
   liveCtx?: ScoringInputContext;
-  warVote?: 'YES' | 'NO' | null;
+  warVote?: 'YES' | 'NO' | 'NEUTRAL' | null;
 }
 
 function ThermometerGraphic({ temp }: { temp: number }) {
@@ -179,13 +179,13 @@ export default function ThreatPulseChart({
 }: ThreatPulseChartProps) {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedRegions, setSelectedRegions] = useState<RegionCode[]>(['GLOBAL']);
-  const [localWarVote, setLocalWarVote] = useState<'YES' | 'NO' | null>(null);
+  const [localWarVote, setLocalWarVote] = useState<'YES' | 'NO' | 'NEUTRAL' | null>(null);
 
   useEffect(() => {
     if (externalWarVote !== undefined) return;
     try {
       const saved = localStorage.getItem('oops_war_vote_v1');
-      if (saved === 'YES' || saved === 'NO') setLocalWarVote(saved);
+      if (saved === 'YES' || saved === 'NO' || saved === 'NEUTRAL') setLocalWarVote(saved);
     } catch {
       // ignore storage failure
     }

@@ -216,7 +216,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [tab, setTab] = useState<FeedSortTab>('HOT');
   const [signals, setSignals] = useState<OopsSignal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [warVote, setWarVote] = useState<'YES' | 'NO' | null>(null);
+  const [warVote, setWarVote] = useState<'YES' | 'NO' | 'NEUTRAL' | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string>('KR');
   const [movementRegistry, setMovementRegistry] = useState<Record<string, CountryData>>(COUNTRIES_REGISTRY);
   const [movementTotals, setMovementTotals] = useState(calculateGlobalTotals(COUNTRIES_REGISTRY));
@@ -229,7 +229,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   useEffect(() => {
     try {
       const saved = localStorage.getItem('oops_war_vote_v1');
-      if (saved === 'YES' || saved === 'NO') setWarVote(saved);
+      if (saved === 'YES' || saved === 'NO' || saved === 'NEUTRAL') setWarVote(saved);
       const savedEnlist = localStorage.getItem('oops_enlistment_card_v2');
       if (savedEnlist) {
         const parsed = JSON.parse(savedEnlist) as EnlistmentRecord;
@@ -294,7 +294,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
     changeLocale(nextLoc);
   };
 
-  const handleVoteWar = async (choice: 'YES' | 'NO', countryCode: string) => {
+  const handleVoteWar = async (choice: 'YES' | 'NO' | 'NEUTRAL', countryCode: string) => {
     setWarVote(choice);
     try {
       localStorage.setItem('oops_war_vote_v1', choice);

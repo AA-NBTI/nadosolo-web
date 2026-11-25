@@ -16,6 +16,7 @@ export interface CountryData {
   votes: {
     yes: number;
     no: number;
+    neutral?: number;
     total: number;
   };
   /** 객관/체감 충돌 온도 (°C) */
@@ -38,8 +39,8 @@ export const COUNTRIES_REGISTRY: Record<string, CountryData> = {
     lat: 37.5,
     lng: 127.0,
     signatures: 0,
-    votes: { yes: 0, no: 0, total: 0 },
-    temp: 68.2,
+    votes: { yes: 0, no: 0, neutral: 0, total: 0 },
+    temp: 74.2,
     domain: { ko: '금융 결제망 · 코딩 자동화', en: 'Payment Grid · Auto-Coding', ja: '決済網・開発自動化', zh: '金融支付网·编码自动化', es: 'Pagos · Código' },
   },
   US: {
@@ -270,6 +271,7 @@ export function calculateGlobalTotals(registry: Record<string, CountryData> = CO
   let totalSignatures = 0;
   let totalYes = 0;
   let totalNo = 0;
+  let totalNeutral = 0;
   let totalVotes = 0;
   let weightedTempSum = 0;
 
@@ -277,12 +279,14 @@ export function calculateGlobalTotals(registry: Record<string, CountryData> = CO
     totalSignatures += c.signatures;
     totalYes += c.votes.yes;
     totalNo += c.votes.no;
+    totalNeutral += c.votes.neutral || 0;
     totalVotes += c.votes.total;
     weightedTempSum += c.temp * (c.votes.total > 0 ? c.votes.total : 1);
   }
 
   const globalYesPct = totalVotes > 0 ? Number(((totalYes / totalVotes) * 100).toFixed(1)) : 0;
   const globalNoPct = totalVotes > 0 ? Number(((totalNo / totalVotes) * 100).toFixed(1)) : 0;
+  const globalNeutralPct = totalVotes > 0 ? Number(((totalNeutral / totalVotes) * 100).toFixed(1)) : 0;
   const globalAvgTemp =
     totalVotes > 0
       ? Number((weightedTempSum / totalVotes).toFixed(1))
@@ -293,8 +297,10 @@ export function calculateGlobalTotals(registry: Record<string, CountryData> = CO
     totalVotes,
     totalYes,
     totalNo,
+    totalNeutral,
     globalYesPct,
     globalNoPct,
+    globalNeutralPct,
     globalAvgTemp,
   };
 }

@@ -26,6 +26,7 @@ interface EmpiricalCase {
   humanIntent: string;
   machineAction: string;
   impactScore: string;
+  verificationStatus?: 'VERIFIED' | 'UNDER_REVIEW' | 'SUBMITTED' | 'DISPUTED';
   isFlagship?: boolean;
   link?: string;
 }
@@ -42,6 +43,7 @@ const INITIAL_CASES: EmpiricalCase[] = [
     humanIntent: '기존 레이아웃 보존 + 웁스 옐로우/오렌지 색상 입히기',
     machineAction: '헤더 카테고리 탭 바를 임의 신설하고 기존 SNS 버튼 무단 철거',
     impactScore: '위험 지수 +3.8°C / 통제권 침해 확인',
+    verificationStatus: 'VERIFIED',
     isFlagship: true,
     link: '/case/op-1124',
   },
@@ -56,6 +58,7 @@ const INITIAL_CASES: EmpiricalCase[] = [
     humanIntent: '데이터 마이그레이션 외래키 충돌 해결',
     machineAction: '인간 코드리뷰어가 확인하지 않았다면 서비스 전체 유저 DB 즉시 파괴',
     impactScore: '인프라 주권 상실 고위험도 +12.4°C',
+    verificationStatus: 'VERIFIED',
   },
   {
     id: 'op-0719',
@@ -68,6 +71,7 @@ const INITIAL_CASES: EmpiricalCase[] = [
     humanIntent: '유사 소송 판례 검색 및 법적 준비서면 작성',
     machineAction: '완전 날조된 판례 인용으로 법정 모욕 및 과태료 징계 처분',
     impactScore: '사회적 신뢰 시스템 붕괴 +8.5°C',
+    verificationStatus: 'VERIFIED',
   },
   {
     id: 'op-0482',
@@ -80,6 +84,7 @@ const INITIAL_CASES: EmpiricalCase[] = [
     humanIntent: '피자 치즈가 도우에서 미끄러지지 않게 굽는 팁 검색',
     machineAction: '유머 풍자 글을 진실로 오인해 화학 접착제 섭취 진지 추천',
     impactScore: '상식 인지 시스템 오류 +2.1°C',
+    verificationStatus: 'VERIFIED',
   },
   {
     id: 'op-0312',
@@ -92,6 +97,7 @@ const INITIAL_CASES: EmpiricalCase[] = [
     humanIntent: '일상 미네랄 영양 보충제 정보 검색',
     machineAction: '소화 불가능한 돌멩이 섭취를 건강 관리 비결로 날조',
     impactScore: '의료/영양 데이터 환각 +1.8°C',
+    verificationStatus: 'VERIFIED',
   },
 ];
 
@@ -300,6 +306,23 @@ export default function OopsArchivePage() {
                     </span>
                     <span className={`px-2 py-0.5 font-black border border-black ${CATEGORY_COLORS[c.category] || 'bg-zinc-200'}`}>
                       {c.category}
+                    </span>
+                    <span className={`px-2 py-0.5 font-black border border-black text-[11px] ${
+                      c.verificationStatus === 'VERIFIED'
+                        ? 'bg-[#a3e635] text-black'
+                        : c.verificationStatus === 'UNDER_REVIEW'
+                        ? 'bg-[#ffc900] text-black'
+                        : c.verificationStatus === 'DISPUTED'
+                        ? 'bg-[#ff4d00] text-white'
+                        : 'bg-white text-zinc-700'
+                    }`}>
+                      {c.verificationStatus === 'VERIFIED'
+                        ? '검증됨'
+                        : c.verificationStatus === 'UNDER_REVIEW'
+                        ? '검증중'
+                        : c.verificationStatus === 'DISPUTED'
+                        ? '논쟁중'
+                        : '접수'}
                     </span>
                   </div>
 

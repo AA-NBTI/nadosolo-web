@@ -66,9 +66,14 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
             {copy.clockTitle}
           </span>
         </div>
-        <span className="px-2.5 py-0.5 bg-zinc-800 text-[#ffc900] font-black text-xs border border-black shadow-[2px_2px_0_#d4d4d8]">
-          {projectedYear}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <span className="px-2 py-0.5 bg-white text-zinc-700 font-bold text-[10px] sm:text-xs border border-black">
+            {locale === 'ko' ? '추정치 · 기준선' : 'MODEL ESTIMATE'}
+          </span>
+          <span className="px-2.5 py-0.5 bg-zinc-800 text-[#ffc900] font-black text-xs border border-black shadow-[2px_2px_0_#d4d4d8]">
+            {projectedYear}
+          </span>
+        </div>
       </div>
 
       {/* 2. 전광판: TOTAL HOURS & TOTAL MINUTES 공간 분할 */}
@@ -132,7 +137,9 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
             <div className="text-xl sm:text-2xl font-black font-mono text-[#ff4d00]">
               {engineOutput ? `${engineOutput.pDoomPercent}%` : '18.4%'}
             </div>
-            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">P(DOOM)</div>
+            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">
+              P(DOOM) <span className="text-[9px] text-zinc-400 font-normal">({locale === 'ko' ? '모델 추정' : 'ESTIMATE'})</span>
+            </div>
           </div>
         </div>
       </div>

@@ -91,15 +91,17 @@ export async function POST(req: NextRequest) {
 
     if (action === 'VOTE') {
       const choice = String(body?.choice || 'YES').toUpperCase();
-      if (choice !== 'YES' && choice !== 'NO') {
+      if (choice !== 'YES' && choice !== 'NO' && choice !== 'NEUTRAL') {
         return NextResponse.json({ ok: false, error: 'Invalid vote choice' }, { status: 400 });
       }
 
       const target = state.countries[countryCode];
       if (choice === 'YES') {
         target.votes.yes += 1;
-      } else {
+      } else if (choice === 'NO') {
         target.votes.no += 1;
+      } else if (choice === 'NEUTRAL') {
+        target.votes.neutral = (target.votes.neutral || 0) + 1;
       }
       target.votes.total += 1;
 
