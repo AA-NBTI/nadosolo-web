@@ -19,7 +19,6 @@ const SURVIVAL_LABELS: Record<OopsLocale, string> = {
 
 const SSR_REF_NOW = 1795564800000; // 2026-11-25T00:00:00Z
 
-// 7-세그먼트 매핑 (a:상, b:우상, c:우하, d:하, e:좌하, f:좌상, g:중앙)
 const SEG_MAP: Record<string, [boolean, boolean, boolean, boolean, boolean, boolean, boolean]> = {
   '0': [true, true, true, true, true, true, false],
   '1': [false, true, true, false, false, false, false],
@@ -41,22 +40,15 @@ function SevenSegDigit({ char }: { char: string }) {
   return (
     <svg
       viewBox="0 0 28 48"
-      className="w-3.5 h-6 sm:w-5 sm:h-9 md:w-6 md:h-10 shrink-0 drop-shadow-[0_0_5px_rgba(255,255,255,0.35)]"
+      className="w-2.5 h-4 sm:w-4 sm:h-7 md:w-[18px] md:h-8 shrink-0 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)]"
       aria-hidden="true"
     >
-      {/* a (상) */}
       <polygon points="5,2 23,2 20,6 8,6" className={segs[0] ? on : off} />
-      {/* b (우상) */}
       <polygon points="24,3 26,5 26,22 24,23 21,20 21,7" className={segs[1] ? on : off} />
-      {/* c (우하) */}
       <polygon points="24,25 26,26 26,43 24,45 21,41 21,28" className={segs[2] ? on : off} />
-      {/* d (하) */}
       <polygon points="8,42 20,42 23,46 5,46" className={segs[3] ? on : off} />
-      {/* e (좌하) */}
       <polygon points="4,25 7,28 7,41 4,45 2,43 2,26" className={segs[4] ? on : off} />
-      {/* f (좌상) */}
       <polygon points="4,3 7,7 7,20 4,23 2,22 2,5" className={segs[5] ? on : off} />
-      {/* g (중앙) */}
       <polygon points="5,24 8,21 20,21 23,24 20,27 8,27" className={segs[6] ? on : off} />
     </svg>
   );
@@ -66,11 +58,23 @@ function SevenSegColon() {
   return (
     <svg
       viewBox="0 0 10 48"
-      className="w-1.5 h-6 sm:w-2 sm:h-9 md:w-2.5 md:h-10 shrink-0"
+      className="w-1 h-4 sm:w-1.5 sm:h-7 md:w-2 md:h-8 shrink-0"
       aria-hidden="true"
     >
-      <rect x="2.5" y="13" width="5" height="5" rx="1" className="fill-white/90" />
-      <rect x="2.5" y="30" width="5" height="5" rx="1" className="fill-white/90" />
+      <rect x="2.5" y="13" width="5" height="5" rx="1" className="fill-white/95" />
+      <rect x="2.5" y="30" width="5" height="5" rx="1" className="fill-white/95" />
+    </svg>
+  );
+}
+
+function SevenSegDot() {
+  return (
+    <svg
+      viewBox="0 0 10 48"
+      className="w-1 h-4 sm:w-1.5 sm:h-7 md:w-2 md:h-8 shrink-0"
+      aria-hidden="true"
+    >
+      <rect x="2.5" y="39" width="5" height="5" rx="1" className="fill-white/95" />
     </svg>
   );
 }
@@ -81,13 +85,13 @@ export default function HeroSurvivalTimer({ locale, engineOutput }: HeroSurvival
   const offsetMs = (baselineRemainingYears - 9.0) * 365.25 * 24 * 60 * 60 * 1000;
   const targetDate = baseTarget + offsetMs;
 
-  // 요일/연수 없이 총 잔여 시간(Hours)으로 통합 계산 -> 실제 디지털 시계 HH:MM:SS 포맷
   const calc = (nowMs: number) => {
     const diff = Math.max(0, targetDate - nowMs);
     const totalHours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff / (1000 * 60)) % 60);
     const seconds = Math.floor((diff / 1000) % 60);
-    return { totalHours, minutes, seconds };
+    const cs = Math.floor((diff % 1000) / 10);
+    return { totalHours, minutes, seconds, cs };
   };
 
   const [t, setT] = useState(() => calc(SSR_REF_NOW));
@@ -96,7 +100,7 @@ export default function HeroSurvivalTimer({ locale, engineOutput }: HeroSurvival
     setT(calc(Date.now()));
     const timer = setInterval(() => {
       setT(calc(Date.now()));
-    }, 250);
+    }, 47);
     return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetDate]);
@@ -104,29 +108,37 @@ export default function HeroSurvivalTimer({ locale, engineOutput }: HeroSurvival
   const hoursStr = String(t.totalHours).padStart(5, '0');
   const minsStr = String(t.minutes).padStart(2, '0');
   const secsStr = String(t.seconds).padStart(2, '0');
+  const csStr = String(t.cs).padStart(2, '0');
 
   return (
     <div
-      className="bg-black/35 backdrop-blur-[2px] border border-white/25 px-3 py-2 sm:px-4 sm:py-2.5 select-none pointer-events-none rounded-sm"
+      className="inline-flex flex-col items-start gap-1 select-none pointer-events-none"
       aria-label={SURVIVAL_LABELS[locale] || SURVIVAL_LABELS.ko}
     >
-      <div className="text-[10px] sm:text-xs font-mono tracking-[0.18em] text-white/90 font-bold uppercase leading-none mb-2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+      {/* 1. 시계 본체에서 분리된 상단 명판 */}
+      <div className="bg-black/85 border border-white/25 px-2.5 py-1 text-[10px] sm:text-xs font-mono tracking-[0.18em] text-zinc-100 font-bold uppercase leading-none shadow-md">
         {SURVIVAL_LABELS[locale] || SURVIVAL_LABELS.ko}
       </div>
 
-      {/* 모든 자릿수 동일 크기의 정통 7-세그먼트 디지털 시계 */}
-      <div className="flex items-center gap-0.5 sm:gap-1">
-        {hoursStr.split('').map((ch, idx) => (
-          <SevenSegDigit key={`h-${idx}`} char={ch} />
-        ))}
-        <SevenSegColon />
-        {minsStr.split('').map((ch, idx) => (
-          <SevenSegDigit key={`m-${idx}`} char={ch} />
-        ))}
-        <SevenSegColon />
-        {secsStr.split('').map((ch, idx) => (
-          <SevenSegDigit key={`s-${idx}`} char={ch} />
-        ))}
+      {/* 2. 진짜 디지털 시계 본체 (진한 다크 배경 + 동일 크기 7-세그먼트 총시간:분:초.밀리초) */}
+      <div className="bg-black/85 backdrop-blur-sm border-2 border-white/30 px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-sm shadow-[0_6px_20px_rgba(0,0,0,0.85)]">
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          {hoursStr.split('').map((ch, idx) => (
+            <SevenSegDigit key={`h-${idx}`} char={ch} />
+          ))}
+          <SevenSegColon />
+          {minsStr.split('').map((ch, idx) => (
+            <SevenSegDigit key={`m-${idx}`} char={ch} />
+          ))}
+          <SevenSegColon />
+          {secsStr.split('').map((ch, idx) => (
+            <SevenSegDigit key={`s-${idx}`} char={ch} />
+          ))}
+          <SevenSegDot />
+          {csStr.split('').map((ch, idx) => (
+            <SevenSegDigit key={`cs-${idx}`} char={ch} />
+          ))}
+        </div>
       </div>
     </div>
   );
