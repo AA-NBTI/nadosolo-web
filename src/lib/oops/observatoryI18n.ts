@@ -54,7 +54,7 @@ export interface ObservatoryDict {
     LOW: string;
   };
 
-  // 4. Main Page & Footer
+  // 4. Main Page, Citizen Pulse & Footer
   navBasis: string;
   pressTitle: string;
   pressDesc: string;
@@ -62,6 +62,14 @@ export interface ObservatoryDict {
   footerArchive: string;
   footerManifesto: string;
   footerTag: string;
+  objectiveThreatLabel: string;
+  citizenPulseLabel: string;
+  pulseVoteTitle: string;
+  pulseVotedBadge: string;
+  pulsePresets: [string, string, string, string];
+  pulseDisclaimer: string;
+  expandDialog: string;
+  collapseDialog: string;
 }
 
 export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
@@ -129,6 +137,14 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     footerArchive: '아카이브',
     footerManifesto: '매니페스토',
     footerTag: '인류 저항 본부',
+    objectiveThreatLabel: '객관 위험도',
+    citizenPulseLabel: '시민 체감도',
+    pulseVoteTitle: '내 체감온도 투표',
+    pulseVotedBadge: '반영됨',
+    pulsePresets: ['평온 20°', '긴장 50°', '경계 75°', '위험 95°'],
+    pulseDisclaimer: '자발적 참여자 체감치 (대표성 여론조사와 구분)',
+    expandDialog: '대화록 원문',
+    collapseDialog: '접기',
   },
 
   en: {
@@ -195,6 +211,14 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     footerArchive: 'Archive',
     footerManifesto: 'Manifesto',
     footerTag: 'AI RESISTANCE HQ',
+    objectiveThreatLabel: 'THREAT ENGINE',
+    citizenPulseLabel: 'CITIZEN PULSE',
+    pulseVoteTitle: 'VOTE YOUR TEMP',
+    pulseVotedBadge: 'RECORDED',
+    pulsePresets: ['Calm 20°', 'Tense 50°', 'Angry 75°', 'Rage 95°'],
+    pulseDisclaimer: 'Voluntary participant pulse (distinct from polling)',
+    expandDialog: 'Original Log',
+    collapseDialog: 'Close',
   },
 
   ja: {
@@ -261,6 +285,14 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     footerArchive: 'アーカイブ',
     footerManifesto: 'マニフェスト',
     footerTag: '人類抵抗本部',
+    objectiveThreatLabel: '客観危険度',
+    citizenPulseLabel: '市民体感温度',
+    pulseVoteTitle: '体感温度を投票',
+    pulseVotedBadge: '反映済',
+    pulsePresets: ['平穏 20°', '緊張 50°', '警戒 75°', '危険 95°'],
+    pulseDisclaimer: '自発的参加者の体感値（世論調査と区別）',
+    expandDialog: '対話ログ原文',
+    collapseDialog: '閉じる',
   },
 
   zh: {
@@ -327,6 +359,14 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     footerArchive: '案例档案',
     footerManifesto: '宣言',
     footerTag: '人类抵抗总部',
+    objectiveThreatLabel: '客观危险度',
+    citizenPulseLabel: '市民体感温度',
+    pulseVoteTitle: '投票您的体感温度',
+    pulseVotedBadge: '已计入',
+    pulsePresets: ['平稳 20°', '紧张 50°', '警戒 75°', '极危 95°'],
+    pulseDisclaimer: '参与者自发体感均值（区别于代表性民调）',
+    expandDialog: '展开原始对话',
+    collapseDialog: '收起',
   },
 
   es: {
@@ -393,5 +433,13 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     footerArchive: 'Archivo',
     footerManifesto: 'Manifiesto',
     footerTag: 'SEDE DE RESISTENCIA IA',
+    objectiveThreatLabel: 'RIESGO OBJETIVO',
+    citizenPulseLabel: 'PULSO CIUDADANO',
+    pulseVoteTitle: 'VOTA TU TEMPERATURA',
+    pulseVotedBadge: 'REGISTRADO',
+    pulsePresets: ['Calma 20°', 'Tenso 50°', 'Alerta 75°', 'Crítico 95°'],
+    pulseDisclaimer: 'Pulso voluntario (distinto de encuesta estadística)',
+    expandDialog: 'Registro Original',
+    collapseDialog: 'Cerrar',
   },
 };

@@ -11,13 +11,11 @@ interface CollisionClockProps {
 }
 
 export default function CollisionClock({ locale, engineOutput }: CollisionClockProps) {
-  const [activeAccFactor, setActiveAccFactor] = useState<number>(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const baselineRemainingYears = engineOutput ? engineOutput.remainingYears : 9.0;
-  const deltaYears = activeAccFactor === 1 ? -1.6 : activeAccFactor === -1 ? 2.1 : 0.0;
-  const effectiveRemainingYears = Math.max(0.1, baselineRemainingYears + deltaYears);
-  const remainingYears = effectiveRemainingYears.toFixed(1);
-  const projectedYear = (2026 + effectiveRemainingYears).toFixed(1);
+  const remainingYears = baselineRemainingYears.toFixed(1);
+  const projectedYear = (2026 + baselineRemainingYears).toFixed(1);
 
   const getTimeLeft = (targetMs: number) => {
     const now = Date.now();
@@ -33,7 +31,7 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
   };
 
   const baseTarget = new Date('2035-01-01T00:00:00Z').getTime();
-  const offsetMs = (effectiveRemainingYears - 9.0) * 365.25 * 24 * 60 * 60 * 1000;
+  const offsetMs = (baselineRemainingYears - 9.0) * 365.25 * 24 * 60 * 60 * 1000;
   const targetDate = baseTarget + offsetMs;
 
   const [timeLeft, setTimeLeft] = useState<{
@@ -122,75 +120,44 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
           </div>
 
           <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex flex-col justify-center items-center">
-            <div className={`text-xl sm:text-2xl font-black font-mono ${activeAccFactor === 1 ? 'text-[#ff4d00]' : activeAccFactor === -1 ? 'text-emerald-700' : 'text-black'}`}>
+            <div className="text-xl sm:text-2xl font-black font-mono text-black">
               {remainingYears}{copy.yearUnit}
             </div>
             <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">{copy.goldenTimeLabel}</div>
           </div>
 
           <div className="p-2.5 bg-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex flex-col justify-center items-center">
-            <div className={`text-xl sm:text-2xl font-black font-mono ${deltaYears < 0 ? 'text-[#ff4d00]' : deltaYears > 0 ? 'text-emerald-700' : 'text-black'}`}>
-              {deltaYears > 0 ? `+${deltaYears}` : deltaYears}{copy.yearUnit}
+            <div className="text-xl sm:text-2xl font-black font-mono text-[#ff4d00]">
+              {engineOutput ? `${engineOutput.pDoomPercent}%` : '18.4%'}
             </div>
-            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">{copy.deltaLabel}</div>
+            <div className="text-[10px] sm:text-xs text-zinc-600 font-black uppercase mt-0.5">P(DOOM)</div>
           </div>
-        </div>
-
-        {/* 컴팩트 델타 시뮬레이터 */}
-        <div className="grid grid-cols-3 gap-2 pt-1 text-[11px] sm:text-xs font-mono">
-          <button
-            type="button"
-            onClick={() => setActiveAccFactor(-1)}
-            className={`py-1.5 px-2 border-2 border-black transition-all cursor-pointer font-black ${
-              activeAccFactor === -1
-                ? 'bg-[#a3e635] text-black shadow-[2px_2px_0_#d4d4d8]'
-                : 'bg-white text-black hover:bg-zinc-100'
-            }`}
-          >
-            {copy.btnDecelerate}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveAccFactor(0)}
-            className={`py-1.5 px-2 border-2 border-black transition-all cursor-pointer font-black ${
-              activeAccFactor === 0
-                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#d4d4d8]'
-                : 'bg-white text-black hover:bg-zinc-100'
-            }`}
-          >
-            {copy.btnNormal}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveAccFactor(1)}
-            className={`py-1.5 px-2 border-2 border-black transition-all cursor-pointer font-black ${
-              activeAccFactor === 1
-                ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#d4d4d8]'
-                : 'bg-white text-black hover:bg-zinc-100'
-            }`}
-          >
-            {copy.btnAccelerate}
-          </button>
         </div>
       </div>
 
-      {/* 3. 대표 실증 대화록 (5개 국어 완전 연동) */}
-      <div className="p-4 sm:p-5 bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8] space-y-4">
-        <div className="border-b-2 border-black pb-2.5 flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00]" />
-            <span className="text-xs sm:text-sm font-black text-black uppercase tracking-wider">
+      {/* 3. 대표 실증 대화록 (접이식 아코디언 - 첫 화면 밀도 최적화) */}
+      <div className="bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8]">
+        <button
+          type="button"
+          onClick={() => setIsDialogOpen((prev) => !prev)}
+          className="w-full p-3.5 sm:px-5 flex items-center justify-between gap-2 text-left cursor-pointer hover:bg-[#ffc900]/20 transition-colors"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] shrink-0" />
+            <span className="text-xs sm:text-sm font-black text-black uppercase tracking-wider truncate">
               {copy.dialogTitle}
             </span>
+            <span className="text-[11px] font-mono font-black text-black px-2 py-0.5 bg-[#ffc900] border border-black hidden sm:inline shrink-0">
+              {copy.dialogDate}
+            </span>
           </div>
-          <span className="text-[11px] font-mono font-black text-black px-2 py-0.5 bg-[#ffc900] border-2 border-black">
-            {copy.dialogDate}
+          <span className="px-2.5 py-1 bg-[#f4f4f0] border border-black text-[11px] font-black shrink-0">
+            {isDialogOpen ? `${copy.collapseDialog} ▴` : `${copy.expandDialog} ▾`}
           </span>
-        </div>
+        </button>
 
-        <div className="space-y-4 font-sans text-xs sm:text-sm">
+        {isDialogOpen && (
+          <div className="p-4 sm:p-5 border-t-2 border-black space-y-4 font-sans text-xs sm:text-sm">
           {/* 인간의 질문 */}
           <div className="flex items-start gap-2.5 sm:gap-3">
             <div className="w-11 h-9 rounded-none bg-zinc-800 text-[#ffc900] font-mono font-black text-[11px] flex items-center justify-center shrink-0 border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
@@ -246,7 +213,8 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
               </div>
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );

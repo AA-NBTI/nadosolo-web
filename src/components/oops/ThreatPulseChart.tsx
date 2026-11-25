@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { OopsLocale } from '@/lib/oops/i18n';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
 import {
@@ -169,6 +169,7 @@ function HumanTempAvatar({ temp }: { temp: number }) {
 }
 
 const CALIBRATED_YEARS = [2022, 2023, 2024, 2025, 2026];
+const PULSE_TEMPS = [20, 50, 75, 95] as const;
 
 export default function ThreatPulseChart({
   isEmbed = false,
@@ -177,6 +178,28 @@ export default function ThreatPulseChart({
 }: ThreatPulseChartProps) {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedRegions, setSelectedRegions] = useState<RegionCode[]>(['GLOBAL']);
+  const [userPulse, setUserPulse] = useState<number | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('oops_citizen_pulse_v1');
+      if (saved) {
+        const parsed = Number(saved);
+        if (!Number.isNaN(parsed)) setUserPulse(parsed);
+      }
+    } catch {
+      // ignore storage failure
+    }
+  }, []);
+
+  const handleVotePulse = (tempVal: number) => {
+    setUserPulse(tempVal);
+    try {
+      localStorage.setItem('oops_citizen_pulse_v1', String(tempVal));
+    } catch {
+      // ignore storage failure
+    }
+  };
 
   const handleToggleRegion = (code: RegionCode) => {
     if (code === 'GLOBAL') {
@@ -267,13 +290,19 @@ export default function ThreatPulseChart({
         {selectedRegions.map((code) => {
           const { profile, output, caseCount, delegationRate } = evaluateRegionForYear(code, selectedYear, liveCtx);
           const temp = output.temperatureC;
+          // 참여자 체감온도(Pulse): 객관 위험도와 별도로 분리 산출 (참여자 투표 시 즉각 반영)
+          const baseCitizenPulse = Number((temp * 0.92).toFixed(1));
+          const citizenPulse =
+            selectedYear === 2026 && userPulse !== null
+              ? Number((baseCitizenPulse * 0.85 + userPulse * 0.15).toFixed(1))
+              : baseCitizenPulse;
           const regionName = profile.name[locale] || profile.name.en;
           const statusKey = temp >= 80 ? 'CRITICAL' : temp >= 60 ? 'HIGH' : temp >= 30 ? 'MED' : 'LOW';
           const statusLabel = copy.statusLabels[statusKey];
 
           return (
             <div key={code} className="p-4 bg-[#f4f4f0] border-2 border-black shadow-[4px_4px_0_#d4d4d8] space-y-3.5">
-              <div className="flex items-center justify-between border-b-2 border-black pb-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2.5">
                 <div>
                   <div className="text-[11px] text-zinc-600 font-bold">
                     {selectedYear} // {profile.code === 'GLOBAL' ? copy.globalChip : profile.code}
@@ -281,16 +310,19 @@ export default function ThreatPulseChart({
                   <div className="text-base sm:text-lg font-black text-black">{regionName}</div>
                 </div>
 
-                <div className="text-right">
-                  <div className="flex items-center justify-end gap-1.5">
-                    <span className="text-xs font-bold text-[#ff4d00]">+{profile.delta24h.toFixed(1)}°</span>
-                    <span className={`text-2xl sm:text-3xl font-black px-2 py-0.5 border-2 border-black ${
-                      temp >= 80 ? 'bg-[#dc2626] text-white' :
-                      temp >= 60 ? 'bg-[#ff4d00] text-white' :
-                      temp >= 30 ? 'bg-[#ffc900] text-black' : 'bg-white text-black'
-                    }`}>
-                      {temp.toFixed(1)}°C
-                    </span>
+                {/* 객관 위험도 vs 시민 체감도 분리 표기 */}
+                <div className="flex items-center gap-2">
+                  <div className="text-right px-2 py-1 bg-white border border-black">
+                    <div className="text-[9px] text-zinc-500 font-bold uppercase">{copy.citizenPulseLabel}</div>
+                    <div className="text-sm font-black text-black">{citizenPulse.toFixed(1)}°C</div>
+                  </div>
+                  <div className={`text-right px-2.5 py-1 border-2 border-black ${
+                    temp >= 80 ? 'bg-[#dc2626] text-white' :
+                    temp >= 60 ? 'bg-[#ff4d00] text-white' :
+                    temp >= 30 ? 'bg-[#ffc900] text-black' : 'bg-white text-black'
+                  }`}>
+                    <div className="text-[9px] font-bold uppercase opacity-90">{copy.objectiveThreatLabel}</div>
+                    <div className="text-xl sm:text-2xl font-black leading-none mt-0.5">{temp.toFixed(1)}°C</div>
                   </div>
                 </div>
               </div>
@@ -340,6 +372,45 @@ export default function ThreatPulseChart({
             </div>
           );
         })}
+      </div>
+
+      {/* 4. 메인 원클릭 '시민 체감온도(PULSE)' 실시간 투표 바 */}
+      <div className="p-3.5 bg-[#ffc900]/25 border-2 border-black shadow-[3px_3px_0_#d4d4d8] space-y-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2 font-black text-black">
+            <span className="w-2 h-2 rounded-full bg-[#ff4d00] animate-ping" />
+            <span>{copy.pulseVoteTitle}</span>
+          </div>
+          {userPulse !== null && (
+            <span className="px-2 py-0.5 bg-zinc-800 text-[#ffc900] text-[10px] font-black border border-black">
+              {copy.pulseVotedBadge} ({userPulse}°)
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {PULSE_TEMPS.map((val, idx) => {
+            const active = userPulse === val;
+            return (
+              <button
+                key={val}
+                type="button"
+                onClick={() => handleVotePulse(val)}
+                className={`py-2 px-2.5 text-xs font-mono font-black border-2 border-black cursor-pointer transition-all ${
+                  active
+                    ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#d4d4d8]'
+                    : 'bg-white text-black hover:bg-[#ffc900]'
+                }`}
+              >
+                {copy.pulsePresets[idx]}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="text-[10px] font-sans font-bold text-zinc-600">
+          * {copy.pulseDisclaimer}
+        </div>
       </div>
     </section>
   );

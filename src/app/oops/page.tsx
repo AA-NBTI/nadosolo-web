@@ -811,7 +811,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                 </div>
               </div>
               <a
-                href="/embed/chart?theme=ai_collision"
+                href={`/embed/chart?theme=ai_collision&locale=${locale}`}
                 target="_blank"
                 rel="noreferrer"
                 className="px-4 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1.5"
