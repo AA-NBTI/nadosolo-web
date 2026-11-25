@@ -14,7 +14,7 @@ import {
   type RankGroup,
 } from '@/lib/oops/rankSystem';
 import { OOPS_ORG_HIERARCHY, type OrgTrack } from '@/lib/oops/organizationSystem';
-import { COUNTRIES_REGISTRY } from '@/lib/oops/movementStore';
+import { COUNTRIES_REGISTRY, type EnlistmentRecord } from '@/lib/oops/movementStore';
 
 interface AgentRow {
   agentId: string;
@@ -37,6 +37,7 @@ type HqTabKey =
   | 'OVERVIEW'
   | 'ORGANIZATION'
   | 'RANKS'
+  | 'SIGNATORIES'
   | 'OUTPOST'
   | 'THREAT_ENGINE'
   | 'FEED_SIGNALS'
@@ -66,6 +67,8 @@ export default function OopsHqAdminPage() {
   const [releases, setReleases] = useState<OopsReleaseEntry[]>([]);
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [members, setMembers] = useState<OopsMemberPublic[]>([]);
+  const [signatories, setSignatories] = useState<EnlistmentRecord[]>([]);
+  const [totalSignatures, setTotalSignatures] = useState(0);
   const [backers, setBackers] = useState<BackerRow[]>([]);
   const [signals, setSignals] = useState<OopsSignal[]>([]);
   const [bannedAgents, setBannedAgents] = useState<string[]>([]);
@@ -80,6 +83,7 @@ export default function OopsHqAdminPage() {
   const [expandedRankCode, setExpandedRankCode] = useState<string | null>(null);
 
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
+  const [expandedSignatoryKey, setExpandedSignatoryKey] = useState<string | null>(null);
   const [expandedSignalId, setExpandedSignalId] = useState<string | null>(null);
 
   // UTM / QR 캠페인 통계
@@ -117,6 +121,8 @@ export default function OopsHqAdminPage() {
       setReleases(data.releases || []);
       setAgents(data.agents || []);
       setMembers(data.members || []);
+      setSignatories(data.signatories || []);
+      setTotalSignatures(data.totalSignatures || 0);
       setBackers(data.backers || []);
       setSignals(data.signals || []);
       setBannedAgents(data.bannedAgents || []);
@@ -230,26 +236,27 @@ export default function OopsHqAdminPage() {
     {
       title: '작전 · 조직',
       items: [
-        { key: 'OVERVIEW', label: '종합상황' },
-        { key: 'ORGANIZATION', label: '조직체계', badge: OOPS_ORG_HIERARCHY.length },
-        { key: 'RANKS', label: '계급체계', badge: OOPS_MILITARY_RANKS.length },
-        { key: 'OUTPOST', label: '초소대원', badge: members.length },
+        { key: 'OVERVIEW', label: '상황' },
+        { key: 'ORGANIZATION', label: '조직', badge: OOPS_ORG_HIERARCHY.length },
+        { key: 'RANKS', label: '계급', badge: OOPS_MILITARY_RANKS.length },
+        { key: 'SIGNATORIES', label: '서약', badge: signatories.length },
+        { key: 'OUTPOST', label: '대원', badge: members.length },
       ],
     },
     {
       title: '위협 · 첩보',
       items: [
-        { key: 'THREAT_ENGINE', label: '위험엔진', badge: threatThemes.length },
-        { key: 'FEED_SIGNALS', label: '현장제보', badge: signals.length },
+        { key: 'THREAT_ENGINE', label: '위험', badge: threatThemes.length },
+        { key: 'FEED_SIGNALS', label: '제보', badge: signals.length },
       ],
     },
     {
       title: '통신 · 지원',
       items: [
-        { key: 'PUSH_BROADCAST', label: '긴급타전', badge: agents.length },
-        { key: 'CAMPAIGN_TRACKING', label: '유입추적', badge: trackingSummary?.totalVisits || 0 },
-        { key: 'BACKERS', label: '후원지원', badge: backers.length },
-        { key: 'RELEASES', label: '배포이력', badge: latestVersion },
+        { key: 'PUSH_BROADCAST', label: '타전', badge: agents.length },
+        { key: 'CAMPAIGN_TRACKING', label: '유입', badge: trackingSummary?.totalVisits || 0 },
+        { key: 'BACKERS', label: '후원', badge: backers.length },
+        { key: 'RELEASES', label: '배포', badge: latestVersion },
       ],
     },
   ];
@@ -391,9 +398,10 @@ export default function OopsHqAdminPage() {
 
           <div className="p-3 border border-white/15 bg-[#101218] space-y-1.5 text-sm text-zinc-200">
             <div className="text-white font-bold">지휘통제</div>
-            <div>초소대원: {members.length}명</div>
+            <div>서약: {signatories.length}건</div>
+            <div>대원: {members.length}명</div>
             <div>무전노드: {agents.length}기</div>
-            <div>제보첩보: {signals.length}건</div>
+            <div>현장제보: {signals.length}건</div>
           </div>
         </aside>
 
@@ -412,9 +420,13 @@ export default function OopsHqAdminPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
                 <div className="p-4 border border-white/15 bg-[#101218] space-y-1">
-                  <div className="text-sm text-zinc-200">초소대원</div>
+                  <div className="text-sm text-zinc-200">서약</div>
+                  <div className="text-2xl font-bold text-white">{totalSignatures || signatories.length}</div>
+                </div>
+                <div className="p-4 border border-white/15 bg-[#101218] space-y-1">
+                  <div className="text-sm text-zinc-200">대원</div>
                   <div className="text-2xl font-bold text-white">{members.length}</div>
                 </div>
                 <div className="p-4 border border-white/15 bg-[#101218] space-y-1">
@@ -422,11 +434,11 @@ export default function OopsHqAdminPage() {
                   <div className="text-2xl font-bold text-white">{agents.length}</div>
                 </div>
                 <div className="p-4 border border-white/15 bg-[#101218] space-y-1">
-                  <div className="text-sm text-zinc-200">현장첩보</div>
+                  <div className="text-sm text-zinc-200">현장제보</div>
                   <div className="text-2xl font-bold text-white">{signals.length}</div>
                 </div>
-                <div className="p-4 border border-white/15 bg-[#101218] space-y-1">
-                  <div className="text-sm text-zinc-200">후원신청</div>
+                <div className="p-4 border border-white/15 bg-[#101218] space-y-1 col-span-2 md:col-span-1">
+                  <div className="text-sm text-zinc-200">후원</div>
                   <div className="text-2xl font-bold text-white">{backers.length}</div>
                 </div>
               </div>
@@ -662,23 +674,94 @@ export default function OopsHqAdminPage() {
             </div>
           )}
 
-          {/* 4. 초소대원 (OUTPOST) */}
+          {/* 4. 서약 (SIGNATORIES) */}
+          {activeTab === 'SIGNATORIES' && (
+            <div className="space-y-4">
+              <div className="p-3 border border-white/15 bg-[#101218] flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d00]" />
+                  <h2 className="text-lg text-white font-bold">서약</h2>
+                  <span className="text-sm px-2 py-0.5 border border-white/20 text-zinc-200">
+                    {signatories.length}
+                  </span>
+                </div>
+                <span className="text-sm px-2.5 py-0.5 border border-white/25 text-white font-bold">서약</span>
+              </div>
+
+              {signatories.length === 0 ? (
+                <div className="p-8 border border-white/15 bg-[#101218] text-center text-sm text-zinc-200">
+                  접수된 서약 기록이 없습니다.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {signatories.map((s) => {
+                    const key = `${s.countryCode}-${s.enlistmentNo}`;
+                    const isOpen = expandedSignatoryKey === key;
+                    const c = COUNTRIES_REGISTRY[s.countryCode] || COUNTRIES_REGISTRY.KR;
+                    return (
+                      <div
+                        key={key}
+                        onClick={() => setExpandedSignatoryKey(isOpen ? null : key)}
+                        className={`p-3.5 border border-white/15 bg-[#101218] hover:border-white/35 cursor-pointer ${
+                          isOpen ? 'col-span-full border-white/40' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm font-bold text-white">#{s.enlistmentNo}</span>
+                            <span className="text-sm text-zinc-200 truncate">{s.callsign}</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="px-2 py-0.5 text-sm border border-white/20 text-white">
+                              {c.flag} {c.code}
+                            </span>
+                            <span className="px-2 py-0.5 text-sm border border-white/25 text-white font-bold">
+                              서약
+                            </span>
+                          </div>
+                        </div>
+
+                        {isOpen && (
+                          <div className="mt-3 pt-3 border-t border-white/15 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                            <div className="p-2 bg-[#08090c] border border-white/10">
+                              <div className="text-zinc-300 font-bold">이름</div>
+                              <div className="text-white">{s.callsign}</div>
+                            </div>
+                            <div className="p-2 bg-[#08090c] border border-white/10">
+                              <div className="text-zinc-300 font-bold">국가</div>
+                              <div className="text-white">{c.flag} {c.name.ko || c.name.en}</div>
+                            </div>
+                            <div className="p-2 bg-[#08090c] border border-white/10">
+                              <div className="text-zinc-300 font-bold">일시</div>
+                              <div className="text-white">{s.enlistedAt ? new Date(s.enlistedAt).toLocaleString('ko-KR') : '-'}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 5. 대원 (OUTPOST) */}
           {activeTab === 'OUTPOST' && (
             <div className="space-y-4">
               <div className="p-3 border border-white/15 bg-[#101218] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#ff4d00]" />
-                  <h2 className="text-lg text-white font-bold">초소대원</h2>
+                  <h2 className="text-lg text-white font-bold">대원</h2>
                   <span className="text-sm px-2 py-0.5 border border-white/20 text-zinc-200">
                     {members.length}
                   </span>
                 </div>
-                <span className="text-sm px-2.5 py-0.5 border border-white/25 text-white font-bold">정식등록</span>
+                <span className="text-sm px-2.5 py-0.5 border border-white/25 text-white font-bold">대원</span>
               </div>
 
               {members.length === 0 ? (
                 <div className="p-8 border border-white/15 bg-[#101218] text-center text-sm text-zinc-200">
-                  등록된 초소 대원이 아직 없습니다.
+                  등록된 대원이 없습니다.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
