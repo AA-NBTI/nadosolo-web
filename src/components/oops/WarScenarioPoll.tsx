@@ -55,10 +55,7 @@ export default function WarScenarioPoll({
   };
 
   const scrollToEnlist = () => {
-    const el = document.getElementById('oops-enlistment-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+    window.location.href = '/declaration';
   };
 
   return (

@@ -87,7 +87,7 @@ export default function OopsDeclarationPage() {
               <span>OOPS</span>
             </Link>
             <span className="text-sm font-black tracking-tight text-black">
-              {locale === 'ko' ? '선언' : locale === 'ja' || locale === 'zh' ? '宣言' : locale === 'es' ? 'Declaración' : 'Declaration'}
+              {locale === 'ko' ? '선서' : locale === 'ja' || locale === 'zh' ? '宣誓' : locale === 'es' ? 'Juramento' : 'Oath'}
             </span>
           </div>
 

@@ -812,7 +812,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               href="/declaration"
               className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
             >
-              {locale === 'ko' ? '선언' : locale === 'ja' || locale === 'zh' ? '宣言' : locale === 'es' ? 'Declaración' : 'Declaration'}
+              {locale === 'ko' ? '선서' : locale === 'ja' || locale === 'zh' ? '宣誓' : locale === 'es' ? 'Juramento' : 'Oath'}
             </Link>
 
             <button
@@ -828,10 +828,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>{f.navApp}</span>
+              <span>{locale === 'ko' ? '무전' : locale === 'ja' ? '無線' : locale === 'zh' ? '无线' : 'Radio'}</span>
             </a>
 
-            {/* APP 옆 SNS 카테고리 버튼 (화이트 버튼 표준) */}
+            {/* 소통 카테고리 버튼 */}
             <button
               type="button"
               onClick={() => setViewMode((prev) => (prev === 'SNS' ? 'OBSERVATORY' : 'SNS'))}
@@ -840,7 +840,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               }`}
             >
               <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
-              <span>SNS</span>
+              <span>{locale === 'ko' ? '소통' : locale === 'ja' ? '疎通' : locale === 'zh' ? '沟通' : locale === 'es' ? 'Comunidad' : 'Comms'}</span>
             </button>
 
             {/* OOPS AI 저항군 초소 입구 (헌병대 검문소 / 로그인·계급·군번) */}
@@ -954,30 +954,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               globalTotals={movementTotals}
             />
 
-            {/* 3. OOPS 선언문 및 공식 합류 서명 (원안 보존 + 3줄 순차 노출 + 서명자 월 + 마일스톤) */}
-            <OopsEnlistmentSection
-              locale={locale}
-              selectedCountry={selectedCountry}
-              onSelectCountry={setSelectedCountry}
-              member={member}
-              totalSignatures={movementTotals.totalSignatures}
-              recentSignatories={recentSignatories}
-              onOpenAuth={(mode) => {
-                setAuthModalMode(mode);
-                setAuthModalOpen(true);
-              }}
-              onEnlistSuccess={(rec) => {
-                setProvisionalRecord(rec);
-                setRecentSignatories((prev) => [rec, ...prev].slice(0, 20));
-                handleEnlistSuccess(rec);
-              }}
-              onReportIncident={() => {
-                setViewMode('SNS');
-                scrollToComposer();
-              }}
-            />
-
-            {/* 4. 3D 인터랙티브 글로벌 관제 지도 (서명자 / 투표자 / 체감온도 3개 탭 360° 회전 지구본) */}
+            {/* 3. 3D 인터랙티브 글로벌 관제 지도 (서명자 / 투표자 / 체감온도 3개 탭 360° 회전 지구본) */}
             <Global3DDataGlobe
               locale={locale}
               selectedCountry={selectedCountry}
