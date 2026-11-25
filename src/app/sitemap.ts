@@ -13,6 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const siteUrl = 'https://oops.monster';
     return [
       { url: siteUrl, lastModified: now, changeFrequency: 'daily', priority: 1.0 },
+      { url: `${siteUrl}/declaration`, lastModified: now, changeFrequency: 'daily', priority: 0.9 },
       { url: `${siteUrl}/methodology`, lastModified: now, changeFrequency: 'daily', priority: 0.9 },
       { url: `${siteUrl}/archive`, lastModified: now, changeFrequency: 'daily', priority: 0.8 },
       { url: `${siteUrl}/case/op-1124`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },

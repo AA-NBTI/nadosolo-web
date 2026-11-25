@@ -34,20 +34,20 @@ export default function WarScenarioPoll({
   onVote,
   countryData = COUNTRIES_REGISTRY[selectedCountry] || COUNTRIES_REGISTRY.KR,
   globalTotals = {
-    totalSignatures: 48900,
-    totalVotes: 58600,
-    totalYes: 41800,
-    totalNo: 16800,
-    globalYesPct: 71.3,
-    globalNoPct: 28.7,
+    totalSignatures: 0,
+    totalVotes: 0,
+    totalYes: 0,
+    totalNo: 0,
+    globalYesPct: 0,
+    globalNoPct: 0,
   },
 }: WarScenarioPollProps) {
   const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
   const [isChangingVote, setIsChangingVote] = useState(false);
 
   const countryTotal = countryData.votes.total;
-  const countryYesPct = countryTotal > 0 ? Math.round((countryData.votes.yes / countryTotal) * 100) : 68;
-  const countryNoPct = 100 - countryYesPct;
+  const countryYesPct = countryTotal > 0 ? Math.round((countryData.votes.yes / countryTotal) * 100) : 0;
+  const countryNoPct = countryTotal > 0 ? 100 - countryYesPct : 0;
 
   const handleVoteClick = (choice: 'YES' | 'NO') => {
     onVote(choice, selectedCountry);

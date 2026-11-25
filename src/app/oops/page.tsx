@@ -216,6 +216,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [selectedCountry, setSelectedCountry] = useState<string>('KR');
   const [movementRegistry, setMovementRegistry] = useState<Record<string, CountryData>>(COUNTRIES_REGISTRY);
   const [movementTotals, setMovementTotals] = useState(calculateGlobalTotals(COUNTRIES_REGISTRY));
+  const [recentSignatories, setRecentSignatories] = useState<EnlistmentRecord[]>([]);
   const [member, setMember] = useState<OopsMemberPublic | null>(null);
   const [provisionalRecord, setProvisionalRecord] = useState<EnlistmentRecord | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -248,6 +249,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         if (data?.ok && data.countries) {
           setMovementRegistry(data.countries);
           if (data.totals) setMovementTotals(data.totals);
+          if (Array.isArray(data.recentSignatories)) setRecentSignatories(data.recentSignatories);
         }
       })
       .catch(() => {});
@@ -807,10 +809,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
 
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Link
-              href="/methodology"
+              href="/declaration"
               className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
             >
-              {obs.navBasis}
+              {locale === 'ko' ? '선언' : locale === 'ja' || locale === 'zh' ? '宣言' : locale === 'es' ? 'Declaración' : 'Declaration'}
             </Link>
 
             <button
@@ -957,15 +959,16 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               locale={locale}
               selectedCountry={selectedCountry}
               onSelectCountry={setSelectedCountry}
-              agentId={agentId}
               member={member}
               totalSignatures={movementTotals.totalSignatures}
+              recentSignatories={recentSignatories}
               onOpenAuth={(mode) => {
                 setAuthModalMode(mode);
                 setAuthModalOpen(true);
               }}
               onEnlistSuccess={(rec) => {
                 setProvisionalRecord(rec);
+                setRecentSignatories((prev) => [rec, ...prev].slice(0, 20));
                 handleEnlistSuccess(rec);
               }}
               onReportIncident={() => {
@@ -1521,6 +1524,13 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               className="text-black hover:text-[#ff4d00] font-black underline underline-offset-4 cursor-pointer"
             >
               {obs.footerArchive}
+            </Link>
+            <span className="text-zinc-400">·</span>
+            <Link
+              href="/methodology"
+              className="text-black hover:text-[#ff4d00] font-black underline underline-offset-4 cursor-pointer"
+            >
+              {obs.navBasis}
             </Link>
             <span className="text-zinc-400">·</span>
             <button
