@@ -35,7 +35,7 @@ const SEG_MAP: Record<string, [boolean, boolean, boolean, boolean, boolean, bool
 function SevenSegDigit({ char }: { char: string }) {
   const segs = SEG_MAP[char] || SEG_MAP['0'];
   const on = 'fill-white';
-  const off = 'fill-white/10';
+  const off = 'fill-white/[0.03]';
 
   return (
     <svg
