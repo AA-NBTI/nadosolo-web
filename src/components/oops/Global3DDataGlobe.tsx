@@ -157,9 +157,17 @@ export default function Global3DDataGlobe({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const rotationRef = useRef({ yaw: 0.6, pitch: 0.25 });
+  const zoomRef = useRef(1.0);
+  const [zoomLabel, setZoomLabel] = useState('1.0x');
   const isDraggingRef = useRef(false);
   const lastMousePosRef = useRef({ x: 0, y: 0 });
   const autoRotateRef = useRef(true);
+
+  const applyZoom = (next: number) => {
+    const clamped = Math.max(0.7, Math.min(2.4, Number(next.toFixed(2))));
+    zoomRef.current = clamped;
+    setZoomLabel(`${clamped.toFixed(1)}x`);
+  };
 
   const t = GLOBE_I18N[locale] || GLOBE_I18N.ko;
 
@@ -190,7 +198,7 @@ export default function Global3DDataGlobe({
       const height = canvas.height;
       const centerX = width / 2;
       const centerY = height / 2;
-      const radius = Math.min(width, height) * 0.39;
+      const radius = Math.min(width, height) * 0.39 * zoomRef.current;
 
       ctx.clearRect(0, 0, width, height);
 
@@ -483,7 +491,7 @@ export default function Global3DDataGlobe({
         </button>
       </div>
 
-      {/* 3D 지구본 뷰포트 */}
+      {/* 3D 지구본 뷰포트 (드래그 회전 + 휠·버튼 확대/축소) */}
       <div className="relative w-full aspect-square max-h-[360px] sm:max-h-[420px] mx-auto bg-[#04060a] border-2 border-black overflow-hidden flex items-center justify-center select-none shadow-[4px_4px_0_#d4d4d8]">
         <canvas
           ref={canvasRef}
@@ -493,8 +501,40 @@ export default function Global3DDataGlobe({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
+          onWheel={(e) => {
+            e.preventDefault();
+            applyZoom(zoomRef.current + (e.deltaY < 0 ? 0.15 : -0.15));
+          }}
           className="w-full h-full object-contain cursor-grab active:cursor-grabbing touch-none"
         />
+
+        {/* 우측 하단 확대/축소 컨트롤 */}
+        <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-black/80 border border-white/25 p-1">
+          <button
+            type="button"
+            onClick={() => applyZoom(zoomRef.current + 0.25)}
+            className="w-7 h-7 bg-zinc-900 hover:bg-zinc-700 text-white font-black text-sm border border-zinc-600 cursor-pointer"
+            aria-label="확대"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => applyZoom(zoomRef.current - 0.25)}
+            className="w-7 h-7 bg-zinc-900 hover:bg-zinc-700 text-white font-black text-sm border border-zinc-600 cursor-pointer"
+            aria-label="축소"
+          >
+            -
+          </button>
+          <button
+            type="button"
+            onClick={() => applyZoom(1.0)}
+            className="px-2 h-7 bg-zinc-900 hover:bg-zinc-700 text-[#ffc900] font-bold text-xs border border-zinc-600 cursor-pointer"
+            aria-label="초기화"
+          >
+            {zoomLabel}
+          </button>
+        </div>
       </div>
 
       {/* 선택 국가 정밀 데이터 카드 */}

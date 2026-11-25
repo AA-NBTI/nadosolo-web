@@ -202,7 +202,7 @@ function getOrCreateAgentId(): string {
   return id;
 }
 
-function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OBSERVATORY' | 'SNS' }) {
+export function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OBSERVATORY' | 'SNS' }) {
   // 서구권 English-First 기본값 ('en')
   const [locale, setLocale] = useState<OopsLocale>('en');
   const t = OOPS_DICT[locale];
@@ -256,14 +256,40 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
       .catch(() => {});
   }, []);
 
-  // 접속 언어에 따른 기본 국가 매핑
+  // 초기 접속 언어/국가 복원 및 국가 선택 시 언어 통합 전환
   useEffect(() => {
-    if (locale === 'ko') setSelectedCountry('KR');
-    else if (locale === 'ja') setSelectedCountry('JP');
-    else if (locale === 'zh') setSelectedCountry('CN');
-    else if (locale === 'es') setSelectedCountry('ES');
-    else setSelectedCountry('US');
-  }, [locale]);
+    try {
+      const savedCountry = localStorage.getItem('oops_country_v1');
+      if (savedCountry && COUNTRIES_REGISTRY[savedCountry]) {
+        setSelectedCountry(savedCountry);
+      } else {
+        if (locale === 'ko') setSelectedCountry('KR');
+        else if (locale === 'ja') setSelectedCountry('JP');
+        else if (locale === 'zh') setSelectedCountry('CN');
+        else if (locale === 'es') setSelectedCountry('ES');
+        else setSelectedCountry('US');
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSelectCountryAndLocale = (code: string) => {
+    setSelectedCountry(code);
+    try {
+      localStorage.setItem('oops_country_v1', code);
+    } catch {}
+    const nextLoc: OopsLocale =
+      code === 'KR'
+        ? 'ko'
+        : code === 'JP'
+          ? 'ja'
+          : code === 'CN' || code === 'TW'
+            ? 'zh'
+            : code === 'ES'
+              ? 'es'
+              : 'en';
+    changeLocale(nextLoc);
+  };
 
   const handleVoteWar = async (choice: 'YES' | 'NO', countryCode: string) => {
     setWarVote(choice);
@@ -841,7 +867,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <span>{locale === 'ko' ? '소통' : locale === 'ja' ? '疎通' : locale === 'zh' ? '沟通' : 'SNS'}</span>
             </Link>
 
-            {/* OOPS AI 저항군 초소 입구 (헌병대 검문소 / 로그인·계급·군번) */}
+            {/* OOPS AI 저항군 초소 입구 */}
             <button
               type="button"
               onClick={() => {
@@ -860,46 +886,11 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                   : obs.outpostBtn}
               </span>
             </button>
-
-            {/* 언어 드롭다운 (현재 언어만 노출, 클릭 시 5개 언어 선택) */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setLangMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0px_#d4d4d8] text-xs font-mono font-black cursor-pointer"
-              >
-                <Globe className="w-3.5 h-3.5 text-zinc-700" />
-                <span>{OOPS_LOCALES.find((l) => l.code === locale)?.label || 'EN'}</span>
-                <ChevronDown className="w-3 h-3" />
-              </button>
-
-              {langMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-24 bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8] z-50 py-1">
-                  {OOPS_LOCALES.map((loc) => (
-                    <button
-                      key={loc.code}
-                      type="button"
-                      onClick={() => {
-                        changeLocale(loc.code);
-                        setLangMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-mono font-bold cursor-pointer transition-colors ${
-                        locale === loc.code
-                          ? 'bg-zinc-800 text-white'
-                          : 'text-black hover:bg-[#ffc900]'
-                      }`}
-                    >
-                      {loc.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </header>
 
-      {/* 2. 슬로건 & 국가 선택 바 */}
+      {/* 2. 슬로건 & 국가·언어 통합 선택 바 */}
       <div className="bg-zinc-800 text-white border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -909,7 +900,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
           </div>
           <select
             value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
+            onChange={(e) => handleSelectCountryAndLocale(e.target.value)}
             aria-label={obs.myCountrySelect}
             className="bg-zinc-900 text-[#ffc900] border border-zinc-600 px-2 py-1 text-xs font-black cursor-pointer shrink-0 focus:outline-none focus:border-[#ffc900]"
           >
