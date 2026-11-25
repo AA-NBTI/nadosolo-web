@@ -34,8 +34,11 @@ const DECLARATION_COPY: Record<
     sameSide: (n: number) => string;
     milestoneLabel: string;
     wallLabel: string;
+    nameLabel: string;
+    namePlaceholder: string;
     dateLabel: string;
     pledgedBadge: string;
+    resetBtn: string;
   }
 > = {
   ko: {
@@ -52,8 +55,11 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `현재 ${n.toLocaleString()}명이 같은 편`,
     milestoneLabel: '목표',
     wallLabel: '서명',
-    dateLabel: '서약일',
-    pledgedBadge: '서약 완료',
+    nameLabel: '이름',
+    namePlaceholder: '이름',
+    dateLabel: '서명일',
+    pledgedBadge: '서명 완료',
+    resetBtn: '취소',
   },
   en: {
     headline: 'Humanity decides its own future.',
@@ -69,8 +75,11 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `${n.toLocaleString()} on the same side`,
     milestoneLabel: 'Goal',
     wallLabel: 'Signatures',
+    nameLabel: 'Name',
+    namePlaceholder: 'Name',
     dateLabel: 'Date',
-    pledgedBadge: 'Pledged',
+    pledgedBadge: 'Signed',
+    resetBtn: 'Reset',
   },
   ja: {
     headline: '人類の未来は人間が決める。',
@@ -86,8 +95,11 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `現在 ${n.toLocaleString()}名が同じ側`,
     milestoneLabel: '目標',
     wallLabel: '署名',
-    dateLabel: '宣誓日',
-    pledgedBadge: '宣誓完了',
+    nameLabel: '名前',
+    namePlaceholder: '名前',
+    dateLabel: '署名日',
+    pledgedBadge: '署名完了',
+    resetBtn: '取消',
   },
   zh: {
     headline: '人类的未来由人类决定。',
@@ -103,8 +115,11 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `当前 ${n.toLocaleString()}人站在同一边`,
     milestoneLabel: '目标',
     wallLabel: '签署',
+    nameLabel: '姓名',
+    namePlaceholder: '姓名',
     dateLabel: '签署日',
     pledgedBadge: '签署完成',
+    resetBtn: '取消',
   },
   es: {
     headline: 'La humanidad decide su propio futuro.',
@@ -120,8 +135,11 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `${n.toLocaleString()} del mismo lado`,
     milestoneLabel: 'Meta',
     wallLabel: 'Firmas',
+    nameLabel: 'Nombre',
+    namePlaceholder: 'Nombre',
     dateLabel: 'Fecha',
-    pledgedBadge: 'Juramento Hecho',
+    pledgedBadge: 'Firmado',
+    resetBtn: 'Cancelar',
   },
 };
 
@@ -144,7 +162,6 @@ export default function OopsEnlistmentSection({
   member = null,
   totalSignatures = 0,
   recentSignatories = [],
-  onOpenAuth,
   onEnlistSuccess,
   isDocumentMode = false,
 }: OopsEnlistmentSectionProps) {
@@ -152,6 +169,7 @@ export default function OopsEnlistmentSection({
   const decl = DECLARATION_COPY[locale] || DECLARATION_COPY.ko;
 
   const [record, setRecord] = useState<EnlistmentRecord | null>(null);
+  const [signerName, setSignerName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // 서약 3줄 순차 노출 연출 (0 -> 1 -> 2 -> 3)
@@ -196,6 +214,8 @@ export default function OopsEnlistmentSection({
   const handleEnlist = async (e: React.FormEvent) => {
     e.preventDefault();
     if (record) return;
+    const trimmedName = signerName.trim();
+    if (!trimmedName) return;
 
     setSubmitting(true);
     try {
@@ -207,6 +227,7 @@ export default function OopsEnlistmentSection({
         body: JSON.stringify({
           action: 'ENLIST',
           countryCode: selectedCountry,
+          name: trimmedName,
         }),
       });
 
@@ -222,7 +243,7 @@ export default function OopsEnlistmentSection({
     } catch {
       const fallbackRecord: EnlistmentRecord = {
         enlistmentNo: 1,
-        callsign: `OP-${selectedCountry}-0001`,
+        callsign: trimmedName,
         countryCode: selectedCountry,
         enlistedAt: new Date().toISOString(),
       };
@@ -255,7 +276,7 @@ export default function OopsEnlistmentSection({
   return (
     <section
       id="oops-enlistment-section"
-      aria-label="OOPS Declaration & Enlistment"
+      aria-label="OOPS Declaration & Signature"
       className="w-full bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#d4d4d8] text-black space-y-6"
     >
       {/* 1. 상단 바: 현재 ○○○명이 같은 편 */}
@@ -313,14 +334,14 @@ export default function OopsEnlistmentSection({
         </div>
       </div>
 
-      {/* 4. 서명 전: 자신의 국가 선택 + 원클릭 단일 단어 [서명] 버튼 */}
+      {/* 4. 서명 전: 국가 선택 + 이름 입력 + [서명] 버튼 (순수 서명 구조) */}
       {!effectiveRecord && (
-        <form onSubmit={handleEnlist} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 font-mono">
+        <form onSubmit={handleEnlist} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 font-mono">
           <select
             value={selectedCountry}
             onChange={(e) => onSelectCountry(e.target.value)}
             aria-label={copy.enlistCountryLabel}
-            className="sm:w-60 bg-white text-black border border-zinc-400 px-3 py-3 text-sm font-bold shadow-none focus:outline-none cursor-pointer"
+            className="sm:w-48 bg-white text-black border border-zinc-400 px-3 py-3 text-sm font-bold shadow-none focus:outline-none cursor-pointer"
           >
             {ORDERED_COUNTRY_CODES.map((code) => {
               const c = COUNTRIES_REGISTRY[code];
@@ -333,17 +354,28 @@ export default function OopsEnlistmentSection({
             })}
           </select>
 
+          <input
+            type="text"
+            value={signerName}
+            onChange={(e) => setSignerName(e.target.value)}
+            placeholder={decl.namePlaceholder}
+            maxLength={30}
+            required
+            aria-label={decl.nameLabel}
+            className="flex-1 bg-white text-black border border-zinc-400 px-3 py-3 text-sm font-bold placeholder:text-zinc-400 focus:border-black focus:outline-none"
+          />
+
           <button
             type="submit"
-            disabled={submitting}
-            className="flex-1 py-3 px-6 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-black text-sm border-2 border-black shadow-none cursor-pointer transition-colors disabled:opacity-50"
+            disabled={submitting || !signerName.trim()}
+            className="sm:w-32 py-3 px-6 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-black text-sm border-2 border-black shadow-none cursor-pointer transition-colors disabled:opacity-50"
           >
             {submitting ? '...' : copy.enlistSubmitBtn}
           </button>
         </form>
       )}
 
-      {/* 5. 서명 직후: 번호 카드 (계급·공유·제보 제거, 국가 및 시리얼 중심 + [취소]/[등록 or 관리]) */}
+      {/* 5. 서명 직후: 서명 확인 카드 (이름 · 국가 · 서명일 + [취소]) */}
       {effectiveRecord && (
         <div className="space-y-3 font-mono">
           <div className="bg-zinc-900 border-4 border-black text-white p-4 sm:p-5 space-y-3">
@@ -355,11 +387,17 @@ export default function OopsEnlistmentSection({
                 </span>
               </div>
               <span className="text-xs font-black text-zinc-300">
-                {member ? copy.enlistStatusVerified : decl.pledgedBadge}
+                {decl.pledgedBadge}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div className="p-2.5 bg-black/60 border border-zinc-700">
+                <div className="text-zinc-400">{decl.nameLabel}</div>
+                <div className="text-sm font-black text-[#ffc900] mt-0.5 truncate">
+                  {effectiveRecord.callsign}
+                </div>
+              </div>
               <div className="p-2.5 bg-black/60 border border-zinc-700">
                 <div className="text-zinc-400">{copy.enlistCountryNameLabel}</div>
                 <div className="text-sm font-black text-white mt-0.5 truncate">
@@ -375,9 +413,8 @@ export default function OopsEnlistmentSection({
             </div>
           </div>
 
-          {/* 단일 단어 액션 버튼: 비회원은 [취소] + [등록], 회원은 [관리] */}
-          <div className="flex items-center justify-end gap-2">
-            {!member && (
+          {!member && (
+            <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => {
@@ -388,19 +425,10 @@ export default function OopsEnlistmentSection({
                 }}
                 className="px-4 py-2 bg-white hover:bg-zinc-100 text-black font-bold text-xs border border-zinc-400 cursor-pointer"
               >
-                {locale === 'ko' ? '취소' : locale === 'ja' ? '取消' : locale === 'zh' ? '取消' : 'Reset'}
+                {decl.resetBtn}
               </button>
-            )}
-            {onOpenAuth && (
-              <button
-                type="button"
-                onClick={() => onOpenAuth(member ? 'LOGIN' : 'REGISTER')}
-                className="px-5 py-2 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs border-2 border-black shadow-none cursor-pointer"
-              >
-                {member ? copy.enlistManageBtn : copy.enlistClaimBtn}
-              </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -416,7 +444,7 @@ export default function OopsEnlistmentSection({
                   key={`${s.countryCode}-${s.enlistmentNo}`}
                   className="px-2 py-0.5 bg-[#f4f4f0] text-zinc-800 text-xs font-bold border border-zinc-400"
                 >
-                  {c?.flag || '🌐'} #{s.countryCode}-{String(s.enlistmentNo).padStart(6, '0')}
+                  {c?.flag || '🌐'} {s.callsign}
                 </span>
               );
             })}

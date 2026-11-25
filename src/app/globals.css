@@ -106,7 +106,9 @@ body {
   color: #ffffff !important;
 }
 
-.oops-theme select {
+.oops-theme input:not([type="range"]),
+.oops-theme select,
+.oops-theme textarea {
   background-color: #ffffff !important;
   color: #000000 !important;
   border-color: #a1a1aa;

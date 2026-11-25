@@ -115,14 +115,15 @@ export async function POST(req: NextRequest) {
 
     if (action === 'ENLIST') {
       const serialNo = state.nextSerial;
-      const callsign = `OP-${countryCode}-${String(serialNo).padStart(4, '0')}`;
+      const rawName = String(body?.name || '').trim().slice(0, 30);
+      const signerName = rawName || `#${countryCode}-${String(serialNo).padStart(6, '0')}`;
       const target = state.countries[countryCode];
       target.signatures += 1;
       state.nextSerial += 1;
 
       const record: EnlistmentRecord = {
         enlistmentNo: serialNo,
-        callsign,
+        callsign: signerName,
         countryCode,
         enlistedAt: new Date().toISOString(),
       };
