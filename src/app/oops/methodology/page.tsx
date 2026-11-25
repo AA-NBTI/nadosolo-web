@@ -13,6 +13,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
+import OopsGlobalHeader from '@/components/oops/OopsGlobalHeader';
 import {
   DEFAULT_SCORING_CONTEXT,
   DEFAULT_THREAT_MODULES,
@@ -237,51 +238,16 @@ export default function OopsMethodologyPage() {
 
   return (
     <div className="min-h-screen bg-[#f4f4f0] text-black font-sans flex flex-col">
-      {/* 상단 GNB */}
-      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>{copy.back}</span>
-            </Link>
-            <span className="px-2.5 py-1 bg-[#ff4d00] text-white font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[2px_2px_0_#d4d4d8]">
-              {copy.badge}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <select
-              value={locale}
-              onChange={(e) => {
-                const next = e.target.value as OopsLocale;
-                setLocale(next);
-                localStorage.setItem('oops_locale_v1', next);
-              }}
-              className="px-2 py-1.5 bg-white text-black border-2 border-black shadow-[2px_2px_0_#d4d4d8] text-xs font-mono font-black cursor-pointer"
-              aria-label="Language"
-            >
-              {OOPS_LOCALES.map((l) => (
-                <option key={l.code} value={l.code}>
-                  {l.label}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="button"
-              onClick={handleCopyUrl}
-              className="px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-[#ffc900] font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1 cursor-pointer"
-            >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              <span className="hidden sm:inline">{copied ? copy.copiedBtn : copy.copyBtn}</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      {/* 상단 공통 GNB */}
+      <OopsGlobalHeader
+        locale={locale}
+        onLocaleChange={(next) => {
+          setLocale(next);
+          try {
+            localStorage.setItem('oops_locale_v1', next);
+          } catch {}
+        }}
+      />
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 space-y-6 font-mono">
         {/* 1. 실시간 엔진 산출 요약 카드 */}

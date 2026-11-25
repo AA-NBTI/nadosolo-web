@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft, Globe, ChevronDown } from 'lucide-react';
+import OopsGlobalHeader from '@/components/oops/OopsGlobalHeader';
 import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
 import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
 import OopsAuthModal from '@/components/oops/OopsAuthModal';
-import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
+import { OOPS_DICT, type OopsLocale } from '@/lib/oops/i18n';
 import type { OopsMemberPublic } from '@/lib/oops/memberStore';
 import {
   COUNTRIES_REGISTRY,
@@ -17,7 +16,6 @@ import {
 
 export default function OopsDeclarationPage() {
   const [locale, setLocale] = useState<OopsLocale>('ko');
-  const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string>('KR');
   const [movementRegistry, setMovementRegistry] = useState<Record<string, CountryData>>(COUNTRIES_REGISTRY);
   const [movementTotals, setMovementTotals] = useState(calculateGlobalTotals(COUNTRIES_REGISTRY));
@@ -31,6 +29,10 @@ export default function OopsDeclarationPage() {
     const savedLoc = localStorage.getItem('oops_locale_v1') as OopsLocale | null;
     if (savedLoc && OOPS_DICT[savedLoc]) {
       setLocale(savedLoc);
+    }
+    const savedCountry = localStorage.getItem('oops_country_v1');
+    if (savedCountry && COUNTRIES_REGISTRY[savedCountry]) {
+      setSelectedCountry(savedCountry);
     }
 
     try {
@@ -76,55 +78,18 @@ export default function OopsDeclarationPage() {
         rel="stylesheet"
       />
 
-      {/* 상단 네비게이션 */}
-      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
-        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2 font-mono">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="px-3 py-1.5 bg-white hover:bg-zinc-100 text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>OOPS</span>
-            </Link>
-            <span className="text-sm font-black tracking-tight text-black">
-              {locale === 'ko' ? '선서' : locale === 'ja' || locale === 'zh' ? '宣誓' : locale === 'es' ? 'Juramento' : 'Oath'}
-            </span>
-          </div>
-
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setLangMenuOpen((prev) => !prev)}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0_#d4d4d8] text-xs font-black cursor-pointer"
-            >
-              <Globe className="w-3.5 h-3.5 text-zinc-700" />
-              <span>{OOPS_LOCALES.find((l) => l.code === locale)?.label || 'KO'}</span>
-              <ChevronDown className="w-3 h-3" />
-            </button>
-
-            {langMenuOpen && (
-              <div className="absolute right-0 mt-1.5 w-24 bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8] z-50 py-1">
-                {OOPS_LOCALES.map((loc) => (
-                  <button
-                    key={loc.code}
-                    type="button"
-                    onClick={() => {
-                      changeLocale(loc.code);
-                      setLangMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 text-xs font-bold cursor-pointer ${
-                      locale === loc.code ? 'bg-zinc-800 text-white' : 'text-black hover:bg-[#ffc900]/40'
-                    }`}
-                  >
-                    {loc.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      {/* 공통 메인 상단 헤더 */}
+      <OopsGlobalHeader
+        locale={locale}
+        onLocaleChange={changeLocale}
+        selectedCountry={selectedCountry}
+        onCountryChange={setSelectedCountry}
+        member={member}
+        onOpenAuth={(mode) => {
+          setAuthModalMode(mode);
+          setAuthModalOpen(true);
+        }}
+      />
 
       {/* 선언서 문서 메인 */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-8 sm:py-12 space-y-8">
@@ -155,9 +120,6 @@ export default function OopsDeclarationPage() {
               ...prev,
               totalSignatures: prev.totalSignatures + 1,
             }));
-          }}
-          onReportIncident={() => {
-            window.location.href = '/sns';
           }}
         />
 

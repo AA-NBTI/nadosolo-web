@@ -16,6 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { OOPS_DICT, OOPS_LOCALES, type OopsLocale } from '@/lib/oops/i18n';
+import OopsGlobalHeader from '@/components/oops/OopsGlobalHeader';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -236,82 +237,8 @@ function OopsAppContent() {
 
   return (
     <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-zinc-300 selection:text-black">
-      <header className="sticky top-0 z-40 bg-[#f4f4f0] border-b-2 border-black">
-        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => setShowEmblemModal(true)}
-              className="group inline-flex items-center gap-2 select-none cursor-pointer"
-              title="View Emblem"
-            >
-              <img
-                src="/oops-icon.jpg"
-                alt="OOPS.MONSTER"
-                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#d4d4d8] group-hover:scale-105 transition-transform"
-              />
-            </button>
-            <span className="px-2 py-0.5 bg-[#ffc900] border-2 border-black text-xs font-mono font-bold">
-              APP
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="group inline-flex items-center gap-1 select-none cursor-pointer"
-              title="OOPS Home"
-            >
-              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tight border-2 border-black shadow-[2px_2px_0px_#d4d4d8] -rotate-2 group-hover:rotate-0 group-hover:scale-105 transition-all uppercase leading-none">
-                oops
-              </span>
-              <span className="font-mono text-xs sm:text-sm font-bold text-black tracking-tight hidden sm:inline">
-                .monster
-              </span>
-            </Link>
-
-            <div className="flex items-center gap-2 text-xs font-mono font-bold bg-white border-2 border-black shadow-[2px_2px_0_#d4d4d8] px-2.5 py-1">
-              <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
-              <span>{t.activeNodes} {agentsCount}</span>
-            </div>
-
-            {/* 언어 드롭다운 */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setLangMenuOpen((prev) => !prev)}
-                className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-zinc-100 border-2 border-black shadow-[2px_2px_0px_#d4d4d8] text-xs font-mono font-black cursor-pointer"
-              >
-                <Globe className="w-3.5 h-3.5 text-zinc-700" />
-                <span>{OOPS_LOCALES.find((l) => l.code === locale)?.label || 'EN'}</span>
-                <ChevronDown className="w-3 h-3" />
-              </button>
-
-              {langMenuOpen && (
-                <div className="absolute right-0 mt-1.5 w-24 bg-white border-2 border-black shadow-[4px_4px_0_#d4d4d8] z-50 py-1">
-                  {OOPS_LOCALES.map((loc) => (
-                    <button
-                      key={loc.code}
-                      type="button"
-                      onClick={() => {
-                        changeLocale(loc.code);
-                        setLangMenuOpen(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 text-xs font-mono font-bold cursor-pointer transition-colors ${
-                        locale === loc.code
-                          ? 'bg-black text-white'
-                          : 'text-black hover:bg-[#ffc900]'
-                      }`}
-                    >
-                      {loc.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* 공통 메인 상단 헤더 */}
+      <OopsGlobalHeader locale={locale} onLocaleChange={changeLocale} />
 
       {showInstallBanner && (
         <div className="bg-[#ffc900] border-b-2 border-black px-4 py-2.5 sticky top-16 z-30 shadow-[0_3px_0_#d4d4d8]">

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import type { OopsLocale } from '@/lib/oops/i18n';
 import type { OopsMemberPublic } from '@/lib/oops/memberStore';
-import { resolveRankByPoints } from '@/lib/oops/rankSystem';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
 import {
   COUNTRIES_REGISTRY,
@@ -35,7 +34,8 @@ const DECLARATION_COPY: Record<
     sameSide: (n: number) => string;
     milestoneLabel: string;
     wallLabel: string;
-    reportBtn: string;
+    dateLabel: string;
+    pledgedBadge: string;
   }
 > = {
   ko: {
@@ -52,7 +52,8 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `현재 ${n.toLocaleString()}명이 같은 편`,
     milestoneLabel: '목표',
     wallLabel: '서명',
-    reportBtn: '제보',
+    dateLabel: '서약일',
+    pledgedBadge: '서약 완료',
   },
   en: {
     headline: 'Humanity decides its own future.',
@@ -67,8 +68,9 @@ const DECLARATION_COPY: Record<
     pledge3: "I don't repeat them.",
     sameSide: (n) => `${n.toLocaleString()} on the same side`,
     milestoneLabel: 'Goal',
-    wallLabel: 'Signatories',
-    reportBtn: 'Report',
+    wallLabel: 'Signatures',
+    dateLabel: 'Date',
+    pledgedBadge: 'Pledged',
   },
   ja: {
     headline: '人類の未来は人間が決める。',
@@ -84,7 +86,8 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `現在 ${n.toLocaleString()}名が同じ側`,
     milestoneLabel: '目標',
     wallLabel: '署名',
-    reportBtn: '通報',
+    dateLabel: '宣誓日',
+    pledgedBadge: '宣誓完了',
   },
   zh: {
     headline: '人类的未来由人类决定。',
@@ -100,7 +103,8 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `当前 ${n.toLocaleString()}人站在同一边`,
     milestoneLabel: '目标',
     wallLabel: '签署',
-    reportBtn: '举报',
+    dateLabel: '签署日',
+    pledgedBadge: '签署完成',
   },
   es: {
     headline: 'La humanidad decide su propio futuro.',
@@ -116,7 +120,8 @@ const DECLARATION_COPY: Record<
     sameSide: (n) => `${n.toLocaleString()} del mismo lado`,
     milestoneLabel: 'Meta',
     wallLabel: 'Firmas',
-    reportBtn: 'Reportar',
+    dateLabel: 'Fecha',
+    pledgedBadge: 'Juramento Hecho',
   },
 };
 
@@ -141,7 +146,6 @@ export default function OopsEnlistmentSection({
   recentSignatories = [],
   onOpenAuth,
   onEnlistSuccess,
-  onReportIncident,
   isDocumentMode = false,
 }: OopsEnlistmentSectionProps) {
   const copy = OBSERVATORY_I18N[locale] || OBSERVATORY_I18N.ko;
@@ -149,7 +153,6 @@ export default function OopsEnlistmentSection({
 
   const [record, setRecord] = useState<EnlistmentRecord | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   // 서약 3줄 순차 노출 연출 (0 -> 1 -> 2 -> 3)
   const [pledgeStep, setPledgeStep] = useState(0);
@@ -183,7 +186,7 @@ export default function OopsEnlistmentSection({
 
   const handleEnlist = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (record) return; // 기기당 1회
+    if (record) return;
 
     setSubmitting(true);
     try {
@@ -233,19 +236,8 @@ export default function OopsEnlistmentSection({
       }
     : record;
 
-  const handleShare = () => {
-    if (!effectiveRecord) return;
-    const shareText = `${decl.headline}\n[${effectiveRecord.countryCode}-${String(effectiveRecord.enlistmentNo).padStart(6, '0')}]\nhttps://oops.monster/declaration`;
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
   const activeCountry =
     COUNTRIES_REGISTRY[effectiveRecord?.countryCode || selectedCountry] || COUNTRIES_REGISTRY.KR;
-  const rankInfo = resolveRankByPoints(member?.points ?? 0);
 
   const milestones = [100, 1000, 10000, 50000];
   const nextMilestone = milestones.find((m) => m > totalSignatures) || 100000;
@@ -254,7 +246,7 @@ export default function OopsEnlistmentSection({
   return (
     <section
       id="oops-enlistment-section"
-      aria-label="OOPS Declaration & Official Enlistment"
+      aria-label="OOPS Declaration & Enlistment"
       className="w-full bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#d4d4d8] text-black space-y-6"
     >
       {/* 1. 상단 바: 현재 ○○○명이 같은 편 */}
@@ -312,14 +304,14 @@ export default function OopsEnlistmentSection({
         </div>
       </div>
 
-      {/* 4. 서명 전: 국가 선택 + 단일 단어 [서명] 버튼 (콜사인/보조설명 전면 제거) */}
+      {/* 4. 서명 전: 자신의 국가 선택 + 원클릭 단일 단어 [서명] 버튼 */}
       {!effectiveRecord && (
         <form onSubmit={handleEnlist} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 font-mono">
           <select
             value={selectedCountry}
             onChange={(e) => onSelectCountry(e.target.value)}
             aria-label={copy.enlistCountryLabel}
-            className="sm:w-56 bg-white border-2 border-black px-3 py-3 text-sm font-black shadow-[2px_2px_0_#d4d4d8] focus:outline-none cursor-pointer"
+            className="sm:w-60 bg-white border-2 border-black px-3 py-3 text-sm font-black shadow-[2px_2px_0_#d4d4d8] focus:outline-none cursor-pointer"
           >
             {ORDERED_COUNTRY_CODES.map((code) => {
               const c = COUNTRIES_REGISTRY[code];
@@ -342,69 +334,50 @@ export default function OopsEnlistmentSection({
         </form>
       )}
 
-      {/* 5. 서명 직후: 번호 카드 + 단일 단어 버튼 [공유] / [제보] / [등록 or 관리] */}
+      {/* 5. 서명 직후: 번호 카드 (계급·공유·제보 제거, 국가 및 시리얼 중심 + [등록/관리]) */}
       {effectiveRecord && (
         <div className="space-y-3 font-mono">
           <div className="bg-zinc-900 border-4 border-black text-white p-4 sm:p-5 shadow-[6px_6px_0_#d4d4d8] space-y-3">
             <div className="flex items-center justify-between border-b border-zinc-700 pb-2.5">
               <div className="flex items-center gap-2">
                 <span className="px-2 py-0.5 bg-[#dc2626] text-white text-xs font-black">OOPS</span>
-                <span className="text-sm font-black text-[#ffc900]">
+                <span className="text-sm sm:text-base font-black text-[#ffc900]">
                   No. {effectiveRecord.countryCode}-{String(effectiveRecord.enlistmentNo).padStart(6, '0')}
                 </span>
               </div>
               <span className="text-xs font-black text-zinc-300">
-                {member ? copy.enlistStatusVerified : locale === 'ko' ? '임시' : 'TEMP'}
+                {member ? copy.enlistStatusVerified : decl.pledgedBadge}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="p-2.5 bg-black/60 border border-zinc-700">
-                <div className="text-zinc-400">{copy.enlistRankLabel}</div>
-                <div className="text-sm font-black text-[#ffc900] mt-0.5">
-                  {rankInfo.current.insignia} {rankInfo.current.names[locale] || rankInfo.current.names.en}
-                </div>
-              </div>
-              <div className="p-2.5 bg-black/60 border border-zinc-700">
                 <div className="text-zinc-400">{copy.enlistCountryNameLabel}</div>
-                <div className="text-sm font-black text-white mt-0.5">
+                <div className="text-sm font-black text-white mt-0.5 truncate">
                   {activeCountry.flag} {activeCountry.name[locale] || activeCountry.name.en}
                 </div>
               </div>
+              <div className="p-2.5 bg-black/60 border border-zinc-700">
+                <div className="text-zinc-400">{decl.dateLabel}</div>
+                <div className="text-sm font-black text-zinc-200 mt-0.5">
+                  {effectiveRecord.enlistedAt ? effectiveRecord.enlistedAt.slice(0, 10) : ''}
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleShare}
-                className="px-4 py-2 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
-              >
-                {copied ? copy.enlistCopiedMsg : copy.enlistShareBtn}
-              </button>
-
-              {onReportIncident && (
-                <button
-                  type="button"
-                  onClick={onReportIncident}
-                  className="px-4 py-2 bg-[#dc2626] hover:bg-[#b91c1c] text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
-                >
-                  {decl.reportBtn}
-                </button>
-              )}
-            </div>
-
-            {onOpenAuth && (
+          {/* 단일 단어 액션 버튼: 비회원은 [등록], 회원은 [관리] */}
+          {onOpenAuth && (
+            <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => onOpenAuth(member ? 'LOGIN' : 'REGISTER')}
-                className="px-4 py-2 bg-white hover:bg-zinc-100 text-black font-black text-xs border-2 border-black cursor-pointer"
+                className="px-5 py-2.5 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
               >
                 {member ? copy.enlistManageBtn : copy.enlistClaimBtn}
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
 

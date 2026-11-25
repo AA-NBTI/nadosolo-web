@@ -33,6 +33,7 @@ import WarScenarioPoll from '@/components/oops/WarScenarioPoll';
 import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
 import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
 import OopsAuthModal from '@/components/oops/OopsAuthModal';
+import OopsGlobalHeader from '@/components/oops/OopsGlobalHeader';
 import type { OopsMemberPublic } from '@/lib/oops/memberStore';
 import { resolveRankByPoints } from '@/lib/oops/rankSystem';
 import {
@@ -809,95 +810,20 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
 
   return (
     <div className="oops-theme min-h-screen bg-[#f4f4f0] text-black flex flex-col font-sans selection:bg-zinc-300 selection:text-black">
-      {/* 1. 상단 네비게이션 (OOPS 시그니처 옐로우 #ffc900 & 블랙 테두리) */}
-      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
-        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => setShowEmblemModal(true)}
-              className="group inline-flex items-center gap-2 select-none cursor-pointer"
-              title="View Emblem"
-            >
-              <img
-                src="/oops-icon.jpg"
-                alt="OOPS.MONSTER"
-                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-black shadow-[2px_2px_0_#d4d4d8] group-hover:scale-105 transition-transform"
-              />
-            </button>
+      {/* 1. 상단 공통 네비게이션 (OOPS 시그니처 옐로우 #ffc900 & 블랙 테두리) */}
+      <OopsGlobalHeader
+        locale={locale}
+        onLocaleChange={changeLocale}
+        selectedCountry={selectedCountry}
+        onCountryChange={handleSelectCountryAndLocale}
+        member={member}
+        onOpenAuth={(mode) => {
+          setAuthModalMode(mode);
+          setAuthModalOpen(true);
+        }}
+      />
 
-            {/* 기존 팝업 로고 (.monster 포함 원형 그대로 매니페스토 왼쪽 옆 배치) */}
-            <Link
-              href="/"
-              className="group inline-flex items-center gap-1 select-none cursor-pointer"
-              title="OOPS Home"
-            >
-              <span className="inline-block px-3 py-1 bg-[#ff4d00] text-white font-black text-base sm:text-lg font-mono tracking-tight border-2 border-black shadow-[2px_2px_0px_#d4d4d8] -rotate-2 group-hover:rotate-0 group-hover:scale-105 group-active:translate-x-[1px] group-active:translate-y-[1px] group-active:shadow-none transition-all uppercase leading-none">
-                oops
-              </span>
-              <span className="font-mono text-xs sm:text-sm font-black text-black tracking-tight hidden sm:inline">
-                .monster
-              </span>
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Link
-              href="/declaration"
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer"
-            >
-              {locale === 'ko' ? '선서' : locale === 'ja' || locale === 'zh' ? '宣誓' : locale === 'es' ? 'Juramento' : 'Oath'}
-            </Link>
-
-            <button
-              type="button"
-              onClick={() => setShowCriteria(true)}
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer hidden xs:inline-block"
-            >
-              {f.navCriteria}
-            </button>
-
-            <a
-              href="/app"
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1"
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>{locale === 'ko' ? '무전' : locale === 'ja' ? '無線' : locale === 'zh' ? '无线' : 'APP'}</span>
-            </a>
-
-            {/* 소통 (SNS 독립 페이지 이동) */}
-            <Link
-              href="/sns"
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-bold text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all"
-            >
-              <Radio className="w-3.5 h-3.5 text-[#ff4d00] animate-pulse" />
-              <span>{locale === 'ko' ? '소통' : locale === 'ja' ? '疎通' : locale === 'zh' ? '沟通' : 'SNS'}</span>
-            </Link>
-
-            {/* OOPS AI 저항군 초소 입구 */}
-            <button
-              type="button"
-              onClick={() => {
-                setAuthModalMode('LOGIN');
-                setAuthModalOpen(true);
-              }}
-              className={`px-2.5 py-1.5 font-black text-xs font-mono border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer flex items-center gap-1 transition-all ${
-                member
-                  ? 'bg-zinc-900 text-[#ffc900] hover:bg-black'
-                  : 'bg-[#ff4d00] text-white hover:bg-[#ff621f]'
-              }`}
-            >
-              <span>
-                {member
-                  ? `${resolveRankByPoints(member.points).current.insignia} #${member.serialLabel}`
-                  : obs.outpostBtn}
-              </span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* 2. 슬로건 & 국가·언어 통합 선택 바 */}
+      {/* 2. 슬로건 바 (순수 실시간 상태/슬로건 단일 노출) */}
       <div className="bg-zinc-800 text-white border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -905,43 +831,32 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <span className="font-bold hidden sm:inline truncate">{f.tagline}</span>
             <span className="font-bold sm:hidden text-[11px] leading-snug line-clamp-2">{f.tagline}</span>
           </div>
-          <select
-            value={selectedCountry}
-            onChange={(e) => handleSelectCountryAndLocale(e.target.value)}
-            aria-label={obs.myCountrySelect}
-            className="bg-zinc-900 text-[#ffc900] border border-zinc-600 px-2 py-1 text-xs font-black cursor-pointer shrink-0 focus:outline-none focus:border-[#ffc900]"
-          >
-            {ORDERED_COUNTRY_CODES.map((code) => {
-              const c = COUNTRIES_REGISTRY[code];
-              if (!c) return null;
-              return (
-                <option key={code} value={code}>
-                  {c.flag} {c.name[locale] || c.name.en}
-                </option>
-              );
-            })}
-          </select>
+          <div className="text-[11px] text-zinc-400 font-bold shrink-0">
+            DEFCON 2
+          </div>
         </div>
       </div>
 
       {/* 3. 메인 콘텐츠 영역 (선택된 카테고리에 따른 뷰 전환) */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
-        {/* OOPS 인류 저항 본부 메인 히어로 비주얼 배너 (한국어 / 글로벌 언어 분기 + 좌측 하단 인류생존시간 HUD) */}
-        <div className="relative border-4 border-black bg-black shadow-[6px_6px_0_#d4d4d8] overflow-hidden">
-          <img
-            src={locale === 'ko' ? '/oops-main-hero-ko.jpg' : '/oops-main-hero.jpg'}
-            alt={
-              locale === 'ko'
-                ? 'OOPS AI 저항 본부 - 인류의 미래는 누구의 것인가? OOPS와 함께, AI 시대의 생존을 준비하라!'
-                : "OOPS AI Resistance Headquarters - Is Humanity's Future Alive?"
-            }
-            className="w-full h-auto block object-cover"
-            loading="eager"
-          />
-          <div className="absolute bottom-2.5 left-2.5 sm:bottom-4 sm:left-4 z-10">
-            <HeroSurvivalTimer locale={locale} engineOutput={liveEngineOutput} />
+        {/* OOPS 인류 저항 본부 메인 히어로 비주얼 배너 (OBSERVATORY 뷰 전용, SNS 뷰에서는 광고/배너 이미지 제외) */}
+        {viewMode !== 'SNS' && !pathname?.startsWith('/sns') && (
+          <div className="relative border-4 border-black bg-black shadow-[6px_6px_0_#d4d4d8] overflow-hidden">
+            <img
+              src={locale === 'ko' ? '/oops-main-hero-ko.jpg' : '/oops-main-hero.jpg'}
+              alt={
+                locale === 'ko'
+                  ? 'OOPS AI 저항 본부 - 인류의 미래는 누구의 것인가? OOPS와 함께, AI 시대의 생존을 준비하라!'
+                  : "OOPS AI Resistance Headquarters - Is Humanity's Future Alive?"
+              }
+              className="w-full h-auto block object-cover"
+              loading="eager"
+            />
+            <div className="absolute bottom-2.5 left-2.5 sm:bottom-4 sm:left-4 z-10">
+              <HeroSurvivalTimer locale={locale} engineOutput={liveEngineOutput} />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (OBSERVATORY 탭 전용) */}
         {viewMode === 'OBSERVATORY' && (
