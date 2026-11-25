@@ -3,11 +3,7 @@
 import React, { useState } from 'react';
 import type { OopsLocale } from '@/lib/oops/i18n';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
-import {
-  COUNTRIES_REGISTRY,
-  ORDERED_COUNTRY_CODES,
-  type CountryData,
-} from '@/lib/oops/movementStore';
+import { COUNTRIES_REGISTRY, type CountryData } from '@/lib/oops/movementStore';
 
 interface WarScenarioPollProps {
   locale: OopsLocale;
@@ -29,7 +25,6 @@ interface WarScenarioPollProps {
 export default function WarScenarioPoll({
   locale,
   selectedCountry,
-  onSelectCountry,
   warVote,
   onVote,
   countryData = COUNTRIES_REGISTRY[selectedCountry] || COUNTRIES_REGISTRY.KR,
@@ -54,60 +49,34 @@ export default function WarScenarioPoll({
     setIsChangingVote(false);
   };
 
-  const scrollToEnlist = () => {
+  const goToOath = () => {
     window.location.href = '/declaration';
   };
 
   return (
     <section
-      aria-label="AI-Human War Scenario Global Poll"
+      aria-label="War Scenario Poll"
       className="w-full bg-white border-4 border-black p-4 sm:p-5 shadow-[8px_8px_0_#d4d4d8] text-black font-mono space-y-4"
     >
-      {/* 1. 상단 옐로우 헤더 바 */}
+      {/* 상단 옐로우 헤더 바 */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-3 bg-[#ffc900] -mx-4 -mt-4 sm:-mx-5 sm:-mt-5 p-4">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-ping shrink-0" />
-          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-black">
-            {copy.warPollTitle}
-          </span>
-        </div>
+        <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-black">
+          {copy.warPollTitle}
+        </span>
 
         {warVote && !isChangingVote && (
-          <span className="px-2.5 py-0.5 bg-zinc-800 text-[#ffc900] text-[11px] font-black border border-black shadow-[1px_1px_0_#d4d4d8]">
-            {copy.warVotedMsg} ({warVote})
+          <span className="px-2.5 py-0.5 bg-zinc-900 text-[#ffc900] text-xs font-black border border-black">
+            {copy.warVotedMsg}
           </span>
         )}
       </div>
 
-      {/* 2. 국가 직접 선택 바 (소속감 & 조국 대표 자부심) */}
-      <div className="flex flex-wrap items-center justify-between gap-2 bg-[#f4f4f0] p-2.5 border-2 border-black text-xs font-mono">
-        <div className="flex items-center gap-1.5 font-bold text-zinc-700">
-          <span>🚩</span>
-          <span>{copy.myCountrySelect}:</span>
-        </div>
-        <select
-          value={selectedCountry}
-          onChange={(e) => onSelectCountry(e.target.value)}
-          className="bg-white border-2 border-black px-2.5 py-1 text-xs font-black text-black cursor-pointer shadow-[2px_2px_0_#d4d4d8] focus:outline-none"
-        >
-          {ORDERED_COUNTRY_CODES.map((code) => {
-            const c = COUNTRIES_REGISTRY[code];
-            if (!c) return null;
-            return (
-              <option key={code} value={code}>
-                {c.flag} {c.name[locale] || c.name.en} ({code})
-              </option>
-            );
-          })}
-        </select>
-      </div>
-
-      {/* 3. 질문 본문 */}
+      {/* 질문 본문 */}
       <div className="text-sm sm:text-base font-sans font-black text-black leading-snug">
         {copy.warPollQuestion}
       </div>
 
-      {/* 4. 투표 버튼 (미투표 상태이거나 '선택 변경' 클릭 시 노출) */}
+      {/* 2지선다 투표 버튼 (단일 단어 표준) */}
       {(!warVote || isChangingVote) && (
         <div className="space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -140,25 +109,22 @@ export default function WarScenarioPoll({
               <button
                 type="button"
                 onClick={() => setIsChangingVote(false)}
-                className="text-[11px] text-zinc-500 underline font-bold"
+                className="text-xs text-zinc-600 underline font-bold cursor-pointer"
               >
-                취소
+                {locale === 'ko' ? '취소' : 'Cancel'}
               </button>
             </div>
           )}
         </div>
       )}
 
-      {/* 5. 실시간 집계 반영 결과창 (투표 완료 즉시 반응) */}
+      {/* 실시간 집계 결과창 */}
       {warVote && !isChangingVote && (
-        <div className="space-y-4 pt-2 border-t-2 border-black">
-          {/* A. 전 세계 실시간 집계 바 */}
+        <div className="space-y-3 pt-2 border-t-2 border-black">
+          {/* 전 세계 집계 */}
           <div className="bg-[#fcfcfc] border-2 border-black p-3 space-y-1.5 shadow-[2px_2px_0_#d4d4d8]">
             <div className="flex items-center justify-between text-xs font-black">
-              <span className="flex items-center gap-1 text-zinc-800">
-                <span>🌐</span>
-                <span>{copy.globalTallyLabel}</span>
-              </span>
+              <span className="text-zinc-900">{copy.globalTallyLabel}</span>
               <span className="text-zinc-600 font-bold">
                 {globalTotals.totalVotes.toLocaleString()} {copy.participantsUnit}
               </span>
@@ -169,29 +135,29 @@ export default function WarScenarioPoll({
                 className="h-full bg-[#ff4d00] transition-all duration-700 ease-out border-r-2 border-black flex items-center justify-start px-2 text-[10px] text-white font-black"
                 style={{ width: `${globalTotals.globalYesPct}%` }}
               >
-                {globalTotals.globalYesPct}%
+                {globalTotals.globalYesPct > 0 ? `${globalTotals.globalYesPct}%` : ''}
               </div>
               <div className="flex-1 flex items-center justify-end px-2 text-[10px] text-black font-black">
-                {globalTotals.globalNoPct}%
+                {globalTotals.globalNoPct > 0 ? `${globalTotals.globalNoPct}%` : ''}
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] font-bold">
+            <div className="flex items-center justify-between text-xs font-bold">
               <span className="text-[#ff4d00] font-black">
-                ⚔️ {copy.warYesLabel} {globalTotals.globalYesPct}% ({globalTotals.totalYes.toLocaleString()}명)
+                {copy.warYesLabel} {globalTotals.globalYesPct}% ({globalTotals.totalYes.toLocaleString()})
               </span>
               <span className="text-emerald-800 font-black">
-                🛡️ {copy.warNoLabel} {globalTotals.globalNoPct}% ({globalTotals.totalNo.toLocaleString()}명)
+                {copy.warNoLabel} {globalTotals.globalNoPct}% ({globalTotals.totalNo.toLocaleString()})
               </span>
             </div>
           </div>
 
-          {/* B. 선택 국가 실시간 집계 바 */}
+          {/* 선택 국가 집계 */}
           <div className="bg-[#fcfcfc] border-2 border-black p-3 space-y-1.5 shadow-[2px_2px_0_#d4d4d8]">
             <div className="flex items-center justify-between text-xs font-black">
-              <span className="flex items-center gap-1.5 text-zinc-800">
-                <span className="text-sm">{countryData.flag}</span>
-                <span>{countryData.name[locale] || countryData.name.en} {copy.countryTallyLabel}</span>
+              <span className="flex items-center gap-1.5 text-zinc-900">
+                <span>{countryData.flag}</span>
+                <span>{countryData.name[locale] || countryData.name.en}</span>
               </span>
               <span className="text-zinc-600 font-bold">
                 {countryTotal.toLocaleString()} {copy.participantsUnit}
@@ -203,49 +169,43 @@ export default function WarScenarioPoll({
                 className="h-full bg-[#ff4d00] transition-all duration-700 ease-out border-r-2 border-black flex items-center justify-start px-2 text-[10px] text-white font-black"
                 style={{ width: `${countryYesPct}%` }}
               >
-                {countryYesPct}%
+                {countryYesPct > 0 ? `${countryYesPct}%` : ''}
               </div>
               <div className="flex-1 flex items-center justify-end px-2 text-[10px] text-black font-black">
-                {countryNoPct}%
+                {countryNoPct > 0 ? `${countryNoPct}%` : ''}
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-[11px] font-bold">
+            <div className="flex items-center justify-between text-xs font-bold">
               <span className="text-[#ff4d00] font-black">
-                ⚔️ {copy.warYesLabel} {countryYesPct}% ({countryData.votes.yes.toLocaleString()}명)
+                {copy.warYesLabel} {countryYesPct}% ({countryData.votes.yes.toLocaleString()})
               </span>
               <span className="text-emerald-800 font-black">
-                🛡️ {copy.warNoLabel} {countryNoPct}% ({countryData.votes.no.toLocaleString()}명)
+                {copy.warNoLabel} {countryNoPct}% ({countryData.votes.no.toLocaleString()})
               </span>
             </div>
           </div>
 
-          {/* C. 컨트롤 및 서명 유도 브릿지 */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          {/* 하단 단일 단어 버튼 */}
+          <div className="flex items-center justify-between gap-2 pt-1">
             <button
               type="button"
               onClick={() => setIsChangingVote(true)}
-              className="px-2.5 py-1 text-[11px] bg-white border border-black text-zinc-600 hover:text-black hover:border-black font-bold cursor-pointer"
+              className="px-3 py-1.5 text-xs bg-white border-2 border-black text-black font-bold cursor-pointer"
             >
-              🔄 {copy.changeVoteBtn}
+              {copy.changeVoteBtn}
             </button>
 
             <button
               type="button"
-              onClick={scrollToEnlist}
-              className="px-3 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white text-xs font-black border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
+              onClick={goToOath}
+              className="px-4 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white text-xs font-black border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
             >
-              <span>{copy.bridgeToEnlist}</span>
-              <span>▼</span>
+              {copy.bridgeToEnlist}
             </button>
           </div>
         </div>
       )}
-
-      {/* 6. 참여자 체감치 안내 (대표성 여론조사 구분) */}
-      <div className="text-[11px] font-sans font-bold text-zinc-600 pt-1 border-t border-black/15">
-        * {copy.pulseDisclaimer}
-      </div>
     </section>
   );
 }

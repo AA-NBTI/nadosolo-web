@@ -36,6 +36,7 @@ import type { OopsMemberPublic } from '@/lib/oops/memberStore';
 import { resolveRankByPoints } from '@/lib/oops/rankSystem';
 import {
   COUNTRIES_REGISTRY,
+  ORDERED_COUNTRY_CODES,
   calculateGlobalTotals,
   type CountryData,
   type EnlistmentRecord,
@@ -901,7 +902,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         </div>
       </header>
 
-      {/* 2. 한 줄 압축 슬로건 바 (모바일 2줄 최적화) */}
+      {/* 2. 슬로건 & 국가 선택 바 */}
       <div className="bg-zinc-800 text-white border-b-2 border-black">
         <div className="max-w-3xl mx-auto px-4 py-2 sm:py-2.5 flex items-center justify-between gap-3 text-xs font-mono">
           <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -909,12 +910,22 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             <span className="font-bold hidden sm:inline truncate">{f.tagline}</span>
             <span className="font-bold sm:hidden text-[11px] leading-snug line-clamp-2">{f.tagline}</span>
           </div>
-          <span
-            title={locale === 'ko' ? '로그인 없이 단말기에 자동 발급된 내 고유 식별 코드' : 'Your anonymous device ID (zero-login)'}
-            className="text-[11px] text-[#ffc900] shrink-0 font-bold hidden xs:inline cursor-help"
+          <select
+            value={selectedCountry}
+            onChange={(e) => setSelectedCountry(e.target.value)}
+            aria-label={obs.myCountrySelect}
+            className="bg-zinc-900 text-[#ffc900] border border-zinc-600 px-2 py-1 text-xs font-black cursor-pointer shrink-0 focus:outline-none focus:border-[#ffc900]"
           >
-            {`ID: ${agentId || 'OP-ACTIVE'}`}
-          </span>
+            {ORDERED_COUNTRY_CODES.map((code) => {
+              const c = COUNTRIES_REGISTRY[code];
+              if (!c) return null;
+              return (
+                <option key={code} value={code}>
+                  {c.flag} {c.name[locale] || c.name.en}
+                </option>
+              );
+            })}
+          </select>
         </div>
       </div>
 
