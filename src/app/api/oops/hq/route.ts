@@ -12,6 +12,7 @@ import {
 } from '@/lib/oops/signalStore';
 import { summarizeTracking } from '@/modules/tracking';
 import { listTrackingEvents } from '@/lib/tracking/serverStore';
+import { listAllOopsMembers } from '@/lib/oops/memberStore';
 
 function isAuthorized(req: NextRequest, bodyKey?: string): boolean {
   const expected = process.env.OOPS_HQ_KEY || 'aa1111';
@@ -26,18 +27,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: '인증 암호가 일치하지 않습니다.' }, { status: 401 });
   }
 
-  const [agents, backers, signals, bannedAgents, trackingEvents] = await Promise.all([
+  const [agents, backers, signals, bannedAgents, trackingEvents, members] = await Promise.all([
     listOopsAgents(),
     listOopsBackers(),
     listSignals({ tab: 'LIVE', includeHidden: true, limit: 150 }),
     listBannedAgents(),
     listTrackingEvents('OOPS'),
+    listAllOopsMembers(),
   ]);
 
   return NextResponse.json({
     ok: true,
     latestVersion: OOPS_RELEASES[0]?.version || 'v0.4.0',
     releases: OOPS_RELEASES,
+    members,
     agents: agents.map((a) => ({
       agentId: a.agentId,
       alias: a.alias,

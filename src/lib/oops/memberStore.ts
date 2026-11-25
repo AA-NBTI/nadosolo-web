@@ -206,6 +206,11 @@ export async function getOopsMemberById(memberId: string): Promise<OopsMemberPub
   return found ? toPublicMember(found) : null;
 }
 
+export async function listAllOopsMembers(): Promise<OopsMemberPublic[]> {
+  const list = await loadMembers();
+  return list.map(toPublicMember);
+}
+
 export async function updateOopsMember(params: {
   memberId: string;
   callsign?: string;
