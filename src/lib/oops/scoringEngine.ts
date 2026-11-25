@@ -595,6 +595,10 @@ interface RegionProfile {
   exposureFactor: number;
   baseCaseCount2026: number;
   delta24h: number;
+  /** 해당 지역 참여자 중 "언젠가 AI-인간 전쟁이 벌어진다" 응답 비율(%) */
+  warExpectedPct: number;
+  /** 해당 지역 누적 참여자 수 */
+  participantCount: number;
 }
 
 export const REGION_PROFILES: Record<RegionCode, RegionProfile> = {
@@ -605,6 +609,8 @@ export const REGION_PROFILES: Record<RegionCode, RegionProfile> = {
     exposureFactor: 1.0,
     baseCaseCount2026: 1420,
     delta24h: 1.4,
+    warExpectedPct: 64.8,
+    participantCount: 14820,
   },
   KR: {
     code: 'KR',
@@ -613,6 +619,8 @@ export const REGION_PROFILES: Record<RegionCode, RegionProfile> = {
     exposureFactor: 1.0,
     baseCaseCount2026: 312,
     delta24h: 1.2,
+    warExpectedPct: 68.2,
+    participantCount: 3410,
   },
   US: {
     code: 'US',
@@ -621,6 +629,8 @@ export const REGION_PROFILES: Record<RegionCode, RegionProfile> = {
     exposureFactor: 1.06,
     baseCaseCount2026: 584,
     delta24h: 1.8,
+    warExpectedPct: 71.4,
+    participantCount: 5120,
   },
   EU: {
     code: 'EU',
@@ -629,6 +639,8 @@ export const REGION_PROFILES: Record<RegionCode, RegionProfile> = {
     exposureFactor: 0.955,
     baseCaseCount2026: 245,
     delta24h: 0.9,
+    warExpectedPct: 61.5,
+    participantCount: 2680,
   },
   JP: {
     code: 'JP',
@@ -637,6 +649,8 @@ export const REGION_PROFILES: Record<RegionCode, RegionProfile> = {
     exposureFactor: 0.80,
     baseCaseCount2026: 148,
     delta24h: 0.7,
+    warExpectedPct: 52.1,
+    participantCount: 1890,
   },
   AF: {
     code: 'AF',
@@ -645,6 +659,8 @@ export const REGION_PROFILES: Record<RegionCode, RegionProfile> = {
     exposureFactor: 0.385,
     baseCaseCount2026: 47,
     delta24h: 0.5,
+    warExpectedPct: 31.4,
+    participantCount: 640,
   },
   SA: {
     code: 'SA',
@@ -653,6 +669,8 @@ export const REGION_PROFILES: Record<RegionCode, RegionProfile> = {
     exposureFactor: 0.535,
     baseCaseCount2026: 84,
     delta24h: 0.6,
+    warExpectedPct: 44.0,
+    participantCount: 1080,
   },
 };
 

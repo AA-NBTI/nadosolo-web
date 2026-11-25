@@ -169,7 +169,6 @@ function HumanTempAvatar({ temp }: { temp: number }) {
 }
 
 const CALIBRATED_YEARS = [2022, 2023, 2024, 2025, 2026];
-const PULSE_TEMPS = [20, 50, 75, 95] as const;
 
 export default function ThreatPulseChart({
   isEmbed = false,
@@ -178,24 +177,21 @@ export default function ThreatPulseChart({
 }: ThreatPulseChartProps) {
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [selectedRegions, setSelectedRegions] = useState<RegionCode[]>(['GLOBAL']);
-  const [userPulse, setUserPulse] = useState<number | null>(null);
+  const [warVote, setWarVote] = useState<'YES' | 'NO' | null>(null);
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('oops_citizen_pulse_v1');
-      if (saved) {
-        const parsed = Number(saved);
-        if (!Number.isNaN(parsed)) setUserPulse(parsed);
-      }
+      const saved = localStorage.getItem('oops_war_vote_v1');
+      if (saved === 'YES' || saved === 'NO') setWarVote(saved);
     } catch {
       // ignore storage failure
     }
   }, []);
 
-  const handleVotePulse = (tempVal: number) => {
-    setUserPulse(tempVal);
+  const handleVoteWar = (choice: 'YES' | 'NO') => {
+    setWarVote(choice);
     try {
-      localStorage.setItem('oops_citizen_pulse_v1', String(tempVal));
+      localStorage.setItem('oops_war_vote_v1', choice);
     } catch {
       // ignore storage failure
     }
@@ -290,12 +286,15 @@ export default function ThreatPulseChart({
         {selectedRegions.map((code) => {
           const { profile, output, caseCount, delegationRate } = evaluateRegionForYear(code, selectedYear, liveCtx);
           const temp = output.temperatureC;
-          // 참여자 체감온도(Pulse): 객관 위험도와 별도로 분리 산출 (참여자 투표 시 즉각 반영)
-          const baseCitizenPulse = Number((temp * 0.92).toFixed(1));
-          const citizenPulse =
-            selectedYear === 2026 && userPulse !== null
-              ? Number((baseCitizenPulse * 0.85 + userPulse * 0.15).toFixed(1))
-              : baseCitizenPulse;
+          // AI-인간 전쟁 예상 비율 & 참여자 수 (참여자 투표 시 실시간 반영)
+          const totalParticipants = profile.participantCount + (warVote ? 1 : 0);
+          const warExpectedPct =
+            warVote === 'YES'
+              ? Number(Math.min(99.9, profile.warExpectedPct + 0.1).toFixed(1))
+              : warVote === 'NO'
+              ? Number(Math.max(0.1, profile.warExpectedPct - 0.1).toFixed(1))
+              : profile.warExpectedPct;
+          const controlPct = Number((100 - warExpectedPct).toFixed(1));
           const regionName = profile.name[locale] || profile.name.en;
           const statusKey = temp >= 80 ? 'CRITICAL' : temp >= 60 ? 'HIGH' : temp >= 30 ? 'MED' : 'LOW';
           const statusLabel = copy.statusLabels[statusKey];
@@ -310,11 +309,11 @@ export default function ThreatPulseChart({
                   <div className="text-base sm:text-lg font-black text-black">{regionName}</div>
                 </div>
 
-                {/* 객관 위험도 vs 시민 체감도 분리 표기 */}
+                {/* 전쟁 예상 비율 vs 객관 위험도 분리 표기 */}
                 <div className="flex items-center gap-2">
-                  <div className="text-right px-2 py-1 bg-white border border-black">
-                    <div className="text-[9px] text-zinc-500 font-bold uppercase">{copy.citizenPulseLabel}</div>
-                    <div className="text-sm font-black text-black">{citizenPulse.toFixed(1)}°C</div>
+                  <div className="text-right px-2.5 py-1 bg-white border-2 border-black">
+                    <div className="text-[9px] text-zinc-500 font-bold uppercase">{copy.warYesLabel}</div>
+                    <div className="text-lg sm:text-xl font-black text-[#ff4d00] leading-none mt-0.5">{warExpectedPct}%</div>
                   </div>
                   <div className={`text-right px-2.5 py-1 border-2 border-black ${
                     temp >= 80 ? 'bg-[#dc2626] text-white' :
@@ -322,7 +321,7 @@ export default function ThreatPulseChart({
                     temp >= 30 ? 'bg-[#ffc900] text-black' : 'bg-white text-black'
                   }`}>
                     <div className="text-[9px] font-bold uppercase opacity-90">{copy.objectiveThreatLabel}</div>
-                    <div className="text-xl sm:text-2xl font-black leading-none mt-0.5">{temp.toFixed(1)}°C</div>
+                    <div className="text-lg sm:text-xl font-black leading-none mt-0.5">{temp.toFixed(1)}°C</div>
                   </div>
                 </div>
               </div>
@@ -334,15 +333,19 @@ export default function ThreatPulseChart({
                 </div>
 
                 <div className="w-full flex-1 space-y-3 min-w-0">
-                  <div className="w-full h-3.5 bg-white border-2 border-black overflow-hidden relative">
-                    <div
-                      className={`h-full transition-all duration-500 ease-out ${
-                        temp >= 80 ? 'bg-[#dc2626]' :
-                        temp >= 60 ? 'bg-[#ff4d00]' :
-                        temp >= 30 ? 'bg-[#ffc900]' : 'bg-blue-400'
-                      }`}
-                      style={{ width: `${Math.min(100, temp)}%` }}
-                    />
+                  {/* AI-인간 전쟁 예상 vs 통제 가능 비율 바 */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-black">
+                      <span className="text-[#ff4d00]">{copy.warYesLabel} {warExpectedPct}%</span>
+                      <span className="text-zinc-500 font-bold">{totalParticipants.toLocaleString()} {copy.participantsUnit}</span>
+                      <span className="text-emerald-700">{copy.warNoLabel} {controlPct}%</span>
+                    </div>
+                    <div className="w-full h-4 bg-[#a3e635] border-2 border-black overflow-hidden flex">
+                      <div
+                        className="h-full bg-[#ff4d00] transition-all duration-500 ease-out border-r-2 border-black"
+                        style={{ width: `${warExpectedPct}%` }}
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
@@ -374,38 +377,48 @@ export default function ThreatPulseChart({
         })}
       </div>
 
-      {/* 4. 메인 원클릭 '시민 체감온도(PULSE)' 실시간 투표 바 */}
-      <div className="p-3.5 bg-[#ffc900]/25 border-2 border-black shadow-[3px_3px_0_#d4d4d8] space-y-2.5">
+      {/* 4. AI·인간 전쟁 시나리오 글로벌 참여 투표 바 */}
+      <div className="p-4 bg-[#ffc900]/25 border-2 border-black shadow-[3px_3px_0_#d4d4d8] space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2 font-black text-black">
-            <span className="w-2 h-2 rounded-full bg-[#ff4d00] animate-ping" />
-            <span>{copy.pulseVoteTitle}</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-ping" />
+            <span>{copy.warPollTitle}</span>
           </div>
-          {userPulse !== null && (
+          {warVote && (
             <span className="px-2 py-0.5 bg-zinc-800 text-[#ffc900] text-[10px] font-black border border-black">
-              {copy.pulseVotedBadge} ({userPulse}°)
+              {copy.warVotedMsg} ({warVote})
             </span>
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {PULSE_TEMPS.map((val, idx) => {
-            const active = userPulse === val;
-            return (
-              <button
-                key={val}
-                type="button"
-                onClick={() => handleVotePulse(val)}
-                className={`py-2 px-2.5 text-xs font-mono font-black border-2 border-black cursor-pointer transition-all ${
-                  active
-                    ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#d4d4d8]'
-                    : 'bg-white text-black hover:bg-[#ffc900]'
-                }`}
-              >
-                {copy.pulsePresets[idx]}
-              </button>
-            );
-          })}
+        <div className="text-xs sm:text-sm font-sans font-black text-black">
+          {copy.warPollQuestion}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <button
+            type="button"
+            onClick={() => handleVoteWar('YES')}
+            className={`py-2.5 px-3 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
+              warVote === 'YES'
+                ? 'bg-[#ff4d00] text-white shadow-[3px_3px_0_#d4d4d8]'
+                : 'bg-white text-black hover:bg-[#ff4d00] hover:text-white'
+            }`}
+          >
+            {copy.warYesBtn}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleVoteWar('NO')}
+            className={`py-2.5 px-3 text-xs sm:text-sm font-mono font-black border-2 border-black cursor-pointer transition-all ${
+              warVote === 'NO'
+                ? 'bg-[#a3e635] text-black shadow-[3px_3px_0_#d4d4d8]'
+                : 'bg-white text-black hover:bg-[#a3e635]'
+            }`}
+          >
+            {copy.warNoBtn}
+          </button>
         </div>
 
         <div className="text-[10px] font-sans font-bold text-zinc-600">

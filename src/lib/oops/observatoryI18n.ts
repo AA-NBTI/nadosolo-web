@@ -70,6 +70,16 @@ export interface ObservatoryDict {
   pulseDisclaimer: string;
   expandDialog: string;
   collapseDialog: string;
+
+  // 5. AI-Human War Scenario Global Poll
+  warPollTitle: string;
+  warPollQuestion: string;
+  warYesBtn: string;
+  warNoBtn: string;
+  warYesLabel: string;
+  warNoLabel: string;
+  participantsUnit: string;
+  warVotedMsg: string;
 }
 
 export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
@@ -145,6 +155,14 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     pulseDisclaimer: '자발적 참여자 체감치 (대표성 여론조사와 구분)',
     expandDialog: '대화록 원문',
     collapseDialog: '접기',
+    warPollTitle: 'AI·인간 전쟁 시나리오 글로벌 집계',
+    warPollQuestion: '언젠가 AI와 인간의 전쟁(통제권 충돌)이 벌어질 것이라고 생각하십니까?',
+    warYesBtn: '⚔️ 언젠가 벌어진다 (YES)',
+    warNoBtn: '🛡️ 인간이 통제한다 (NO)',
+    warYesLabel: '충돌 예상',
+    warNoLabel: '통제 가능',
+    participantsUnit: '명 참여',
+    warVotedMsg: '글로벌 집계에 반영됨',
   },
 
   en: {
@@ -219,6 +237,14 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     pulseDisclaimer: 'Voluntary participant pulse (distinct from polling)',
     expandDialog: 'Original Log',
     collapseDialog: 'Close',
+    warPollTitle: 'AI-HUMAN WAR SCENARIO // GLOBAL POLL',
+    warPollQuestion: 'Do you think a war (control conflict) between AI and humans will eventually happen?',
+    warYesBtn: '⚔️ YES, IT WILL HAPPEN',
+    warNoBtn: '🛡️ NO, HUMANS STAY IN CONTROL',
+    warYesLabel: 'WAR EXPECTED',
+    warNoLabel: 'CONTROLLABLE',
+    participantsUnit: 'participants',
+    warVotedMsg: 'Recorded in global tally',
   },
 
   ja: {
@@ -293,6 +319,14 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     pulseDisclaimer: '自発的参加者の体感値（世論調査と区別）',
     expandDialog: '対話ログ原文',
     collapseDialog: '閉じる',
+    warPollTitle: 'AI・人類戦争シナリオ 世界意識集計',
+    warPollQuestion: 'いつかAIと人類の戦争（主導権衝突）が起きると思いますか？',
+    warYesBtn: '⚔️ いつか起きる (YES)',
+    warNoBtn: '🛡️ 人類が制御できる (NO)',
+    warYesLabel: '衝突予想',
+    warNoLabel: '制御可能',
+    participantsUnit: '名参加',
+    warVotedMsg: '世界集計に反映済',
   },
 
   zh: {
@@ -367,6 +401,14 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     pulseDisclaimer: '参与者自发体感均值（区别于代表性民调）',
     expandDialog: '展开原始对话',
     collapseDialog: '收起',
+    warPollTitle: 'AI与人类战争推演 // 全球共识统计',
+    warPollQuestion: '您认为AI与人类最终会爆发控制权战争吗？',
+    warYesBtn: '⚔️ 终将爆发 (YES)',
+    warNoBtn: '🛡️ 人类可控制 (NO)',
+    warYesLabel: '预计冲突',
+    warNoLabel: '可受控制',
+    participantsUnit: '人参与',
+    warVotedMsg: '已计入全球统计',
   },
 
   es: {
@@ -441,5 +483,13 @@ export const OBSERVATORY_I18N: Record<OopsLocale, ObservatoryDict> = {
     pulseDisclaimer: 'Pulso voluntario (distinto de encuesta estadística)',
     expandDialog: 'Registro Original',
     collapseDialog: 'Cerrar',
+    warPollTitle: 'ESCENARIO GUERRA IA-HUMANO // ENCUESTA GLOBAL',
+    warPollQuestion: '¿Crees que eventualmente habrá una guerra por el control entre la IA y los humanos?',
+    warYesBtn: '⚔️ SÍ, OCURRIRÁ',
+    warNoBtn: '🛡️ NO, SE CONTROLARÁ',
+    warYesLabel: 'CONFLICTO',
+    warNoLabel: 'CONTROLABLE',
+    participantsUnit: 'participantes',
+    warVotedMsg: 'Registrado en el conteo',
   },
 };
