@@ -10,7 +10,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   if (isOops) {
-    return [{ url: 'https://oops.monster', lastModified: now, changeFrequency: 'daily', priority: 1.0 }];
+    const siteUrl = 'https://oops.monster';
+    return [
+      { url: siteUrl, lastModified: now, changeFrequency: 'daily', priority: 1.0 },
+      { url: `${siteUrl}/methodology`, lastModified: now, changeFrequency: 'daily', priority: 0.9 },
+      { url: `${siteUrl}/archive`, lastModified: now, changeFrequency: 'daily', priority: 0.8 },
+      { url: `${siteUrl}/case/op-1124`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+      { url: `${siteUrl}/app`, lastModified: now, changeFrequency: 'weekly', priority: 0.7 },
+      { url: `${siteUrl}/hq`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
+    ];
   }
 
   if (isTablebaro) {

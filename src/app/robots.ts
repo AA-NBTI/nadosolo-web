@@ -18,7 +18,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       {
         userAgent: '*',
         allow: isOops
-          ? ['/', '/oops']
+          ? ['/', '/oops', '/methodology', '/archive', '/case', '/app', '/hq']
           : isTablebaro
             ? ['/', '/reserve', '/reserve/my', '/reserve/affiliate', '/biz']
             : ['/', '/meetup', '/dining', '/showcase', '/checklist', '/solotest'],

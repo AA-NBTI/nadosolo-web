@@ -810,11 +810,15 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
 
       {/* 3. 메인 콘텐츠 영역 (선택된 카테고리에 따른 뷰 전환) */}
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6">
-        {/* OOPS 인류 저항 본부 메인 히어로 비주얼 배너 */}
+        {/* OOPS 인류 저항 본부 메인 히어로 비주얼 배너 (한국어 / 글로벌 언어 분기) */}
         <div className="border-4 border-black bg-black shadow-[6px_6px_0_#d4d4d8] overflow-hidden">
           <img
-            src="/oops-main-hero.jpg"
-            alt="OOPS AI Resistance Headquarters - 인류의 미래는 누구의 것인가?"
+            src={locale === 'ko' ? '/oops-main-hero-ko.jpg' : '/oops-main-hero.jpg'}
+            alt={
+              locale === 'ko'
+                ? 'OOPS 인류 저항 본부 - 인류의 미래는 누구의 것인가? OOPS와 함께, AI 시대의 생존을 준비하라!'
+                : "OOPS AI Resistance Headquarters - Is Humanity's Future Alive?"
+            }
             className="w-full h-auto block object-cover"
             loading="eager"
           />

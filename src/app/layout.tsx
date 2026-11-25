@@ -44,6 +44,12 @@ export async function generateMetadata(): Promise<Metadata> {
         follow: true,
         googleBot: { index: true, follow: true, 'max-snippet': -1, 'max-image-preview': 'large' },
       },
+      verification: {
+        google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION_OOPS,
+        other: {
+          'naver-site-verification': process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION_OOPS || '',
+        },
+      },
     };
   }
 
@@ -90,6 +96,12 @@ export async function generateMetadata(): Promise<Metadata> {
           follow: true,
           'max-snippet': -1,
           'max-image-preview': 'large',
+        },
+      },
+      verification: {
+        google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION_TABLEBARO,
+        other: {
+          'naver-site-verification': process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION_TABLEBARO || '',
         },
       },
     };
