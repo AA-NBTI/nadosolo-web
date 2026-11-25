@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import type { OopsLocale } from '@/lib/oops/i18n';
 import type { OopsMemberPublic } from '@/lib/oops/memberStore';
+import { resolveRankByPoints } from '@/lib/oops/rankSystem';
 import { OBSERVATORY_I18N } from '@/lib/oops/observatoryI18n';
 import {
   COUNTRIES_REGISTRY,
@@ -120,6 +121,7 @@ export default function OopsEnlistmentSection({
   };
 
   const activeCountry = COUNTRIES_REGISTRY[effectiveRecord?.countryCode || selectedCountry] || COUNTRIES_REGISTRY.KR;
+  const rankInfo = resolveRankByPoints(member?.points ?? 0);
 
   return (
     <section
@@ -240,12 +242,12 @@ export default function OopsEnlistmentSection({
               {member ? (
                 <div className="flex items-center gap-1.5 text-[10px] text-emerald-400 font-black">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>VERIFIED PERMANENT</span>
+                  <span>{copy.enlistStatusVerified}</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 text-[10px] text-[#ffc900] font-black">
                   <span className="w-2 h-2 rounded-full bg-[#ffc900]" />
-                  <span>PROVISIONAL (임시 보관)</span>
+                  <span>{locale === 'ko' ? '임시' : 'TEMP'}</span>
                 </div>
               )}
             </div>
@@ -260,28 +262,31 @@ export default function OopsEnlistmentSection({
               </div>
 
               <div className="p-2.5 bg-black/60 border border-zinc-700">
+                <div className="text-[10px] text-zinc-400 font-bold uppercase">{copy.enlistRankLabel}</div>
+                <div className="text-base sm:text-lg font-black text-[#ffc900] mt-0.5 flex items-center gap-1.5">
+                  <span>{rankInfo.current.insignia}</span>
+                  <span>
+                    {member
+                      ? rankInfo.current.names[locale] || rankInfo.current.names.en
+                      : locale === 'ko'
+                        ? '훈련병 (임시)'
+                        : `${rankInfo.current.names[locale] || rankInfo.current.names.en} (Temp)`}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-2.5 bg-black/60 border border-zinc-700">
                 <div className="text-[10px] text-zinc-400 font-bold uppercase">{copy.enlistCountryNameLabel}</div>
-                <div className="text-base sm:text-lg font-black text-white mt-0.5 flex items-center gap-1.5">
+                <div className="text-sm sm:text-base font-black text-white mt-0.5 flex items-center gap-1.5">
                   <span>{activeCountry.flag}</span>
                   <span>{activeCountry.name[locale] || activeCountry.name.en}</span>
                 </div>
               </div>
 
               <div className="p-2.5 bg-black/60 border border-zinc-700">
-                <div className="text-[10px] text-zinc-400 font-bold uppercase">CALLSIGN / ALIAS</div>
-                <div className="text-sm sm:text-base font-black text-[#ffc900] mt-0.5">
+                <div className="text-[10px] text-zinc-400 font-bold uppercase">CALLSIGN</div>
+                <div className="text-sm sm:text-base font-black text-white mt-0.5">
                   {effectiveRecord.callsign}
-                </div>
-              </div>
-
-              <div className="p-2.5 bg-black/60 border border-zinc-700">
-                <div className="text-[10px] text-zinc-400 font-bold uppercase">{copy.enlistDateLabel}</div>
-                <div className="text-xs text-zinc-300 font-bold mt-1">
-                  {new Date(effectiveRecord.enlistedAt).toLocaleDateString(locale === 'ko' ? 'ko-KR' : 'en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
                 </div>
               </div>
             </div>
@@ -292,47 +297,49 @@ export default function OopsEnlistmentSection({
             </div>
           </div>
 
-          {/* 미가입 임시 군번인 경우: 영구 귀속 유도 배너 */}
+          {/* 미가입 임시 군번인 경우: 영구 귀속 유도 배너 (단일 단어 버튼) */}
           {!member && onOpenAuth && (
-            <div className="p-3.5 bg-[#ffc900]/25 border-2 border-black flex flex-wrap items-center justify-between gap-2.5">
+            <div className="p-3 bg-[#ffc900]/25 border-2 border-black flex items-center justify-between gap-2.5">
               <div className="text-xs font-sans font-bold text-black">
-                🔒 현재 군번은 이 기기에만 임시 저장되었습니다. 계정에 영구 귀속하시겠습니까?
+                {locale === 'ko'
+                  ? '임시 군번입니다. 초소 등록으로 영구 보관하세요.'
+                  : 'Provisional serial. Register at Outpost to keep permanently.'}
               </div>
               <button
                 type="button"
                 onClick={() => onOpenAuth('REGISTER')}
-                className="px-3.5 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer"
+                className="px-4 py-2 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer shrink-0"
               >
-                군번 영구 등록 (가입)
+                {copy.enlistClaimBtn}
               </button>
             </div>
           )}
 
-          {/* 카드 공유 및 수정 버튼 그룹 */}
+          {/* 카드 공유 및 수정 버튼 그룹 (전부 단일 단어) */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <button
               type="button"
               onClick={handleShare}
-              className="px-4 py-2.5 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer flex items-center gap-1.5 active:translate-x-[1px] active:translate-y-[1px]"
+              className="px-4 py-2 bg-[#ffc900] hover:bg-[#ffd633] text-black font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] cursor-pointer active:translate-x-[1px] active:translate-y-[1px]"
             >
-              <span>{copied ? '✅ ' + copy.enlistCopiedMsg : copy.enlistShareBtn}</span>
+              {copied ? copy.enlistCopiedMsg : copy.enlistShareBtn}
             </button>
 
             {member && onOpenAuth ? (
               <button
                 type="button"
                 onClick={() => onOpenAuth('LOGIN')}
-                className="px-3 py-2 bg-white hover:bg-zinc-100 text-black font-bold text-xs border-2 border-black cursor-pointer"
+                className="px-4 py-2 bg-white hover:bg-zinc-100 text-black font-black text-xs border-2 border-black cursor-pointer"
               >
-                ⚙️ 대원 프로필 / 탈퇴 관리
+                {copy.enlistManageBtn}
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="px-3 py-2 bg-white hover:bg-zinc-100 text-zinc-700 font-bold text-xs border border-black cursor-pointer"
+                className="px-4 py-2 bg-white hover:bg-zinc-100 text-zinc-800 font-bold text-xs border-2 border-black cursor-pointer"
               >
-                🔄 정보 수정 / 재발급
+                {copy.enlistEditBtn}
               </button>
             )}
           </div>

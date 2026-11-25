@@ -32,6 +32,7 @@ import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
 import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
 import OopsAuthModal from '@/components/oops/OopsAuthModal';
 import type { OopsMemberPublic } from '@/lib/oops/memberStore';
+import { resolveRankByPoints } from '@/lib/oops/rankSystem';
 import {
   COUNTRIES_REGISTRY,
   calculateGlobalTotals,
@@ -839,7 +840,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               <span>SNS</span>
             </button>
 
-            {/* OOPS AI 저항군 대원 로그인 / 군번 관리 입구 */}
+            {/* OOPS AI 저항군 초소 입구 (헌병대 검문소 / 로그인·계급·군번) */}
             <button
               type="button"
               onClick={() => {
@@ -852,7 +853,11 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
                   : 'bg-[#ff4d00] text-white hover:bg-[#ff621f]'
               }`}
             >
-              <span>{member ? `#${member.serialLabel}` : locale === 'ko' ? '대원 로그인' : 'LOGIN'}</span>
+              <span>
+                {member
+                  ? `${resolveRankByPoints(member.points).current.insignia} #${member.serialLabel}`
+                  : obs.outpostBtn}
+              </span>
             </button>
 
             {/* 언어 드롭다운 (현재 언어만 노출, 클릭 시 5개 언어 선택) */}

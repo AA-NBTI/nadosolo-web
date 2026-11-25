@@ -8,6 +8,7 @@ export interface OopsMember {
   serialNo: number;
   callsign: string;
   countryCode: string;
+  points: number;
   grade: 'VERIFIED';
   createdAt: string;
   updatedAt: string;
@@ -20,6 +21,7 @@ export interface OopsMemberPublic {
   serialLabel: string;
   callsign: string;
   countryCode: string;
+  points: number;
   grade: 'VERIFIED';
   createdAt: string;
 }
@@ -95,6 +97,7 @@ export function toPublicMember(m: OopsMember): OopsMemberPublic {
     serialLabel: formatSerialLabel(m.countryCode, m.serialNo),
     callsign: m.callsign,
     countryCode: m.countryCode,
+    points: typeof m.points === 'number' ? m.points : 10,
     grade: 'VERIFIED',
     createdAt: m.createdAt,
   };
@@ -163,6 +166,7 @@ export async function registerOopsMember(params: {
     serialNo,
     callsign,
     countryCode,
+    points: 10, // 정식 입대 기본 포인트 (훈련병 시작)
     grade: 'VERIFIED',
     createdAt: now,
     updatedAt: now,
