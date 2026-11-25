@@ -17,9 +17,8 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
   const remainingYears = baselineRemainingYears.toFixed(1);
   const projectedYear = (2026 + baselineRemainingYears).toFixed(1);
 
-  const getTimeLeft = (targetMs: number) => {
-    const now = Date.now();
-    const diff = Math.max(0, targetMs - now);
+  const getTimeLeft = (targetMs: number, nowMs: number) => {
+    const diff = Math.max(0, targetMs - nowMs);
     return {
       totalHours: Math.floor(diff / (1000 * 60 * 60)),
       totalMinutes: Math.floor(diff / (1000 * 60)),
@@ -34,6 +33,9 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
   const offsetMs = (baselineRemainingYears - 9.0) * 365.25 * 24 * 60 * 60 * 1000;
   const targetDate = baseTarget + offsetMs;
 
+  // SSR과 클라이언트 하이드레이션 간 Date.now() 시차로 인한 Hydration Mismatch 방지용 고정 기준시각
+  const SSR_REF_NOW = 1795564800000; // 2026-11-25T00:00:00Z
+
   const [timeLeft, setTimeLeft] = useState<{
     totalHours: number;
     totalMinutes: number;
@@ -41,12 +43,12 @@ export default function CollisionClock({ locale, engineOutput }: CollisionClockP
     hoursInDay: number;
     seconds: number;
     milliseconds: number;
-  }>(() => getTimeLeft(targetDate));
+  }>(() => getTimeLeft(targetDate, SSR_REF_NOW));
 
   useEffect(() => {
-    setTimeLeft(getTimeLeft(targetDate));
+    setTimeLeft(getTimeLeft(targetDate, Date.now()));
     const interval = setInterval(() => {
-      setTimeLeft(getTimeLeft(targetDate));
+      setTimeLeft(getTimeLeft(targetDate, Date.now()));
     }, 47);
 
     return () => clearInterval(interval);
