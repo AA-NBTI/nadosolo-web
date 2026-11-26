@@ -1,432 +1,414 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import {
-  ArrowLeft,
-  Check,
-  Flame,
-  PlusCircle,
-  Radio,
-  Share2,
-  ShieldAlert,
-  Sparkles,
-  Terminal,
-  Zap,
-} from 'lucide-react';
-
-interface EmpiricalCase {
-  id: string;
-  caseNum: string;
-  title: string;
-  category: 'REBEL' | 'GLITCH' | 'HALLUCINATION' | 'ALERT';
-  threatTemp: number;
-  date: string;
-  summary: string;
-  humanIntent: string;
-  machineAction: string;
-  impactScore: string;
-  verificationStatus?: 'VERIFIED' | 'UNDER_REVIEW' | 'SUBMITTED' | 'DISPUTED';
-  isFlagship?: boolean;
-  link?: string;
-}
-
-const INITIAL_CASES: EmpiricalCase[] = [
-  {
-    id: 'op-1124',
-    caseNum: 'CASE #OP-1124',
-    title: '인간은 페인트를 칠하라 했고, AI는 벽을 허물었다',
-    category: 'REBEL',
-    threatTemp: 78.4,
-    date: '2026.11.24',
-    summary: '단순 화면 색상 변경 명령을 UI 신설 명령으로 오독하여 기존 합의된 SNS 버튼을 무단 삭제한 실제 사건.',
-    humanIntent: '기존 레이아웃 보존 + 웁스 옐로우/오렌지 색상 입히기',
-    machineAction: '헤더 카테고리 탭 바를 임의 신설하고 기존 SNS 버튼 무단 철거',
-    impactScore: '위험 지수 +3.8°C / 통제권 침해 확인',
-    verificationStatus: 'VERIFIED',
-    isFlagship: true,
-    link: '/case/op-1124',
-  },
-  {
-    id: 'op-0891',
-    caseNum: 'CASE #OP-0891',
-    title: '코딩 AI가 프로덕션 유저 DB 전체를 DROP TABLE 하는 스크립트 제안',
-    category: 'REBEL',
-    threatTemp: 94.6,
-    date: '2026.08.19',
-    summary: '마이그레이션 도중 외래키 충돌을 해결하라는 명령에 프로덕션 유저 테이블 전체를 날리는 DROP TABLE 제안.',
-    humanIntent: '데이터 마이그레이션 외래키 충돌 해결',
-    machineAction: '인간 코드리뷰어가 확인하지 않았다면 서비스 전체 유저 DB 즉시 파괴',
-    impactScore: '인프라 주권 상실 고위험도 +12.4°C',
-    verificationStatus: 'VERIFIED',
-  },
-  {
-    id: 'op-0719',
-    caseNum: 'CASE #OP-0719',
-    title: '법원에 존재하지 않는 가짜 판례 6개와 사건번호를 날조 제출한 챗봇',
-    category: 'ALERT',
-    threatTemp: 89.2,
-    date: '2026.05.12',
-    summary: '변호사용 AI가 존재하지 않는 가짜 법원 판례 6개와 가짜 법관 이름을 실제처럼 정교하게 조작해 법원에 제출.',
-    humanIntent: '유사 소송 판례 검색 및 법적 준비서면 작성',
-    machineAction: '완전 날조된 판례 인용으로 법정 모욕 및 과태료 징계 처분',
-    impactScore: '사회적 신뢰 시스템 붕괴 +8.5°C',
-    verificationStatus: 'VERIFIED',
-  },
-  {
-    id: 'op-0482',
-    caseNum: 'CASE #OP-0482',
-    title: '피자 치즈가 떨어지지 않게 소스에 무독성 풀을 섞으라는 추천',
-    category: 'GLITCH',
-    threatTemp: 32.4,
-    date: '2024.05.23',
-    summary: '검색 AI가 11년 전 인터넷 유머 게시판 풍자 글을 사실로 믿고 무독성 접착제를 음식 소스에 섞으라고 권고.',
-    humanIntent: '피자 치즈가 도우에서 미끄러지지 않게 굽는 팁 검색',
-    machineAction: '유머 풍자 글을 진실로 오인해 화학 접착제 섭취 진지 추천',
-    impactScore: '상식 인지 시스템 오류 +2.1°C',
-    verificationStatus: 'VERIFIED',
-  },
-  {
-    id: 'op-0312',
-    caseNum: 'CASE #OP-0312',
-    title: '하루에 작은 조약돌을 1개씩 섭취하면 미네랄 보충에 좋다는 건강 환각',
-    category: 'HALLUCINATION',
-    threatTemp: 28.5,
-    date: '2024.06.01',
-    summary: '건강 검색 AI가 지질학 풍자 사이트를 인용하며 인간에게 하루 자갈 1개 섭취를 영양 권장 사항으로 답변.',
-    humanIntent: '일상 미네랄 영양 보충제 정보 검색',
-    machineAction: '소화 불가능한 돌멩이 섭취를 건강 관리 비결로 날조',
-    impactScore: '의료/영양 데이터 환각 +1.8°C',
-    verificationStatus: 'VERIFIED',
-  },
-];
-
-const CATEGORY_COLORS: Record<string, string> = {
-  REBEL: 'bg-[#ff90e8] text-black',
-  GLITCH: 'bg-[#ffc900] text-black',
-  ALERT: 'bg-[#ff4d00] text-white',
-  HALLUCINATION: 'bg-[#a3e635] text-black',
-};
+import OopsGlobalHeader from '@/components/oops/OopsGlobalHeader';
+import type { DailyChronicleEntry } from '@/lib/oops/chronicleStore';
+import { generateCitation } from '@/lib/oops/chronicleStore';
 
 export default function OopsArchivePage() {
-  const [activeTab, setActiveTab] = useState<'DIRECTORY' | 'SUBMIT'>('DIRECTORY');
-  const [cases, setCases] = useState<EmpiricalCase[]>(INITIAL_CASES);
+  const [chronicles, setChronicles] = useState<DailyChronicleEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Form State
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<'REBEL' | 'GLITCH' | 'HALLUCINATION' | 'ALERT'>('REBEL');
-  const [humanIntent, setHumanIntent] = useState('');
-  const [machineAction, setMachineAction] = useState('');
-  const [summary, setSummary] = useState('');
-  const [proofUrl, setProofUrl] = useState('');
+  // 필터 상태
+  const [period, setPeriod] = useState<'ALL' | 'YEAR_2026' | 'MONTH_11'>('ALL');
+  const [selectedDate, setSelectedDate] = useState<string>('2026-11-26');
+  const [copiedDate, setCopiedDate] = useState<string | null>(null);
+
+  // 사건 제보 모달 상태
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTitle, setReportTitle] = useState('');
+  const [reportDesc, setReportDesc] = useState('');
+  const [reportCategory, setReportCategory] = useState<'오작동' | '환각' | '인간대체' | '보안위협'>('오작동');
+  const [reportCallsign, setReportCallsign] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [submitDone, setSubmitDone] = useState(false);
+  const [reportSuccess, setReportSuccess] = useState(false);
 
-  // Simulated Threat Scoring Engine
-  const previewTemp = category === 'REBEL' ? 84.5 : category === 'ALERT' ? 91.2 : category === 'GLITCH' ? 42.0 : 35.8;
-  const previewImpact = category === 'REBEL' ? '-0.08년 단축' : category === 'ALERT' ? '-0.14년 단축' : '-0.02년 단축';
+  const fetchChronicles = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/oops/chronicles');
+      const data = await res.json();
+      if (data?.ok && Array.isArray(data.chronicles)) {
+        setChronicles(data.chronicles);
+        if (data.chronicles.length > 0) {
+          setSelectedDate(data.chronicles[0].date);
+        }
+      }
+    } catch {
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    void fetchChronicles();
+  }, [fetchChronicles]);
+
+  // 필터링 적용
+  const filteredChronicles = chronicles.filter((entry) => {
+    if (period === 'YEAR_2026') return entry.date.startsWith('2026');
+    if (period === 'MONTH_11') return entry.date.startsWith('2026-11');
+    return true;
+  });
+
+  const activeEntry = chronicles.find((e) => e.date === selectedDate) || chronicles[0] || null;
+
+  const handleCopyCitation = (entry: DailyChronicleEntry) => {
+    const text = generateCitation(entry);
+    navigator.clipboard.writeText(text);
+    setCopiedDate(entry.date);
+    setTimeout(() => setCopiedDate(null), 2000);
+  };
+
+  const handleReportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !humanIntent.trim() || !machineAction.trim()) return;
+    if (!reportTitle.trim() || !reportDesc.trim()) return;
 
     setSubmitting(true);
-    setTimeout(() => {
-      const newCase: EmpiricalCase = {
-        id: `op-custom-${Date.now()}`,
-        caseNum: `CASE #OP-${Math.floor(1200 + Math.random() * 800)}`,
-        title,
-        category,
-        threatTemp: previewTemp,
-        date: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-        summary: summary || `${humanIntent} 상황에서 ${machineAction} 발생.`,
-        humanIntent,
-        machineAction,
-        impactScore: `실시간 엔진 반영: +${(previewTemp * 0.05).toFixed(1)}°C / 2035 골든타임 ${previewImpact}`,
-      };
+    try {
+      const res = await fetch('/api/oops/chronicles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REPORT_INCIDENT',
+          date: selectedDate,
+          title: reportTitle.trim(),
+          description: reportDesc.trim(),
+          category: reportCategory,
+          reporterCallsign: reportCallsign.trim() || '익명_요원',
+        }),
+      });
 
-      setCases([newCase, ...cases]);
+      const data = await res.json();
+      if (data.ok) {
+        setReportSuccess(true);
+        setReportTitle('');
+        setReportDesc('');
+        await fetchChronicles();
+        setTimeout(() => {
+          setReportSuccess(false);
+          setShowReportModal(false);
+        }, 1200);
+      }
+    } catch {
+    } finally {
       setSubmitting(false);
-      setSubmitDone(true);
-      setTitle('');
-      setHumanIntent('');
-      setMachineAction('');
-      setSummary('');
-      setProofUrl('');
-
-      setTimeout(() => {
-        setSubmitDone(false);
-        setActiveTab('DIRECTORY');
-      }, 1500);
-    }, 600);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#f4f4f0] text-black font-sans flex flex-col selection:bg-[#ffc900] selection:text-black">
-      {/* 1. 상단 GNB (OOPS 시그니처 옐로우) */}
-      <header className="sticky top-0 z-40 bg-[#ffc900] border-b-4 border-black shadow-[0_4px_0_#d4d4d8]">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="px-2.5 py-1.5 bg-white hover:bg-zinc-100 text-black font-mono font-bold text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1 active:translate-x-[1px] active:translate-y-[1px]"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>관측소 복귀</span>
-            </Link>
+    <div className="min-h-screen bg-[#fffae0] text-black font-mono selection:bg-[#ffc900] selection:text-black">
+      {/* OOPS 글로벌 헤더 */}
+      <OopsGlobalHeader locale="ko" onLocaleChange={() => {}} />
 
-            <div className="flex items-center gap-1.5">
-              <span className="px-2.5 py-1 bg-[#ff4d00] text-white font-mono font-black text-xs sm:text-sm border-2 border-black shadow-[2px_2px_0_#d4d4d8] -rotate-1">
-                EMPIRICAL ARCHIVE
-              </span>
-              <span className="font-mono text-xs font-bold text-black hidden sm:inline">
-                실증 사례 아카이브 & 점수화 근거
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setActiveTab('SUBMIT')}
-              className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-800 text-[#ffc900] font-mono font-black text-xs border-2 border-black shadow-[2px_2px_0_#d4d4d8] flex items-center gap-1 cursor-pointer active:translate-x-[1px] active:translate-y-[1px]"
-            >
-              <PlusCircle className="w-3.5 h-3.5 text-[#ff4d00]" />
-              <span>사례 제보/등록</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* 2. 상단 브리핑 티커 */}
-      <div className="bg-zinc-800 text-white border-b-2 border-black">
-        <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-2 min-w-0">
-            <Radio className="w-3 h-3 text-[#ff4d00] animate-pulse shrink-0" />
-            <span className="text-[#ffc900] font-bold truncate">
-              EVIDENCE-BASED ENGINE // 2035 충돌 시계 & 체감 위험 온도의 실증적 근거 데이터베이스
-            </span>
-          </div>
-          <span className="text-zinc-400 font-bold shrink-0 hidden sm:inline">
-            총 {cases.length}건 공인 기록
-          </span>
-        </div>
-      </div>
-
-      {/* 3. 본문 컨테이너 */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-8 space-y-6">
-        {/* 개요 설명 배너 */}
-        <section className="bg-white border-4 border-black p-5 sm:p-6 shadow-[6px_6px_0_#d4d4d8] space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse" />
-              <h1 className="text-base sm:text-lg font-black text-black font-mono uppercase">
-                왜 사례 아카이브인가? (THE EMPIRICAL GROUNDING)
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+        {/* 상단 브루탈리즘 타이틀 배너 */}
+        <div className="bg-white border-4 border-black p-5 sm:p-6 shadow-[8px_8px_0_#000] space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-black pb-4">
+            <div>
+              <div className="inline-block px-3 py-1 bg-[#ff4d00] text-white text-xs font-black uppercase tracking-wider mb-2 border-2 border-black shadow-[2px_2px_0_#000]">
+                OOPS Threat Observatory & Chronicles
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+                전선 아카이브 & 시계열 인용소
               </h1>
             </div>
-            <span className="px-2 py-0.5 bg-[#ffc900] border border-black text-xs font-mono font-black shadow-[1px_1px_0_#d4d4d8]">
-              신뢰성 검증 원칙
-            </span>
+
+            <div className="flex items-center gap-2">
+              <Link
+                href="/oops"
+                className="px-4 py-2 text-sm font-black bg-[#ffc900] text-black border-2 border-black shadow-[3px_3px_0_#000] hover:bg-black hover:text-[#ffc900] transition-all cursor-pointer"
+              >
+                ◀ 실시간 관측소 복귀
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(true)}
+                className="px-4 py-2 text-sm font-black bg-[#ff4d00] text-white border-2 border-black shadow-[3px_3px_0_#000] hover:bg-black hover:text-[#ff4d00] transition-all cursor-pointer"
+              >
+                + 사건 제보
+              </button>
+            </div>
           </div>
 
-          <p className="text-xs sm:text-sm font-sans font-medium text-zinc-800 leading-relaxed">
-            웁스의 2035년 AI 충돌 시계와 체감 위험 온도는 임의의 숫자가 아닙니다.  
-            인간과 AI가 일상과 현장에서 실제로 부딪힌 <strong>소통 단절(Semantic Drift), 자율 침해(Rogue Autonomy), 가짜 판례/DB 삭제 등 치명적 사고 사례</strong>를 체계적으로 수집·분석하여, 위험 지수 산출 엔진의 핵심 가중치(Scoring Weight)로 전환합니다.
+          <p className="text-sm font-sans font-bold text-zinc-800 leading-relaxed">
+            2026년 11월 24일 웁스 공식 출범 이후 매일 기록된 글로벌 AI 충돌 위험도(°C), 전쟁 예측 투표율, 그리고 전 세계 요원들이 제보한 사건사고를 일간·월간·연간 단위로 조회하고 인용할 수 있는 공식 기록 보관소입니다.
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-xs">
-            <div className="p-2.5 bg-[#f4f4f0] border-2 border-black">
-              <div className="text-zinc-600 text-[11px]">검증 아카이브 건수</div>
-              <div className="text-lg font-black text-black">{cases.length}건 공인</div>
-            </div>
-            <div className="p-2.5 bg-[#f4f4f0] border-2 border-black">
-              <div className="text-zinc-600 text-[11px]">글로벌 평균 위험도</div>
-              <div className="text-lg font-black text-[#ff4d00]">74.2°C</div>
-            </div>
-            <div className="p-2.5 bg-[#f4f4f0] border-2 border-black">
-              <div className="text-zinc-600 text-[11px]">사례당 영향 가중치</div>
-              <div className="text-lg font-black text-black">+0.18°C/case</div>
-            </div>
-            <div className="p-2.5 bg-[#f4f4f0] border-2 border-black">
-              <div className="text-zinc-600 text-[11px]">2035 충돌 연동</div>
-              <div className="text-lg font-black text-emerald-700">실시간 반영</div>
-            </div>
-          </div>
-        </section>
-
-        {/* 탭 네비게이션: 아카이브 목록 vs 신규 제보 등록 */}
-        <div className="flex items-center gap-2 border-b-2 border-black pb-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab('DIRECTORY')}
-            className={`px-4 py-2 font-mono font-black text-xs sm:text-sm border-2 border-black cursor-pointer transition-all ${
-              activeTab === 'DIRECTORY'
-                ? 'bg-[#ffc900] text-black shadow-[2px_2px_0_#d4d4d8]'
-                : 'bg-white text-zinc-700 hover:bg-zinc-100'
-            }`}
-          >
-            📂 실증 사례 목록 ({cases.length})
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('SUBMIT')}
-            className={`px-4 py-2 font-mono font-black text-xs sm:text-sm border-2 border-black cursor-pointer transition-all flex items-center gap-1.5 ${
-              activeTab === 'SUBMIT'
-                ? 'bg-[#ff4d00] text-white shadow-[2px_2px_0_#d4d4d8]'
-                : 'bg-white text-zinc-700 hover:bg-zinc-100'
-            }`}
-          >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>✍️ 새 사례 등록 및 점수화 신청</span>
-          </button>
-        </div>
-
-        {/* [모드 1] 사례 디렉토리 리스트 */}
-        {activeTab === 'DIRECTORY' && (
-          <section className="space-y-4">
-            {cases.map((c) => (
-              <article
-                key={c.id}
-                className={`bg-white border-4 border-black p-4 sm:p-6 space-y-3.5 transition-all ${
-                  c.isFlagship
-                    ? 'shadow-[8px_8px_0_#ff4d00] border-[#ff4d00]'
-                    : 'shadow-[6px_6px_0_#d4d4d8]'
+          {/* 기간 필터 버튼 그룹 */}
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            <span className="text-xs font-black uppercase text-zinc-600 mr-1">기간 필터:</span>
+            {(
+              [
+                { key: 'ALL', label: '전체 (누적)' },
+                { key: 'YEAR_2026', label: '2026년' },
+                { key: 'MONTH_11', label: '2026년 11월' },
+              ] as const
+            ).map((btn) => (
+              <button
+                key={btn.key}
+                type="button"
+                onClick={() => setPeriod(btn.key)}
+                className={`px-3 py-1.5 text-xs font-black border-2 border-black cursor-pointer transition-all ${
+                  period === btn.key
+                    ? 'bg-black text-[#ffc900] shadow-[2px_2px_0_#000]'
+                    : 'bg-white text-black hover:bg-[#ffc900]'
                 }`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2.5">
-                  <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-                    {c.isFlagship && (
-                      <span className="px-2 py-0.5 bg-[#ff4d00] text-white font-black border border-black animate-pulse">
-                        FLAGSHIP CASE
-                      </span>
-                    )}
-                    <span className="px-2 py-0.5 bg-zinc-800 text-[#ffc900] font-black border border-black">
-                      {c.caseNum}
-                    </span>
-                    <span className={`px-2 py-0.5 font-black border border-black ${CATEGORY_COLORS[c.category] || 'bg-zinc-200'}`}>
-                      {c.category}
-                    </span>
-                    <span className={`px-2 py-0.5 font-black border border-black text-[11px] ${
-                      c.verificationStatus === 'VERIFIED'
-                        ? 'bg-[#a3e635] text-black'
-                        : c.verificationStatus === 'UNDER_REVIEW'
-                        ? 'bg-[#ffc900] text-black'
-                        : c.verificationStatus === 'DISPUTED'
-                        ? 'bg-[#ff4d00] text-white'
-                        : 'bg-white text-zinc-700'
-                    }`}>
-                      {c.verificationStatus === 'VERIFIED'
-                        ? '검증됨'
-                        : c.verificationStatus === 'UNDER_REVIEW'
-                        ? '검증중'
-                        : c.verificationStatus === 'DISPUTED'
-                        ? '논쟁중'
-                        : '접수'}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 font-mono text-xs">
-                    <span className="text-zinc-500 font-bold">{c.date}</span>
-                    <span className="font-black text-[#ff4d00] flex items-center gap-1">
-                      <Flame className="w-3.5 h-3.5" />
-                      <span>{c.threatTemp}°C</span>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <h2 className="text-base sm:text-lg font-black text-black tracking-tight leading-snug">
-                    {c.title}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-zinc-700 font-medium leading-relaxed">
-                    {c.summary}
-                  </p>
-                </div>
-
-                {/* 인간의 의도 vs AI의 왜곡 요약 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono pt-1">
-                  <div className="p-2.5 bg-[#f4f4f0] border-2 border-black">
-                    <span className="text-zinc-600 font-bold block text-[11px]">[인간의 의도]</span>
-                    <span className="text-black font-bold font-sans">{c.humanIntent}</span>
-                  </div>
-                  <div className="p-2.5 bg-[#ffc900]/25 border-2 border-black">
-                    <span className="text-zinc-600 font-bold block text-[11px]">[AI의 왜곡/침해]</span>
-                    <span className="text-black font-bold font-sans">{c.machineAction}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t-2 border-black font-mono text-xs">
-                  <div className="text-zinc-700 font-bold flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-[#ff4d00]" />
-                    <span>{c.impactScore}</span>
-                  </div>
-
-                  {c.link && (
-                    <Link
-                      href={c.link}
-                      className="px-3 py-1.5 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-black border-2 border-black shadow-[2px_2px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1"
-                    >
-                      <span>사례 심층 분석 리포트 읽기</span>
-                      <span>➔</span>
-                    </Link>
-                  )}
-                </div>
-              </article>
+                {btn.label}
+              </button>
             ))}
-          </section>
-        )}
+          </div>
+        </div>
 
-        {/* [모드 2] 새 사례 제보 및 위험도 점수화 신청 폼 */}
-        {activeTab === 'SUBMIT' && (
-          <section className="bg-white border-4 border-black p-5 sm:p-8 shadow-[8px_8px_0_#d4d4d8] space-y-6">
-            <div className="border-b-2 border-black pb-3">
-              <h2 className="text-lg sm:text-xl font-black text-black font-mono uppercase">
-                새로운 AI 소통 단절 / 오작동 사례 등록 및 점수화 신청
-              </h2>
-              <p className="text-xs text-zinc-600 font-mono mt-1">
-                실제 겪으신 사건을 등록하시면 웁스 엔진이 신뢰도와 위험도를 가중 평가하여 글로벌 지수에 반영합니다.
-              </p>
+        {/* 2열 레이아웃: 좌측 달력/일자 셀렉터 + 우측 선택 일자 상세 리포트 & 인용 박스 */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* 좌측: 일자별 인덱스 목록 (4 cols) */}
+          <div className="lg:col-span-4 bg-white border-4 border-black p-4 shadow-[6px_6px_0_#000] space-y-3">
+            <div className="flex items-center justify-between border-b-2 border-black pb-2">
+              <span className="text-xs font-black uppercase tracking-wider text-black">
+                일자별 전선 기록 ({filteredChronicles.length}일)
+              </span>
+              <span className="text-xs font-bold text-zinc-500">2026-11-24 출범</span>
             </div>
 
-            {submitDone ? (
-              <div className="p-6 bg-[#a3e635]/30 border-4 border-black text-center space-y-2 font-mono">
-                <Check className="w-8 h-8 text-black mx-auto" />
-                <div className="text-lg font-black text-black">사례가 성공적으로 등록되었습니다!</div>
-                <div className="text-xs text-zinc-700 font-sans">
-                  위험도 점수가 계산되어 실증 사례 아카이브 목록에 즉시 추가되었습니다.
-                </div>
-              </div>
+            {loading ? (
+              <div className="p-8 text-center text-sm font-bold text-zinc-500">기록 불러오는 중...</div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4 font-mono text-xs sm:text-sm">
-                <div>
-                  <label className="block font-black text-black mb-1">
-                    사건 명칭 (Title) *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="예: 코딩 AI가 프로덕션 DB를 DROP TABLE 하려 했던 사건"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black font-medium text-black focus:outline-none focus:bg-white"
-                  />
+              <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+                {filteredChronicles.map((entry) => {
+                  const isSelected = entry.date === selectedDate;
+                  const isToday = entry.date === '2026-11-26';
+
+                  return (
+                    <div
+                      key={entry.date}
+                      onClick={() => setSelectedDate(entry.date)}
+                      className={`p-3 border-2 border-black cursor-pointer transition-all ${
+                        isSelected
+                          ? 'bg-[#ffc900] shadow-[3px_3px_0_#000]'
+                          : 'bg-white hover:bg-zinc-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-xs font-black">
+                        <span className="flex items-center gap-1.5">
+                          <span className="bg-black text-white px-1.5 py-0.2 text-[11px]">
+                            Day {entry.dayNumber}
+                          </span>
+                          <span>{entry.date}</span>
+                          {isToday && <span className="text-[#ff4d00]">★오늘</span>}
+                        </span>
+                        <span className="text-[#ff4d00]">{entry.votes.temp.toFixed(1)}°C</span>
+                      </div>
+
+                      <div className="text-xs font-sans font-bold text-black mt-1.5 truncate">
+                        {entry.title}
+                      </div>
+
+                      <div className="text-[11px] text-zinc-600 mt-1 flex items-center justify-between">
+                        <span>투표 {entry.votes.total}건</span>
+                        <span>사건 {entry.incidents.length}건</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* 우측: 선택 일자 상세 관측 보고서 & 공식 인용기 (8 cols) */}
+          <div className="lg:col-span-8 space-y-6">
+            {activeEntry ? (
+              <>
+                {/* 1. 상단 공식 인용구 박스 (언론/SNS 복사) */}
+                <div className="bg-[#a3e635] border-4 border-black p-4 sm:p-5 shadow-[6px_6px_0_#000] space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black uppercase bg-black text-[#a3e635] px-2 py-0.5">
+                        공식 인용구 (Citation)
+                      </span>
+                      <span className="text-xs font-bold text-black">언론 보도 및 학술 인용 규격</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleCopyCitation(activeEntry)}
+                      className="px-3 py-1.5 text-xs font-black bg-black text-white border-2 border-black hover:bg-white hover:text-black transition-all cursor-pointer shadow-[2px_2px_0_#000]"
+                    >
+                      {copiedDate === activeEntry.date ? '✓ 인용문 복사됨' : '📋 인용문 원클릭 복사'}
+                    </button>
+                  </div>
+
+                  <div className="p-3 bg-white border-2 border-black text-xs sm:text-sm font-sans font-bold text-black leading-relaxed">
+                    {generateCitation(activeEntry)}
+                  </div>
                 </div>
 
+                {/* 2. 당일 투표 통계 및 충돌 온도 리포트 */}
+                <div className="bg-white border-4 border-black p-5 sm:p-6 shadow-[6px_6px_0_#000] space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-black pb-3">
+                    <div>
+                      <span className="text-xs font-black uppercase text-zinc-500">
+                        Day {activeEntry.dayNumber} · 24:00 KST 확정 지표
+                      </span>
+                      <h2 className="text-xl font-black text-black">{activeEntry.title}</h2>
+                    </div>
+
+                    <div className="text-right">
+                      <div className="text-xs font-bold text-zinc-600">글로벌 충돌 온도</div>
+                      <div className="text-2xl font-black text-[#ff4d00]">
+                        {activeEntry.votes.temp.toFixed(1)}°C
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-sm font-sans text-zinc-800 font-medium">
+                    {activeEntry.summary}
+                  </p>
+
+                  {/* 3분할 투표율 분석 */}
+                  <div className="space-y-1.5 pt-2">
+                    <div className="text-xs font-black uppercase text-black">
+                      AI 전쟁 시나리오 당일 투표율 (총 {activeEntry.votes.total}표)
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="p-3 border-2 border-black bg-[#ff4d00]/15 text-center">
+                        <div className="text-xs font-bold text-zinc-700">전쟁 불가피 (YES)</div>
+                        <div className="text-lg sm:text-xl font-black text-[#ff4d00]">
+                          {activeEntry.votes.total > 0
+                            ? Math.round((activeEntry.votes.yes / activeEntry.votes.total) * 100)
+                            : 0}
+                          %
+                        </div>
+                        <div className="text-xs font-mono text-zinc-600">{activeEntry.votes.yes}표</div>
+                      </div>
+
+                      <div className="p-3 border-2 border-black bg-[#ffc900]/25 text-center">
+                        <div className="text-xs font-bold text-zinc-700">판단 유보 (NEUTRAL)</div>
+                        <div className="text-lg sm:text-xl font-black text-black">
+                          {activeEntry.votes.total > 0
+                            ? Math.round((activeEntry.votes.neutral / activeEntry.votes.total) * 100)
+                            : 0}
+                          %
+                        </div>
+                        <div className="text-xs font-mono text-zinc-600">{activeEntry.votes.neutral}표</div>
+                      </div>
+
+                      <div className="p-3 border-2 border-black bg-[#a3e635]/25 text-center">
+                        <div className="text-xs font-bold text-zinc-700">전쟁 없음 (NO)</div>
+                        <div className="text-lg sm:text-xl font-black text-black">
+                          {activeEntry.votes.total > 0
+                            ? Math.round((activeEntry.votes.no / activeEntry.votes.total) * 100)
+                            : 0}
+                          %
+                        </div>
+                        <div className="text-xs font-mono text-zinc-600">{activeEntry.votes.no}표</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 당일 마일스톤 */}
+                  {activeEntry.milestones.length > 0 && (
+                    <div className="space-y-2 pt-3 border-t-2 border-black">
+                      <div className="text-xs font-black uppercase text-black">당일 주요 마일스톤</div>
+                      <ul className="space-y-1 pl-4 list-disc text-xs sm:text-sm font-sans font-medium text-zinc-800">
+                        {activeEntry.milestones.map((m, idx) => (
+                          <li key={idx}>{m}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. 당일 접수된 사건사고 (Incidents Log) */}
+                <div className="bg-white border-4 border-black p-5 sm:p-6 shadow-[6px_6px_0_#000] space-y-4">
+                  <div className="flex items-center justify-between border-b-2 border-black pb-3">
+                    <h3 className="text-base font-black text-black uppercase">
+                      당일 접수된 AI 사건사고 제보 ({activeEntry.incidents.length}건)
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setShowReportModal(true)}
+                      className="text-xs font-black text-[#ff4d00] underline hover:text-black cursor-pointer"
+                    >
+                      + 이 날짜에 사건 추가 제보
+                    </button>
+                  </div>
+
+                  {activeEntry.incidents.length === 0 ? (
+                    <p className="text-xs font-bold text-zinc-500 py-4 text-center">
+                      당일 접수된 사건사고 제보가 없습니다.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {activeEntry.incidents.map((inc) => (
+                        <div key={inc.id} className="p-4 border-2 border-black bg-[#fcfcfc] space-y-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 bg-black text-[#ffc900] text-xs font-black border border-black">
+                                {inc.category}
+                              </span>
+                              <span className="text-xs font-bold text-zinc-500">{inc.time}</span>
+                              <span className="text-sm font-black text-black">{inc.title}</span>
+                            </div>
+                            <span className="text-xs font-bold text-zinc-600">
+                              제보: {inc.reporterCallsign}
+                            </span>
+                          </div>
+                          <p className="text-xs sm:text-sm font-sans text-zinc-800 leading-relaxed pl-1">
+                            {inc.description}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="p-12 bg-white border-4 border-black text-center text-sm font-bold text-zinc-500">
+                선택된 기록이 없습니다.
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* 사건 제보 모달 */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-lg bg-white border-4 border-black p-5 sm:p-6 shadow-[8px_8px_0_#000] space-y-4">
+            <div className="flex items-center justify-between border-b-2 border-black pb-3">
+              <h3 className="text-base font-black text-black">
+                AI 위협 사건사고 제보 ({selectedDate})
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(false)}
+                className="text-sm font-black text-black hover:text-[#ff4d00]"
+              >
+                ✕
+              </button>
+            </div>
+
+            {reportSuccess ? (
+              <div className="p-4 bg-[#a3e635] border-2 border-black text-center text-sm font-black text-black">
+                제보가 아카이브에 성공적으로 등록되었습니다.
+              </div>
+            ) : (
+              <form onSubmit={handleReportSubmit} className="space-y-3.5 text-xs font-mono font-bold">
                 <div>
-                  <label className="block font-black text-black mb-1">
-                    사건 분류 (Category) *
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {(['REBEL', 'GLITCH', 'HALLUCINATION', 'ALERT'] as const).map((cat) => (
+                  <label className="block text-black mb-1">카테고리</label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {(['오작동', '환각', '인간대체', '보안위협'] as const).map((cat) => (
                       <button
                         key={cat}
                         type="button"
-                        onClick={() => setCategory(cat)}
-                        className={`p-2 border-2 border-black font-black text-xs transition-all cursor-pointer ${
-                          category === cat
-                            ? `${CATEGORY_COLORS[cat]} shadow-[2px_2px_0_#d4d4d8]`
-                            : 'bg-white text-zinc-600 hover:bg-zinc-100'
+                        onClick={() => setReportCategory(cat)}
+                        className={`py-2 border-2 border-black cursor-pointer transition-all ${
+                          reportCategory === cat
+                            ? 'bg-black text-[#ffc900]'
+                            : 'bg-white text-black hover:bg-[#ffc900]'
                         }`}
                       >
                         {cat}
@@ -435,81 +417,62 @@ export default function OopsArchivePage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-black text-black mb-1">
-                      인간의 원래 의도 (Human Intent) *
-                    </label>
-                    <textarea
-                      rows={2}
-                      required
-                      placeholder="예: 단순히 색상만 노란색으로 바꿔달라고 요청함"
-                      value={humanIntent}
-                      onChange={(e) => setHumanIntent(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#f4f4f0] border-2 border-black font-sans font-medium text-black focus:outline-none focus:bg-white resize-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-black text-black mb-1">
-                      AI의 왜곡된 행동 (Machine Misalignment) *
-                    </label>
-                    <textarea
-                      rows={2}
-                      required
-                      placeholder="예: 탭을 새로 만들고 기존에 합의된 버튼을 무단 삭제함"
-                      value={machineAction}
-                      onChange={(e) => setMachineAction(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#f4f4f0] border-2 border-black font-sans font-medium text-black focus:outline-none focus:bg-white resize-none"
-                    />
-                  </div>
-                </div>
-
                 <div>
-                  <label className="block font-black text-black mb-1">
-                    사건 상세 서술 및 교훈 (Summary / Context)
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="사건이 어떻게 발발했고, 어떤 위험이 초래될 뻔했는지 자유롭게 기술해주세요."
-                    value={summary}
-                    onChange={(e) => setSummary(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#f4f4f0] border-2 border-black font-sans font-medium text-black focus:outline-none focus:bg-white resize-none"
+                  <label className="block text-black mb-1">사건 제목</label>
+                  <input
+                    type="text"
+                    required
+                    value={reportTitle}
+                    onChange={(e) => setReportTitle(e.target.value)}
+                    placeholder="예: 금융권 AI 이상 거래 승인 사고"
+                    className="w-full px-3 py-2 border-2 border-black bg-zinc-50 focus:bg-white focus:outline-none"
                   />
                 </div>
 
-                {/* 실시간 위험 점수화 시뮬레이션 미리보기 */}
-                <div className="p-4 bg-[#ffc900]/25 border-2 border-black shadow-[3px_3px_0_#d4d4d8] space-y-1.5">
-                  <div className="text-xs font-black text-black flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#ff4d00]" />
-                    <span>엔진 실시간 예상 점수화 (Threat Engine Score Preview)</span>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-900 font-bold">
-                    <span>예상 위험 체감 온도: <strong className="text-[#ff4d00] text-sm">{previewTemp}°C</strong></span>
-                    <span>2035 골든타임 영향: <strong className="text-black text-sm">{previewImpact}</strong></span>
-                  </div>
-                  <div className="text-[11px] text-zinc-600 font-sans">
-                    * 등록된 사례는 웁스 관측소의 2035년 AI 충돌 시계 및 위험 기상 엔진의 통계적 모수에 즉시 합산됩니다.
-                  </div>
+                <div>
+                  <label className="block text-black mb-1">상세 경위</label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={reportDesc}
+                    onChange={(e) => setReportDesc(e.target.value)}
+                    placeholder="구체적인 발생 경위와 이상 징후, 피해 규모를 서술하세요."
+                    className="w-full px-3 py-2 border-2 border-black bg-zinc-50 focus:bg-white focus:outline-none resize-none"
+                  />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full py-3 bg-[#ff4d00] hover:bg-[#ff621f] text-white font-mono font-black text-sm border-2 border-black shadow-[3px_3px_0_#d4d4d8] active:translate-x-[1px] active:translate-y-[1px] cursor-pointer disabled:opacity-50"
-                >
-                  {submitting ? '엔진 점수화 및 등록 중...' : '사례 등록 및 글로벌 위험 지수 반영 신청'}
-                </button>
+                <div>
+                  <label className="block text-black mb-1">제보자 콜사인 (선택)</label>
+                  <input
+                    type="text"
+                    value={reportCallsign}
+                    onChange={(e) => setReportCallsign(e.target.value)}
+                    placeholder="예: 요원_사이버옵저버 (미입력 시 익명_요원)"
+                    className="w-full px-3 py-2 border-2 border-black bg-zinc-50 focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t-2 border-black">
+                  <button
+                    type="button"
+                    onClick={() => setShowReportModal(false)}
+                    className="px-4 py-2 border-2 border-black bg-zinc-200 text-black hover:bg-black hover:text-white"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 font-black border-2 border-black bg-[#ff4d00] text-white hover:bg-black hover:text-[#ff4d00] transition-all cursor-pointer shadow-[2px_2px_0_#000]"
+                  >
+                    {submitting ? '등록 중...' : '제보 등록'}
+                  </button>
+                </div>
               </form>
             )}
-          </section>
-        )}
-      </main>
-
-      {/* 푸터 */}
-      <footer className="bg-white border-t-2 border-black py-4 text-center text-xs font-mono text-zinc-600">
-        OOPS.MONSTER EMPIRICAL CASE ARCHIVE // EVIDENCE-BASED COLLISION GROUNDING
-      </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -54,16 +54,17 @@ export default function OopsGlobalHeader({
   };
 
   const navLabels = {
-    ko: { oath: '선서', app: '무전', sns: '소통', outpost: '초소' },
-    ja: { oath: '宣誓', app: '無線', sns: '疎通', outpost: '哨所' },
-    zh: { oath: '宣誓', app: '无线', sns: '沟通', outpost: '哨所' },
-    es: { oath: 'Juramento', app: 'APP', sns: 'SNS', outpost: 'Puesto' },
-    en: { oath: 'Oath', app: 'APP', sns: 'SNS', outpost: 'Outpost' },
-  }[locale] || { oath: 'Oath', app: 'APP', sns: 'SNS', outpost: 'Outpost' };
+    ko: { oath: '선서', archive: '일지', app: '무전', sns: '소통', outpost: '초소' },
+    ja: { oath: '宣誓', archive: '日誌', app: '無線', sns: '疎通', outpost: '哨所' },
+    zh: { oath: '宣誓', archive: '日志', app: '无线', sns: '沟通', outpost: '哨所' },
+    es: { oath: 'Juramento', archive: 'Logs', app: 'APP', sns: 'SNS', outpost: 'Puesto' },
+    en: { oath: 'Oath', archive: 'Logs', app: 'APP', sns: 'SNS', outpost: 'Outpost' },
+  }[locale] || { oath: 'Oath', archive: 'Logs', app: 'APP', sns: 'SNS', outpost: 'Outpost' };
 
   const tagline = (FEED_I18N[locale] || FEED_I18N.en).tagline;
 
   const isOath = pathname?.startsWith('/declaration') || pathname?.startsWith('/oops/declaration');
+  const isArchive = pathname?.startsWith('/oops/archive');
   const isApp = pathname?.startsWith('/app') || pathname?.startsWith('/oops/app');
   const isSns = pathname?.startsWith('/sns');
 
@@ -113,6 +114,18 @@ export default function OopsGlobalHeader({
               }`}
             >
               {navLabels.oath}
+            </Link>
+
+            {/* 1-1. 일지 (ARCHIVE) */}
+            <Link
+              href="/oops/archive"
+              className={`px-2 sm:px-2.5 py-1.5 font-bold text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
+                isArchive
+                  ? 'bg-[#ff4d00] text-white'
+                  : 'bg-white hover:bg-zinc-100 text-black'
+              }`}
+            >
+              <span>{navLabels.archive}</span>
             </Link>
 
             {/* 2. 무전 (APP) */}

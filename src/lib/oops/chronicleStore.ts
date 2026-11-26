@@ -271,3 +271,33 @@ export async function addDailyIncident(
   await saveChroniclesState(state);
   return newIncident;
 }
+
+/** 언론 및 SNS 인용용 공식 인용문 생성 */
+export function generateCitation(entry: DailyChronicleEntry): string {
+  const total = entry.votes.total;
+  const yesPct = total > 0 ? ((entry.votes.yes / total) * 100).toFixed(1) : '0.0';
+  const noPct = total > 0 ? ((entry.votes.no / total) * 100).toFixed(1) : '0.0';
+  const neutralPct = total > 0 ? ((entry.votes.neutral / total) * 100).toFixed(1) : '0.0';
+
+  return `[OOPS 관측소 공식 인용] ${entry.date} 24:00 KST 기준: 글로벌 AI 충돌 위험도 ${entry.votes.temp.toFixed(1)}°C | 전쟁 발발 찬성 ${yesPct}% (${entry.votes.yes}표) · 반대 ${noPct}% (${entry.votes.no}표) · 중립 ${neutralPct}% (${entry.votes.neutral}표) (총 ${total}표 집계, 당일 제보 사건 ${entry.incidents.length}건) - 출처: oops.monster`;
+}
+
+/** 일간 / 월간 / 연간 시계열 필터링 */
+export async function queryChronicles(params: {
+  period?: 'DAILY' | 'MONTHLY' | 'YEARLY';
+  year?: string;
+  month?: string;
+}): Promise<DailyChronicleEntry[]> {
+  const state = await loadChroniclesState();
+  let list = Object.values(state.entries);
+
+  if (params.year) {
+    list = list.filter((e) => e.date.startsWith(params.year!));
+  }
+  if (params.month) {
+    list = list.filter((e) => e.date.slice(5, 7) === params.month);
+  }
+
+  return list.sort((a, b) => b.date.localeCompare(a.date));
+}
+

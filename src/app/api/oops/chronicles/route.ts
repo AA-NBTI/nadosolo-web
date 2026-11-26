@@ -3,18 +3,39 @@ import {
   loadChroniclesState,
   recordDailyChronicleVote,
   addDailyIncident,
+  generateCitation,
+  queryChronicles,
 } from '@/lib/oops/chronicleStore';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const period = (searchParams.get('period') || 'DAILY').toUpperCase() as 'DAILY' | 'MONTHLY' | 'YEARLY';
+  const year = searchParams.get('year') || undefined;
+  const month = searchParams.get('month') || undefined;
+  const targetDate = searchParams.get('date');
+
   const state = await loadChroniclesState();
-  const list = Object.values(state.entries).sort((a, b) => b.date.localeCompare(a.date));
+
+  if (targetDate && state.entries[targetDate]) {
+    const entry = state.entries[targetDate];
+    return NextResponse.json({
+      ok: true,
+      entry,
+      citation: generateCitation(entry),
+    });
+  }
+
+  const list = await queryChronicles({ period, year, month });
 
   return NextResponse.json(
     {
       ok: true,
       establishedDate: state.establishedDate,
       totalDays: list.length,
-      chronicles: list,
+      chronicles: list.map((e) => ({
+        ...e,
+        citation: generateCitation(e),
+      })),
     },
     {
       headers: {

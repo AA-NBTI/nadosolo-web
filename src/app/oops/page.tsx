@@ -30,7 +30,7 @@ import ThreatPulseChart from '@/components/oops/ThreatPulseChart';
 import CollisionClock from '@/components/oops/CollisionClock';
 import HeroSurvivalTimer from '@/components/oops/HeroSurvivalTimer';
 import WarScenarioPoll from '@/components/oops/WarScenarioPoll';
-import OopsChroniclesTimeline from '@/components/oops/OopsChroniclesTimeline';
+import OopsArchiveQuickBar from '@/components/oops/OopsArchiveQuickBar';
 import type { DailyChronicleEntry } from '@/lib/oops/chronicleStore';
 import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
 import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
@@ -885,11 +885,10 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               globalTotals={movementTotals}
             />
 
-            {/* 2-1. 2026-11-24 출범 전선 연혁 및 일일 관측소 타임라인 */}
-            <OopsChroniclesTimeline
+            {/* 2-1. 2026-11-24 출범 전선 일일 아카이브 퀵 필터 바 */}
+            <OopsArchiveQuickBar
               chronicles={chronicles}
               todayDateStr="2026-11-26"
-              onRefresh={fetchChronicles}
             />
 
             {/* 3. 3D 인터랙티브 글로벌 관제 지도 (서명자 / 투표자 / 체감온도 3개 탭 360° 회전 지구본) */}
