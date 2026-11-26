@@ -30,6 +30,8 @@ import ThreatPulseChart from '@/components/oops/ThreatPulseChart';
 import CollisionClock from '@/components/oops/CollisionClock';
 import HeroSurvivalTimer from '@/components/oops/HeroSurvivalTimer';
 import WarScenarioPoll from '@/components/oops/WarScenarioPoll';
+import OopsChroniclesTimeline from '@/components/oops/OopsChroniclesTimeline';
+import type { DailyChronicleEntry } from '@/lib/oops/chronicleStore';
 import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
 import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
 import OopsAuthModal from '@/components/oops/OopsAuthModal';
@@ -225,6 +227,17 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [provisionalRecord, setProvisionalRecord] = useState<EnlistmentRecord | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  const [chronicles, setChronicles] = useState<DailyChronicleEntry[]>([]);
+
+  const fetchChronicles = useCallback(async () => {
+    try {
+      const res = await fetch('/api/oops/chronicles');
+      const data = await res.json();
+      if (data?.ok && Array.isArray(data.chronicles)) {
+        setChronicles(data.chronicles);
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     try {
@@ -257,7 +270,9 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         }
       })
       .catch(() => {});
-  }, []);
+
+    void fetchChronicles();
+  }, [fetchChronicles]);
 
   // 초기 접속 언어/국가 복원 및 국가 선택 시 언어 통합 전환
   useEffect(() => {
@@ -319,6 +334,15 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
           setMovementTotals(data.totals);
         }
       }
+    } catch {}
+
+    // 데일리 전선 일지에도 투표 동기화
+    try {
+      void fetch('/api/oops/chronicles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'DAILY_VOTE', choice, date: '2026-11-26' }),
+      }).then(() => fetchChronicles());
     } catch {}
   };
 
@@ -859,6 +883,13 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
               onVote={handleVoteWar}
               countryData={movementRegistry[selectedCountry] || movementRegistry.KR}
               globalTotals={movementTotals}
+            />
+
+            {/* 2-1. 2026-11-24 출범 전선 연혁 및 일일 관측소 타임라인 */}
+            <OopsChroniclesTimeline
+              chronicles={chronicles}
+              todayDateStr="2026-11-26"
+              onRefresh={fetchChronicles}
             />
 
             {/* 3. 3D 인터랙티브 글로벌 관제 지도 (서명자 / 투표자 / 체감온도 3개 탭 360° 회전 지구본) */}

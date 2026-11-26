@@ -41,7 +41,7 @@ async function loadMembers(): Promise<OopsMember[]> {
   if (admin) {
     try {
       const { data, error } = await admin
-        .from('app_kv')
+        .from('app_configs')
         .select('value')
         .eq('key', MEMBERS_KV_KEY)
         .maybeSingle();
@@ -63,7 +63,7 @@ async function saveMembers(list: OopsMember[]): Promise<void> {
   if (admin) {
     try {
       await admin
-        .from('app_kv')
+        .from('app_configs')
         .upsert({ key: MEMBERS_KV_KEY, value: list, updated_at: new Date().toISOString() }, { onConflict: 'key' });
     } catch {}
   }

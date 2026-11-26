@@ -15,6 +15,7 @@ import {
 } from '@/lib/oops/rankSystem';
 import { OOPS_ORG_HIERARCHY, type OrgTrack } from '@/lib/oops/organizationSystem';
 import { COUNTRIES_REGISTRY, type EnlistmentRecord } from '@/lib/oops/movementStore';
+import type { DailyChronicleEntry } from '@/lib/oops/chronicleStore';
 
 interface AgentRow {
   agentId: string;
@@ -35,6 +36,7 @@ interface BackerRow {
 
 type HqTabKey =
   | 'OVERVIEW'
+  | 'CHRONICLES'
   | 'ORGANIZATION'
   | 'RANKS'
   | 'SIGNATORIES'
@@ -65,6 +67,7 @@ export default function OopsHqAdminPage() {
 
   const [latestVersion, setLatestVersion] = useState('v3.1.5');
   const [releases, setReleases] = useState<OopsReleaseEntry[]>([]);
+  const [chronicles, setChronicles] = useState<DailyChronicleEntry[]>([]);
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [members, setMembers] = useState<OopsMemberPublic[]>([]);
   const [signatories, setSignatories] = useState<EnlistmentRecord[]>([]);
@@ -119,6 +122,7 @@ export default function OopsHqAdminPage() {
       setAuthed(true);
       setLatestVersion(data.latestVersion || 'v3.1.5');
       setReleases(data.releases || []);
+      setChronicles(data.chronicles || []);
       setAgents(data.agents || []);
       setMembers(data.members || []);
       setSignatories(data.signatories || []);
@@ -237,6 +241,7 @@ export default function OopsHqAdminPage() {
       title: '작전 · 조직',
       items: [
         { key: 'OVERVIEW', label: '상황' },
+        { key: 'CHRONICLES', label: '연혁', badge: chronicles.length },
         { key: 'ORGANIZATION', label: '조직', badge: OOPS_ORG_HIERARCHY.length },
         { key: 'RANKS', label: '계급', badge: OOPS_MILITARY_RANKS.length },
         { key: 'SIGNATORIES', label: '서약', badge: signatories.length },
@@ -491,6 +496,67 @@ export default function OopsHqAdminPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* 1-1. 전선 연혁 및 일일 관측소 (CHRONICLES) */}
+          {activeTab === 'CHRONICLES' && (
+            <div className="space-y-4">
+              <div className="p-3 border border-white/15 bg-[#101218] flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f04f74]" />
+                  <h2 className="text-lg text-white font-bold">전선 연혁</h2>
+                  <span className="text-sm px-2 py-0.5 border border-white/20 text-zinc-200">
+                    2026-11-24 출범 · {chronicles.length}일
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {chronicles.map((entry) => (
+                  <div key={entry.date} className="p-4 border border-white/15 bg-[#101218] space-y-3">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="text-white font-bold">Day {entry.dayNumber}</span>
+                        <span className="text-zinc-400">|</span>
+                        <span className="text-zinc-200">{entry.date}</span>
+                      </div>
+                      <span className="px-2 py-0.5 border border-white/20 bg-white/5 text-white font-bold text-sm">
+                        온도 {entry.votes.temp}°C
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-base font-bold text-white">{entry.title}</h3>
+                      <p className="text-sm text-zinc-300 mt-0.5">{entry.summary}</p>
+                    </div>
+
+                    <div className="p-2.5 border border-white/10 bg-[#08090c] space-y-1 text-sm">
+                      <div className="text-zinc-400 font-bold">투표 현황</div>
+                      <div className="text-zinc-200">
+                        총 {entry.votes.total}표 (찬성 {entry.votes.yes} · 반대 {entry.votes.no} · 중립 {entry.votes.neutral})
+                      </div>
+                    </div>
+
+                    {entry.incidents.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <div className="text-sm font-bold text-zinc-400">
+                          접수된 전선 사건 ({entry.incidents.length}건)
+                        </div>
+                        {entry.incidents.map((inc) => (
+                          <div key={inc.id} className="p-2 border border-white/10 bg-[#08090c] text-sm space-y-0.5">
+                            <div className="flex items-center justify-between text-zinc-300">
+                              <span className="text-white font-bold">[{inc.category}] {inc.title}</span>
+                              <span className="text-zinc-400">{inc.time}</span>
+                            </div>
+                            <p className="text-zinc-400 line-clamp-1">{inc.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           )}

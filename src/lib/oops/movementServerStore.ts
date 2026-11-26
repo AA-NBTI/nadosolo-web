@@ -24,7 +24,7 @@ export async function loadMovementState(): Promise<MovementState> {
   if (admin) {
     try {
       const { data, error } = await admin
-        .from('app_kv')
+        .from('app_configs')
         .select('value')
         .eq('key', MOVEMENT_KV_KEY)
         .maybeSingle();
@@ -50,7 +50,7 @@ export async function saveMovementState(state: MovementState): Promise<void> {
   if (admin) {
     try {
       await admin
-        .from('app_kv')
+        .from('app_configs')
         .upsert(
           { key: MOVEMENT_KV_KEY, value: state, updated_at: new Date().toISOString() },
           { onConflict: 'key' }

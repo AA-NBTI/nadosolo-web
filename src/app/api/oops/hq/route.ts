@@ -15,6 +15,7 @@ import { listTrackingEvents } from '@/lib/tracking/serverStore';
 import { listAllOopsMembers } from '@/lib/oops/memberStore';
 import { loadMovementState } from '@/lib/oops/movementServerStore';
 import { calculateGlobalTotals } from '@/lib/oops/movementStore';
+import { loadChroniclesState } from '@/lib/oops/chronicleStore';
 
 function isAuthorized(req: NextRequest, bodyKey?: string): boolean {
   const expected = process.env.OOPS_HQ_KEY || 'aa1111';
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: '인증 암호가 일치하지 않습니다.' }, { status: 401 });
   }
 
-  const [agents, backers, signals, bannedAgents, trackingEvents, members, movementState] = await Promise.all([
+  const [agents, backers, signals, bannedAgents, trackingEvents, members, movementState, chroniclesState] = await Promise.all([
     listOopsAgents(),
     listOopsBackers(),
     listSignals({ tab: 'LIVE', includeHidden: true, limit: 150 }),
@@ -37,14 +38,17 @@ export async function GET(req: NextRequest) {
     listTrackingEvents('OOPS'),
     listAllOopsMembers(),
     loadMovementState(),
+    loadChroniclesState(),
   ]);
 
   const movementTotals = calculateGlobalTotals(movementState.countries);
+  const chroniclesList = Object.values(chroniclesState.entries).sort((a, b) => b.date.localeCompare(a.date));
 
   return NextResponse.json({
     ok: true,
     latestVersion: OOPS_RELEASES[0]?.version || 'v0.4.0',
     releases: OOPS_RELEASES,
+    chronicles: chroniclesList,
     members,
     signatories: movementState.recentSignatories,
     totalSignatures: movementTotals.totalSignatures,
