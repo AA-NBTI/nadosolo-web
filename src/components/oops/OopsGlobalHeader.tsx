@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, Radio, Smartphone, X } from 'lucide-react';
 import type { OopsLocale } from '@/lib/oops/i18n';
 import { FEED_I18N } from '@/lib/oops/feedI18n';
 import type { OopsMemberPublic } from '@/lib/oops/memberStore';
+import { DEFAULT_OOPS_MODULES, type OopsFeatureModules } from '@/lib/oops/featureModulesStore';
 
 export interface OopsGlobalHeaderProps {
   locale: OopsLocale;
@@ -15,6 +16,7 @@ export interface OopsGlobalHeaderProps {
   onCountryChange?: (countryCode: string) => void;
   member?: OopsMemberPublic | null;
   onOpenAuth?: (mode: 'LOGIN' | 'REGISTER') => void;
+  modules?: OopsFeatureModules;
 }
 
 export const OOPS_LANG_OPTIONS: Array<{
@@ -35,10 +37,24 @@ export default function OopsGlobalHeader({
   onCountryChange,
   member = null,
   onOpenAuth,
+  modules: propModules,
 }: OopsGlobalHeaderProps) {
   const pathname = usePathname();
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [showEmblemModal, setShowEmblemModal] = useState(false);
+  const [fetchedModules, setFetchedModules] = useState<OopsFeatureModules>(DEFAULT_OOPS_MODULES);
+
+  useEffect(() => {
+    if (propModules) return;
+    void fetch('/api/oops/modules')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.ok && d.modules) setFetchedModules(d.modules);
+      })
+      .catch(() => {});
+  }, [propModules]);
+
+  const activeModules = propModules || fetchedModules;
 
   const currentOption =
     OOPS_LANG_OPTIONS.find((opt) => opt.code === locale) || OOPS_LANG_OPTIONS[0];
@@ -117,55 +133,63 @@ export default function OopsGlobalHeader({
             </Link>
 
             {/* 1-1. 일지 (ARCHIVE) */}
-            <Link
-              href="/oops/archive"
-              className={`px-2 sm:px-2.5 py-1.5 font-bold text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
-                isArchive
-                  ? 'bg-[#ff4d00] text-white'
-                  : 'bg-white hover:bg-zinc-100 text-black'
-              }`}
-            >
-              <span>{navLabels.archive}</span>
-            </Link>
+            {activeModules.archiveLogs && (
+              <Link
+                href="/oops/archive"
+                className={`px-2 sm:px-2.5 py-1.5 font-bold text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
+                  isArchive
+                    ? 'bg-[#ff4d00] text-white'
+                    : 'bg-white hover:bg-zinc-100 text-black'
+                }`}
+              >
+                <span>{navLabels.archive}</span>
+              </Link>
+            )}
 
-            {/* 2. 무전 (APP) */}
-            <Link
-              href="/app"
-              className={`px-2 sm:px-2.5 py-1.5 font-bold text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
-                isApp
-                  ? 'bg-[#ff4d00] text-white'
-                  : 'bg-white hover:bg-zinc-100 text-black'
-              }`}
-            >
-              <Smartphone className="w-3.5 h-3.5" />
-              <span>{navLabels.app}</span>
-            </Link>
+            {/* 2. 무전 (APP) - 모듈 제어 */}
+            {activeModules.appRadio && (
+              <Link
+                href="/app"
+                className={`px-2 sm:px-2.5 py-1.5 font-bold text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
+                  isApp
+                    ? 'bg-[#ff4d00] text-white'
+                    : 'bg-white hover:bg-zinc-100 text-black'
+                }`}
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>{navLabels.app}</span>
+              </Link>
+            )}
 
-            {/* 3. 소통 (SNS) */}
-            <Link
-              href="/sns"
-              className={`px-2 sm:px-2.5 py-1.5 font-bold text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
-                isSns
-                  ? 'bg-[#ff4d00] text-white'
-                  : 'bg-white hover:bg-zinc-100 text-black'
-              }`}
-            >
-              <Radio className={`w-3.5 h-3.5 animate-pulse ${isSns ? 'text-white' : 'text-[#ff4d00]'}`} />
-              <span>{navLabels.sns}</span>
-            </Link>
+            {/* 3. 소통 (SNS) - 모듈 제어 */}
+            {activeModules.snsFeed && (
+              <Link
+                href="/sns"
+                className={`px-2 sm:px-2.5 py-1.5 font-bold text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
+                  isSns
+                    ? 'bg-[#ff4d00] text-white'
+                    : 'bg-white hover:bg-zinc-100 text-black'
+                }`}
+              >
+                <Radio className={`w-3.5 h-3.5 animate-pulse ${isSns ? 'text-white' : 'text-[#ff4d00]'}`} />
+                <span>{navLabels.sns}</span>
+              </Link>
+            )}
 
-            {/* 4. 초소 */}
-            <button
-              type="button"
-              onClick={() => onOpenAuth?.('LOGIN')}
-              className={`px-2 sm:px-2.5 py-1.5 font-black text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
-                member
-                  ? 'bg-white text-[#ff4d00] hover:bg-zinc-100'
-                  : 'bg-[#ff4d00] text-white hover:bg-[#ff621f]'
-              }`}
-            >
-              <span>{member ? `#${member.serialLabel}` : navLabels.outpost}</span>
-            </button>
+            {/* 4. 초소 - 모듈 제어 */}
+            {activeModules.outpostAuth && (
+              <button
+                type="button"
+                onClick={() => onOpenAuth?.('LOGIN')}
+                className={`px-2 sm:px-2.5 py-1.5 font-black text-xs border-2 border-black shadow-none cursor-pointer flex items-center gap-1 transition-colors ${
+                  member
+                    ? 'bg-white text-[#ff4d00] hover:bg-zinc-100'
+                    : 'bg-[#ff4d00] text-white hover:bg-[#ff621f]'
+                }`}
+              >
+                <span>{member ? `#${member.serialLabel}` : navLabels.outpost}</span>
+              </button>
+            )}
           </div>
         </div>
       </header>

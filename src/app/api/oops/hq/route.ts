@@ -16,6 +16,12 @@ import { listAllOopsMembers } from '@/lib/oops/memberStore';
 import { loadMovementState } from '@/lib/oops/movementServerStore';
 import { calculateGlobalTotals } from '@/lib/oops/movementStore';
 import { loadChroniclesState } from '@/lib/oops/chronicleStore';
+import {
+  loadOopsPlatformConfig,
+  updateOopsModules,
+  publishWarBriefing,
+  deleteWarBriefing,
+} from '@/lib/oops/featureModulesStore';
 
 function isAuthorized(req: NextRequest, bodyKey?: string): boolean {
   const expected = process.env.OOPS_HQ_KEY || 'aa1111';
@@ -30,7 +36,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: '인증 암호가 일치하지 않습니다.' }, { status: 401 });
   }
 
-  const [agents, backers, signals, bannedAgents, trackingEvents, members, movementState, chroniclesState] = await Promise.all([
+  const [agents, backers, signals, bannedAgents, trackingEvents, members, movementState, chroniclesState, platformConfig] = await Promise.all([
     listOopsAgents(),
     listOopsBackers(),
     listSignals({ tab: 'LIVE', includeHidden: true, limit: 150 }),
@@ -39,6 +45,7 @@ export async function GET(req: NextRequest) {
     listAllOopsMembers(),
     loadMovementState(),
     loadChroniclesState(),
+    loadOopsPlatformConfig(),
   ]);
 
   const movementTotals = calculateGlobalTotals(movementState.countries);
@@ -49,6 +56,8 @@ export async function GET(req: NextRequest) {
     latestVersion: OOPS_RELEASES[0]?.version || 'v0.4.0',
     releases: OOPS_RELEASES,
     chronicles: chroniclesList,
+    modules: platformConfig.modules,
+    briefings: platformConfig.briefings,
     members,
     signatories: movementState.recentSignatories,
     totalSignatures: movementTotals.totalSignatures,
@@ -94,6 +103,41 @@ export async function POST(req: NextRequest) {
         signalId: body?.signalId ? String(body.signalId) : undefined,
         agentId: body?.agentId ? String(body.agentId) : undefined,
       });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === 'TOGGLE_MODULE') {
+      const patch = body?.modules || {};
+      const updated = await updateOopsModules(patch);
+      return NextResponse.json({ ok: true, modules: updated });
+    }
+
+    if (action === 'PUBLISH_BRIEFING') {
+      const title = String(body?.title || '').trim().slice(0, 100);
+      const category = String(body?.category || '긴급타전') as any;
+      const impactTemp = String(body?.impactTemp || '+0.5°C').trim().slice(0, 20);
+      const rawBullets = Array.isArray(body?.bullets)
+        ? body.bullets.map((b: any) => String(b).trim()).filter(Boolean)
+        : [];
+
+      if (!title || rawBullets.length === 0) {
+        return NextResponse.json({ ok: false, error: '제목과 최소 1줄 이상의 핵심 요약을 입력해 주세요.' }, { status: 400 });
+      }
+
+      const briefing = await publishWarBriefing({
+        title,
+        category,
+        impactTemp,
+        bullets: rawBullets.slice(0, 3),
+        date: new Date().toISOString().slice(0, 10),
+      });
+      return NextResponse.json({ ok: true, briefing });
+    }
+
+    if (action === 'DELETE_BRIEFING') {
+      const id = String(body?.id || '');
+      if (!id) return NextResponse.json({ ok: false, error: 'ID 누락' }, { status: 400 });
+      await deleteWarBriefing(id);
       return NextResponse.json({ ok: true });
     }
 

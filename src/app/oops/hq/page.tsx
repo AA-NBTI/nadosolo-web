@@ -16,6 +16,11 @@ import {
 import { OOPS_ORG_HIERARCHY, type OrgTrack } from '@/lib/oops/organizationSystem';
 import { COUNTRIES_REGISTRY, type EnlistmentRecord } from '@/lib/oops/movementStore';
 import type { DailyChronicleEntry } from '@/lib/oops/chronicleStore';
+import {
+  DEFAULT_OOPS_MODULES,
+  type OopsFeatureModules,
+  type WarBriefingEntry,
+} from '@/lib/oops/featureModulesStore';
 
 interface AgentRow {
   agentId: string;
@@ -36,6 +41,8 @@ interface BackerRow {
 
 type HqTabKey =
   | 'OVERVIEW'
+  | 'BRIEFINGS'
+  | 'MODULES'
   | 'CHRONICLES'
   | 'ORGANIZATION'
   | 'RANKS'
@@ -68,6 +75,16 @@ export default function OopsHqAdminPage() {
   const [latestVersion, setLatestVersion] = useState('v3.1.5');
   const [releases, setReleases] = useState<OopsReleaseEntry[]>([]);
   const [chronicles, setChronicles] = useState<DailyChronicleEntry[]>([]);
+  const [modules, setModules] = useState<OopsFeatureModules>(DEFAULT_OOPS_MODULES);
+  const [briefings, setBriefings] = useState<WarBriefingEntry[]>([]);
+  const [modBusy, setModBusy] = useState<string | null>(null);
+  const [brTitle, setBrTitle] = useState('');
+  const [brCat, setBrCat] = useState<'긴급타전' | '위협분석' | '생존수칙'>('긴급타전');
+  const [brTemp, setBrTemp] = useState('+1.2°C');
+  const [brB1, setBrB1] = useState('');
+  const [brB2, setBrB2] = useState('');
+  const [brB3, setBrB3] = useState('');
+  const [brBusy, setBrBusy] = useState(false);
   const [agents, setAgents] = useState<AgentRow[]>([]);
   const [members, setMembers] = useState<OopsMemberPublic[]>([]);
   const [signatories, setSignatories] = useState<EnlistmentRecord[]>([]);
@@ -123,6 +140,8 @@ export default function OopsHqAdminPage() {
       setLatestVersion(data.latestVersion || 'v3.1.5');
       setReleases(data.releases || []);
       setChronicles(data.chronicles || []);
+      if (data.modules) setModules(data.modules);
+      if (Array.isArray(data.briefings)) setBriefings(data.briefings);
       setAgents(data.agents || []);
       setMembers(data.members || []);
       setSignatories(data.signatories || []);
@@ -236,11 +255,84 @@ export default function OopsHqAdminPage() {
     }
   };
 
+  const handleToggleModule = async (keyName: keyof OopsFeatureModules) => {
+    setModBusy(keyName);
+    const nextVal = !modules[keyName];
+    try {
+      const res = await fetch('/api/oops/hq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: passkey,
+          action: 'TOGGLE_MODULE',
+          modules: { [keyName]: nextVal },
+        }),
+      });
+      const data = await res.json();
+      if (data?.ok && data.modules) {
+        setModules(data.modules);
+      }
+    } catch {} finally {
+      setModBusy(null);
+    }
+  };
+
+  const handlePublishBriefing = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const bullets = [brB1.trim(), brB2.trim(), brB3.trim()].filter(Boolean);
+    if (!brTitle.trim() || bullets.length === 0) return;
+    setBrBusy(true);
+    try {
+      const res = await fetch('/api/oops/hq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: passkey,
+          action: 'PUBLISH_BRIEFING',
+          title: brTitle.trim(),
+          category: brCat,
+          impactTemp: brTemp.trim() || '+0.5°C',
+          bullets,
+        }),
+      });
+      const data = await res.json();
+      if (data?.ok && data.briefing) {
+        setBriefings((prev) => [data.briefing, ...prev]);
+        setBrTitle('');
+        setBrB1('');
+        setBrB2('');
+        setBrB3('');
+      }
+    } catch {} finally {
+      setBrBusy(false);
+    }
+  };
+
+  const handleDeleteBriefing = async (id: string) => {
+    try {
+      const res = await fetch('/api/oops/hq', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: passkey,
+          action: 'DELETE_BRIEFING',
+          id,
+        }),
+      });
+      const data = await res.json();
+      if (data?.ok) {
+        setBriefings((prev) => prev.filter((b) => b.id !== id));
+      }
+    } catch {}
+  };
+
   const NAV_CATEGORIES: HqNavCategory[] = [
     {
       title: '작전 · 조직',
       items: [
         { key: 'OVERVIEW', label: '상황' },
+        { key: 'BRIEFINGS', label: '브리핑', badge: briefings.length },
+        { key: 'MODULES', label: '모듈', badge: Object.values(modules).filter(Boolean).length },
         { key: 'CHRONICLES', label: '연혁', badge: chronicles.length },
         { key: 'ORGANIZATION', label: '조직', badge: OOPS_ORG_HIERARCHY.length },
         { key: 'RANKS', label: '계급', badge: OOPS_MILITARY_RANKS.length },
@@ -496,6 +588,222 @@ export default function OopsHqAdminPage() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* 1-0A. 전시 브리핑 발행기 (BRIEFINGS - 1인 미디어 타전) */}
+          {activeTab === 'BRIEFINGS' && (
+            <div className="space-y-4">
+              <div className="p-3 border border-white/15 bg-[#101218] flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#ffc900]" />
+                  <h2 className="text-lg text-white font-bold">전시 브리핑 발행</h2>
+                  <span className="text-sm px-2 py-0.5 border border-white/20 text-zinc-200">
+                    {briefings.length}건
+                  </span>
+                </div>
+              </div>
+
+              {/* 새 브리핑 작성 폼 */}
+              <form onSubmit={handlePublishBriefing} className="p-4 border border-white/15 bg-[#101218] space-y-3 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1">분류</label>
+                    <select
+                      value={brCat}
+                      onChange={(e) => setBrCat(e.target.value as any)}
+                      className="w-full px-3 py-2 bg-[#08090c] border border-white/20 text-white"
+                    >
+                      <option value="긴급타전">긴급타전</option>
+                      <option value="위협분석">위협분석</option>
+                      <option value="생존수칙">생존수칙</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-zinc-400 font-bold mb-1">충돌 온도 변화</label>
+                    <input
+                      type="text"
+                      value={brTemp}
+                      onChange={(e) => setBrTemp(e.target.value)}
+                      placeholder="+1.4°C"
+                      className="w-full px-3 py-2 bg-[#08090c] border border-white/20 text-white"
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <label className="block text-zinc-400 font-bold mb-1">브리핑 헤드라인 (1줄)</label>
+                    <input
+                      type="text"
+                      required
+                      value={brTitle}
+                      onChange={(e) => setBrTitle(e.target.value)}
+                      placeholder="예: OpenAI 차세대 모델, 보안 샌드박스 우회 징후 포착"
+                      className="w-full px-3 py-2 bg-[#08090c] border border-white/20 text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 font-bold">핵심 3줄 요약</label>
+                  <input
+                    type="text"
+                    required
+                    value={brB1}
+                    onChange={(e) => setBrB1(e.target.value)}
+                    placeholder="1. 사건/현상 핵심 요약"
+                    className="w-full px-3 py-2 bg-[#08090c] border border-white/20 text-white"
+                  />
+                  <input
+                    type="text"
+                    value={brB2}
+                    onChange={(e) => setBrB2(e.target.value)}
+                    placeholder="2. 인류에게 미치는 위협 또는 시사점"
+                    className="w-full px-3 py-2 bg-[#08090c] border border-white/20 text-white"
+                  />
+                  <input
+                    type="text"
+                    value={brB3}
+                    onChange={(e) => setBrB3(e.target.value)}
+                    placeholder="3. OOPS 대응 권고 또는 행동 지침"
+                    className="w-full px-3 py-2 bg-[#08090c] border border-white/20 text-white"
+                  />
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={brBusy}
+                    className="px-4 py-2 text-sm font-bold border border-white/30 bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+                  >
+                    {brBusy ? '발행 중...' : '메인 화면에 즉시 발행'}
+                  </button>
+                </div>
+              </form>
+
+              {/* 발행된 브리핑 목록 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {briefings.map((b) => (
+                  <div key={b.id} className="p-4 border border-white/15 bg-[#101218] space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-bold">{b.issueNo} · {b.category}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-zinc-400">{b.date}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteBriefing(b.id)}
+                          className="px-2 py-0.5 text-sm border border-white/20 text-zinc-300 hover:bg-white/10"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                    <div className="text-white font-bold">{b.title}</div>
+                    <ul className="space-y-1 text-zinc-300">
+                      {b.bullets.map((line, i) => (
+                        <li key={i}>· {line}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 1-0B. 기능 모듈 ON/OFF 제어기 (MODULES) */}
+          {activeTab === 'MODULES' && (
+            <div className="space-y-4">
+              <div className="p-3 border border-white/15 bg-[#101218] flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#a3e635]" />
+                  <h2 className="text-lg text-white font-bold">모듈 제어</h2>
+                  <span className="text-sm px-2 py-0.5 border border-white/20 text-zinc-200">
+                    ON {Object.values(modules).filter(Boolean).length} / 7
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {(
+                  [
+                    {
+                      key: 'mediaBriefing',
+                      title: '전시 상황 브리핑',
+                      phase: '1단계 미디어',
+                      desc: '메인 화면 최상단 오늘의 1인 미디어 긴급 브리핑 및 타전 카드 노출',
+                    },
+                    {
+                      key: 'oathEnlistment',
+                      title: '인간 선언 서약',
+                      phase: '1단계 구독',
+                      desc: '방문자 콜사인 발급 및 생존자 명부 서약 기능',
+                    },
+                    {
+                      key: 'archiveLogs',
+                      title: '전선 일지 · 아카이브',
+                      phase: '1단계 기록',
+                      desc: '메인 퀵 필터 바 및 /oops/archive 시계열 인용소 노출',
+                    },
+                    {
+                      key: 'globe3d',
+                      title: '3D 글로벌 관제 지구본',
+                      phase: '관측 시각화',
+                      desc: '메인 화면 국가별 실시간 충돌 온도 3D 지구본 위젯',
+                    },
+                    {
+                      key: 'appRadio',
+                      title: '무전 터미널 (/app)',
+                      phase: '추후 확장',
+                      desc: '상단 헤더 [무전] 버튼 및 PWA 독립 무전 단말기 기능',
+                    },
+                    {
+                      key: 'snsFeed',
+                      title: '소통 광장 (/sns)',
+                      phase: '2단계 커뮤니티',
+                      desc: '상단 헤더 [소통] 버튼 및 요원 간 실시간 커뮤니티 피드',
+                    },
+                    {
+                      key: 'outpostAuth',
+                      title: '초소 로그인 (Outpost)',
+                      phase: '3단계 조직화',
+                      desc: '상단 헤더 [초소] 버튼 및 정식 요원 인증/계급 로그인 모달',
+                    },
+                  ] as { key: keyof OopsFeatureModules; title: string; phase: string; desc: string }[]
+                ).map((item) => {
+                  const isOn = modules[item.key];
+                  const busy = modBusy === item.key;
+
+                  return (
+                    <div
+                      key={item.key}
+                      className={`p-4 border transition-all flex items-center justify-between gap-4 ${
+                        isOn ? 'border-white/35 bg-[#141720]' : 'border-white/10 bg-[#0d0e13]'
+                      }`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base font-bold text-white">{item.title}</span>
+                          <span className="px-2 py-0.5 text-sm border border-white/15 bg-white/5 text-zinc-300">
+                            {item.phase}
+                          </span>
+                        </div>
+                        <p className="text-sm text-zinc-400">{item.desc}</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => handleToggleModule(item.key)}
+                        className={`px-4 py-2 text-sm font-bold border shrink-0 cursor-pointer transition-all ${
+                          isOn
+                            ? 'border-white bg-white text-black'
+                            : 'border-white/20 bg-white/5 text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        {busy ? '...' : isOn ? 'ON' : 'OFF'}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

@@ -31,7 +31,13 @@ import CollisionClock from '@/components/oops/CollisionClock';
 import HeroSurvivalTimer from '@/components/oops/HeroSurvivalTimer';
 import WarScenarioPoll from '@/components/oops/WarScenarioPoll';
 import OopsArchiveQuickBar from '@/components/oops/OopsArchiveQuickBar';
+import OopsWarBriefingSection from '@/components/oops/OopsWarBriefingSection';
 import type { DailyChronicleEntry } from '@/lib/oops/chronicleStore';
+import {
+  DEFAULT_OOPS_MODULES,
+  type OopsFeatureModules,
+  type WarBriefingEntry,
+} from '@/lib/oops/featureModulesStore';
 import OopsEnlistmentSection from '@/components/oops/OopsEnlistmentSection';
 import Global3DDataGlobe from '@/components/oops/Global3DDataGlobe';
 import OopsAuthModal from '@/components/oops/OopsAuthModal';
@@ -228,6 +234,19 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
   const [chronicles, setChronicles] = useState<DailyChronicleEntry[]>([]);
+  const [modules, setModules] = useState<OopsFeatureModules>(DEFAULT_OOPS_MODULES);
+  const [briefings, setBriefings] = useState<WarBriefingEntry[]>([]);
+
+  const fetchModulesAndBriefings = useCallback(async () => {
+    try {
+      const res = await fetch('/api/oops/modules');
+      const data = await res.json();
+      if (data?.ok) {
+        if (data.modules) setModules(data.modules);
+        if (Array.isArray(data.briefings)) setBriefings(data.briefings);
+      }
+    } catch {}
+  }, []);
 
   const fetchChronicles = useCallback(async () => {
     try {
@@ -272,7 +291,8 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
       .catch(() => {});
 
     void fetchChronicles();
-  }, [fetchChronicles]);
+    void fetchModulesAndBriefings();
+  }, [fetchChronicles, fetchModulesAndBriefings]);
 
   // 초기 접속 언어/국가 복원 및 국가 선택 시 언어 통합 전환
   useEffect(() => {
@@ -841,6 +861,7 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         selectedCountry={selectedCountry}
         onCountryChange={handleSelectCountryAndLocale}
         member={member}
+        modules={modules}
         onOpenAuth={(mode) => {
           setAuthModalMode(mode);
           setAuthModalOpen(true);
@@ -871,6 +892,9 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
         {/* 3-0. 글로벌 위험 기상 엔진 다이어그램 (OBSERVATORY 탭 전용) */}
         {viewMode === 'OBSERVATORY' && (
           <section aria-label="Global Threat Observatory Chart" className="space-y-6">
+            {/* 0. 전시 상황 브리핑 (1인 미디어 핵심 피드) */}
+            {modules.mediaBriefing && <OopsWarBriefingSection briefings={briefings} />}
+
             {/* 1. AI 충돌 시계 */}
             <CollisionClock locale={locale} engineOutput={liveEngineOutput} />
 
@@ -886,18 +910,22 @@ function OopsSnsMainContent({ initialView = 'OBSERVATORY' }: { initialView?: 'OB
             />
 
             {/* 2-1. 2026-11-24 출범 전선 일일 아카이브 퀵 필터 바 */}
-            <OopsArchiveQuickBar
-              chronicles={chronicles}
-              todayDateStr="2026-11-26"
-            />
+            {modules.archiveLogs && (
+              <OopsArchiveQuickBar
+                chronicles={chronicles}
+                todayDateStr="2026-11-26"
+              />
+            )}
 
             {/* 3. 3D 인터랙티브 글로벌 관제 지도 (서명자 / 투표자 / 체감온도 3개 탭 360° 회전 지구본) */}
-            <Global3DDataGlobe
-              locale={locale}
-              selectedCountry={selectedCountry}
-              onSelectCountry={setSelectedCountry}
-              countriesRegistry={movementRegistry}
-            />
+            {modules.globe3d && (
+              <Global3DDataGlobe
+                locale={locale}
+                selectedCountry={selectedCountry}
+                onSelectCountry={setSelectedCountry}
+                countriesRegistry={movementRegistry}
+              />
+            )}
 
             {/* 5. 위험 온도계 및 국가별 발발 예상 비율 */}
             <ThreatPulseChart initialThemeId="ai_collision" locale={locale} liveCtx={liveCtx} warVote={warVote} />
